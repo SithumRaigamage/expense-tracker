@@ -5,7 +5,6 @@ import { Metric } from '../../models/Metric';
 
 @Component({
   selector: 'app-metrics',
-  standalone: true,
   imports: [CommonModule, BadgeComponent],
   templateUrl: './metrics.component.html',
   styleUrls: ['./metrics.component.css']
@@ -13,14 +12,14 @@ import { Metric } from '../../models/Metric';
 export class MetricsComponent {
   metrics: Metric[] = [
     {
-      icon: 'group',
+      icon: 'fa-users',
       label: 'Customers',
       value: 3782,
       percentage: 11.01,
       trend: 'up'
     },
     {
-      icon: 'inventory_2',
+      icon: 'fa-box',
       label: 'Orders',
       value: 5359,
       percentage: 9.05,
