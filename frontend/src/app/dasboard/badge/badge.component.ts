@@ -9,17 +9,13 @@ type BadgeColor = 'primary' | 'success' | 'error' | 'warning' | 'info' | 'light'
   selector: 'app-badge',
   standalone: true,
   imports: [CommonModule],
-  template: `
-    <span [class]="computedClasses">
-      <i *ngIf="startIcon" class="material-icons mr-1 text-sm">{{startIcon}}</i>
-      <ng-content></ng-content>
-      <i *ngIf="endIcon" class="material-icons ml-1 text-sm">{{endIcon}}</i>
-    </span>
-  `
+  templateUrl: './badge.component.html',
+  styleUrls: ['./badge.component.css']
 })
 export class BadgeComponent {
-  @Input() variant: BadgeVariant = 'light';
+
   @Input() color: BadgeColor = 'primary';
+  @Input() variant: BadgeVariant = 'light';
   @Input() size: BadgeSize = 'md';
   @Input() startIcon?: string;
   @Input() endIcon?: string;
@@ -56,5 +52,19 @@ export class BadgeComponent {
     const sizeClass = this.sizeStyles[this.size];
     const colorStyles = this.variants[this.variant][this.color];
     return `${this.baseStyles} ${sizeClass} ${colorStyles}`;
+  }
+
+  getIconPath(): string {
+    if (!this.startIcon) return '';
+    return this.startIcon === 'arrow_upward'
+      ? 'assets/icons/arrow_upward.png'
+      : 'assets/icons/arrow_downward.png';
+  }
+
+  getIconClasses(): string {
+    if (!this.startIcon) return '';
+    return this.startIcon === 'arrow_upward'
+      ? 'fa-solid fa-chevron-up'
+      : 'fa-solid fa-chevron-down';
   }
 }
