@@ -1,10 +1,13 @@
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { SidebarService } from '../services/sidebar-service.service';
 import { CommonModule } from '@angular/common';
+import { ThemeToggleButtonComponent } from "./theme-toggle-button/theme-toggle-button.component";
+import { NotificationDropdownComponent } from "./notification-dropdown/notification-dropdown.component";
+import { UserDropdownComponent } from "./user-dropdown/user-dropdown.component";
 
 @Component({
   selector: 'app-header',
-  imports: [CommonModule],
+  imports: [CommonModule, ThemeToggleButtonComponent, NotificationDropdownComponent, UserDropdownComponent],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss']
 })
