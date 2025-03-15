@@ -13,20 +13,4 @@ import { MetricsComponent } from "./metrics/metrics.component";
   styleUrl: './dasboard.component.css'
 })
 export class DashboardComponent {
-  metrics: Metric[] = [
-    {
-      icon: 'group',
-      label: 'Customers',
-      value: 3782,
-      percentage: 11.01,
-      trend: 'up'
-    },
-    {
-      icon: 'box',
-      label: 'Orders',
-      value: 5359,
-      percentage: 9.05,
-      trend: 'down'
-    }
-  ];
 }
