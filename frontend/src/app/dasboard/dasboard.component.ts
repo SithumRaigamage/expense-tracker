@@ -7,12 +7,13 @@ import { MonthlyTargetComponent } from "../monthly-target/monthly-target.compone
 import { MonthlyStatComponent } from "../monthly-stat/monthly-stat.component";
 import { StatchartComponent } from "../statchart/statchart.component";
 import { RecentTransactionsComponent } from "../recent-transactions/recent-transactions.component";
+import { ManageWalletsComponent } from "../manage-wallets/manage-wallets.component";
 
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, BadgeComponent, MetricsComponent, MonthlyTargetComponent, MonthlyStatComponent, StatchartComponent, RecentTransactionsComponent],
+  imports: [CommonModule, BadgeComponent, MetricsComponent, MonthlyTargetComponent, MonthlyStatComponent, StatchartComponent, RecentTransactionsComponent, ManageWalletsComponent],
   templateUrl: './dasboard.component.html',
   styleUrl: './dasboard.component.css'
 })
