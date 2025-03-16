@@ -31,27 +31,29 @@
     </p>
   </div>
 
-  <div class="flex items-center justify-center gap-5 px-6 py-3.5 sm:gap-8 sm:py-5">
-    <div>
-      <p class="mb-1 text-center text-gray-500 text-theme-xs dark:text-gray-400 sm:text-sm">
+  <div class="flex items-center justify-between gap-3 px-4 py-2.5 sm:gap-4 sm:py-3">
+    <div class="flex-1 min-w-0">
+      <p class="mb-0.5 text-xs text-gray-500 dark:text-gray-400">
         Current Savings
       </p>
-      <p class="flex items-center justify-center gap-1 text-base font-semibold text-gray-800">
+      <p class="text-sm font-medium text-gray-800 truncate">
         {{ formatCurrency(currentSavings) }}
       </p>
     </div>
 
-    <div class="w-px bg-gray-200 h-7 dark:bg-gray-800"></div>
+    <div class="h-6 w-px bg-gray-200 dark:bg-gray-800"></div>
 
-    <div>
-      <p class="mb-1 text-center text-gray-500 text-theme-xs dark:text-gray-400 sm:text-sm">
+    <div class="flex-1 min-w-0">
+      <p class="mb-0.5 text-xs text-gray-500 dark:text-gray-400">
         Remaining
       </p>
-      <p class="flex items-center justify-center gap-1 text-base font-semibold text-gray-800">
-        {{ formatCurrency(monthlyTarget - currentSavings) }}
+      <div class="flex items-center gap-1">
+        <p class="text-sm font-medium text-gray-800 truncate">
+          {{ formatCurrency(monthlyTarget - currentSavings) }}
+        </p>
         <svg
-          width="16"
-          height="16"
+          width="12"
+          height="12"
           viewBox="0 0 16 16"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
@@ -64,16 +66,16 @@
             [attr.fill]="getSavingsChange() > 0 ? '#039855' : '#D92D20'"
           />
         </svg>
-      </p>
+      </div>
     </div>
 
-    <div class="w-px bg-gray-200 h-7 dark:bg-gray-800"></div>
+    <div class="h-6 w-px bg-gray-200 dark:bg-gray-800"></div>
 
-    <div>
-      <p class="mb-1 text-center text-gray-500 text-theme-xs dark:text-gray-400 sm:text-sm">
+    <div class="flex-1 min-w-0">
+      <p class="mb-0.5 text-xs text-gray-500 dark:text-gray-400">
         Last Month
       </p>
-      <p class="flex items-center justify-center gap-1 text-base font-semibold text-gray-800">
+      <p class="text-sm font-medium text-gray-800 truncate">
         {{ formatCurrency(lastMonthSavings) }}
       </p>
     </div>
