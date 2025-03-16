@@ -2,14 +2,14 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BadgeComponent } from '../dasboard/badge/badge.component';
 
-interface Product {
+interface Transaction {
   id: number;
-  name: string;
-  variants: string;
+  description: string;
   category: string;
-  price: string;
-  status: 'Delivered' | 'Pending' | 'Canceled';
-  image: string;
+  date: string;
+  amount: number;
+  type: 'income' | 'expense';
+  paymentMethod: string;
 }
 
 @Component({
@@ -19,64 +19,67 @@ interface Product {
   templateUrl: './recent-transactions.component.html'
 })
 export class RecentTransactionsComponent {
-  tableData: Product[] = [
+  transactions: Transaction[] = [
     {
       id: 1,
-      name: "MacBook Pro 13",
-      variants: "2 Variants",
-      category: "Laptop",
-      price: "$2399.00",
-      status: "Delivered",
-      image: "/assets/images/product/product-01.jpg",
+      description: "Monthly Salary",
+      category: "Income",
+      date: "2024-03-15",
+      amount: 350000,
+      type: "income",
+      paymentMethod: "Bank Transfer"
     },
     {
       id: 2,
-      name: "Apple Watch Ultra",
-      variants: "1 Variant",
-      category: "Watch",
-      price: "$879.00",
-      status: "Pending",
-      image: "/assets/images/product/product-02.jpg",
+      description: "Grocery Shopping",
+      category: "Food",
+      date: "2024-03-14",
+      amount: 15000,
+      type: "expense",
+      paymentMethod: "Credit Card"
     },
     {
       id: 3,
-      name: "iPhone 15 Pro Max",
-      variants: "2 Variants",
-      category: "SmartPhone",
-      price: "$1869.00",
-      status: "Delivered",
-      image: "/assets/images/product/product-03.jpg",
+      description: "Electricity Bill",
+      category: "Utilities",
+      date: "2024-03-13",
+      amount: 8500,
+      type: "expense",
+      paymentMethod: "Online Payment"
     },
     {
       id: 4,
-      name: "iPad Pro 3rd Gen",
-      variants: "2 Variants",
-      category: "Electronics",
-      price: "$1699.00",
-      status: "Canceled",
-      image: "/assets/images/product/product-04.jpg",
+      description: "Freelance Work",
+      category: "Income",
+      date: "2024-03-12",
+      amount: 45000,
+      type: "income",
+      paymentMethod: "PayPal"
     },
     {
       id: 5,
-      name: "AirPods Pro 2nd Gen",
-      variants: "1 Variant",
-      category: "Accessories",
-      price: "$240.00",
-      status: "Delivered",
-      image: "/assets/images/product/product-05.jpg",
+      description: "Restaurant Dinner",
+      category: "Food",
+      date: "2024-03-11",
+      amount: 4500,
+      type: "expense",
+      paymentMethod: "Cash"
     }
   ];
 
-  getBadgeColor(status: string): 'success' | 'warning' | 'error' {
-    switch (status) {
-      case 'Delivered':
-        return 'success';
-      case 'Pending':
-        return 'warning';
-      case 'Canceled':
-        return 'error';
-      default:
-        return 'error';
-    }
+  getBadgeColor(type: string): 'success' | 'error' {
+    return type === 'income' ? 'success' : 'error';
+  }
+
+  formatCurrency(amount: number): string {
+    return `LKR ${amount.toLocaleString()}`;
+  }
+
+  formatDate(dateString: string): string {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
   }
 }
