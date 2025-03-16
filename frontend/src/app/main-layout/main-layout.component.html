@@ -1,11 +1,13 @@
-<div class="grid grid-cols-4 grid-rows-6">
-  <div class="col-start-1 col-end-2 row-start-1 row-end-7">
+<div class="grid h-screen grid-cols-4">
+  <div class="col-span-1">
     <!-- sidebar content -->
   </div>
-  <div class="col-start-2 col-end-5 row-start-1 row-end-2">
-    <app-header></app-header>
-  </div>
-  <div class="col-start-2 col-end-5 row-start-2 row-end-7">
-    <app-dashboard></app-dashboard>
+  <div class="col-span-3">
+    <div class="h-25">
+      <app-header></app-header>
+    </div>
+    <div class="h-[calc(100vh-64px)] overflow-y-auto">
+      <app-dashboard></app-dashboard>
+    </div>
   </div>
 </div>

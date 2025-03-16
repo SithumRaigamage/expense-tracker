@@ -5,12 +5,13 @@ import { BadgeComponent } from './badge/badge.component';
 import { MetricsComponent } from "./metrics/metrics.component";
 import { MonthlyTargetComponent } from "../monthly-target/monthly-target.component";
 import { MonthlyStatComponent } from "../monthly-stat/monthly-stat.component";
+import { StatchartComponent } from "../statchart/statchart.component";
 
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, BadgeComponent, MetricsComponent, MonthlyTargetComponent, MonthlyStatComponent],
+  imports: [CommonModule, BadgeComponent, MetricsComponent, MonthlyTargetComponent, MonthlyStatComponent, StatchartComponent],
   templateUrl: './dasboard.component.html',
   styleUrl: './dasboard.component.css'
 })
