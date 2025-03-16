@@ -1,22 +1,41 @@
+<!-- Main dashboard grid container with responsive columns -->
 <div class="grid grid-cols-12 gap-4 md:gap-6">
+  <!-- Top left section: Metrics and Monthly Statistics -->
   <div class="col-span-12 space-y-6 xl:col-span-7">
+    <!-- Key metrics/summary cards -->
     <app-metrics></app-metrics>
+    <!-- Monthly statistics visualization -->
     <app-monthly-stat></app-monthly-stat>
   </div>
 
+  <!-- Top right section: Monthly Target Widget -->
   <div class="col-span-12 xl:col-span-5 pr-6">
     <app-monthly-target></app-monthly-target>
   </div>
 
+  <!-- Middle section: Full-width Statistics Chart -->
   <div class="col-span-12 pr-6">
     <app-statchart></app-statchart>
   </div>
 
+  <!-- Bottom left section: Wallet Management -->
   <div class="col-span-12 xl:col-span-5">
     <app-manage-wallets></app-manage-wallets>
   </div>
 
+  <!-- Bottom right section: Recent Transactions List -->
   <div class="col-span-12 xl:col-span-7 pr-6">
     <app-recent-transactions></app-recent-transactions>
   </div>
+
+  <!-- Budget Planning Widget -->
+  <div class="col-span-12 xl:col-span-6 pr-6">
+    <app-budget-planner></app-budget-planner>
+  </div>
+
+  <!-- Upcoming Bills Calendar -->
+  <div class="col-span-12 xl:col-span-4">
+    <app-upcoming-bills></app-upcoming-bills>
+  </div>
+
 </div>

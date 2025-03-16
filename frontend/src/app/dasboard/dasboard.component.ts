@@ -8,12 +8,14 @@ import { MonthlyStatComponent } from "../monthly-stat/monthly-stat.component";
 import { StatchartComponent } from "../statchart/statchart.component";
 import { RecentTransactionsComponent } from "../recent-transactions/recent-transactions.component";
 import { ManageWalletsComponent } from "../manage-wallets/manage-wallets.component";
+import { BudgetPlannerComponent } from "../budget-planner/budget-planner.component";
+import { UpcomingBillsComponent } from "../upcoming-bills/upcoming-bills.component";
 
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, BadgeComponent, MetricsComponent, MonthlyTargetComponent, MonthlyStatComponent, StatchartComponent, RecentTransactionsComponent, ManageWalletsComponent],
+  imports: [CommonModule, BadgeComponent, MetricsComponent, MonthlyTargetComponent, MonthlyStatComponent, StatchartComponent, RecentTransactionsComponent, ManageWalletsComponent, BudgetPlannerComponent, UpcomingBillsComponent],
   templateUrl: './dasboard.component.html',
   styleUrl: './dasboard.component.css'
 })
