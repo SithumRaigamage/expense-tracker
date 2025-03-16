@@ -7,7 +7,10 @@ interface Bill {
   category: string;
   amount: number;
   dueDate: Date;
-  status: 'Pending' | 'Paid' | 'Overdue';
+  status: 'Upcoming' | 'Due Today' | 'Overdue';
+  iconUrl: string;
+  provider: string;
+  reminderSet?: boolean;
 }
 
 @Component({
@@ -20,19 +23,36 @@ export class UpcomingBillsComponent implements OnInit {
   upcomingBills: Bill[] = [
     {
       id: '1',
-      name: 'Electricity Bill',
-      category: 'Utilities',
-      amount: 150.00,
-      dueDate: new Date('2024-03-25'),
-      status: 'Pending'
+      name: 'Mobile Data Plan',
+      category: 'Subscription',
+      amount: 2000.00,
+      dueDate: new Date('2024-03-28'),
+      status: 'Upcoming',
+      iconUrl: 'assets/images/upcoming_bills/mobitel_logo.png',
+      provider: 'Mobitel',
+      reminderSet: true
     },
     {
       id: '2',
-      name: 'Internet Service',
-      category: 'Utilities',
-      amount: 89.99,
-      dueDate: new Date('2024-03-28'),
-      status: 'Paid'
+      name: 'Spotify Premium',
+      category: 'Subscription',
+      amount: 350.00,
+      dueDate: new Date('2024-03-25'),
+      status: 'Upcoming',
+      iconUrl: 'assets/images/upcoming_bills/spotify_logo.png',
+      provider: 'Spotify',
+      reminderSet: true
+    },
+    {
+      id: '3',
+      name: 'Voice Plan',
+      category: 'Subscription',
+      amount:200.00,
+      dueDate: new Date('2024-03-25'),
+      status: 'Upcoming',
+      iconUrl: 'assets/images/upcoming_bills/dialog_logo.png',
+      provider: 'Dialog',
+      reminderSet: true
     }
   ];
 
@@ -44,9 +64,10 @@ export class UpcomingBillsComponent implements OnInit {
     const baseClasses = 'text-white';
     const categoryClasses: { [key: string]: string } = {
       'Utilities': 'bg-blue-500',
-      'Rent': 'bg-purple-500',
-      'Insurance': 'bg-green-500',
       'Subscription': 'bg-yellow-500',
+      'Entertainment': 'bg-pink-500',
+      'Internet': 'bg-indigo-500',
+      'Insurance': 'bg-green-500',
       'default': 'bg-gray-500'
     };
 
@@ -55,12 +76,26 @@ export class UpcomingBillsComponent implements OnInit {
 
   getStatusClass(status: string): string {
     const statusClasses: { [key: string]: string } = {
-      'Pending': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500',
-      'Paid': 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-500',
+      'Upcoming': 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-500',
+      'Due Today': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500',
       'Overdue': 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-500'
     };
 
     return statusClasses[status] || '';
+  }
+
+  getDaysUntilDue(dueDate: Date): number {
+    const today = new Date();
+    const diffTime = dueDate.getTime() - today.getTime();
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  }
+
+  toggleReminder(billId: string): void {
+    const bill = this.upcomingBills.find(b => b.id === billId);
+    if (bill) {
+      bill.reminderSet = !bill.reminderSet;
+      // TODO: Integrate with notification service
+    }
   }
 
   formatCurrency(amount: number): string {
