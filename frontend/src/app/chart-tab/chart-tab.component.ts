@@ -1,7 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-type TabOption = 'optionOne' | 'optionTwo' | 'optionThree';
+type TabOption = 'monthly' | 'quarterly' | 'annually';
 
 @Component({
   selector: 'app-chart-tab',
@@ -11,7 +11,8 @@ type TabOption = 'optionOne' | 'optionTwo' | 'optionThree';
   styleUrl: './chart-tab.component.css'
 })
 export class ChartTabComponent {
-  selected: TabOption = 'optionOne';
+  @Output() periodChanged = new EventEmitter<TabOption>();
+  selected: TabOption = 'monthly';
 
   getButtonClass(option: TabOption): string {
     return this.selected === option
@@ -21,5 +22,6 @@ export class ChartTabComponent {
 
   setSelected(option: TabOption): void {
     this.selected = option;
+    this.periodChanged.emit(option);
   }
 }

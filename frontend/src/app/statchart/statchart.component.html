@@ -9,7 +9,7 @@
       </p>
     </div>
     <div class="flex items-start w-full gap-3 sm:justify-end">
-      <app-chart-tab></app-chart-tab>
+      <app-chart-tab (periodChanged)="onPeriodChanged($event)"></app-chart-tab>
     </div>
   </div>
 
