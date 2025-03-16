@@ -24,7 +24,15 @@ export class BudgetPlannerComponent implements OnInit {
       imageUrl: 'assets/images/product_goals/airpods4.png',
       targetAmount: 42000,
       savedAmount: 0,
-      targetDate: new Date('2024-12-31')
+      targetDate: new Date('2025-12-31')
+    },
+    {
+      id: '2',
+      name:'Monitor Stand',
+      imageUrl: 'assets/images/product_goals/monitor_stand.png',
+      targetAmount: 9000,
+      savedAmount: 4000,
+      targetDate: new Date('2025-03-31')
     }
   ];
 
