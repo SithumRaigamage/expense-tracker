@@ -7,23 +7,35 @@ import { Metric } from '../../models/Metric';
   selector: 'app-metrics',
   imports: [CommonModule, BadgeComponent],
   templateUrl: './metrics.component.html',
-  styleUrls: ['./metrics.component.css']
+  styleUrls: ['./metrics.component.css'],
+  standalone: true
 })
 export class MetricsComponent {
   metrics: Metric[] = [
     {
-      icon: 'fa-users',
-      label: 'Customers',
-      value: 3782,
-      percentage: 11.01,
-      trend: 'up'
+      icon: 'fa-building-columns', // Bank icon
+      label: 'Bank Balance',
+      value: 125000,
+      percentage: 15.25,
+      trend: 'up',
+      currency: 'LKR'
     },
     {
-      icon: 'fa-box',
-      label: 'Orders',
-      value: 5359,
-      percentage: 9.05,
-      trend: 'down'
+      icon: 'fa-wallet', // Wallet icon
+      label: 'Cash in Hand',
+      value: 25000,
+      percentage: 8.15,
+      trend: 'down',
+      currency: 'LKR'
     }
   ];
+
+  // Helper method to format currency
+  formatCurrency(value: number): string {
+    return `${value.toLocaleString('en-LK', {
+      style: 'currency',
+      currency: 'LKR',
+      minimumFractionDigits: 2
+    })}`;
+  }
 }

@@ -4,4 +4,5 @@ export interface Metric {
   value: number;
   percentage: number;
   trend: 'up' | 'down';
+  currency: string;
 }
