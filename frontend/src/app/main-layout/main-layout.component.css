@@ -1,11 +1,1 @@
-.parent {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: repeat(3, 1fr);
-  grid-column-gap: 0px;
-  grid-row-gap: 0px;
-  }
-
-  .sidebar { grid-area: 1 / 1 / 4 / 2; }
-  .header { grid-area: 1 / 2 / 2 / 5; }
-  .main { grid-area: 2 / 2 / 4 / 5; }
+@import "tailwindcss";
