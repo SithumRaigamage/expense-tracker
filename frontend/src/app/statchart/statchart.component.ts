@@ -40,36 +40,42 @@ export type ChartOptions = {
 })
 export class StatchartComponent {
   @ViewChild("chart") chart!: ChartComponent;
-  public chartOptions: ChartOptions; // Remove Partial<>
+  public chartOptions: ChartOptions;
+
+  private readonly COLORS = {
+    income: '#22C55E', // Green for income
+    expense: '#EF4444', // Red for expenses
+    textMuted: '#6B7280' // Gray for labels
+  };
 
   constructor() {
     this.chartOptions = {
       series: [{
-        name: "Sales",
-        data: [180, 190, 170, 160, 175, 165, 170, 205, 230, 210, 240, 235]
+        name: "Income",
+        data: [280000, 290000, 270000, 285000, 275000, 265000, 270000, 305000, 330000, 310000, 340000, 335000]
       },
       {
-        name: "Revenue",
-        data: [40, 30, 50, 40, 55, 40, 70, 100, 110, 120, 150, 140]
+        name: "Expenses",
+        data: [240000, 230000, 250000, 240000, 255000, 240000, 270000, 300000, 310000, 320000, 350000, 340000]
       }] as ApexAxisChartSeries,
       chart: {
-        fontFamily: "Outfit, sans-serif",
+        fontFamily: "Inter, sans-serif",
         height: 310,
         type: "area",
         toolbar: {
           show: false
         }
       },
-      colors: ["#465FFF", "#9CB9FF"],
+      colors: [this.COLORS.income, this.COLORS.expense],
       stroke: {
-        curve: "straight",
+        curve: "smooth",
         width: [2, 2]
       },
       fill: {
         type: "gradient",
         gradient: {
-          opacityFrom: 0.55,
-          opacityTo: 0
+          opacityFrom: 0.4,
+          opacityTo: 0.1
         }
       },
       markers: {
@@ -97,8 +103,9 @@ export class StatchartComponent {
       },
       tooltip: {
         enabled: true,
-        x: {
-          format: "dd MMM yyyy"
+        theme: 'dark',
+        y: {
+          formatter: (value) => `LKR ${value.toLocaleString()}`
         }
       },
       xaxis: {
@@ -120,21 +127,19 @@ export class StatchartComponent {
       yaxis: {
         labels: {
           style: {
-            fontSize: "12px",
-            colors: ["#6B7280"]
-          }
-        },
-        title: {
-          text: "",
-          style: {
-            fontSize: "0px"
-          }
+            colors: [this.COLORS.textMuted],
+            fontSize: "12px"
+          },
+          formatter: (value) => `LKR ${(value/1000).toFixed(0)}K`
         }
       },
       legend: {
-        show: false,
+        show: true,
         position: "top",
-        horizontalAlign: "left"
+        horizontalAlign: "right",
+        labels: {
+          colors: this.COLORS.textMuted
+        }
       }
     };
   }
