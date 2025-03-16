@@ -76,21 +76,7 @@
 
     <!-- Content Grid -->
     <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
-      <!-- Left: Chart Section -->
-      <div class="h-[500px] rounded-xl border border-gray-200 bg-gray-50 p-6 dark:border-gray-800 dark:bg-gray-800/50">
-        <div class="flex items-center justify-between mb-4">
-          <h4 class="font-medium text-gray-900 dark:text-white">Balance History</h4>
-          <div class="flex items-center gap-2">
-            <span class="text-sm text-gray-500 dark:text-gray-400">Last 6 months</span>
-          </div>
-        </div>
-        <apx-chart [series]="chartOptions.series!" [chart]="chartOptions.chart!" [xaxis]="chartOptions.xaxis!"
-          [yaxis]="chartOptions.yaxis!" [dataLabels]="chartOptions.dataLabels!" [grid]="chartOptions.grid!"
-          [stroke]="chartOptions.stroke!" [tooltip]="chartOptions.tooltip!" [fill]="chartOptions.fill!"
-          [colors]="chartOptions.colors!" [theme]="chartOptions.theme!"></apx-chart>
-      </div>
-
-      <!-- Right: Transactions Table -->
+      <!-- Left: Transactions Table -->
       <div class="rounded-xl border border-gray-200 bg-gray-50 p-6 dark:border-gray-800 dark:bg-gray-800/50">
         <div class="flex items-center justify-between mb-4">
           <h4 class="font-medium text-gray-900 dark:text-white">Recent Transactions</h4>
@@ -133,6 +119,20 @@
             </tbody>
           </table>
         </div>
+      </div>
+
+      <!-- Right: Chart Section -->
+      <div class="h-[500px] rounded-xl border border-gray-200 bg-gray-50 p-6 dark:border-gray-800 dark:bg-gray-800/50">
+        <div class="flex items-center justify-between mb-4">
+          <h4 class="font-medium text-gray-900 dark:text-white">Balance History</h4>
+          <div class="flex items-center gap-2">
+            <span class="text-sm text-gray-500 dark:text-gray-400">Last 6 months</span>
+          </div>
+        </div>
+        <apx-chart [series]="chartOptions.series!" [chart]="chartOptions.chart!" [xaxis]="chartOptions.xaxis!"
+          [yaxis]="chartOptions.yaxis!" [dataLabels]="chartOptions.dataLabels!" [grid]="chartOptions.grid!"
+          [stroke]="chartOptions.stroke!" [tooltip]="chartOptions.tooltip!" [fill]="chartOptions.fill!"
+          [colors]="chartOptions.colors!" [theme]="chartOptions.theme!"></apx-chart>
       </div>
     </div>
   </div>
