@@ -43,8 +43,8 @@ export class ChartComponent implements OnInit {
     this.chartOptions = {
       series: [
         {
-          name: 'Sales',
-          data: [44, 55, 57, 56, 61, 58, 63, 60, 66, 68, 78, 85],
+          name: 'Expenses',
+          data: [45000, 52000, 38000, 43000, 32000, 35000, 42000, 48000, 53000, 41000, 37000, 39000],
           color: '#4318FF'
         }
       ],
@@ -96,7 +96,7 @@ export class ChartComponent implements OnInit {
             fontWeight: '500',
             fontFamily: 'Inter, sans-serif'
           },
-          formatter: (value) => `$${value}K`
+          formatter: (value) => `LKR ${(value/1000).toFixed(0)}K`
         }
       },
       grid: {
@@ -127,7 +127,7 @@ export class ChartComponent implements OnInit {
           fontFamily: 'Inter, sans-serif',
         },
         y: {
-          formatter: (val) => `$ ${val}K`
+          formatter: (val) => `LKR ${val.toLocaleString()}`
         }
       },
       fill: {
