@@ -18,70 +18,72 @@
     </div>
   </div>
 
-  <!-- Goals Grid -->
-  <div class="grid gap-6 sm:grid-cols-2">
+  <!-- Goals List -->
+  <div class="space-y-4">
     <!-- Goal Card -->
-    <div *ngFor="let goal of goals" class="rounded-xl border border-gray-200 bg-gray-50 p-6 dark:border-gray-800 dark:bg-gray-800/50">
-      <!-- Card Header -->
-      <div class="flex items-start justify-between mb-4">
-        <div class="flex items-center gap-4">
+    <div *ngFor="let goal of goals" class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/50">
+      <div class="flex items-center gap-6">
+        <!-- Left: Image and Basic Info -->
+        <div class="flex items-center gap-4 min-w-[240px]">
           <img [src]="goal.imageUrl" alt="Product image" class="h-16 w-16 rounded-lg object-cover shadow-sm">
           <div>
             <h4 class="font-medium text-gray-900 dark:text-white">{{goal.name}}</h4>
             <p class="text-sm text-gray-500 dark:text-gray-400">Target: {{formatCurrency(goal.targetAmount)}}</p>
           </div>
         </div>
-        <button class="text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 p-1">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="1"></circle>
-            <circle cx="12" cy="5" r="1"></circle>
-            <circle cx="12" cy="19" r="1"></circle>
-          </svg>
-        </button>
-      </div>
 
-      <!-- Progress Bar -->
-      <div class="mb-4">
-        <div class="flex justify-between text-sm mb-2">
-          <span class="text-gray-500 dark:text-gray-400">Progress</span>
-          <span class="font-medium text-gray-900 dark:text-white">{{calculateProgress(goal)}}%</span>
-        </div>
-        <div class="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-700">
-          <div class="h-2 rounded-full transition-all duration-300"
-               [ngClass]="getProgressColor(calculateProgress(goal))"
-               [style.width]="calculateProgress(goal) + '%'"></div>
-        </div>
-      </div>
+        <!-- Middle: Progress Bar and Details -->
+        <div class="flex-1">
+          <div class="flex items-center gap-4">
+            <!-- Progress Bar -->
+            <div class="flex-1">
+              <div class="flex justify-between text-sm mb-1">
+                <span class="text-gray-500 dark:text-gray-400">Progress</span>
+                <span class="font-medium text-gray-900 dark:text-white">{{calculateProgress(goal)}}%</span>
+              </div>
+              <div class="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-700">
+                <div class="h-2 rounded-full transition-all duration-300"
+                     [ngClass]="getProgressColor(calculateProgress(goal))"
+                     [style.width]="calculateProgress(goal) + '%'"></div>
+              </div>
+            </div>
 
-      <!-- Goal Details -->
-      <div class="space-y-2 mb-4">
-        <div class="flex justify-between text-sm">
-          <span class="text-gray-500 dark:text-gray-400">Saved</span>
-          <span class="font-medium text-gray-900 dark:text-white">{{formatCurrency(goal.savedAmount)}}</span>
+            <!-- Amount Details -->
+            <div class="flex gap-6 min-w-[300px]">
+              <div class="flex flex-col">
+                <span class="text-sm text-gray-500 dark:text-gray-400">Saved</span>
+                <span class="font-medium text-gray-900 dark:text-white">{{formatCurrency(goal.savedAmount)}}</span>
+              </div>
+              <div class="flex flex-col">
+                <span class="text-sm text-gray-500 dark:text-gray-400">Remaining</span>
+                <span class="font-medium text-gray-900 dark:text-white">{{formatCurrency(goal.targetAmount - goal.savedAmount)}}</span>
+              </div>
+              <div class="flex flex-col">
+                <span class="text-sm text-gray-500 dark:text-gray-400">Target Date</span>
+                <span class="font-medium text-gray-900 dark:text-white">{{formatDate(goal.targetDate)}}</span>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="flex justify-between text-sm">
-          <span class="text-gray-500 dark:text-gray-400">Remaining</span>
-          <span class="font-medium text-gray-900 dark:text-white">{{formatCurrency(goal.targetAmount - goal.savedAmount)}}</span>
-        </div>
-        <div class="flex justify-between text-sm">
-          <span class="text-gray-500 dark:text-gray-400">Target Date</span>
-          <span class="font-medium text-gray-900 dark:text-white">{{formatDate(goal.targetDate)}}</span>
-        </div>
-      </div>
 
-      <!-- Action Buttons -->
-      <div class="flex gap-3">
-        <button class="flex-1 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-dark transition-colors">
-          Add Money
-        </button>
-        <button class="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors">
-          Edit Goal
-        </button>
+        <!-- Right: Actions -->
+        <div class="flex items-center gap-3 min-w-[200px]">
+          <button class="flex-1 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white hover:bg-primary-dark transition-colors">
+            Add Money
+          </button>
+          <button class="text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 p-1">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="1"></circle>
+              <circle cx="12" cy="5" r="1"></circle>
+              <circle cx="12" cy="19" r="1"></circle>
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
 
     <!-- Empty State -->
-    <div *ngIf="goals.length === 0" class="col-span-full text-center py-12">
+    <div *ngIf="goals.length === 0" class="text-center py-12">
       <div class="mx-auto w-16 h-16 text-gray-400 mb-4">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="10"></circle>

@@ -22,8 +22,8 @@ export class BudgetPlannerComponent implements OnInit {
       id: '1',
       name: 'Apple AirPods 4',
       imageUrl: 'assets/images/product_goals/airpods4.png',
-      targetAmount: 2499.99,
-      savedAmount: 1500,
+      targetAmount: 42000,
+      savedAmount: 0,
       targetDate: new Date('2024-12-31')
     }
   ];
@@ -39,7 +39,7 @@ export class BudgetPlannerComponent implements OnInit {
   formatCurrency(amount: number): string {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'LKR'
     }).format(amount);
   }
 

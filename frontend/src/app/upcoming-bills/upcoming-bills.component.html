@@ -1,1 +1,88 @@
-<p>upcoming-bills works!</p>
+<div class="rounded-2xl border border-gray-200 bg-white px-4 pb-3 pt-4 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6">
+  <!-- Header Section -->
+  <div class="flex flex-col gap-2 mb-6 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
+        Upcoming Bills
+      </h3>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <button class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Add Bill
+      </button>
+    </div>
+  </div>
+
+  <!-- Bills List -->
+  <div class="space-y-4">
+    <!-- Bill Card -->
+    <div *ngFor="let bill of upcomingBills" class="rounded-xl border border-gray-200 bg-gray-50 p-6 dark:border-gray-800 dark:bg-gray-800/50">
+      <div class="grid grid-cols-12 gap-6 items-center">
+        <!-- Left: Bill Info (3 columns) -->
+        <div class="col-span-3 flex items-center gap-4">
+          <div [ngClass]="getBillIconClass(bill.category)" class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0H4m16 0l-1.5-3h-13L4 16"></path>
+            </svg>
+          </div>
+          <div>
+            <h4 class="font-medium text-gray-900 dark:text-white">{{bill.name}}</h4>
+            <p class="text-sm text-gray-500 dark:text-gray-400">{{bill.category}}</p>
+          </div>
+        </div>
+
+        <!-- Middle: Date and Amount (6 columns) -->
+        <div class="col-span-6 grid grid-cols-2 gap-6">
+          <div class="flex flex-col">
+            <span class="text-sm text-gray-500 dark:text-gray-400">Due Date</span>
+            <span class="font-medium text-gray-900 dark:text-white">{{formatDate(bill.dueDate)}}</span>
+          </div>
+          <div class="flex flex-col">
+            <span class="text-sm text-gray-500 dark:text-gray-400">Amount</span>
+            <span class="font-medium text-gray-900 dark:text-white">{{formatCurrency(bill.amount)}}</span>
+          </div>
+        </div>
+
+        <!-- Right: Status and Actions (3 columns) -->
+        <div class="col-span-3 flex items-center justify-end gap-4">
+          <span [ngClass]="getStatusClass(bill.status)" class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium">
+            {{bill.status}}
+          </span>
+          <button class="text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 p-1">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="1"></circle>
+              <circle cx="12" cy="5" r="1"></circle>
+              <circle cx="12" cy="19" r="1"></circle>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="upcomingBills.length === 0" class="text-center py-12">
+      <div class="mx-auto w-16 h-16 text-gray-400 mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+      </div>
+      <h3 class="text-gray-900 font-medium dark:text-white mb-2">No upcoming bills</h3>
+      <p class="text-gray-500 dark:text-gray-400">Add your first bill to start tracking</p>
+      <button class="mt-6 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-dark transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Add Your First Bill
+      </button>
+    </div>
+  </div>
+</div>
