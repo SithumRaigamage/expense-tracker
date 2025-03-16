@@ -4,13 +4,15 @@
       Monthly transactions
     </h3>
     <div class="flex items-start w-full gap-3 sm:justify-end">
-      <app-monthly-transaction-tab></app-monthly-transaction-tab>
+      <app-monthly-transaction-tab
+        (tabChanged)="onTabChanged($event)"
+      ></app-monthly-transaction-tab>
     </div>
   </div>
 
-  <div className="max-w-full overflow-x-auto custom-scrollbar">
-    <div className="-ml-5 min-w-[650px] xl:min-w-full pl-2">
-      <app-chart></app-chart>
+  <div class="max-w-full">
+    <div class="-ml-5 min-w-[650px] xl:min-w-full pl-2">
+      <app-chart [chartType]="currentChartType"></app-chart>
     </div>
   </div>
 </div>

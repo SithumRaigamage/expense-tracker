@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   ApexAxisChartSeries,
@@ -12,7 +12,8 @@ import {
   ApexTooltip,
   ApexPlotOptions,
   ApexFill,
-  NgApexchartsModule
+  NgApexchartsModule,
+  ApexTheme
 } from 'ng-apexcharts';
 
 export type ChartOptions = {
@@ -27,6 +28,16 @@ export type ChartOptions = {
   tooltip: ApexTooltip;
   plotOptions: ApexPlotOptions;
   fill: ApexFill;
+  theme: ApexTheme;
+  colors: string[];
+  states: {
+    hover: {
+      filter: {
+        type?: string;
+        value?: number;
+      };
+    }
+  };
 };
 
 @Component({
@@ -36,18 +47,33 @@ export type ChartOptions = {
   templateUrl: './chart.component.html',
   styleUrls: ['./chart.component.css']
 })
-export class ChartComponent implements OnInit {
-  public chartOptions: Partial<ChartOptions>;
+export class ChartComponent implements OnChanges {
+  @Input() chartType: 'income' | 'expense' | 'all' = 'all';
+  public chartOptions!: Partial<ChartOptions>;
+
+  private readonly COLORS = {
+    income: '#22C55E', // Bright green
+    expense: '#EF4444', // Bright red
+    textMuted: '#A3AED0', // Muted text color
+    grid: '#E2E8F0', // Grid color
+  };
+
+  private incomeData = [55000, 62000, 48000, 53000, 42000, 45000, 52000, 58000, 63000, 51000, 47000, 49000];
+  private expenseData = [45000, 52000, 38000, 43000, 32000, 35000, 42000, 48000, 53000, 41000, 37000, 39000];
 
   constructor() {
+    this.initializeChart();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['chartType']) {
+      this.updateChartData();
+    }
+  }
+
+  private initializeChart(): void {
     this.chartOptions = {
-      series: [
-        {
-          name: 'Expenses',
-          data: [45000, 52000, 38000, 43000, 32000, 35000, 42000, 48000, 53000, 41000, 37000, 39000],
-          color: '#4318FF'
-        }
-      ],
+      series: this.getSeriesData(),
       chart: {
         type: 'bar',
         height: 180,
@@ -62,6 +88,11 @@ export class ChartComponent implements OnInit {
           horizontal: false,
           columnWidth: '65%',
           borderRadius: 5,
+          colors: {
+            ranges: [],
+            backgroundBarColors: [],
+            backgroundBarOpacity: 1,
+          },
         }
       },
       dataLabels: {
@@ -75,7 +106,7 @@ export class ChartComponent implements OnInit {
         categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
         labels: {
           style: {
-            colors: Array(12).fill('#A3AED0'),
+            colors: Array(12).fill(this.COLORS.textMuted),
             fontSize: '12px',
             fontWeight: '500',
             fontFamily: 'Inter, sans-serif'
@@ -91,7 +122,7 @@ export class ChartComponent implements OnInit {
       yaxis: {
         labels: {
           style: {
-            colors: ['#A3AED0'],
+            colors: [this.COLORS.textMuted],
             fontSize: '12px',
             fontWeight: '500',
             fontFamily: 'Inter, sans-serif'
@@ -101,7 +132,7 @@ export class ChartComponent implements OnInit {
       },
       grid: {
         show: true,
-        borderColor: '#E2E8F0',
+        borderColor: this.COLORS.grid,
         strokeDashArray: 5,
         xaxis: {
           lines: {
@@ -132,9 +163,69 @@ export class ChartComponent implements OnInit {
       },
       fill: {
         opacity: 1
+      },
+      colors: this.getChartColors(),
+      states: {
+        hover: {
+          filter: {
+            type: 'darken' as const,
+            value: 0.9
+          }
+        }
+      },
+      theme: {
+        mode: 'light',
+        palette: 'palette1'
       }
     };
   }
 
-  ngOnInit(): void {}
+  private getSeriesData() {
+    switch (this.chartType) {
+      case 'income':
+        return [{
+          name: 'Income',
+          data: this.incomeData,
+          color: this.COLORS.income
+        }];
+      case 'expense':
+        return [{
+          name: 'Expenses',
+          data: this.expenseData,
+          color: this.COLORS.expense
+        }];
+      default:
+        return [
+          {
+            name: 'Income',
+            data: this.incomeData,
+            color: this.COLORS.income
+          },
+          {
+            name: 'Expenses',
+            data: this.expenseData,
+            color: this.COLORS.expense
+          }
+        ];
+    }
+  }
+
+  private getChartColors() {
+    switch (this.chartType) {
+      case 'income':
+        return [this.COLORS.income];
+      case 'expense':
+        return [this.COLORS.expense];
+      default:
+        return [this.COLORS.income, this.COLORS.expense];
+    }
+  }
+
+  private updateChartData(): void {
+    if (this.chartOptions) {
+      const newSeriesData = this.getSeriesData();
+      this.chartOptions.series = newSeriesData;
+      this.chartOptions.colors = newSeriesData.map(series => series.color as string);
+    }
+  }
 }
