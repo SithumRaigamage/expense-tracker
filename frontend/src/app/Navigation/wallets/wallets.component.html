@@ -1,1 +1,152 @@
-<p>wallets works!</p>
+<div class="p-6">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Wallets</h1>
+    <button (click)="openDrawer()"
+            class="inline-flex items-center gap-2 rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium  hover:bg-primary-600">
+      <fa-icon [icon]="faPlus"></fa-icon>
+      Add Wallet
+    </button>
+  </div>
+
+  <!-- Wallets Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div *ngFor="let wallet of wallets"
+         class="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <fa-icon [icon]="faWallet" class="text-primary-500 text-xl"></fa-icon>
+          <h3 class="font-semibold text-gray-900 dark:text-white">{{wallet.name}}</h3>
+        </div>
+        <div class="flex items-center gap-2">
+          <button (click)="openDrawer(wallet)"
+                  class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+            <fa-icon [icon]="faPencil"></fa-icon>
+          </button>
+          <button (click)="deleteWallet(wallet.id)"
+                  class="text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400">
+            <fa-icon [icon]="faTrash"></fa-icon>
+          </button>
+        </div>
+      </div>
+
+      <div class="space-y-2">
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-500 dark:text-gray-400">Balance</span>
+          <span class="font-medium text-gray-900 dark:text-white">{{wallet.balance | currency:wallet.currency}}</span>
+        </div>
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-500 dark:text-gray-400">Type</span>
+          <span class="capitalize text-gray-900 dark:text-white">{{wallet.type}}</span>
+        </div>
+        <div *ngIf="wallet.paymentMethod" class="flex justify-between text-sm">
+          <span class="text-gray-500 dark:text-gray-400">Payment Method</span>
+          <span class="text-gray-900 dark:text-white">{{wallet.paymentMethod}}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Side Drawer -->
+  <div *ngIf="isDrawerOpen"
+       class="fixed inset-0 bg-gray-900/50 z-40"
+       (click)="closeDrawer()">
+  </div>
+
+  <div class="fixed inset-y-0 right-0 w-96 bg-white dark:bg-gray-800 shadow-lg transform transition-transform duration-300 ease-in-out z-50"
+       [class.translate-x-full]="!isDrawerOpen"
+       [class.translate-x-0]="isDrawerOpen">
+    <div class="h-full flex flex-col">
+      <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+          {{selectedWallet ? 'Edit Wallet' : 'Add New Wallet'}}
+        </h2>
+      </div>
+
+      <div class="p-6 flex-1 overflow-y-auto">
+        <!-- Add/Edit Form will go here -->
+        <form [formGroup]="walletForm" (ngSubmit)="onSubmit()" class="space-y-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Wallet Name
+            </label>
+            <input type="text"
+                   formControlName="name"
+                   class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                   placeholder="Enter wallet name">
+            <div class="mt-1 text-sm text-red-500" *ngIf="nameErrors.required">
+              Wallet name is required
+            </div>
+            <div class="mt-1 text-sm text-red-500" *ngIf="nameErrors.minlength">
+              Wallet name must be at least 3 characters
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Type
+            </label>
+            <select formControlName="type"
+                    class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+              <option value="cash">Cash</option>
+              <option value="bank">Bank Account</option>
+              <option value="credit">Credit Card</option>
+              <option value="savings">Savings Account</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Initial Balance
+            </label>
+            <input type="number"
+                   formControlName="balance"
+                   class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                   placeholder="0.00">
+            <div class="mt-1 text-sm text-red-500" *ngIf="balanceErrors.required">
+              Balance is required
+            </div>
+            <div class="mt-1 text-sm text-red-500" *ngIf="balanceErrors.min">
+              Balance cannot be negative
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Currency
+            </label>
+            <select formControlName="currency"
+                    class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+              <option value="LKR">LKR - Sri Lankan Rupee</option>
+              <option value="USD">USD - US Dollar</option>
+              <option value="EUR">EUR - Euro</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Payment Method (Optional)
+            </label>
+            <input type="text"
+                   formControlName="paymentMethod"
+                   class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                   placeholder="Enter payment method">
+          </div>
+
+          <div class="flex justify-end gap-4">
+            <button type="button"
+                    (click)="closeDrawer()"
+                    class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+              Cancel
+            </button>
+            <button type="submit"
+                    [disabled]="!walletForm.valid"
+                    class="rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium text-black hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed">
+              {{selectedWallet ? 'Save Changes' : 'Add Wallet'}}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
