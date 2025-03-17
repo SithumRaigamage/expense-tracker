@@ -3,9 +3,12 @@ import { DashboardComponent } from './dasboard/dasboard.component';
 import { TransactionsComponent } from './Navigation/transactions/transactions.component';
 import { BudgetComponent } from './Navigation/budget/budget.component';
 import { EmergencyFundComponent } from './Navigation/emergency-fund/emergency-fund.component';
+import { WalletsComponent } from './Navigation/wallets/wallets.component';
 import { ProfileComponent } from './Navigation/settings/profile/profile.component';
 import { PreferencesComponent } from './Navigation/settings/preferences/preferences.component';
-
+import { HelpComponent } from './Navigation/help/help.component';
+import { MonthlyTargetComponent } from './Navigation/monthly-target/monthly-target.component';
+import { BillsComponent } from './Navigation/bills/bills.component';
 
 export const routes: Routes = [
   {
@@ -17,6 +20,11 @@ export const routes: Routes = [
     path: 'dashboard',
     component: DashboardComponent,
     title: 'Dashboard'
+  },
+  {
+    path: 'wallets',
+    component: WalletsComponent,
+    title: 'Wallets'
   },
   {
     path: 'transactions',
@@ -34,8 +42,23 @@ export const routes: Routes = [
     title: 'Emergency Fund'
   },
   {
+    path: 'monthly-target',
+    component: MonthlyTargetComponent,
+    title: 'Monthly Target'
+  },
+  {
+    path: 'bills',
+    component: BillsComponent,
+    title: 'Bills & Payments'
+  },
+  {
     path: 'settings',
     children: [
+      {
+        path: '',
+        redirectTo: 'profile',
+        pathMatch: 'full'
+      },
       {
         path: 'profile',
         component: ProfileComponent,
@@ -47,6 +70,11 @@ export const routes: Routes = [
         title: 'Preferences'
       }
     ]
+  },
+  {
+    path: 'help',
+    component: HelpComponent,
+    title: 'Help Center'
   },
   {
     path: '**',

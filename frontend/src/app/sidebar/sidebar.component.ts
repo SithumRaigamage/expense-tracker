@@ -10,21 +10,17 @@ import {
   faChartLine,
   faShieldHalved,
   faGear,
-  faCircleQuestion
+  faCircleQuestion,
+  faBullseye,
+  faFileInvoiceDollar
 } from '@fortawesome/free-solid-svg-icons';
 import { SidebarService } from '../services/sidebar-service.service';
 
 interface NavItem {
   name: string;
   icon: IconDefinition;
-  path?: string;  // Make path optional since items with subItems won't have a path
+  path: string;  // Make path required since we're removing subItems
   badge?: string;
-  subItems?: Array<{
-    name: string;
-    path: string;
-    pro?: boolean;
-    new?: boolean;
-  }>;
 }
 
 @Component({
@@ -37,7 +33,6 @@ export class SidebarComponent implements OnInit {
   isExpanded = true;
   isMobileOpen = false;
   isHovered = false;
-  openSubmenu: { type: 'main' | 'others'; index: number } | null = null;
   moneyIcon = faMoneyCheckDollar;
 
   navItems: NavItem[] = [
@@ -48,18 +43,33 @@ export class SidebarComponent implements OnInit {
     },
     {
       icon: faWallet,
+      name: 'Wallets',
+      path: '/wallets'
+    },
+    {
+      icon: faMoneyCheckDollar,
       name: 'Transactions',
-      path: '/transactions',
+      path: '/transactions'
+    },
+    {
+      icon: faBullseye,
+      name: 'Monthly Target',
+      path: '/monthly-target'
+    },
+    {
+      icon: faFileInvoiceDollar,
+      name: 'Bills',
+      path: '/bills'
     },
     {
       icon: faChartLine,
       name: 'Budget',
-      path: '/budget',
+      path: '/budget'
     },
     {
       icon: faShieldHalved,
       name: 'Emergency Fund',
-      path: '/emergency-fund',
+      path: '/emergency-fund'
     }
   ];
 
@@ -67,22 +77,18 @@ export class SidebarComponent implements OnInit {
     {
       icon: faGear,
       name: 'Settings',
-      subItems: [
-        { name: 'Profile', path: '/settings/profile' },
-        { name: 'Preferences', path: '/settings/preferences' }
-      ]
+      path: '/settings'
     },
     {
       icon: faCircleQuestion,
       name: 'Help Center',
-      path: '/help',
+      path: '/help'
     }
   ];
 
   constructor(private router: Router, private sidebarService: SidebarService) {}
 
   ngOnInit(): void {
-    this.checkActiveRoute();
     this.sidebarService.isOpen$.subscribe(
       state => this.isExpanded = state
     );
@@ -90,37 +96,5 @@ export class SidebarComponent implements OnInit {
 
   isActive(path: string): boolean {
     return this.router.url === path;
-  }
-
-  handleSubmenuToggle(index: number, menuType: 'main' | 'others'): void {
-    if (this.openSubmenu?.type === menuType && this.openSubmenu.index === index) {
-      this.openSubmenu = null;
-    } else {
-      this.openSubmenu = { type: menuType, index };
-    }
-  }
-
-  private checkActiveRoute(): void {
-    let submenuMatched = false;
-    ['main', 'others'].forEach((menuType) => {
-      const items = menuType === 'main' ? this.navItems : this.othersItems;
-      items.forEach((nav, index) => {
-        if (nav.subItems) {
-          nav.subItems.forEach((subItem) => {
-            if (this.isActive(subItem.path)) {
-              this.openSubmenu = {
-                type: menuType as 'main' | 'others',
-                index
-              };
-              submenuMatched = true;
-            }
-          });
-        }
-      });
-    });
-
-    if (!submenuMatched) {
-      this.openSubmenu = null;
-    }
   }
 }
