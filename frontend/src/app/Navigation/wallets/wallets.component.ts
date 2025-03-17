@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faWallet, faPlus, faPencil, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { Wallet } from '../../models/Wallet';
+import { WalletService } from '../../services/wallet.service';
 
 @Component({
   selector: 'app-wallets',
@@ -39,10 +40,16 @@ export class WalletsComponent implements OnInit {
     }
   ];
 
-  constructor(private fb: FormBuilder) {}
+  constructor(
+    private fb: FormBuilder,
+    private walletService: WalletService
+  ) {}
 
   ngOnInit() {
     this.initForm();
+    this.walletService.getAllWallets().subscribe(
+      wallets => this.wallets = wallets
+    );
   }
 
   private initForm() {
@@ -82,18 +89,9 @@ export class WalletsComponent implements OnInit {
       const walletData = this.walletForm.value;
 
       if (this.selectedWallet) {
-        // Update existing wallet
-        const index = this.wallets.findIndex(w => w.id === this.selectedWallet!.id);
-        if (index !== -1) {
-          this.wallets[index] = { ...this.selectedWallet, ...walletData };
-        }
+        this.walletService.updateWallet(this.selectedWallet.id, walletData);
       } else {
-        // Add new wallet
-        const newWallet: Wallet = {
-          ...walletData,
-          id: Date.now().toString() // Simple ID generation
-        };
-        this.wallets.push(newWallet);
+        this.walletService.addWallet(walletData);
       }
 
       this.closeDrawer();
@@ -102,7 +100,7 @@ export class WalletsComponent implements OnInit {
 
   deleteWallet(id: string) {
     if (confirm('Are you sure you want to delete this wallet?')) {
-      this.wallets = this.wallets.filter(wallet => wallet.id !== id);
+      this.walletService.deleteWallet(id);
     }
   }
 
