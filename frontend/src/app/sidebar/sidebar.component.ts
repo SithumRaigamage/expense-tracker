@@ -1,58 +1,126 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { SafeHtmlPipe } from './safehtml.pipe';
+import { Router, RouterModule } from '@angular/router';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
+import {
+  faMoneyCheckDollar,
+  faGaugeHigh,
+  faWallet,
+  faChartLine,
+  faShieldHalved,
+  faGear,
+  faCircleQuestion
+} from '@fortawesome/free-solid-svg-icons';
 import { SidebarService } from '../services/sidebar-service.service';
 
 interface NavItem {
-  title: string;
-  icon: string;
-  link: string;
-  badge?: number;
+  name: string;
+  icon: IconDefinition;
+  path?: string;  // Make path optional since items with subItems won't have a path
+  badge?: string;
+  subItems?: Array<{
+    name: string;
+    path: string;
+    pro?: boolean;
+    new?: boolean;
+  }>;
 }
 
 @Component({
   selector: 'app-sidebar',
   templateUrl: './sidebar.component.html',
   standalone: true,
-  imports: [CommonModule, RouterModule, SafeHtmlPipe]
+  imports: [CommonModule, RouterModule, FontAwesomeModule]
 })
 export class SidebarComponent implements OnInit {
-  isOpen = true;
-
-  constructor(private sidebarService: SidebarService) {}
-
-  ngOnInit() {
-    this.sidebarService.isOpen$.subscribe(
-      state => this.isOpen = state
-    );
-  }
-
-  toggleSidebar(): void {
-    this.sidebarService.toggleSidebar();
-  }
+  isExpanded = true;
+  isMobileOpen = false;
+  isHovered = false;
+  openSubmenu: { type: 'main' | 'others'; index: number } | null = null;
+  moneyIcon = faMoneyCheckDollar;
 
   navItems: NavItem[] = [
     {
-      title: 'Dashboard',
-      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>`,
-      link: '/dashboard'
+      icon: faGaugeHigh,
+      name: 'Dashboard',
+      path: '/dashboard',
     },
     {
-      title: 'Transactions',
-      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>`,
-      link: '/transactions',
-      badge: 3
+      icon: faWallet,
+      name: 'Transactions',
+      path: '/transactions',
     },
     {
-      title: 'Budget Planner',
-      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>`,
-      link: '/budget'
+      icon: faChartLine,
+      name: 'Budget',
+      path: '/budget',
     },
     {
-      title: 'Emergency Fund',
-      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`,
-      link: '/emergency-fund'
+      icon: faShieldHalved,
+      name: 'Emergency Fund',
+      path: '/emergency-fund',
     }
   ];
+
+  othersItems: NavItem[] = [
+    {
+      icon: faGear,
+      name: 'Settings',
+      subItems: [
+        { name: 'Profile', path: '/settings/profile' },
+        { name: 'Preferences', path: '/settings/preferences' }
+      ]
+    },
+    {
+      icon: faCircleQuestion,
+      name: 'Help Center',
+      path: '/help',
+    }
+  ];
+
+  constructor(private router: Router, private sidebarService: SidebarService) {}
+
+  ngOnInit(): void {
+    this.checkActiveRoute();
+    this.sidebarService.isOpen$.subscribe(
+      state => this.isExpanded = state
+    );
+  }
+
+  isActive(path: string): boolean {
+    return this.router.url === path;
+  }
+
+  handleSubmenuToggle(index: number, menuType: 'main' | 'others'): void {
+    if (this.openSubmenu?.type === menuType && this.openSubmenu.index === index) {
+      this.openSubmenu = null;
+    } else {
+      this.openSubmenu = { type: menuType, index };
+    }
+  }
+
+  private checkActiveRoute(): void {
+    let submenuMatched = false;
+    ['main', 'others'].forEach((menuType) => {
+      const items = menuType === 'main' ? this.navItems : this.othersItems;
+      items.forEach((nav, index) => {
+        if (nav.subItems) {
+          nav.subItems.forEach((subItem) => {
+            if (this.isActive(subItem.path)) {
+              this.openSubmenu = {
+                type: menuType as 'main' | 'others',
+                index
+              };
+              submenuMatched = true;
+            }
+          });
+        }
+      });
+    });
+
+    if (!submenuMatched) {
+      this.openSubmenu = null;
+    }
+  }
 }
