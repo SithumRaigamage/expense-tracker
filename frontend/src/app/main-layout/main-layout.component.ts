@@ -6,7 +6,7 @@ import { DashboardComponent } from '../dasboard/dasboard.component';
 
 @Component({
   selector: 'app-main-layout',
-  imports: [HeaderComponent, ChartComponent,DashboardComponent],
+  imports: [HeaderComponent, ChartComponent, DashboardComponent, SidebarComponent],
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.css'
 })

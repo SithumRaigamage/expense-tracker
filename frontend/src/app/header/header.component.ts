@@ -29,11 +29,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   handleToggle(): void {
-    if (window.innerWidth >= 991) {
-      this.sidebarService.toggleSidebar();
-    } else {
-      this.sidebarService.toggleMobileSidebar();
-    }
+    this.sidebarService.toggleSidebar();
+    this.isMobileOpen = !this.isMobileOpen;
   }
 
   toggleApplicationMenu(): void {
