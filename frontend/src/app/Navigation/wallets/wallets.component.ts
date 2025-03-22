@@ -6,6 +6,7 @@ import { faWallet, faPlus, faPencil, faTrash, faMoneyBillWave, faBuildingColumns
 import { Wallet } from '../../models/Wallet';
 import { WalletService } from '../../services/wallet.service';
 import { Subscription } from 'rxjs';
+import { ToastmsgService } from '../../services/toastmsg.service';
 
 @Component({
   selector: 'app-wallets',
@@ -31,7 +32,8 @@ export class WalletsComponent implements OnInit, OnDestroy {
 
   constructor(
     private fb: FormBuilder,
-    private walletService: WalletService
+    private walletService: WalletService,
+    private toastService: ToastmsgService
   ) {
     this.subscription = new Subscription();
   }
@@ -86,8 +88,10 @@ export class WalletsComponent implements OnInit, OnDestroy {
 
       if (this.selectedWallet) {
         this.walletService.updateWallet(this.selectedWallet.id, walletData);
+        this.toastService.show('Wallet updated successfully', 'success');
       } else {
         this.walletService.addWallet(walletData);
+        this.toastService.show('Wallet added successfully', 'success');
       }
 
       this.closeDrawer();
@@ -97,6 +101,7 @@ export class WalletsComponent implements OnInit, OnDestroy {
   deleteWallet(id: string) {
     if (confirm('Are you sure you want to delete this wallet?')) {
       this.walletService.deleteWallet(id);
+      this.toastService.show('Wallet deleted successfully', 'success'); // Changed from 'info' to 'warning'
     }
   }
 
