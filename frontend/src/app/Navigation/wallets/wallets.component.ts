@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faWallet, faPlus, faPencil, faTrash, faMoneyBillWave, faBuildingColumns, faCreditCard, faPiggyBank } from '@fortawesome/free-solid-svg-icons';
+import { faWallet, faPlus, faPencil, faTrash, faMoneyBillWave, faBuildingColumns, faCreditCard, faPiggyBank, faBitcoinSign, faChartLine, faHandHoldingDollar } from '@fortawesome/free-solid-svg-icons';
 import { Wallet } from '../../models/Wallet';
 import { WalletService } from '../../services/wallet.service';
 import { Subscription } from 'rxjs';
@@ -23,6 +23,9 @@ export class WalletsComponent implements OnInit, OnDestroy {
   faBuildingColumns = faBuildingColumns;  // bank
   faCreditCard = faCreditCard;  // credit
   faPiggyBank = faPiggyBank;  // savings
+  faBitcoinSign = faBitcoinSign;  // crypto
+  faChartLine = faChartLine;  // investment
+  faHandHoldingDollar = faHandHoldingDollar;  // loan
 
   walletForm!: FormGroup;
   isDrawerOpen = false;
@@ -135,33 +138,29 @@ export class WalletsComponent implements OnInit, OnDestroy {
            this.walletForm.get('balance')?.value !== null;
   }
 
-  getWalletIcon(type: 'cash' | 'bank' | 'credit' | 'savings') {
+  getWalletIcon(type: Wallet['type']) {
     switch (type) {
-      case 'cash':
-        return this.faMoneyBillWave;
-      case 'bank':
-        return this.faBuildingColumns;
-      case 'credit':
-        return this.faCreditCard;
-      case 'savings':
-        return this.faPiggyBank;
-      default:
-        return this.faWallet;
+      case 'bank': return this.faBuildingColumns;
+      case 'cash': return this.faMoneyBillWave;
+      case 'savings': return this.faPiggyBank;
+      case 'credit': return this.faCreditCard;
+      case 'crypto': return this.faBitcoinSign;
+      case 'investment': return this.faChartLine;
+      case 'loan': return this.faHandHoldingDollar;
+      default: return this.faWallet;
     }
   }
 
-  getWalletColor(type: 'cash' | 'bank' | 'credit' | 'savings') {
+  getWalletColor(type: Wallet['type']) {
     switch (type) {
-      case 'cash':
-        return 'text-green-500';
-      case 'bank':
-        return 'text-blue-500';
-      case 'credit':
-        return 'text-purple-500';
-      case 'savings':
-        return 'text-amber-500';
-      default:
-        return 'text-gray-500';
+      case 'bank': return 'text-blue-500 dark:text-blue-400';
+      case 'cash': return 'text-green-500 dark:text-green-400';
+      case 'savings': return 'text-amber-500 dark:text-amber-400';
+      case 'credit': return 'text-purple-500 dark:text-purple-400';
+      case 'crypto': return 'text-orange-500 dark:text-orange-400';
+      case 'investment': return 'text-indigo-500 dark:text-indigo-400';
+      case 'loan': return 'text-red-500 dark:text-red-400';
+      default: return 'text-gray-500 dark:text-gray-400';
     }
   }
 }
