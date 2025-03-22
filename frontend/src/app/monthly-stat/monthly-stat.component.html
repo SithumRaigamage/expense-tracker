@@ -12,7 +12,10 @@
 
   <div class="max-w-full">
     <div class="-ml-5 min-w-[650px] xl:min-w-full pl-2">
-      <app-chart [chartType]="currentChartType"></app-chart>
+      <app-chart
+        [chartType]="currentChartType"
+        [transactions]="transactions"
+      ></app-chart>
     </div>
   </div>
 </div>

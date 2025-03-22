@@ -15,6 +15,7 @@ import {
   NgApexchartsModule,
   ApexTheme
 } from 'ng-apexcharts';
+import { Transaction } from '../models/Transaction';
 
 export type ChartOptions = {
   series: ApexAxisChartSeries;
@@ -49,6 +50,8 @@ export type ChartOptions = {
 })
 export class ChartComponent implements OnChanges {
   @Input() chartType: 'income' | 'expense' | 'all' = 'all';
+  @Input() transactions: Transaction[] = [];
+
   public chartOptions!: Partial<ChartOptions>;
 
   private readonly COLORS = {
@@ -58,15 +61,12 @@ export class ChartComponent implements OnChanges {
     grid: '#E2E8F0', // Grid color
   };
 
-  private incomeData = [55000, 62000, 48000, 53000, 42000, 45000, 52000, 58000, 63000, 51000, 47000, 49000];
-  private expenseData = [45000, 52000, 38000, 43000, 32000, 35000, 42000, 48000, 53000, 41000, 37000, 39000];
-
   constructor() {
     this.initializeChart();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['chartType']) {
+    if (changes['chartType'] || changes['transactions']) {
       this.updateChartData();
     }
   }
@@ -180,30 +180,43 @@ export class ChartComponent implements OnChanges {
     };
   }
 
+  private getMonthlyData(type: 'income' | 'expense'): number[] {
+    const monthlyTotals = Array(12).fill(0);
+
+    this.transactions.forEach(transaction => {
+      if (transaction.type === type) {
+        const month = transaction.date.getMonth();
+        monthlyTotals[month] += transaction.amount;
+      }
+    });
+
+    return monthlyTotals;
+  }
+
   private getSeriesData() {
     switch (this.chartType) {
       case 'income':
         return [{
           name: 'Income',
-          data: this.incomeData,
+          data: this.getMonthlyData('income'),
           color: this.COLORS.income
         }];
       case 'expense':
         return [{
           name: 'Expenses',
-          data: this.expenseData,
+          data: this.getMonthlyData('expense'),
           color: this.COLORS.expense
         }];
       default:
         return [
           {
             name: 'Income',
-            data: this.incomeData,
+            data: this.getMonthlyData('income'),
             color: this.COLORS.income
           },
           {
             name: 'Expenses',
-            data: this.expenseData,
+            data: this.getMonthlyData('expense'),
             color: this.COLORS.expense
           }
         ];
