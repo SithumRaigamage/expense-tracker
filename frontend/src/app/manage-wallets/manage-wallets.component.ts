@@ -1,59 +1,25 @@
+import { Wallet } from './../models/Wallet';
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-
-interface Wallet {
-  id: string;
-  name: string;
-  type: string;
-  balance: number;
-  currency: string;
-  paymentMethod?: string;
-}
+import { WalletService } from '../services/wallet.service';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-manage-wallets',
-  imports: [CommonModule],
+  imports: [CommonModule,RouterModule],
   templateUrl: './manage-wallets.component.html',
   styleUrl: './manage-wallets.component.css'
 })
 export class ManageWalletsComponent implements OnInit {
-  wallets: Wallet[] = [
-    {
-      id: '1',
-      name: 'Main Wallet',
-      type: 'cash',
-      balance: 1500.00,
-      currency: 'LKR'
-    },
-    {
-      id: '2',
-      name: 'Bank Account',
-      type: 'bank',
-      balance: 10000.00,
-      currency: 'LKR',
-      paymentMethod: 'Visa'
-    },
-    {
-      id: '3',
-      name: 'Credit Card',
-      type: 'credit',
-      balance: 500.00,
-      currency: 'LKR',
-      paymentMethod: 'MasterCard'
-    },
-    {
-      id: '4',
-      name: 'Savings Account',
-      type: 'savings',
-      balance: 20000.00,
-      currency: 'LKR'
-    }
-  ]; // Add some test data
+  wallets: Wallet[] = [];
+
+  constructor(private wallet : WalletService) {}
 
   ngOnInit(): void {
-    // Fetch wallets from your service
-    // console.log('ManageWalletsComponent initialized');
-    // console.log('Wallets:', this.wallets);
+    this.wallet.getAllWallets().subscribe(wallets => {
+      this.wallets = wallets;
+    });
+
   }
 
   getWalletIconClass(type: string): string {

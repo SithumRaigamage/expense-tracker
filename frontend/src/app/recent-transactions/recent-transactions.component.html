@@ -15,8 +15,9 @@
         </svg>
         Export
       </button>
-      <button class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
-        View All
+      <button (click)="toggleViewAll()"
+              class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
+        {{ showAll ? 'Show Less' : 'View All' }}
       </button>
     </div>
   </div>
@@ -33,7 +34,7 @@
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-        <tr *ngFor="let transaction of transactions">
+        <tr *ngFor="let transaction of displayedTransactions">
           <td class="py-3 px-4">
             <div class="flex items-center gap-3">
               <div class="min-w-0">

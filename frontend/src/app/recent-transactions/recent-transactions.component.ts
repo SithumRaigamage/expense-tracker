@@ -12,6 +12,9 @@ import { Transaction } from '../models/Transaction';
 })
 export class RecentTransactionsComponent implements OnInit {
   transactions: Transaction[] = [];
+  displayedTransactions: Transaction[] = [];
+  showAll: boolean = false;
+  private readonly INITIAL_DISPLAY_COUNT = 4;
 
   constructor(private transactionService: TransactionService) {}
 
@@ -22,8 +25,19 @@ export class RecentTransactionsComponent implements OnInit {
       currentDate.getFullYear()
     ).subscribe(transactions => {
       this.transactions = transactions;
-      console.log(transactions);
+      this.updateDisplayedTransactions();
     });
+  }
+
+  toggleViewAll() {
+    this.showAll = !this.showAll;
+    this.updateDisplayedTransactions();
+  }
+
+  private updateDisplayedTransactions() {
+    this.displayedTransactions = this.showAll
+      ? this.transactions
+      : this.transactions.slice(0, this.INITIAL_DISPLAY_COUNT);
   }
 
   getBadgeColor(type: string): 'success' | 'error' {
