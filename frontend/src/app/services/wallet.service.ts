@@ -7,6 +7,10 @@ import {
   faBuildingColumns,
   faCreditCard,
   faPiggyBank,
+  faBitcoinSign,
+  faChartLine,
+  faHandHoldingDollar,
+  faWallet
 } from '@fortawesome/free-solid-svg-icons';
 
 @Injectable({
@@ -23,14 +27,14 @@ export class WalletService {
     },
     {
       id: '2',
-      name: 'Bank Account',
+      name: 'BOC Account',
       type: 'bank',
       balance: 10000.00,
       currency: 'LKR',
     },
     {
       id: '3',
-      name: 'Savings Account',
+      name: 'Fixed Deposit',
       type: 'savings',
       balance: 100000.00,
       currency: 'LKR',
@@ -39,12 +43,45 @@ export class WalletService {
       id: '4',
       name: 'Credit Card',
       type: 'credit',
-      balance: 50000.00,
+      balance: -5000.00,  // Negative balance for credit
       currency: 'LKR',
     },
+    {
+      id: '5',
+      name: 'Personal Loan',
+      type: 'loan',
+      balance: -150000.00,  // Negative balance for loans
+      currency: 'LKR',
+    }
   ]);
 
   wallets$ = this.wallets.asObservable();
+
+  private getWalletTypeIcon(type: string) {
+    switch (type) {
+      case 'bank': return faBuildingColumns;
+      case 'cash': return faMoneyBillWave;
+      case 'savings': return faPiggyBank;
+      case 'credit': return faCreditCard;
+      case 'crypto': return faBitcoinSign;
+      case 'investment': return faChartLine;
+      case 'loan': return faHandHoldingDollar;
+      default: return faWallet;
+    }
+  }
+
+  private getWalletTypeLabel(type: string) {
+    switch (type) {
+      case 'bank': return 'Bank Balance';
+      case 'cash': return 'Cash in Hand';
+      case 'savings': return 'Savings';
+      case 'credit': return 'Credit Card';
+      case 'crypto': return 'Crypto Assets';
+      case 'investment': return 'Investments';
+      case 'loan': return 'Loans';
+      default: return type;
+    }
+  }
 
   getTotalBalance(type: string): Observable<number> {
     return this.wallets$.pipe(
@@ -80,46 +117,25 @@ export class WalletService {
   }
 
   getMetrics(): Observable<Metric[]> {
-    return combineLatest([
-      this.getTotalBalance('bank'),
-      this.getTotalBalance('cash'),
-      this.getTotalBalance('savings'),
-      this.getTotalBalance('credit')
-    ]).pipe(
-      map(([bankTotal, cashTotal, savingsTotal, creditTotal]) => [
-        {
-          icon: faBuildingColumns,
-          label: 'Bank Balance',
-          value: bankTotal,
-          percentage: 0,
-          trend: 'up',
-          currency: 'LKR'
-        },
-        {
-          icon: faMoneyBillWave,
-          label: 'Cash in Hand',
-          value: cashTotal,
-          percentage: 0,
-          trend: 'up',
-          currency: 'LKR'
-        },
-        {
-          icon: faPiggyBank,
-          label: 'Savings',
-          value: savingsTotal,
-          percentage: 0,
-          trend: 'up',
-          currency: 'LKR'
-        },
-        {
-          icon: faCreditCard,
-          label: 'Credit Card',
-          value: creditTotal,
-          percentage: 0,
-          trend: creditTotal >= 0 ? 'up' : 'down',
-          currency: 'LKR'
-        }
-      ])
+    return this.wallets$.pipe(
+      map(wallets => {
+        const types = [...new Set(wallets.map(w => w.type))];
+
+        return types.map(type => {
+          const totalBalance = wallets
+            .filter(w => w.type === type)
+            .reduce((acc, w) => acc + w.balance, 0);
+
+          return {
+            icon: this.getWalletTypeIcon(type),
+            label: this.getWalletTypeLabel(type),
+            value: totalBalance,
+            percentage: 0,
+            trend: totalBalance < 0 ? 'down' : 'up', // Changed trend calculation
+            currency: 'LKR'
+          };
+        });
+      })
     );
   }
 }
