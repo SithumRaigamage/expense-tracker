@@ -6,7 +6,23 @@ import { Wallet } from '../models/Wallet';
   providedIn: 'root'
 })
 export class WalletService {
-  private wallets = new BehaviorSubject<Wallet[]>([ ]);
+  private wallets = new BehaviorSubject<Wallet[]>([
+    {
+      id: '1',
+      name: 'Main Wallet',
+      type: 'cash',
+      balance: 1500.00,
+      currency: 'LKR'
+    },
+    {
+      id: '2',
+      name: 'Bank Account',
+      type: 'bank',
+      balance: 10000.00,
+      currency: 'LKR',
+      paymentMethod: 'Visa'
+    }
+  ]);
 
   wallets$ = this.wallets.asObservable();
 

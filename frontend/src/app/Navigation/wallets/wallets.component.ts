@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faWallet, faPlus, faPencil, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { Wallet } from '../../models/Wallet';
 import { WalletService } from '../../services/wallet.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-wallets',
@@ -12,7 +13,7 @@ import { WalletService } from '../../services/wallet.service';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, FontAwesomeModule]
 })
-export class WalletsComponent implements OnInit {
+export class WalletsComponent implements OnInit, OnDestroy {
   faWallet = faWallet;
   faPlus = faPlus;
   faPencil = faPencil;
@@ -21,35 +22,28 @@ export class WalletsComponent implements OnInit {
   walletForm!: FormGroup;
   isDrawerOpen = false;
   selectedWallet: Wallet | null = null;
-
-  wallets: Wallet[] = [
-    {
-      id: '1',
-      name: 'Main Wallet',
-      type: 'cash',
-      balance: 1500.00,
-      currency: 'LKR'
-    },
-    {
-      id: '2',
-      name: 'Bank Account',
-      type: 'bank',
-      balance: 10000.00,
-      currency: 'LKR',
-      paymentMethod: 'Visa'
-    }
-  ];
+  wallets: Wallet[] = [];
+  private subscription: Subscription;
 
   constructor(
     private fb: FormBuilder,
     private walletService: WalletService
-  ) {}
+  ) {
+    this.subscription = new Subscription();
+  }
 
   ngOnInit() {
     this.initForm();
-    this.walletService.getAllWallets().subscribe(
-      wallets => this.wallets = wallets
+    // Subscribe to wallet updates
+    this.subscription.add(
+      this.walletService.getAllWallets().subscribe(
+        wallets => this.wallets = wallets
+      )
     );
+  }
+
+  ngOnDestroy() {
+    this.subscription.unsubscribe();
   }
 
   private initForm() {
