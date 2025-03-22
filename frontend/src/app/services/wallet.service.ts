@@ -39,7 +39,7 @@ export class WalletService {
       id: '4',
       name: 'Credit Card',
       type: 'credit',
-      balance: -5000.00,
+      balance: 50000.00,
       currency: 'LKR',
     },
   ]);

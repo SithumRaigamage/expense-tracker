@@ -52,8 +52,8 @@ export class ManageWalletsComponent implements OnInit {
 
   ngOnInit(): void {
     // Fetch wallets from your service
-    console.log('ManageWalletsComponent initialized');
-    console.log('Wallets:', this.wallets);
+    // console.log('ManageWalletsComponent initialized');
+    // console.log('Wallets:', this.wallets);
   }
 
   getWalletIconClass(type: string): string {

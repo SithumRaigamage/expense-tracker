@@ -1,5 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faArrowUp, faArrowDown } from '@fortawesome/free-solid-svg-icons';
 import { BadgeComponent } from '../badge/badge.component';
 import { Metric } from '../../models/Metric';
 import { WalletService } from '../../services/wallet.service';
@@ -7,12 +9,14 @@ import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-metrics',
-  imports: [CommonModule, BadgeComponent],
+  imports: [CommonModule, BadgeComponent, FontAwesomeModule],
   templateUrl: './metrics.component.html',
   styleUrls: ['./metrics.component.css'],
   standalone: true
 })
 export class MetricsComponent implements OnInit, OnDestroy {
+  faArrowUp = faArrowUp;
+  faArrowDown = faArrowDown;
   metrics: Metric[] = [];
   private subscription: Subscription = new Subscription();
 
@@ -21,7 +25,10 @@ export class MetricsComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.subscription.add(
       this.walletService.getMetrics().subscribe(
-        metrics => this.metrics = metrics
+        metrics => {
+          this.metrics = metrics;
+          console.log(this.metrics);
+        }
       )
     );
   }
@@ -36,5 +43,20 @@ export class MetricsComponent implements OnInit, OnDestroy {
       currency: 'LKR',
       minimumFractionDigits: 2
     });
+  }
+
+  getMetricColor(label: string): string {
+    switch (label) {
+      case 'Bank Balance':
+        return 'text-blue-500 dark:text-blue-400';
+      case 'Cash in Hand':
+        return 'text-green-500 dark:text-green-400';
+      case 'Savings':
+        return 'text-amber-500 dark:text-amber-400';
+      case 'Credit Card':
+        return 'text-purple-500 dark:text-purple-400';
+      default:
+        return 'text-gray-500 dark:text-gray-400';
+    }
   }
 }
