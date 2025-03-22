@@ -4,5 +4,4 @@ export interface Wallet {
   type: 'cash' | 'bank' | 'credit' | 'savings';
   balance: number;
   currency: string;
-  paymentMethod?: string;
 }

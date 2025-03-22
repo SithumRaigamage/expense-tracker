@@ -20,7 +20,6 @@ export class WalletService {
       type: 'bank',
       balance: 10000.00,
       currency: 'LKR',
-      paymentMethod: 'Visa'
     }
   ]);
 
