@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faPlus, faPencil, faTrash, faBullseye } from '@fortawesome/free-solid-svg-icons';
 import { RadialChartComponent } from '../../radialchart/radialchart.component';
+import { TargetService } from '../../services/target.service';
 
 interface Target {
   id: number;
@@ -37,20 +38,17 @@ export class MonthlyTargetComponent implements OnInit {
   selectedTarget: Target | null = null;
   targetForm: FormGroup;
 
-  constructor(private fb: FormBuilder) {
+  constructor(
+    private fb: FormBuilder,
+    private targetService: TargetService
+  ) {
     this.targetForm = this.createForm();
   }
 
   ngOnInit() {
-    // Initialize with sample data or fetch from service
-    this.monthlyTargets = [
-      {
-        id: 1,
-        month: new Date(),
-        targetAmount: 150000,
-        currentSavings: 112500
-      }
-    ];
+    this.targetService.getTargets().subscribe(targets => {
+      this.monthlyTargets = targets;
+    });
   }
 
   createForm(): FormGroup {
@@ -85,25 +83,19 @@ export class MonthlyTargetComponent implements OnInit {
     if (this.targetForm.valid) {
       const formValue = this.targetForm.value;
       if (this.selectedTarget) {
-        // Update existing target
-        const index = this.monthlyTargets.findIndex(t => t.id === this.selectedTarget!.id);
-        this.monthlyTargets[index] = {
+        this.targetService.updateTarget({
           ...this.selectedTarget,
           ...formValue
-        };
-      } else {
-        // Add new target
-        this.monthlyTargets.push({
-          id: this.monthlyTargets.length + 1,
-          ...formValue
         });
+      } else {
+        this.targetService.addTarget(formValue);
       }
       this.closeDrawer();
     }
   }
 
   deleteTarget(id: number) {
-    this.monthlyTargets = this.monthlyTargets.filter(target => target.id !== id);
+    this.targetService.deleteTarget(id);
   }
 
   get formIsValid(): boolean {
