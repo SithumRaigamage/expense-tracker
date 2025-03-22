@@ -7,7 +7,7 @@ import { WalletsComponent } from './Navigation/wallets/wallets.component';
 import { ProfileComponent } from './Navigation/settings/profile/profile.component';
 import { PreferencesComponent } from './Navigation/settings/preferences/preferences.component';
 import { HelpComponent } from './Navigation/help/help.component';
-import { MonthlyTargetComponent } from './Navigation/monthly-target-nav/monthly-target.component';
+import { MonthlyTargetComponent } from './Navigation/target/target.component';
 import { BillsComponent } from './Navigation/bills/bills.component';
 
 export const routes: Routes = [

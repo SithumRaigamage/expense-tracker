@@ -5,7 +5,7 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faPlus, faPencil, faTrash, faBullseye } from '@fortawesome/free-solid-svg-icons';
 import { RadialChartComponent } from '../../radialchart/radialchart.component';
 
-interface MonthlyTarget {
+interface Target {
   id: number;
   month: Date;
   targetAmount: number;
@@ -15,7 +15,7 @@ interface MonthlyTarget {
 }
 
 @Component({
-  selector: 'app-monthly-target',
+  selector: 'app-target',
   standalone: true,
   imports: [
     CommonModule,
@@ -23,8 +23,8 @@ interface MonthlyTarget {
     FontAwesomeModule,
     RadialChartComponent
   ],
-  templateUrl: './monthly-target.component.html',
-  styleUrl: './monthly-target.component.css'
+  templateUrl: './target.component.html',
+  styleUrl: './target.component.css'
 })
 export class MonthlyTargetComponent implements OnInit {
   faPlus = faPlus;
@@ -32,9 +32,9 @@ export class MonthlyTargetComponent implements OnInit {
   faTrash = faTrash;
   faTarget = faBullseye;
 
-  monthlyTargets: MonthlyTarget[] = [];
+  monthlyTargets: Target[] = [];
   isDrawerOpen = false;
-  selectedTarget: MonthlyTarget | null = null;
+  selectedTarget: Target | null = null;
   targetForm: FormGroup;
 
   constructor(private fb: FormBuilder) {
@@ -61,7 +61,7 @@ export class MonthlyTargetComponent implements OnInit {
     });
   }
 
-  openDrawer(target?: MonthlyTarget) {
+  openDrawer(target?: Target) {
     this.selectedTarget = target || null;
     if (target) {
       this.targetForm.patchValue({
@@ -137,7 +137,7 @@ export class MonthlyTargetComponent implements OnInit {
     return date.toISOString().substring(0, 7);
   }
 
-  calculateMonthlyProgress(target: MonthlyTarget): {
+  calculateMonthlyProgress(target: Target): {
     progressPercentage: number;
     remainingAmount: number;
     dailyTarget: number;
