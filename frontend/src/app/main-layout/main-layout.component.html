@@ -1,13 +1,13 @@
-<div class="grid h-screen grid-cols-4">
-  <div class="col-span-1">
+<div class="grid h-screen" style="grid-template-columns: 288px 1fr">
+  <div class="relative">
     <!-- sidebar content -->
      <app-sidebar></app-sidebar>
   </div>
-  <div class="col-span-3">
-    <div class="h-16"> <!-- Changed from h-25 to h-16 (64px) -->
+  <div class="flex flex-col">
+    <div class="h-[72px] border-b border-gray-200 dark:border-gray-800">
       <app-header></app-header>
     </div>
-    <div class="h-[calc(100vh-64px)] p-6"> <!-- Removed overflow-y-auto, added padding -->
+    <div class="h-[calc(100vh-72px)] p-6">
       <router-outlet></router-outlet>
     </div>
   </div>
