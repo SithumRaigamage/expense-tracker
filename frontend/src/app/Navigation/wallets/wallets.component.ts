@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faWallet, faPlus, faPencil, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faWallet, faPlus, faPencil, faTrash, faMoneyBillWave, faBuildingColumns, faCreditCard, faPiggyBank } from '@fortawesome/free-solid-svg-icons';
 import { Wallet } from '../../models/Wallet';
 import { WalletService } from '../../services/wallet.service';
 import { Subscription } from 'rxjs';
@@ -18,6 +18,10 @@ export class WalletsComponent implements OnInit, OnDestroy {
   faPlus = faPlus;
   faPencil = faPencil;
   faTrash = faTrash;
+  faMoneyBillWave = faMoneyBillWave;  // cash
+  faBuildingColumns = faBuildingColumns;  // bank
+  faCreditCard = faCreditCard;  // credit
+  faPiggyBank = faPiggyBank;  // savings
 
   walletForm!: FormGroup;
   isDrawerOpen = false;
@@ -113,5 +117,35 @@ export class WalletsComponent implements OnInit, OnDestroy {
       required: control?.errors?.['required'] && control.touched,
       min: control?.errors?.['min'] && control.touched
     };
+  }
+
+  getWalletIcon(type: 'cash' | 'bank' | 'credit' | 'savings') {
+    switch (type) {
+      case 'cash':
+        return this.faMoneyBillWave;
+      case 'bank':
+        return this.faBuildingColumns;
+      case 'credit':
+        return this.faCreditCard;
+      case 'savings':
+        return this.faPiggyBank;
+      default:
+        return this.faWallet;
+    }
+  }
+
+  getWalletColor(type: 'cash' | 'bank' | 'credit' | 'savings') {
+    switch (type) {
+      case 'cash':
+        return 'text-green-500';
+      case 'bank':
+        return 'text-blue-500';
+      case 'credit':
+        return 'text-purple-500';
+      case 'savings':
+        return 'text-amber-500';
+      default:
+        return 'text-gray-500';
+    }
   }
 }
