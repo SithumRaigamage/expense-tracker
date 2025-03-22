@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   ApexNonAxisChartSeries,
@@ -22,26 +22,19 @@ export type ChartOptions = {
   selector: 'app-radialchart',
   standalone: true,
   imports: [CommonModule, NgApexchartsModule],
-  template: `
-    <div id="chart">
-      <apx-chart
-        [series]="chartOptions.series"
-        [chart]="chartOptions.chart"
-        [labels]="chartOptions.labels"
-        [plotOptions]="chartOptions.plotOptions"
-        [fill]="chartOptions.fill"
-        [colors]="chartOptions.colors"
-      ></apx-chart>
-    </div>
-  `
+  templateUrl: './radialchart.component.html',
+  styleUrl: './radialchart.component.css'
 })
-export class RadialChartComponent implements OnInit {
+export class RadialChartComponent implements OnInit, OnChanges {
   @ViewChild("chart") chart!: ChartComponent;
+  @Input() percentage: number = 0;
+  @Input() showPercentage: boolean = false;
+
   public chartOptions: ChartOptions;
 
   constructor() {
     this.chartOptions = {
-      series: [75], // Percentage of target reached
+      series: [0], // Will be updated with percentage
       chart: {
         height: 330,
         type: "radialBar",
@@ -105,5 +98,27 @@ export class RadialChartComponent implements OnInit {
     };
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.updateChart();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['percentage']) {
+      this.updateChart();
+    }
+  }
+
+  private updateChart(): void {
+    // Ensure percentage is between 0 and 100
+    const validPercentage = Math.min(Math.max(this.percentage, 0), 100);
+    this.chartOptions.series = [validPercentage];
+
+    // Update chart visibility based on showPercentage
+    if (this.chartOptions.plotOptions &&
+        this.chartOptions.plotOptions.radialBar &&
+        this.chartOptions.plotOptions.radialBar.dataLabels &&
+        this.chartOptions.plotOptions.radialBar.dataLabels.value) {
+      this.chartOptions.plotOptions.radialBar.dataLabels.value.show = this.showPercentage;
+    }
+  }
 }
