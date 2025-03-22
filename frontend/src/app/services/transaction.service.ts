@@ -10,7 +10,16 @@ export class TransactionService {
 
   constructor() {
     this.transactions.next([
+
       // March 2025
+      {
+        id: 0,
+        date: new Date(2025, 2, 1),
+        amount: 5000,
+        description: 'Dad Icome',
+        category: 'Salary',
+        type: 'income'
+      },
       {
         id: 1,
         date: new Date(2025, 2, 1),
