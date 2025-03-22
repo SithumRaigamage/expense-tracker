@@ -54,8 +54,8 @@ export class WalletsComponent implements OnInit, OnDestroy {
     this.walletForm = this.fb.group({
       id: [''],
       name: ['', [Validators.required, Validators.minLength(3)]],
-      type: ['cash', Validators.required],
-      balance: [0, [Validators.required, Validators.min(0)]],
+      type: ['', [Validators.required]], // Remove default value to force selection
+      balance: [null, [Validators.required, Validators.min(0)]], // Change 0 to null
       currency: ['LKR', Validators.required],
       paymentMethod: ['']
     });
@@ -69,9 +69,7 @@ export class WalletsComponent implements OnInit, OnDestroy {
       this.walletForm.patchValue(wallet);
     } else {
       this.walletForm.reset({
-        type: 'cash',
-        currency: 'LKR',
-        balance: 0
+        currency: 'LKR' // Only set default for currency
       });
     }
   }
@@ -117,6 +115,19 @@ export class WalletsComponent implements OnInit, OnDestroy {
       required: control?.errors?.['required'] && control.touched,
       min: control?.errors?.['min'] && control.touched
     };
+  }
+
+  get typeErrors() {
+    const control = this.walletForm.get('type');
+    return {
+      required: control?.errors?.['required'] && control.touched
+    };
+  }
+
+  get formIsValid(): boolean {
+    return this.walletForm.valid &&
+           this.walletForm.get('type')?.value !== '' &&
+           this.walletForm.get('balance')?.value !== null;
   }
 
   getWalletIcon(type: 'cash' | 'bank' | 'credit' | 'savings') {

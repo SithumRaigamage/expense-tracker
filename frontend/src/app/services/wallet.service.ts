@@ -20,6 +20,13 @@ export class WalletService {
       type: 'bank',
       balance: 10000.00,
       currency: 'LKR',
+    },
+    {
+      id: '3',
+      name: 'Savings Account',
+      type: 'savings',
+      balance: 100000.00,
+      currency: 'LKR',
     }
   ]);
 
