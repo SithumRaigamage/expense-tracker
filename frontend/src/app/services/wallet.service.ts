@@ -1,6 +1,13 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, map } from 'rxjs';
+import { BehaviorSubject, Observable, combineLatest, map } from 'rxjs';
 import { Wallet } from '../models/Wallet';
+import { Metric } from '../models/Metric';
+import {
+  faMoneyBillWave,
+  faBuildingColumns,
+  faCreditCard,
+  faPiggyBank,
+} from '@fortawesome/free-solid-svg-icons';
 
 @Injectable({
   providedIn: 'root'
@@ -27,7 +34,14 @@ export class WalletService {
       type: 'savings',
       balance: 100000.00,
       currency: 'LKR',
-    }
+    },
+    {
+      id: '4',
+      name: 'Credit Card',
+      type: 'credit',
+      balance: -5000.00,
+      currency: 'LKR',
+    },
   ]);
 
   wallets$ = this.wallets.asObservable();
@@ -63,5 +77,49 @@ export class WalletService {
 
   getAllWallets(): Observable<Wallet[]> {
     return this.wallets$;
+  }
+
+  getMetrics(): Observable<Metric[]> {
+    return combineLatest([
+      this.getTotalBalance('bank'),
+      this.getTotalBalance('cash'),
+      this.getTotalBalance('savings'),
+      this.getTotalBalance('credit')
+    ]).pipe(
+      map(([bankTotal, cashTotal, savingsTotal, creditTotal]) => [
+        {
+          icon: faBuildingColumns,
+          label: 'Bank Balance',
+          value: bankTotal,
+          percentage: 0,
+          trend: 'up',
+          currency: 'LKR'
+        },
+        {
+          icon: faMoneyBillWave,
+          label: 'Cash in Hand',
+          value: cashTotal,
+          percentage: 0,
+          trend: 'up',
+          currency: 'LKR'
+        },
+        {
+          icon: faPiggyBank,
+          label: 'Savings',
+          value: savingsTotal,
+          percentage: 0,
+          trend: 'up',
+          currency: 'LKR'
+        },
+        {
+          icon: faCreditCard,
+          label: 'Credit Card',
+          value: creditTotal,
+          percentage: 0,
+          trend: creditTotal >= 0 ? 'up' : 'down',
+          currency: 'LKR'
+        }
+      ])
+    );
   }
 }
