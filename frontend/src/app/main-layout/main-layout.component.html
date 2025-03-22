@@ -4,10 +4,10 @@
      <app-sidebar></app-sidebar>
   </div>
   <div class="col-span-3">
-    <div class="h-25">
+    <div class="h-16"> <!-- Changed from h-25 to h-16 (64px) -->
       <app-header></app-header>
     </div>
-    <div class="h-[calc(100vh-64px)] overflow-y-auto">
+    <div class="h-[calc(100vh-64px)] p-6"> <!-- Removed overflow-y-auto, added padding -->
       <router-outlet></router-outlet>
     </div>
   </div>
