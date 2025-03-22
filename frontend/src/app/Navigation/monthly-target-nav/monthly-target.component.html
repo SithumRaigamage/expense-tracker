@@ -54,6 +54,27 @@
               {{(target.currentSavings / target.targetAmount) * 100 | number:'1.0-0'}}%
             </span>
           </div>
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-500 dark:text-gray-400">Daily Target</span>
+            <span class="font-medium text-gray-900 dark:text-white">
+              {{calculateMonthlyProgress(target).dailyTarget | currency:'LKR'}}
+            </span>
+          </div>
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-500 dark:text-gray-400">Remaining Days</span>
+            <span class="font-medium text-gray-900 dark:text-white">
+              {{calculateMonthlyProgress(target).remainingDays}} days
+            </span>
+          </div>
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-gray-500 dark:text-gray-400">Status</span>
+            <span class="font-medium" [ngClass]="{
+              'text-green-500': calculateMonthlyProgress(target).isOnTrack,
+              'text-red-500': !calculateMonthlyProgress(target).isOnTrack
+            }">
+              {{calculateMonthlyProgress(target).isOnTrack ? 'On Track' : 'Behind'}}
+            </span>
+          </div>
         </div>
       </div>
     </div>

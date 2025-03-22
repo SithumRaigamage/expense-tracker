@@ -10,6 +10,8 @@ interface MonthlyTarget {
   month: Date;
   targetAmount: number;
   currentSavings: number;
+  remainingDays?: number;
+  dailyTarget?: number;
 }
 
 @Component({
@@ -133,5 +135,43 @@ export class MonthlyTargetComponent implements OnInit {
 
   private formatDateForInput(date: Date): string {
     return date.toISOString().substring(0, 7);
+  }
+
+  calculateMonthlyProgress(target: MonthlyTarget): {
+    progressPercentage: number;
+    remainingAmount: number;
+    dailyTarget: number;
+    remainingDays: number;
+    isOnTrack: boolean
+  } {
+    const now = new Date();
+    const targetDate = new Date(target.month);
+    const lastDayOfMonth = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 0);
+
+    // Calculate remaining days in the month
+    const remainingDays = Math.max(0, Math.ceil((lastDayOfMonth.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+
+    // Calculate progress
+    const progressPercentage = (target.currentSavings / target.targetAmount) * 100;
+    const remainingAmount = target.targetAmount - target.currentSavings;
+
+    // Calculate daily target needed to reach goal
+    const dailyTarget = remainingAmount > 0 && remainingDays > 0
+        ? remainingAmount / remainingDays
+        : 0;
+
+    // Check if on track (current savings >= expected savings for current day of month)
+    const daysInMonth = lastDayOfMonth.getDate();
+    const dayOfMonth = now.getDate();
+    const expectedProgress = (dayOfMonth / daysInMonth) * target.targetAmount;
+    const isOnTrack = target.currentSavings >= expectedProgress;
+
+    return {
+        progressPercentage,
+        remainingAmount,
+        dailyTarget,
+        remainingDays,
+        isOnTrack
+    };
   }
 }
