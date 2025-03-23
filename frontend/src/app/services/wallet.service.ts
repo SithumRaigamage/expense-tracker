@@ -13,6 +13,15 @@ import {
   faWallet
 } from '@fortawesome/free-solid-svg-icons';
 
+// First, add the Transaction interface
+export interface WalletTransaction {
+  amount: number;
+  type: 'income' | 'expense';
+  description: string;
+  category: string;
+  date: Date;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -137,5 +146,24 @@ export class WalletService {
         });
       })
     );
+  }
+
+  getWalletById(id: string): Wallet | undefined {
+    return this.wallets.getValue().find(wallet => wallet.id === id);
+  }
+
+  addTransaction(walletId: string, transaction: WalletTransaction): void {
+    const wallet = this.getWalletById(walletId);
+
+    if (!wallet) return;
+
+    // Update wallet balance
+    const updatedWallet = {
+      ...wallet,
+      balance: wallet.balance + transaction.amount // amount is negative for expenses
+    };
+
+    // Update wallet with new balance
+    this.updateWallet(walletId, updatedWallet);
   }
 }

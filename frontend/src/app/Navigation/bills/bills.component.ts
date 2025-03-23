@@ -2,8 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BillsService } from '../../services/bill.service';
-import { Bill } from '../../models/Bill';
-
+import { WalletService } from '../../services/wallet.service';
+import { Bill, BillTransaction } from '../../models/Bill';
+import { Wallet } from '../../models/Wallet';
 
 @Component({
   selector: 'app-bills',
@@ -14,20 +15,35 @@ import { Bill } from '../../models/Bill';
 })
 export class BillsComponent implements OnInit {
   bills: Bill[] = [];
+  transactions: BillTransaction[] = [];
+  availableWallets: Wallet[] = [];
   isDrawerOpen = false;
   drawerMode: 'add' | 'edit' = 'add';
   currentBill: Partial<Bill> = this.getEmptyBill();
   categories = ['Utilities', 'Subscription', 'Entertainment', 'Internet', 'Insurance'];
 
-  constructor(private billsService: BillsService) {}
+  constructor(
+    private billsService: BillsService,
+    private walletService: WalletService
+  ) {}
 
   ngOnInit(): void {
-    this.loadBills();
+    this.loadData();
   }
 
-  private loadBills(): void {
+  private loadData(): void {
     this.billsService.getBills().subscribe(bills => {
       this.bills = bills;
+    });
+
+    this.billsService.getTransactions().subscribe(transactions => {
+      this.transactions = transactions;
+    });
+
+    this.walletService.getAllWallets().subscribe(wallets => {
+      this.availableWallets = wallets.filter(w =>
+        (w.type === 'cash' || w.type === 'bank') && w.balance > 0
+      );
     });
   }
 
@@ -38,7 +54,9 @@ export class BillsComponent implements OnInit {
       amount: 0,
       dueDate: new Date(),
       provider: '',
-      iconUrl: ''
+      iconUrl: '',
+      isSubscription: false,
+      selectedWalletId: ''
     };
   }
 
