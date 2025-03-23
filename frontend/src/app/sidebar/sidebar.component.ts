@@ -16,7 +16,11 @@ import {
   faGraduationCap,
   faComments,
   faLock,
-  faStar
+  faStar,
+  faFeed,
+  faBell,
+  faUsers,
+  faShareNodes
 } from '@fortawesome/free-solid-svg-icons';
 import { SidebarService } from '../services/sidebar-service.service';
 
@@ -120,7 +124,16 @@ export class SidebarComponent implements OnInit {
       icon: faCircleQuestion,
       name: 'Help Center',
       path: '/help'
-    }
+    },
+    {
+      icon: faFeed,
+      name: 'Feedback',
+      path: '/feedback'
+    },
+    { icon: faBell,
+      name: 'Notifications',
+      path: '/notifications'
+    },
   ];
 
   constructor(private router: Router, private sidebarService: SidebarService) {}
