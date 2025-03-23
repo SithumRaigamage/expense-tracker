@@ -22,13 +22,52 @@
           {{(isExpanded || isHovered) ? 'Menu' : '•••'}}
         </h2>
 
-        <a *ngFor="let item of navItems"
-           [routerLink]="item.path"
-           routerLinkActive="bg-gray-50 text-primary dark:bg-gray-800 dark:text-white"
-           class="flex items-center gap-x-4 px-4 py-3 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white transition-colors mb-2">
-          <fa-icon [icon]="item.icon" class="flex-shrink-0 w-6 h-6"></fa-icon>
-          <span class="flex-1" [class.hidden]="!isExpanded && !isHovered">{{ item.name }}</span>
-        </a>
+        <!-- Navigation Item -->
+        <div *ngFor="let item of navItems" class="relative group">
+          <a [routerLink]="item.isLocked ? null : item.path"
+             [class.cursor-not-allowed]="item.isLocked"
+             routerLinkActive="bg-gray-50 text-primary dark:bg-gray-800 dark:text-white"
+             class="relative flex items-center px-4 py-3 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white transition-colors mb-2"
+             [class.opacity-60]="item.isLocked">
+
+            <!-- Icon -->
+            <fa-icon [icon]="item.icon" class="flex-shrink-0 w-6 h-6 mr-4"></fa-icon>
+
+            <!-- Name and Badges Container -->
+            <div class="flex-1 flex items-center justify-between min-w-0" [class.hidden]="!isExpanded && !isHovered">
+              <!-- Name -->
+              <span class="truncate">{{ item.name }}</span>
+
+              <!-- Badges Container -->
+              <div class="flex items-center gap-2 ml-2 flex-shrink-0">
+                <!-- Lock Icon -->
+                <fa-icon *ngIf="item.isLocked"
+                         [icon]="lockIcon"
+                         class="text-gray-400 w-4 h-4">
+                </fa-icon>
+
+                <!-- New Feature Badge -->
+                <span *ngIf="item.isNew"
+                      class="flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-primary/10 text-primary rounded-full">
+                  <fa-icon [icon]="sparklesIcon" class="w-3 h-3"></fa-icon>
+                  New
+                </span>
+
+                <!-- Upcoming Feature Badge -->
+                <span *ngIf="item.isUpcoming"
+                      class="px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 rounded-full">
+                  Coming Soon
+                </span>
+              </div>
+            </div>
+          </a>
+
+          <!-- Tooltip for locked features -->
+          <div *ngIf="item.isLocked"
+               class="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 text-xs font-medium text-white bg-gray-900 rounded shadow-lg whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+            Unlock this feature in the premium version
+          </div>
+        </div>
       </div>
 
       <!-- Others Section -->

@@ -14,7 +14,9 @@ import {
   faBullseye,
   faFileInvoiceDollar,
   faGraduationCap,
-  faComments
+  faComments,
+  faLock,
+  faStar
 } from '@fortawesome/free-solid-svg-icons';
 import { SidebarService } from '../services/sidebar-service.service';
 
@@ -23,6 +25,9 @@ interface NavItem {
   icon: IconDefinition;
   path: string;  // Make path required since we're removing subItems
   badge?: string;
+  isLocked?: boolean;
+  isNew?: boolean;
+  isUpcoming?: boolean;
 }
 
 @Component({
@@ -36,52 +41,72 @@ export class SidebarComponent implements OnInit {
   isMobileOpen = false;
   isHovered = false;
   moneyIcon = faMoneyCheckDollar;
+  lockIcon = faLock;
+  sparklesIcon = faStar;
 
   navItems: NavItem[] = [
     {
       icon: faGaugeHigh,
       name: 'Dashboard',
       path: '/dashboard',
+      isNew: false
     },
     {
       icon: faWallet,
       name: 'Wallets',
-      path: '/wallets'
+      path: '/wallets',
+      isNew: false
     },
     {
       icon: faMoneyCheckDollar,
       name: 'Transactions',
-      path: '/transactions'
+      path: '/transactions',
+      isNew: false
     },
     {
       icon: faBullseye,
       name: 'Monthly Target',
-      path: '/monthly-target'
+      path: '/monthly-target',
+      isNew: false,
+      isLocked: false
     },
     {
       icon: faFileInvoiceDollar,
       name: 'Bills',
-      path: '/bills'
+      path: '/bills',
+      isNew: false,
+      isLocked: false
     },
     {
       icon: faChartLine,
-      name: 'Product Budget ',
-      path: '/budget'
+      name: 'Product Budget',
+      path: '/budget',
+      isNew: false,
+      isLocked: false
     },
     {
       icon: faShieldHalved,
       name: 'Emergency Fund',
-      path: '/emergency-fund'
+      path: '/emergency-fund',
+      isUpcoming: true,
+      isNew: false,
+      isLocked: true
     },
     {
       icon: faGraduationCap,
       name: 'Financial Education',
-      path: '/financial-education'
+      path: '/financial-education',
+      isUpcoming: true,
+      isNew: false,
+      isLocked: true
     },
     {
       icon: faComments,
       name: 'Chat',
-      path: '/chat'
+      path: '/chat',
+      isUpcoming: true,
+      isNew: false,
+      isLocked: true
     }
   ];
 
