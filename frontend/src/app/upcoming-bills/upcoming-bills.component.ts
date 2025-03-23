@@ -1,17 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { BillsService } from '../services/bill.service';
+import { Bill } from '../models/Bill';
 
-interface Bill {
-  id: string;
-  name: string;
-  category: string;
-  amount: number;
-  dueDate: Date;
-  status: 'Upcoming' | 'Due Today' | 'Overdue';
-  iconUrl: string;
-  provider: string;
-  reminderSet?: boolean;
-}
 
 @Component({
   selector: 'app-upcoming-bills',
@@ -20,44 +11,17 @@ interface Bill {
   imports: [CommonModule]
 })
 export class UpcomingBillsComponent implements OnInit {
-  upcomingBills: Bill[] = [
-    {
-      id: '1',
-      name: 'Mobile Data Plan',
-      category: 'Subscription',
-      amount: 2000.00,
-      dueDate: new Date('2024-03-28'),
-      status: 'Upcoming',
-      iconUrl: 'assets/images/upcoming_bills/mobitel_logo.png',
-      provider: 'Mobitel',
-      reminderSet: true
-    },
-    {
-      id: '2',
-      name: 'Spotify Premium',
-      category: 'Subscription',
-      amount: 350.00,
-      dueDate: new Date('2024-03-25'),
-      status: 'Upcoming',
-      iconUrl: 'assets/images/upcoming_bills/spotify_logo.png',
-      provider: 'Spotify',
-      reminderSet: true
-    },
-    {
-      id: '3',
-      name: 'Voice Plan',
-      category: 'Subscription',
-      amount:200.00,
-      dueDate: new Date('2024-03-25'),
-      status: 'Upcoming',
-      iconUrl: 'assets/images/upcoming_bills/dialog_logo.png',
-      provider: 'Dialog',
-      reminderSet: true
-    }
-  ];
+  upcomingBills: Bill[] = [];
+
+  constructor(private billsService: BillsService) {}
 
   ngOnInit(): void {
-    // Fetch bills from service
+    this.billsService.getBills().subscribe(bills => {
+      // Filter to show only upcoming and due today bills
+      this.upcomingBills = bills.filter(bill =>
+        bill.status === 'Upcoming' || bill.status === 'Due Today'
+      );
+    });
   }
 
   getBillIconClass(category: string): string {
