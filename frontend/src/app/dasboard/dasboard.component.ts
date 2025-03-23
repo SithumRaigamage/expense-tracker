@@ -9,12 +9,13 @@ import { ManageWalletsComponent } from "../manage-wallets/manage-wallets.compone
 import { BudgetPlannerComponent } from "../budget-planner/budget-planner.component";
 import { UpcomingBillsComponent } from "../upcoming-bills/upcoming-bills.component";
 import { EmergencyFundComponent } from "../emergency-fund/emergency-fund.component";
+import { FinancialEducationComponent } from "../financial-education/financial-education.component";
 
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, MetricsComponent, MonthlyTargetComponent, MonthlyStatComponent, StatchartComponent, RecentTransactionsComponent, ManageWalletsComponent, BudgetPlannerComponent, UpcomingBillsComponent, EmergencyFundComponent],
+  imports: [CommonModule, MetricsComponent, MonthlyTargetComponent, MonthlyStatComponent, StatchartComponent, RecentTransactionsComponent, ManageWalletsComponent, BudgetPlannerComponent, UpcomingBillsComponent, EmergencyFundComponent, FinancialEducationComponent],
   templateUrl: './dasboard.component.html',
   styleUrl: './dasboard.component.css'
 })
