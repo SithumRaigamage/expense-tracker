@@ -38,7 +38,7 @@ export class ManageWalletsComponent implements OnInit {
   formatCurrency(amount: number): string {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'LKR'
     }).format(amount);
   }
 }

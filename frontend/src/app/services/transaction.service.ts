@@ -11,7 +11,6 @@ export class TransactionService {
   constructor() {
     this.transactions.next([
 
-      // March 2025
       {
         id: 0,
         date: new Date(2025, 2, 1),

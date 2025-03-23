@@ -14,7 +14,7 @@ export class RecentTransactionsComponent implements OnInit {
   transactions: Transaction[] = [];
   displayedTransactions: Transaction[] = [];
   showAll: boolean = false;
-  private readonly INITIAL_DISPLAY_COUNT = 4;
+  private readonly INITIAL_DISPLAY_COUNT = 15;
 
   constructor(private transactionService: TransactionService) {}
 

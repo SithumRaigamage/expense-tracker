@@ -1,5 +1,6 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { ChartTabComponent } from "../chart-tab/chart-tab.component";
+import { TransactionService } from '../services/transaction.service';
 import {
   ApexChart,
   ApexAxisChartSeries,
@@ -38,9 +39,14 @@ export type ChartOptions = {
   templateUrl: './statchart.component.html',
   styleUrl: './statchart.component.css'
 })
-export class StatchartComponent {
+export class StatchartComponent implements OnInit {
   @ViewChild("chart") chart!: ChartComponent;
   public chartOptions!: ChartOptions;
+
+  private monthlyData = {
+    income: Array(12).fill(0),
+    expenses: Array(12).fill(0)
+  };
 
   private readonly COLORS = {
     income: '#22C55E', // Green for income
@@ -48,27 +54,73 @@ export class StatchartComponent {
     textMuted: '#6B7280' // Gray for labels
   };
 
-  private readonly monthlyData = {
-    income: [280000, 290000, 270000, 285000, 275000, 265000, 270000, 305000, 330000, 310000, 340000, 335000],
-    expenses: [240000, 230000, 250000, 240000, 255000, 240000, 270000, 300000, 310000, 320000, 350000, 340000]
-  };
-
-  private readonly quarterlyData = {
-    income: [840000, 825000, 905000, 985000],
-    expenses: [720000, 735000, 880000, 1010000]
-  };
-
-  private readonly annualData = {
-    income: [3555000],
-    expenses: [3345000]
-  };
-
-  constructor() {
+  constructor(private transactionService: TransactionService) {
     this.initializeChart('monthly');
   }
 
+  ngOnInit() {
+    this.loadTransactionData();
+  }
+
+  private loadTransactionData() {
+    this.transactionService.getTransactions().subscribe(transactions => {
+      const monthlyData = this.aggregateMonthlyData(transactions);
+      const quarterlyData = this.aggregateQuarterlyData(monthlyData);
+      const annualData = this.aggregateAnnualData(monthlyData);
+
+      this.updateChartData('monthly', monthlyData);
+    });
+  }
+
+  private aggregateMonthlyData(transactions: any[]) {
+    const data = {
+      income: Array(12).fill(0),
+      expenses: Array(12).fill(0)
+    };
+
+    transactions.forEach(transaction => {
+      const month = new Date(transaction.date).getMonth();
+      if (transaction.type === 'income') {
+        data.income[month] += transaction.amount;
+      } else {
+        data.expenses[month] += transaction.amount;
+      }
+    });
+
+    return data;
+  }
+
+  private aggregateQuarterlyData(monthlyData: any) {
+    const data = {
+      income: Array(4).fill(0),
+      expenses: Array(4).fill(0)
+    };
+
+    for (let i = 0; i < 12; i++) {
+      const quarter = Math.floor(i / 3);
+      data.income[quarter] += monthlyData.income[i];
+      data.expenses[quarter] += monthlyData.expenses[i];
+    }
+
+    return data;
+  }
+
+  private aggregateAnnualData(monthlyData: any) {
+    return {
+      income: [monthlyData.income.reduce((a: number, b: number) => a + b, 0)],
+      expenses: [monthlyData.expenses.reduce((a: number, b: number) => a + b, 0)]
+    };
+  }
+
   onPeriodChanged(period: 'monthly' | 'quarterly' | 'annually'): void {
-    this.updateChartData(period);
+    this.transactionService.getTransactions().subscribe(transactions => {
+      const monthlyData = this.aggregateMonthlyData(transactions);
+      const data = period === 'monthly' ? monthlyData :
+                   period === 'quarterly' ? this.aggregateQuarterlyData(monthlyData) :
+                   this.aggregateAnnualData(monthlyData);
+
+      this.updateChartData(period, data);
+    });
   }
 
   private getCategories(period: 'monthly' | 'quarterly' | 'annually'): string[] {
@@ -82,11 +134,7 @@ export class StatchartComponent {
     }
   }
 
-  private updateChartData(period: 'monthly' | 'quarterly' | 'annually'): void {
-    const data = period === 'monthly' ? this.monthlyData :
-                 period === 'quarterly' ? this.quarterlyData :
-                 this.annualData;
-
+  private updateChartData(period: 'monthly' | 'quarterly' | 'annually', data: any): void {
     const chartType = period === 'annually' ? 'bar' : 'area';
 
     const updatedOptions: Partial<ChartOptions> = {
@@ -162,7 +210,7 @@ export class StatchartComponent {
       },
       tooltip: {
         enabled: true,
-        theme: 'dark',
+        theme: 'light',
         y: {
           formatter: (val) => `LKR ${val.toLocaleString()}`
         }
@@ -243,7 +291,7 @@ export class StatchartComponent {
       },
       tooltip: {
         enabled: true,
-        theme: 'dark',
+        theme: 'light',
         y: {
           formatter: (value) => `LKR ${value.toLocaleString()}`
         }
