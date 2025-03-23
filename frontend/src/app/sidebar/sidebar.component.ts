@@ -63,7 +63,7 @@ export class SidebarComponent implements OnInit {
     },
     {
       icon: faChartLine,
-      name: 'Budget',
+      name: 'Product Budget ',
       path: '/budget'
     },
     {
