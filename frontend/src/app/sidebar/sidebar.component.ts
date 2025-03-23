@@ -12,7 +12,9 @@ import {
   faGear,
   faCircleQuestion,
   faBullseye,
-  faFileInvoiceDollar
+  faFileInvoiceDollar,
+  faGraduationCap,
+  faComments
 } from '@fortawesome/free-solid-svg-icons';
 import { SidebarService } from '../services/sidebar-service.service';
 
@@ -70,6 +72,16 @@ export class SidebarComponent implements OnInit {
       icon: faShieldHalved,
       name: 'Emergency Fund',
       path: '/emergency-fund'
+    },
+    {
+      icon: faGraduationCap,
+      name: 'Financial Education',
+      path: '/financial-education'
+    },
+    {
+      icon: faComments,
+      name: 'Chat',
+      path: '/chat'
     }
   ];
 
