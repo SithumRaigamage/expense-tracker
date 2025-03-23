@@ -55,6 +55,22 @@ export class ProductbudgetService {
       targetAmount: 2000,
       savedAmount: 0,
       targetDate: new Date('2025-12-31')
+    },
+    {
+      id: '7',
+      name: 'MSI Gaming Monitor',
+      imageUrl: 'assets/images/product_goals/msi_monitor.png',
+      targetAmount: 66000,
+      savedAmount: 0,
+      targetDate: new Date('2025-12-31')
+    },
+    {
+      id: '8',
+      name: 'Kingston 1TB SSD',
+      imageUrl: 'assets/images/product_goals/kingston_ssd.png',
+      targetAmount: 18500,
+      savedAmount: 0,
+      targetDate: new Date('2025-12-31')
     }
   ]);
 
