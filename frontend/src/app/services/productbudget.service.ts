@@ -26,7 +26,7 @@ export class ProductbudgetService {
     },
     {
       id: '3',
-      name: 'Baseus Simple Mini 3 Magnetic Wireless Charger Suit for iPhone 12/13/14/15 Black',
+      name: 'Baseus Wireless Charger',
       imageUrl: 'assets/images/product_goals/wireless-charger-9.png',
       targetAmount: 8000,
       savedAmount: 0,

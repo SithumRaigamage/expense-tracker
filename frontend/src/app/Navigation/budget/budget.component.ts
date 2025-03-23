@@ -71,6 +71,8 @@ export class BudgetComponent implements OnInit {
     if (this.validateGoal(this.currentGoal)) {
       if (this.drawerMode === 'add') {
         this.productBudgetService.addGoal(this.currentGoal);
+
+        console.log(this.currentGoal);
       } else if (this.drawerMode === 'edit' && this.selectedGoalId) {
         this.productBudgetService.updateGoal({
           ...this.currentGoal,
@@ -97,10 +99,25 @@ export class BudgetComponent implements OnInit {
   private loadGoals(): void {
     this.productBudgetService.getGoals().subscribe(goals => {
       this.goals = goals;
+      console.log(goals);
     });
   }
 
   private validateGoal(goal: Omit<ProductBudget, 'id'>): boolean {
     return !!(goal.name && goal.targetAmount > 0 && goal.targetDate);
+  }
+
+  getProgressColor(progress: number): string {
+    if (progress >= 100) {
+      return '#22C55E'; // Green for completed
+    } else if (progress >= 75) {
+      return '#3B82F6'; // Blue for near completion
+    } else if (progress >= 50) {
+      return '#EAB308'; // Yellow for halfway
+    } else if (progress >= 25) {
+      return '#F97316'; // Orange for started
+    } else {
+      return '#EF4444'; // Red for early stages
+    }
   }
 }
