@@ -3,13 +3,16 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProductbudgetService } from '../../services/productbudget.service';
 import { ProductBudget } from '../../models/ProductBudget';
+import { WalletService } from '../../services/wallet.service';
+import { Wallet } from '../../models/Wallet';
+import { FilterPipe } from './filter.pipe';
 
 type DrawerMode = 'add' | 'edit' | 'addMoney' | null;
 
 @Component({
   selector: 'app-budget',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule,FilterPipe],
   templateUrl: './budget.component.html',
   styleUrl: './budget.component.css'
 })
@@ -20,11 +23,17 @@ export class BudgetComponent implements OnInit {
   currentGoal: Omit<ProductBudget, 'id'> = this.getEmptyGoal();
   addAmount = 0;
   selectedGoalId: string | null = null;
+  availableWallets: Wallet[] = [];
+  selectedWalletId: string = '';
 
-  constructor(private productBudgetService: ProductbudgetService) {}
+  constructor(
+    private productBudgetService: ProductbudgetService,
+    private walletService: WalletService
+  ) {}
 
   ngOnInit(): void {
     this.loadGoals();
+    this.loadWallets();
   }
 
   private getEmptyGoal(): Omit<ProductBudget, 'id'> {
@@ -56,11 +65,12 @@ export class BudgetComponent implements OnInit {
     this.currentGoal = this.getEmptyGoal();
     this.addAmount = 0;
     this.selectedGoalId = null;
+    this.selectedWalletId = '';
   }
 
   getDrawerTitle(): string {
     switch (this.drawerMode) {
-      case 'add': return 'Add New Goal';
+      case 'add': return 'Add New Product Goal';
       case 'edit': return 'Edit Goal';
       case 'addMoney': return 'Add Money to Goal';
       default: return '';
@@ -84,9 +94,21 @@ export class BudgetComponent implements OnInit {
   }
 
   submitAddMoney(): void {
-    if (this.addAmount > 0 && this.selectedGoalId) {
-      this.productBudgetService.addMoney(this.selectedGoalId, this.addAmount);
-      this.closeDrawer();
+    if (this.addAmount > 0 && this.selectedGoalId && this.selectedWalletId) {
+      const selectedWallet = this.availableWallets.find(w => w.id === this.selectedWalletId);
+
+      if (selectedWallet && selectedWallet.balance >= this.addAmount) {
+        // Update wallet balance
+        this.walletService.updateWallet(this.selectedWalletId, {
+          balance: selectedWallet.balance - this.addAmount
+        });
+
+        // Add money to goal
+        this.productBudgetService.addMoney(this.selectedGoalId, this.addAmount);
+        this.closeDrawer();
+      } else {
+        alert('Insufficient funds in selected wallet');
+      }
     }
   }
 
@@ -100,6 +122,16 @@ export class BudgetComponent implements OnInit {
     this.productBudgetService.getGoals().subscribe(goals => {
       this.goals = goals;
       console.log(goals);
+    });
+  }
+
+  private loadWallets(): void {
+    this.walletService.getAllWallets().subscribe(wallets => {
+      // Only get cash and bank wallets with positive balance
+      this.availableWallets = wallets.filter(wallet =>
+        (wallet.type === 'cash' || wallet.type === 'bank') &&
+        wallet.balance > 0
+      );
     });
   }
 

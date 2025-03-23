@@ -21,7 +21,7 @@ export class ProductbudgetService {
       name: 'Monitor Stand',
       imageUrl: 'assets/images/product_goals/monitor_stand.png',
       targetAmount: 9000,
-      savedAmount: 4000,
+      savedAmount: 0,
       targetDate: new Date('2025-03-31')
     },
     {

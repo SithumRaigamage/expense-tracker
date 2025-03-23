@@ -22,14 +22,14 @@ export class WalletService {
       id: '1',
       name: 'Main Wallet',
       type: 'cash',
-      balance: 1500.00,
+      balance: 15000.00,
       currency: 'LKR'
     },
     {
       id: '2',
       name: 'BOC Account',
       type: 'bank',
-      balance: 10000.00,
+      balance: 100000.00,
       currency: 'LKR',
     },
     {
