@@ -21,7 +21,7 @@
   <!-- Goals List -->
   <div class="space-y-4">
     <!-- Goal Card -->
-    <div *ngFor="let goal of goals" class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/50">
+    <div *ngFor="let goal of productgoals" class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/50">
       <div class="flex items-center gap-6">
         <!-- Left: Image and Basic Info -->
         <div class="flex items-center gap-4 min-w-[240px]">
@@ -83,7 +83,7 @@
     </div>
 
     <!-- Empty State -->
-    <div *ngIf="goals.length === 0" class="text-center py-12">
+    <div *ngIf="productgoals.length === 0" class="text-center py-12">
       <div class="mx-auto w-16 h-16 text-gray-400 mb-4">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="10"></circle>

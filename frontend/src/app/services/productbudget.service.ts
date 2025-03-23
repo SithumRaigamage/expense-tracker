@@ -23,6 +23,38 @@ export class ProductbudgetService {
       targetAmount: 9000,
       savedAmount: 4000,
       targetDate: new Date('2025-03-31')
+    },
+    {
+      id: '3',
+      name: 'Baseus Simple Mini 3 Magnetic Wireless Charger Suit for iPhone 12/13/14/15 Black',
+      imageUrl: 'assets/images/product_goals/wireless-charger-9.png',
+      targetAmount: 8000,
+      savedAmount: 0,
+      targetDate: new Date('2025-12-31')
+    },
+    {
+      id: '4',
+      name: 'Ugreen Vertical Laptop Stand Holder',
+      imageUrl: 'assets/images/product_goals/ugreen_laptop_stand.png',
+      targetAmount: 5000,
+      savedAmount: 0,
+      targetDate: new Date('2025-12-31')
+    },
+    {
+      id: '5',
+      name: 'Ugreen 2 in 1 Wireless Charger',
+      imageUrl: 'assets/images/product_goals/ugreen_wireless_charger.png',
+      targetAmount: 10000,
+      savedAmount: 0,
+      targetDate: new Date('2025-12-31')
+    },
+    {
+      id: '6',
+      name: 'Ugreen lightning to female aux adapter',
+      imageUrl: 'assets/images/product_goals/ugreen_lightning_to_aux.png',
+      targetAmount: 2000,
+      savedAmount: 0,
+      targetDate: new Date('2025-12-31')
     }
   ]);
 

@@ -1,14 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-
-interface BudgetGoal {
-  id: string;
-  name: string;
-  imageUrl: string;
-  targetAmount: number;
-  savedAmount: number;
-  targetDate: Date;
-}
+import { ProductbudgetService } from '../services/productbudget.service';
+import { ProductBudget } from '../models/ProductBudget';
 
 @Component({
   selector: 'app-budget-planner',
@@ -17,30 +10,17 @@ interface BudgetGoal {
   imports: [CommonModule]
 })
 export class BudgetPlannerComponent implements OnInit {
-  goals: BudgetGoal[] = [
-    {
-      id: '1',
-      name: 'Apple AirPods 4',
-      imageUrl: 'assets/images/product_goals/airpods4.png',
-      targetAmount: 42000,
-      savedAmount: 0,
-      targetDate: new Date('2025-12-31')
-    },
-    {
-      id: '2',
-      name:'Monitor Stand',
-      imageUrl: 'assets/images/product_goals/monitor_stand.png',
-      targetAmount: 9000,
-      savedAmount: 4000,
-      targetDate: new Date('2025-03-31')
-    }
-  ];
+  productgoals: ProductBudget[] = [];
+
+  constructor(private productBudgetService: ProductbudgetService) {}
 
   ngOnInit(): void {
-    // Fetch goals from service
+    this.productBudgetService.getGoals().subscribe(goals => {
+      this.productgoals = goals;
+    });
   }
 
-  calculateProgress(goal: BudgetGoal): number {
+  calculateProgress(goal: ProductBudget): number {
     return Math.round((goal.savedAmount / goal.targetAmount) * 100);
   }
 
