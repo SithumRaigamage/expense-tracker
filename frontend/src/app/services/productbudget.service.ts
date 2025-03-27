@@ -10,10 +10,10 @@ export class ProductbudgetService {
   private goals = new BehaviorSubject<ProductBudget[]>([
     {
       id: '1',
-      name: 'Apple AirPods 4',
-      imageUrl: 'assets/images/product_goals/airpods4.png',
-      targetAmount: 42000,
-      savedAmount: 0,
+      name: 'Anker Liberty 4NC All-New True-Wireless Earbuds',
+      imageUrl: 'assets/images/product_goals/anker_liberty_4nc.png',
+      targetAmount: 16500,
+      savedAmount: 15000,
       targetDate: new Date('2025-12-31')
     },
     {
