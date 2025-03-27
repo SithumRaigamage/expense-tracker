@@ -4,11 +4,11 @@ import { TransactionsComponent } from './Navigation/transactions/transactions.co
 import { BudgetComponent } from './Navigation/budget/budget.component';
 import { EmergencyFundComponent } from './Navigation/emergency-fund/emergency-fund.component';
 import { WalletsComponent } from './Navigation/wallets/wallets.component';
-import { ProfileComponent } from './Navigation/settings/profile/profile.component';
-import { PreferencesComponent } from './Navigation/settings/preferences/preferences.component';
+
 import { HelpComponent } from './Navigation/help/help.component';
 import { MonthlyTargetComponent } from './Navigation/target/target.component';
 import { BillsComponent } from './Navigation/bills/bills.component';
+import { SettingsComponent } from './settings/settings.component';
 
 export const routes: Routes = [
   {
@@ -53,23 +53,8 @@ export const routes: Routes = [
   },
   {
     path: 'settings',
-    children: [
-      {
-        path: '',
-        redirectTo: 'profile',
-        pathMatch: 'full'
-      },
-      {
-        path: 'profile',
-        component: ProfileComponent,
-        title: 'Profile Settings'
-      },
-      {
-        path: 'preferences',
-        component: PreferencesComponent,
-        title: 'Preferences'
-      }
-    ]
+    title: 'Settings',
+    component: SettingsComponent
   },
   {
     path: 'help',
