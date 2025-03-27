@@ -1,13 +1,30 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { User } from '../models/User'
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
+import { User } from '../models/User';
 import { SettingsService } from '../services/settings.service';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+
+interface PaymentMethod {
+  id: string;
+  type: 'visa' | 'mastercard';
+  lastFour: string;
+  expiryMonth: number;
+  expiryYear: number;
+  isDefault: boolean;
+}
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    FontAwesomeModule
+  ],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.css'
 })
@@ -15,23 +32,58 @@ export class SettingsComponent implements OnInit {
   user: User | null = null;
   isOpen = false;
   formData: Partial<User> = {};
+  paymentMethods: PaymentMethod[] = [];
+  isPaymentModalOpen = false;
+  isEditMode = false;
+  selectedPaymentId: string | null = null;
+  paymentForm: FormGroup;
 
-  constructor(private settingsService: SettingsService) {}
+  constructor(
+    private settingsService: SettingsService,
+    private fb: FormBuilder
+  ) {
+    this.paymentForm = this.fb.group({
+      type: ['visa', Validators.required],
+      lastFour: ['', [Validators.required, Validators.pattern('^[0-9]{4}$')]],
+      expiryMonth: ['', [Validators.required, Validators.min(1), Validators.max(12)]],
+      expiryYear: ['', [Validators.required, Validators.min(23), Validators.max(99)]],
+      isDefault: [false]
+    });
+  }
 
   ngOnInit(): void {
     this.loadUserProfile();
+    this.loadPaymentMethods();
   }
 
   loadUserProfile(): void {
     this.settingsService.getUserProfile().subscribe({
       next: (user) => {
         this.user = user;
-        this.initializeFormData();
       },
       error: (error) => {
         console.error('Error loading user profile:', error);
       }
     });
+  }
+
+  loadPaymentMethods(): void {
+    this.settingsService.getPaymentMethods().subscribe({
+      next: (methods) => {
+        this.paymentMethods = methods;
+      },
+      error: (error) => {
+        console.error('Error loading payment methods:', error);
+      }
+    });
+  }
+
+  getCardImage(type: 'visa' | 'mastercard'): string {
+    return this.settingsService.getCardImage(type);
+  }
+
+  getCardIcon(type: 'visa' | 'mastercard'): IconDefinition {
+    return this.settingsService.getCardIcon(type);
   }
 
   initializeFormData(): void {
@@ -73,5 +125,79 @@ export class SettingsComponent implements OnInit {
         }
       });
     }
+  }
+
+  addPaymentMethod(): void {
+    this.isEditMode = false;
+    this.selectedPaymentId = null;
+    this.paymentForm.reset({ type: 'visa', isDefault: false });
+    this.isPaymentModalOpen = true;
+  }
+
+  editPaymentMethod(id: string): void {
+    const method = this.paymentMethods.find(m => m.id === id);
+    if (method) {
+      this.isEditMode = true;
+      this.selectedPaymentId = id;
+      this.paymentForm.patchValue({
+        type: method.type,
+        lastFour: method.lastFour,
+        expiryMonth: method.expiryMonth,
+        expiryYear: method.expiryYear,
+        isDefault: method.isDefault
+      });
+      this.isPaymentModalOpen = true;
+    }
+  }
+
+  deletePaymentMethod(id: string): void {
+    if (confirm('Are you sure you want to delete this payment method?')) {
+      this.settingsService.deletePaymentMethod(id).subscribe({
+        next: () => {
+          this.loadPaymentMethods();
+        },
+        error: (error) => {
+          console.error('Error deleting payment method:', error);
+        }
+      });
+    }
+  }
+
+  onPaymentSubmit(): void {
+    if (this.paymentForm.valid) {
+      const formData = this.paymentForm.value;
+
+      if (this.isEditMode && this.selectedPaymentId) {
+        this.settingsService.updatePaymentMethod(this.selectedPaymentId, formData).subscribe({
+          next: () => {
+            this.loadPaymentMethods();
+            this.closePaymentModal();
+          },
+          error: (error) => {
+            console.error('Error updating payment method:', error);
+          }
+        });
+      } else {
+        this.settingsService.addPaymentMethod(formData).subscribe({
+          next: () => {
+            this.loadPaymentMethods();
+            this.closePaymentModal();
+          },
+          error: (error) => {
+            console.error('Error adding payment method:', error);
+          }
+        });
+      }
+    }
+  }
+
+  closePaymentModal(): void {
+    this.isPaymentModalOpen = false;
+    this.paymentForm.reset({ type: 'visa', isDefault: false });
+  }
+
+  setDefaultPaymentMethod(id: string): void {
+    // TODO: Implement setting default payment method
+    console.log('Setting default payment method:', id);
   }
 }
