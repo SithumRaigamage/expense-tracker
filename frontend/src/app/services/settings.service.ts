@@ -15,7 +15,7 @@ export class SettingsService {
     profileImage: 'assets/images/user/owner.png',
     email: 'sraig2002@gmail.com',
     phone: '+94 77 123 4567',
-    bio: 'Team Manager'
+    bio: 'Enthusiastic software engineering intern with a passion for web development and new technologies. Currently learning Angular and TypeScript while contributing to full-stack projects.'
   };
 
   getUserProfile(): Observable<User> {
