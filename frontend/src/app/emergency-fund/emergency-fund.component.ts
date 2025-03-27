@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { NgApexchartsModule } from 'ng-apexcharts';
 import {
+  NgApexchartsModule,
+  ChartComponent,
   ApexAxisChartSeries,
   ApexChart,
   ApexXAxis,
@@ -13,8 +14,10 @@ import {
   ApexFill,
   ApexTheme
 } from 'ng-apexcharts';
+import { TransactionService } from '../services/transaction.service';
+import { Subscription } from 'rxjs';
 
-interface Transaction {
+interface EmergencyTransaction {
   date: Date;
   amount: number;
   type: 'deposit' | 'withdrawal';
@@ -41,7 +44,7 @@ export type EmergencyChartOptions = {
   standalone: true,
   imports: [CommonModule, NgApexchartsModule]
 })
-export class EmergencyFundComponent implements OnInit {
+export class EmergencyFundComponent implements OnInit, OnDestroy {
   public chartOptions!: Partial<EmergencyChartOptions>;
 
   private readonly COLORS = {
@@ -50,36 +53,21 @@ export class EmergencyFundComponent implements OnInit {
     grid: '#E2E8F0',
   };
 
-  transactions: Transaction[] = [
-    {
-      date: new Date('2024-03-01'),
-      amount: 25000,
-      type: 'deposit',
-      balance: 25000
-    },
-    {
-      date: new Date('2024-03-10'),
-      amount: 15000,
-      type: 'deposit',
-      balance: 40000
-    },
-    {
-      date: new Date('2024-03-15'),
-      amount: 5000,
-      type: 'withdrawal',
-      balance: 35000
-    }
-  ];
-
+  private subscription: Subscription = new Subscription();
+  transactions: EmergencyTransaction[] = [];
   currentBalance: number = 35000;
   targetGoal: number = 100000;
   monthlySaveGoal: number = 5000;
 
-  constructor() {
-    this.initializeChart();
+  constructor(private transactionService: TransactionService) {}
+
+  ngOnInit(): void {
+    this.loadTransactions();
   }
 
-  ngOnInit(): void {}
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
+  }
 
   private initializeChart(): void {
     this.chartOptions = {
@@ -153,7 +141,7 @@ export class EmergencyFundComponent implements OnInit {
         }
       },
       tooltip: {
-        theme: 'dark',
+        theme: 'light',
         style: {
           fontSize: '12px',
           fontFamily: 'Inter, sans-serif',
@@ -177,6 +165,32 @@ export class EmergencyFundComponent implements OnInit {
         palette: 'palette1'
       }
     };
+  }
+
+  private loadTransactions(): void {
+    const currentDate = new Date();
+    this.subscription.add(
+      this.transactionService
+        .getMonthlyTransactions(currentDate.getMonth(), currentDate.getFullYear())
+        .subscribe(transactions => {
+          let runningBalance = 0;
+          this.transactions = transactions
+            .sort((a, b) => a.date.getTime() - b.date.getTime())
+            .map(t => {
+              const isDeposit = t.type === 'income';
+              runningBalance += isDeposit ? t.amount : -t.amount;
+              return {
+                date: t.date,
+                amount: t.amount,
+                type: isDeposit ? 'deposit' : 'withdrawal',
+                balance: runningBalance
+              };
+            });
+
+          this.currentBalance = runningBalance;
+          this.initializeChart();
+        })
+    );
   }
 
   formatDate(date: Date): string {
