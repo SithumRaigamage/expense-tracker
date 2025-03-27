@@ -47,7 +47,7 @@
         </button>
       </div>
     </div>
-    <div *ngIf="isOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <div *ngIf="isOpen" class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/30 dark:bg-black/30">
       <div class="max-w-[700px] m-4">
         <div class="relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-11">
           <div class="px-2 pr-14">
@@ -62,37 +62,6 @@
           <form class="flex flex-col" (ngSubmit)="onSave()">
             <div class="custom-scrollbar h-[450px] overflow-y-auto px-2 pb-3">
               <!-- Social Links Section -->
-              <div>
-                <h5 class="mb-5 text-lg font-medium text-gray-800 dark:text-white/90 lg:mb-6">
-                  Social Links
-                </h5>
-                <div class="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
-                  <div>
-                    <label class="mb-2.5 block text-black dark:text-white">Facebook</label>
-                    <input type="text" [(ngModel)]="formData.socialLinks.facebook" name="facebook"
-                      class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700">
-                  </div>
-
-                  <div>
-                    <label class="mb-2.5 block text-black dark:text-white">X.com</label>
-                    <input type="text" [(ngModel)]="formData.socialLinks.twitter" name="twitter"
-                      class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700">
-                  </div>
-
-                  <div>
-                    <label class="mb-2.5 block text-black dark:text-white">LinkedIn</label>
-                    <input type="text" [(ngModel)]="formData.socialLinks.linkedin" name="linkedin"
-                      class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700">
-                  </div>
-
-                  <div>
-                    <label class="mb-2.5 block text-black dark:text-white">Instagram</label>
-                    <input type="text" [(ngModel)]="formData.socialLinks.instagram" name="instagram"
-                      class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700">
-                  </div>
-                </div>
-              </div>
-
               <!-- Personal Information Section -->
               <div class="mt-7">
                 <h5 class="mb-5 text-lg font-medium text-gray-800 dark:text-white/90 lg:mb-6">
@@ -138,7 +107,7 @@
                 Close
               </button>
               <button type="submit"
-                class="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark">
+                class="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-black hover:bg-primary-dark">
                 Save Changes
               </button>
             </div>
