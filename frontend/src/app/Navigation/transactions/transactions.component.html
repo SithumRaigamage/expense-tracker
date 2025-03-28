@@ -1,0 +1,135 @@
+<div class="p-6">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Transactions</h1>
+    <button (click)="openDrawer()"
+            class="inline-flex items-center gap-2 rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium">
+      <fa-icon [icon]="faPlus"></fa-icon>
+      Add Transaction
+    </button>
+  </div>
+
+  <!-- Transactions Table -->
+  <div class="overflow-x-auto">
+    <table class="w-full text-left text-sm text-gray-500 dark:text-gray-400">
+      <thead class="bg-gray-50 text-xs uppercase text-gray-700 dark:bg-gray-700 dark:text-gray-400">
+        <tr>
+          <th scope="col" class="px-6 py-3">Date</th>
+          <th scope="col" class="px-6 py-3">Description</th>
+          <th scope="col" class="px-6 py-3">Category</th>
+          <th scope="col" class="px-6 py-3">Amount</th>
+          <th scope="col" class="px-6 py-3">Type</th>
+          <th scope="col" class="px-6 py-3">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let transaction of transactions"
+            class="border-b bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
+          <td class="px-6 py-4">{{transaction.date | date}}</td>
+          <td class="px-6 py-4">{{transaction.description}}</td>
+          <td class="px-6 py-4">{{transaction.category}}</td>
+          <td class="px-6 py-4" [ngClass]="{
+            'text-green-500': transaction.type === 'income',
+            'text-red-500': transaction.type === 'expense'
+          }">{{transaction.amount | currency:'LKR'}}</td>
+          <td class="px-6 py-4">{{transaction.type}}</td>
+          <td class="px-6 py-4">
+            <div class="flex gap-2">
+              <button (click)="openDrawer(transaction)"
+                      class="text-blue-500 hover:text-blue-700">
+                <fa-icon [icon]="faPencil"></fa-icon>
+              </button>
+              <button (click)="deleteTransaction(transaction.id)"
+                      class="text-red-500 hover:text-red-700">
+                <fa-icon [icon]="faTrash"></fa-icon>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Side Drawer -->
+  <div *ngIf="isDrawerOpen"
+       class="fixed inset-0 bg-gray-900/50 z-40"
+       (click)="closeDrawer()">
+  </div>
+
+  <div class="fixed inset-y-0 right-0 w-96 bg-white dark:bg-gray-800 shadow-lg transform transition-transform duration-300 ease-in-out z-50"
+       [class.translate-x-full]="!isDrawerOpen"
+       [class.translate-x-0]="isDrawerOpen">
+    <div class="h-full flex flex-col">
+      <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+          {{selectedTransaction ? 'Edit Transaction' : 'Add Transaction'}}
+        </h2>
+      </div>
+
+      <div class="p-6 flex-1 overflow-y-auto">
+        <form [formGroup]="transactionForm" (ngSubmit)="onSubmit()" class="space-y-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Date
+            </label>
+            <input type="date"
+                   formControlName="date"
+                   class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Amount
+            </label>
+            <input type="number"
+                   formControlName="amount"
+                   class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                   placeholder="0.00">
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Description
+            </label>
+            <input type="text"
+                   formControlName="description"
+                   class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Category
+            </label>
+            <input type="text"
+                   formControlName="category"
+                   class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Type
+            </label>
+            <select formControlName="type"
+                    class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+              <option value="expense">Expense</option>
+              <option value="income">Income</option>
+            </select>
+          </div>
+
+          <div class="flex justify-end gap-4">
+            <button type="button"
+                    (click)="closeDrawer()"
+                    class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+              Cancel
+            </button>
+            <button type="submit"
+                    [disabled]="!transactionForm.valid"
+                    class="rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium text-white hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed">
+              {{selectedTransaction ? 'Save Changes' : 'Add Transaction'}}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

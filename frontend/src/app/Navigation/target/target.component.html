@@ -1,0 +1,161 @@
+<div class="p-6">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Monthly Targets</h1>
+    <button (click)="openDrawer()"
+            class="inline-flex items-center gap-2 rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium hover:bg-primary-600">
+      <fa-icon [icon]="faPlus"></fa-icon>
+      Add Target
+    </button>
+  </div>
+
+  <!-- Targets Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div *ngFor="let target of monthlyTargets"
+         class="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <fa-icon [icon]="faTarget" class="text-primary-500 text-xl"></fa-icon>
+          <h3 class="font-semibold text-gray-900 dark:text-white">{{target.month | date:'MMMM yyyy'}}</h3>
+        </div>
+        <div class="flex items-center gap-2">
+          <button (click)="openDrawer(target)"
+                  class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+            <fa-icon [icon]="faPencil"></fa-icon>
+          </button>
+          <button (click)="deleteTarget(target.id)"
+                  class="text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400">
+            <fa-icon [icon]="faTrash"></fa-icon>
+          </button>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <app-radialchart
+          [percentage]="(target.currentSavings / target.targetAmount) * 100"
+          [showPercentage]="true">
+        </app-radialchart>
+
+        <div class="space-y-2">
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-500 dark:text-gray-400">Target Amount</span>
+            <span class="font-medium text-gray-900 dark:text-white">{{target.targetAmount | currency:'LKR'}}</span>
+          </div>
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-500 dark:text-gray-400">Current Savings</span>
+            <span class="font-medium text-gray-900 dark:text-white">{{target.currentSavings | currency:'LKR'}}</span>
+          </div>
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-500 dark:text-gray-400">Progress</span>
+            <span class="font-medium" [ngClass]="{
+              'text-green-500': (target.currentSavings / target.targetAmount) >= 1,
+              'text-yellow-500': (target.currentSavings / target.targetAmount) < 1
+            }">
+              {{(target.currentSavings / target.targetAmount) * 100 | number:'1.0-0'}}%
+            </span>
+          </div>
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-500 dark:text-gray-400">Daily Target</span>
+            <span class="font-medium text-gray-900 dark:text-white">
+              {{calculateMonthlyProgress(target).dailyTarget | currency:'LKR'}}
+            </span>
+          </div>
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-500 dark:text-gray-400">Remaining Days</span>
+            <span class="font-medium text-gray-900 dark:text-white">
+              {{calculateMonthlyProgress(target).remainingDays}} days
+            </span>
+          </div>
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-gray-500 dark:text-gray-400">Status</span>
+            <span class="font-medium" [ngClass]="{
+              'text-green-500': calculateMonthlyProgress(target).isOnTrack,
+              'text-red-500': !calculateMonthlyProgress(target).isOnTrack
+            }">
+              {{calculateMonthlyProgress(target).isOnTrack ? 'On Track' : 'Behind'}}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Side Drawer -->
+  <div *ngIf="isDrawerOpen"
+       class="fixed inset-0 bg-gray-900/50 z-40"
+       (click)="closeDrawer()">
+  </div>
+
+  <div class="fixed inset-y-0 right-0 w-96 bg-white dark:bg-gray-800 shadow-lg transform transition-transform duration-300 ease-in-out z-50"
+       [class.translate-x-full]="!isDrawerOpen"
+       [class.translate-x-0]="isDrawerOpen">
+    <div class="h-full flex flex-col">
+      <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+          {{selectedTarget ? 'Edit Target' : 'Add New Target'}}
+        </h2>
+      </div>
+
+      <div class="p-6 flex-1 overflow-y-auto">
+        <form [formGroup]="targetForm" (ngSubmit)="onSubmit()" class="space-y-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Month
+            </label>
+            <input type="month"
+                   formControlName="month"
+                   class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+            <div class="mt-1 text-sm text-red-500" *ngIf="monthErrors.required">
+              Month is required
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Target Amount
+            </label>
+            <input type="number"
+                   formControlName="targetAmount"
+                   class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                   placeholder="0.00">
+            <div class="mt-1 text-sm text-red-500" *ngIf="targetAmountErrors.required">
+              Target amount is required
+            </div>
+            <div class="mt-1 text-sm text-red-500" *ngIf="targetAmountErrors.min">
+              Target amount must be positive
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Current Savings
+            </label>
+            <input type="number"
+                   formControlName="currentSavings"
+                   class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                   placeholder="0.00">
+            <div class="mt-1 text-sm text-red-500" *ngIf="currentSavingsErrors.required">
+              Current savings is required
+            </div>
+            <div class="mt-1 text-sm text-red-500" *ngIf="currentSavingsErrors.min">
+              Current savings cannot be negative
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-4">
+            <button type="button"
+                    (click)="closeDrawer()"
+                    class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+              Cancel
+            </button>
+            <button type="submit"
+                    [disabled]="!formIsValid"
+                    class="rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium text-black hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed">
+              {{selectedTarget ? 'Save Changes' : 'Add Target'}}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
