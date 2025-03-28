@@ -137,9 +137,7 @@ npm run lint
   </a>
 </p>
 
-## 📝 License
 
-This project is [MIT](LICENSE) licensed.
 
 ---
-<p align="center">Made with ❤️ by Your Name</p>
+<p align="center">Made with ❤️ by Sithum Raigamage</p>
