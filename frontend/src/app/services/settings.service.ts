@@ -148,4 +148,48 @@ export class SettingsService {
   getCardIcon(type: 'visa' | 'mastercard'): IconDefinition {
     return this.cardIcons[type];
   }
+
+  changePassword(currentPassword: string, newPassword: string): Observable<void> {
+    // Simulate API call
+    return new Observable<void>(observer => {
+      setTimeout(() => {
+        // Simulate password validation
+        if (currentPassword === 'wrong-password') {
+          observer.error(new Error('Current password is incorrect'));
+          return;
+        }
+
+        // In a real application, you would make an API call here
+        observer.next(void 0);
+        observer.complete();
+      }, 1000);
+    }).pipe(
+      catchError(error => {
+        console.error('Error changing password:', error);
+        return throwError(() => new Error('Failed to change password'));
+      })
+    );
+  }
+
+  changeEmail(newEmail: string, password: string): Observable<void> {
+    // Simulate API call
+    return new Observable<void>(observer => {
+      setTimeout(() => {
+        // Simulate password validation
+        if (password === 'wrong-password') {
+          observer.error(new Error('Invalid password'));
+          return;
+        }
+
+        this.dummyUser.email = newEmail;
+        observer.next(void 0);
+        observer.complete();
+      }, 1000);
+    }).pipe(
+      catchError(error => {
+        console.error('Error changing email:', error);
+        return throwError(() => new Error('Failed to change email'));
+      })
+    );
+  }
 }

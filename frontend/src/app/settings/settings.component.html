@@ -1,5 +1,5 @@
 <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
-  <h3 class="mb-5 text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-7">
+  <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-1">
     Profile
   </h3>
   <div class="space-y-6">
@@ -43,97 +43,202 @@
         </button>
       </div>
     </div>
-    <div *ngIf="isOpen"
-      class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/30 dark:bg-black/30">
-      <div class="max-w-[700px] m-4">
-        <div class="relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-11">
-          <div class="px-2 pr-14">
-            <h4 class="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
-              Edit Personal Information
-            </h4>
-            <p class="mb-6 text-sm text-gray-500 dark:text-gray-400 lg:mb-7">
-              Update your details to keep your profile up-to-date.
-            </p>
-          </div>
+  </div>
+</div>
 
-          <div class="flex justify-center mb-8">
-            <div class="relative">
-              <div class="w-24 h-24 overflow-hidden border-2 border-gray-200 rounded-full dark:border-gray-700">
-                <img [src]="previewImage || user?.profileImage || '/images/user/owner.jpg'"
-                  [alt]="user?.name || 'Profile'" class="w-full h-full object-cover">
-              </div>
-              <label for="profile-image-upload"
-                class="absolute bottom-0 right-0 p-1.5 rounded-full bg-primary text-white hover:bg-primary-dark cursor-pointer">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-                  <path
-                    d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                </svg>
-                <input type="file" id="profile-image-upload" accept="image/png,image/jpeg,image/jpg" class="hidden"
-                  (change)="onFileSelected($event)">
-              </label>
-            </div>
-          </div>
-
-          <form class="flex flex-col" (ngSubmit)="onSave()">
-            <div class="custom-scrollbar h-[450px] overflow-y-auto px-2 pb-3">
-              <!-- Social Links Section -->
-              <!-- Personal Information Section -->
-              <div class="mt-7">
-                <h5 class="mb-5 text-lg font-medium text-gray-800 dark:text-white/90 lg:mb-6">
-                  Personal Information
-                </h5>
-                <div class="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
-                  <div class="col-span-2 lg:col-span-1">
-                    <label class="mb-2.5 block text-black dark:text-white">First Name</label>
-                    <input type="text" [(ngModel)]="formData.firstName" name="firstName"
-                      class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700">
-                  </div>
-
-                  <div class="col-span-2 lg:col-span-1">
-                    <label class="mb-2.5 block text-black dark:text-white">Last Name</label>
-                    <input type="text" [(ngModel)]="formData.lastName" name="lastName"
-                      class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700">
-                  </div>
-
-                  <div class="col-span-2 lg:col-span-1">
-                    <label class="mb-2.5 block text-black dark:text-white">Email Address</label>
-                    <input type="email" [(ngModel)]="formData.email" name="email"
-                      class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700">
-                  </div>
-
-                  <div class="col-span-2 lg:col-span-1">
-                    <label class="mb-2.5 block text-black dark:text-white">Phone</label>
-                    <input type="tel" [(ngModel)]="formData.phone" name="phone"
-                      class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700">
-                  </div>
-
-                  <div class="col-span-2">
-                    <label class="mb-2.5 block text-black dark:text-white">Bio</label>
-                    <textarea
-                      [(ngModel)]="formData.bio"
-                      name="bio"
-                      rows="4"
-                      class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700 resize-none"
-                      placeholder="Write something about yourself..."
-                    ></textarea>
-                  </div>
-                </div>
+<!-- Password and Email Section -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-5">
+  <!-- Password Section -->
+  <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
+    <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-1">
+      Password
+    </h3>
+    <div class="space-y-6">
+      <div class="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
+        <div class="flex flex-col gap-5">
+          <form [formGroup]="passwordForm" (ngSubmit)="onPasswordChange()" class="grid grid-cols-1 gap-4">
+            <div>
+              <label class="mb-2.5 block text-black dark:text-white">Current Password</label>
+              <input type="password" formControlName="currentPassword"
+                class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700"
+                placeholder="Enter current password">
+              <div *ngIf="passwordForm.get('currentPassword')?.touched && passwordForm.get('currentPassword')?.invalid"
+                class="text-red-500 text-sm mt-1">
+                Current password is required
               </div>
             </div>
 
-            <div class="flex items-center gap-3 px-2 mt-6 lg:justify-end">
-              <button type="button" (click)="onClose()"
-                class="rounded-lg border border-gray-300 bg-transparent px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800">
-                Close
-              </button>
+            <div>
+              <label class="mb-2.5 block text-black dark:text-white">New Password</label>
+              <input type="password" formControlName="newPassword"
+                class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700"
+                placeholder="Enter new password">
+              <div *ngIf="passwordForm.get('newPassword')?.touched && passwordForm.get('newPassword')?.invalid"
+                class="text-red-500 text-sm mt-1">
+                Password must be at least 8 characters
+              </div>
+            </div>
+
+            <div>
+              <label class="mb-2.5 block text-black dark:text-white">Confirm Password</label>
+              <input type="password" formControlName="confirmPassword"
+                class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700"
+                placeholder="Confirm new password">
+              <div *ngIf="passwordForm.get('confirmPassword')?.touched && passwordForm.hasError('passwordMismatch')"
+                class="text-red-500 text-sm mt-1">
+                Passwords do not match
+              </div>
+            </div>
+
+            <div class="flex justify-end mt-4">
               <button type="submit"
-                class="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-black hover:bg-primary-dark">
-                Save Changes
+                class="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-black hover:bg-primary-dark"
+                [disabled]="passwordForm.invalid">
+                Change Password
               </button>
             </div>
           </form>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Email Section -->
+  <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
+    <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-1">
+      Email Address
+    </h3>
+    <div class="space-y-6">
+      <div class="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
+        <div class="flex flex-col gap-5">
+          <form [formGroup]="emailForm" (ngSubmit)="onEmailChange()" class="grid grid-cols-1 gap-4">
+            <div>
+              <label class="mb-2.5 block text-black dark:text-white">Current Email</label>
+              <input type="email" [value]="user?.email" disabled
+                class="w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-2.5 dark:border-gray-700 dark:bg-gray-800">
+            </div>
+
+            <div>
+              <label class="mb-2.5 block text-black dark:text-white">New Email</label>
+              <input type="email" formControlName="newEmail"
+                class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700"
+                placeholder="Enter new email">
+              <div *ngIf="emailForm.get('newEmail')?.touched && emailForm.get('newEmail')?.invalid"
+                class="text-red-500 text-sm mt-1">
+                Please enter a valid email address
+              </div>
+            </div>
+
+            <div>
+              <label class="mb-2.5 block text-black dark:text-white">Password</label>
+              <input type="password" formControlName="password"
+                class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700"
+                placeholder="Enter your password">
+              <div *ngIf="emailForm.get('password')?.touched && emailForm.get('password')?.invalid"
+                class="text-red-500 text-sm mt-1">
+                Password is required
+              </div>
+            </div>
+
+            <div class="flex justify-end mt-4">
+              <button type="submit" class="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-black hover:bg-primary-dark"
+                [disabled]="emailForm.invalid">
+                Change Email
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- profile modal -->
+<div *ngIf="isOpen"
+  class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/30 dark:bg-black/30">
+  <div class="max-w-[700px] m-4">
+    <div class="relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-11">
+      <div class="px-2 pr-14">
+        <h4 class="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
+          Edit Personal Information
+        </h4>
+        <p class="mb-6 text-sm text-gray-500 dark:text-gray-400 lg:mb-7">
+          Update your details to keep your profile up-to-date.
+        </p>
+      </div>
+
+      <div class="flex justify-center mb-8">
+        <div class="relative">
+          <div class="w-24 h-24 overflow-hidden border-2 border-gray-200 rounded-full dark:border-gray-700">
+            <img [src]="previewImage || user?.profileImage || '/images/user/owner.jpg'" [alt]="user?.name || 'Profile'"
+              class="w-full h-full object-cover">
+          </div>
+          <label for="profile-image-upload"
+            class="absolute bottom-0 right-0 p-1.5 rounded-full bg-primary text-white hover:bg-primary-dark cursor-pointer">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+              <path
+                d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+            </svg>
+            <input type="file" id="profile-image-upload" accept="image/png,image/jpeg,image/jpg" class="hidden"
+              (change)="onFileSelected($event)">
+          </label>
+        </div>
+      </div>
+
+      <form class="flex flex-col" (ngSubmit)="onSave()">
+        <div class="custom-scrollbar h-[450px] overflow-y-auto px-2 pb-3">
+          <!-- Social Links Section -->
+          <!-- Personal Information Section -->
+          <div class="mt-7">
+            <h5 class="mb-5 text-lg font-medium text-gray-800 dark:text-white/90 lg:mb-6">
+              Personal Information
+            </h5>
+            <div class="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
+              <div class="col-span-2 lg:col-span-1">
+                <label class="mb-2.5 block text-black dark:text-white">First Name</label>
+                <input type="text" [(ngModel)]="formData.firstName" name="firstName"
+                  class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700">
+              </div>
+
+              <div class="col-span-2 lg:col-span-1">
+                <label class="mb-2.5 block text-black dark:text-white">Last Name</label>
+                <input type="text" [(ngModel)]="formData.lastName" name="lastName"
+                  class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700">
+              </div>
+
+              <div class="col-span-2 lg:col-span-1">
+                <label class="mb-2.5 block text-black dark:text-white">Email Address</label>
+                <input type="email" [(ngModel)]="formData.email" name="email"
+                  class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700">
+              </div>
+
+              <div class="col-span-2 lg:col-span-1">
+                <label class="mb-2.5 block text-black dark:text-white">Phone</label>
+                <input type="tel" [(ngModel)]="formData.phone" name="phone"
+                  class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700">
+              </div>
+
+              <div class="col-span-2">
+                <label class="mb-2.5 block text-black dark:text-white">Bio</label>
+                <textarea [(ngModel)]="formData.bio" name="bio" rows="4"
+                  class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700 resize-none"
+                  placeholder="Write something about yourself..."></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3 px-2 mt-6 lg:justify-end">
+          <button type="button" (click)="onClose()"
+            class="rounded-lg border border-gray-300 bg-transparent px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800">
+            Close
+          </button>
+          <button type="submit"
+            class="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-black hover:bg-primary-dark">
+            Save Changes
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 </div>

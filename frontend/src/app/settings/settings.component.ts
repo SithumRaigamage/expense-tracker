@@ -5,7 +5,7 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { User } from '../models/User';
 import { SettingsService } from '../services/settings.service';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 
 interface PaymentMethod {
@@ -40,6 +40,8 @@ export class SettingsComponent implements OnInit {
   paymentForm: FormGroup;
   selectedImage: File | null = null;
   previewImage: SafeUrl | null = null;
+  passwordForm: FormGroup;
+  emailForm: FormGroup;
 
   constructor(
     private settingsService: SettingsService,
@@ -52,6 +54,19 @@ export class SettingsComponent implements OnInit {
       expiryMonth: ['', [Validators.required, Validators.min(1), Validators.max(12)]],
       expiryYear: ['', [Validators.required, Validators.min(23), Validators.max(99)]],
       isDefault: [false]
+    });
+
+    // Initialize password form
+    this.passwordForm = this.fb.group({
+      currentPassword: ['', [Validators.required]],
+      newPassword: ['', [Validators.required, Validators.minLength(8)]],
+      confirmPassword: ['', [Validators.required]]
+    }, { validators: this.passwordMatchValidator });
+
+    // Initialize email form
+    this.emailForm = this.fb.group({
+      newEmail: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required]]
     });
   }
 
@@ -247,5 +262,48 @@ export class SettingsComponent implements OnInit {
   setDefaultPaymentMethod(id: string): void {
     // TODO: Implement setting default payment method
     console.log('Setting default payment method:', id);
+  }
+
+  passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
+    const newPassword = control.get('newPassword');
+    const confirmPassword = control.get('confirmPassword');
+
+    if (newPassword && confirmPassword && newPassword.value !== confirmPassword.value) {
+      return { passwordMismatch: true };
+    }
+    return null;
+  }
+
+  onPasswordChange(): void {
+    if (this.passwordForm.valid) {
+      const { currentPassword, newPassword } = this.passwordForm.value;
+      this.settingsService.changePassword(currentPassword, newPassword).subscribe({
+        next: () => {
+          alert('Password changed successfully');
+          this.passwordForm.reset();
+        },
+        error: (error) => {
+          console.error('Error changing password:', error);
+          alert('Failed to change password. Please try again.');
+        }
+      });
+    }
+  }
+
+  onEmailChange(): void {
+    if (this.emailForm.valid) {
+      const { newEmail, password } = this.emailForm.value;
+      this.settingsService.changeEmail(newEmail, password).subscribe({
+        next: () => {
+          alert('Email changed successfully');
+          this.emailForm.reset();
+          this.loadUserProfile(); // Reload user profile to show new email
+        },
+        error: (error) => {
+          console.error('Error changing email:', error);
+          alert('Failed to change email. Please try again.');
+        }
+      });
+    }
   }
 }
