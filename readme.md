@@ -1,11 +1,9 @@
 # 💰 Expense Tracker Application
 
 <p align="center">
-  <img src="path-to-your-logo.png" alt="Expense Tracker Logo" width="200"/>
+  <img src="" alt="Expense Tracker Logo" width="200"/>
 </p>
 
-[![CI/CD](https://github.com/yourusername/expense-tracker/actions/workflows/test.yml/badge.svg)](https://github.com/yourusername/expense-tracker/actions)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Angular](https://img.shields.io/badge/Angular-16+-DD0031?logo=angular)](https://angular.io/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-4.9+-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
