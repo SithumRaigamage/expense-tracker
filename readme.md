@@ -1,102 +1,145 @@
-Expense Tracker Application
-Overview
-A modern expense tracking application built with Angular, designed to help users manage their personal finances effectively. This application provides features for tracking expenses, managing payment methods, and maintaining user profiles.
+# 💰 Expense Tracker Application
 
-Tech Stack
-Frontend Framework: Angular 16+
-Styling:
-Tailwind CSS
-Dark mode support
-Responsive design
-Authentication: JWT-based auth
-Form Handling: Angular Reactive Forms
-Icons: Font Awesome
-Testing:
-Karma
-Jasmine
-CI/CD: GitHub Actions
-Code Quality:
-ESLint
-TypeScript strict mode
-Code coverage requirements
-Features
-User Management
-User profile management
-Profile image upload
-Password change functionality
-Email update system
-Secure authentication
-Payment Methods
-Add/Edit/Delete payment methods
-Support for multiple card types:
-Visa
-Mastercard
-Default payment method selection
-Secure card information handling
-UI/UX Features
-Responsive design for all devices
-Dark/Light theme support
-Form validation with user feedback
-Loading states and error handling
-Modern, clean interface
-Project Structure
-Getting Started
-Prerequisites
-Node.js (v16.x or 18.x)
-npm or yarn
-Angular CLI
-Installation
-Testing
-CI/CD
-The project uses GitHub Actions for continuous integration, including:
+<p align="center">
+  <img src="path-to-your-logo.png" alt="Expense Tracker Logo" width="200"/>
+</p>
 
-Automated testing on Node.js 16.x and 18.x
-Code coverage reporting
-Linting checks
-Branch protection rules
-Learning Outcomes
-Angular component architecture
-Reactive Forms implementation
-Service layer patterns
-Observable pattern usage
-TypeScript type safety
-Tailwind CSS styling
-Dark mode implementation
-File upload handling
-Form validation patterns
-CI/CD workflow setup
-Testing best practices
-Best Practices Implemented
-Component-based architecture
-Service abstraction
-Type-safe development
-Reactive programming
-Clean code principles
-Responsive design
-Progressive enhancement
-Error handling patterns
-Loading state management
-Contributing
-Fork the repository
-Create your feature branch (git checkout -b feature/AmazingFeature)
-Commit your changes (git commit -m 'Add some AmazingFeature')
-Push to the branch (git push origin feature/AmazingFeature)
-Open a Pull Request
-License
-This project is licensed under the MIT License - see the LICENSE file for details
+[![CI/CD](https://github.com/yourusername/expense-tracker/actions/workflows/test.yml/badge.svg)](https://github.com/yourusername/expense-tracker/actions)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Angular](https://img.shields.io/badge/Angular-16+-DD0031?logo=angular)](https://angular.io/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-4.9+-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
-Acknowledgments
-Angular team for the fantastic framework
-Tailwind CSS for the utility-first CSS framework
-Font Awesome for the comprehensive icon set
-Future Enhancements
-<input disabled="" type="checkbox"> Add expense categories management
-<input disabled="" type="checkbox"> Implement budget tracking
-<input disabled="" type="checkbox"> Add expense reports and analytics
-<input disabled="" type="checkbox"> Integrate with financial APIs
-<input disabled="" type="checkbox"> Add mobile app support
-<input disabled="" type="checkbox"> Implement multi-currency support
-Contact
-Your Name - @yourtwitter Project Link: https://github.com/yourusername/expense-tracker
+## 📋 Overview
 
-Similar code found with 3 license types - View matches
+A modern expense tracking application built with Angular, designed to help users manage their personal finances effectively. Track expenses, manage payment methods, and maintain user profiles with ease.
+
+## 🛠️ Tech Stack
+
+### Frontend
+- ![Angular](https://img.shields.io/badge/Angular-DD0031?style=for-the-badge&logo=angular&logoColor=white) Angular 16+
+- ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white) TypeScript
+- ![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white) Tailwind CSS
+
+### Testing & Quality
+- ![Jest](https://img.shields.io/badge/Jest-C21325?style=for-the-badge&logo=jest&logoColor=white) Karma & Jasmine
+- ![ESLint](https://img.shields.io/badge/ESLint-4B32C3?style=for-the-badge&logo=eslint&logoColor=white) ESLint
+
+### CI/CD
+- ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white) GitHub Actions
+
+## ✨ Features
+
+### 👤 User Management
+- Profile management with image upload
+- Secure authentication (JWT)
+- Password & email management
+- Dark/Light theme preferences
+
+### 💳 Payment Methods
+- Multiple card support (Visa/Mastercard)
+- Secure card management
+- Default payment settings
+
+### 🎨 UI/UX Features
+- 📱 Responsive design
+- 🌓 Dark/Light themes
+- ✅ Form validation
+- 🔄 Loading states
+- ⚡ Modern interface
+
+## 🗂️ Project Structure
+
+```
+expense-tracker/
+├── 📱 frontend/
+│   ├── 📂 src/
+│   │   ├── 🧩 components/
+│   │   ├── ⚙️ services/
+│   │   ├── 📋 models/
+│   │   └── 🔧 shared/
+│   ├── 📦 package.json
+│   └── ⚡ karma.conf.js
+└── 📋 README.md
+```
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- ![Node.js](https://img.shields.io/badge/Node.js-16.x_|_18.x-339933?style=for-the-badge&logo=node.js&logoColor=white)
+- ![npm](https://img.shields.io/badge/npm-CB3837?style=for-the-badge&logo=npm&logoColor=white)
+- ![Angular CLI](https://img.shields.io/badge/Angular_CLI-DD0031?style=for-the-badge&logo=angular&logoColor=white)
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/expense-tracker.git
+
+# Navigate to frontend directory
+cd expense-tracker/frontend
+
+# Install dependencies
+npm install
+
+# Start development server
+ng serve
+```
+
+## 🧪 Testing
+
+```bash
+# Run unit tests
+npm run test
+
+# Generate coverage report
+npm run test:coverage
+
+# Run linting
+npm run lint
+```
+
+## 📚 Learning Outcomes
+
+- ⚡ Angular component architecture
+- 🔄 Reactive programming patterns
+- 🎨 Modern CSS with Tailwind
+- 🔒 Security best practices
+- 📱 Responsive design techniques
+- 🧪 Testing methodologies
+
+## 🤝 Contributing
+
+1. Fork it (https://github.com/yourusername/expense-tracker/fork)
+2. Create your feature branch (`git checkout -b feature/amazing`)
+3. Commit changes (`git commit -am 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing`)
+5. Create a Pull Request
+
+## 📅 Roadmap
+
+- [x] User authentication
+- [x] Payment method management
+- [x] Dark/Light theme
+- [ ] Expense categories
+- [ ] Budget tracking
+- [ ] Financial reports
+- [ ] Multi-currency support
+
+## 📫 Contact
+
+<p align="center">
+  <a href="https://twitter.com/yourusername">
+    <img src="https://img.shields.io/badge/Twitter-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white" alt="Twitter"/>
+  </a>
+  <a href="https://linkedin.com/in/yourusername">
+    <img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn"/>
+  </a>
+</p>
+
+## 📝 License
+
+This project is [MIT](LICENSE) licensed.
+
+---
+<p align="center">Made with ❤️ by Your Name</p>
