@@ -6,6 +6,7 @@ import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { User } from '../models/User';
 import { SettingsService } from '../services/settings.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 
 interface PaymentMethod {
   id: string;
@@ -37,10 +38,13 @@ export class SettingsComponent implements OnInit {
   isEditMode = false;
   selectedPaymentId: string | null = null;
   paymentForm: FormGroup;
+  selectedImage: File | null = null;
+  previewImage: SafeUrl | null = null;
 
   constructor(
     private settingsService: SettingsService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private sanitizer: DomSanitizer
   ) {
     this.paymentForm = this.fb.group({
       type: ['visa', Validators.required],
@@ -107,8 +111,52 @@ export class SettingsComponent implements OnInit {
     this.isOpen = false;
   }
 
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      if (this.isValidImageFile(file)) {
+        this.selectedImage = file;
+        this.createImagePreview(file);
+      } else {
+        alert('Please select a valid image file (PNG, JPG, or JPEG)');
+      }
+    }
+  }
+
+  private isValidImageFile(file: File): boolean {
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    return allowedTypes.includes(file.type);
+  }
+
+  private createImagePreview(file: File): void {
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      this.previewImage = this.sanitizer.bypassSecurityTrustUrl(e.target.result);
+    };
+    reader.readAsDataURL(file);
+  }
+
   onSave(): void {
-    if (this.user && this.formData) {
+    if (this.selectedImage) {
+      const formData = new FormData();
+      formData.append('profileImage', this.selectedImage);
+      Object.keys(this.formData).forEach(key => {
+        formData.append(key, (this.formData as any)[key]);
+      });
+
+      this.settingsService.updateUserProfileWithImage(formData).subscribe({
+        next: (user) => {
+          this.user = user;
+          this.isOpen = false;
+          this.selectedImage = null;
+          this.previewImage = null;
+        },
+        error: (error) => {
+          console.error('Error updating profile:', error);
+        }
+      });
+    } else if (this.user && this.formData) {
       const updatedUser: User = {
         ...this.user,
         ...this.formData,

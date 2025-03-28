@@ -79,6 +79,22 @@ export class SettingsService {
     return of(this.dummyUser);
   }
 
+  updateUserProfileWithImage(formData: FormData): Observable<User> {
+    // For demo purposes, we'll simulate the image upload
+    return new Observable(observer => {
+      setTimeout(() => {
+        const imageUrl = URL.createObjectURL(formData.get('profileImage') as Blob);
+        const updatedUser = {
+          ...this.dummyUser,
+          profileImage: imageUrl
+        };
+        this.dummyUser = updatedUser;
+        observer.next(updatedUser);
+        observer.complete();
+      }, 1000);
+    });
+  }
+
   getPaymentMethods(): Observable<PaymentMethod[]> {
     return of(this.dummyPaymentMethods);
   }
