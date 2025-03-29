@@ -24,20 +24,28 @@ export interface CardIcon {
   mastercard: IconDefinition;
 }
 
+export interface Currency {
+  code: string;
+  name: string;
+  symbol: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class SettingsService {
   private dummyUser: User = {
-    name: 'Sithum Raigamage',
-    firstName: 'Sithum',
-    lastName: 'Raigamage',
+    id: '1',
+    firstName: 'John',
+    lastName: 'Doe',
+    email: 'john@example.com',
+    name: 'John Doe',
+    phone: '+1234567890',
+    bio: 'Software Developer',
+    preferredCurrency: 'USD',
     role: 'Software Engineer',
     location: 'Colombo, Sri Lanka',
-    profileImage: 'assets/images/user/owner.png',
-    email: 'sraig2002@gmail.com',
-    phone: '+94 77 123 4567',
-    bio: 'Enthusiastic software engineering intern with a passion for web development and new technologies. Currently learning Angular and TypeScript while contributing to full-stack projects.'
+    profileImage: 'assets/images/user/owner.png'
   };
 
   private dummyPaymentMethods: PaymentMethod[] = [
@@ -68,6 +76,17 @@ export class SettingsService {
     visa: faCcVisa,
     mastercard: faCcMastercard
   };
+
+  private availableCurrencies: Currency[] = [
+    { code: 'USD', name: 'US Dollar', symbol: '$' },
+    { code: 'EUR', name: 'Euro', symbol: '€' },
+    { code: 'GBP', name: 'British Pound', symbol: '£' },
+    { code: 'JPY', name: 'Japanese Yen', symbol: '¥' },
+    { code: 'LKR', name: 'Sri Lankan Rupee', symbol: 'Rs' },
+    { code: 'AUD', name: 'Australian Dollar', symbol: 'A$' },
+    { code: 'CAD', name: 'Canadian Dollar', symbol: 'C$' },
+    { code: 'CNY', name: 'Chinese Yuan', symbol: '¥' }
+  ];
 
   getUserProfile(): Observable<User> {
     return of(this.dummyUser);
@@ -189,6 +208,25 @@ export class SettingsService {
       catchError(error => {
         console.error('Error changing email:', error);
         return throwError(() => new Error('Failed to change email'));
+      })
+    );
+  }
+
+  getCurrencies(): Observable<Currency[]> {
+    return of(this.availableCurrencies);
+  }
+
+  updateCurrency(currencyCode: string): Observable<void> {
+    return new Observable<void>(observer => {
+      setTimeout(() => {
+        this.dummyUser.preferredCurrency = currencyCode;
+        observer.next(void 0);
+        observer.complete();
+      }, 500);
+    }).pipe(
+      catchError(error => {
+        console.error('Error updating currency:', error);
+        return throwError(() => new Error('Failed to update currency'));
       })
     );
   }

@@ -7,6 +7,7 @@ import { User } from '../models/User';
 import { SettingsService } from '../services/settings.service';
 import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
+import { Currency } from '../models/Currency';
 
 interface PaymentMethod {
   id: string;
@@ -42,6 +43,9 @@ export class SettingsComponent implements OnInit {
   previewImage: SafeUrl | null = null;
   passwordForm: FormGroup;
   emailForm: FormGroup;
+  currencies: Currency[] = [];
+  selectedCurrency: string = '';
+  currencyUpdateStatus: { success: boolean; message: string } | null = null;
 
   constructor(
     private settingsService: SettingsService,
@@ -73,6 +77,7 @@ export class SettingsComponent implements OnInit {
   ngOnInit(): void {
     this.loadUserProfile();
     this.loadPaymentMethods();
+    this.loadCurrencies();
   }
 
   loadUserProfile(): void {
@@ -93,6 +98,18 @@ export class SettingsComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading payment methods:', error);
+      }
+    });
+  }
+
+  loadCurrencies(): void {
+    this.settingsService.getCurrencies().subscribe({
+      next: (currencies) => {
+        this.currencies = currencies;
+        this.selectedCurrency = this.user?.preferredCurrency || 'USD';
+      },
+      error: (error) => {
+        console.error('Error loading currencies:', error);
       }
     });
   }
@@ -305,5 +322,26 @@ export class SettingsComponent implements OnInit {
         }
       });
     }
+  }
+
+  onCurrencyChange(): void {
+    this.settingsService.updateCurrency(this.selectedCurrency).subscribe({
+      next: () => {
+        this.currencyUpdateStatus = {
+          success: true,
+          message: 'Currency updated successfully'
+        };
+        setTimeout(() => {
+          this.currencyUpdateStatus = null;
+        }, 3000);
+      },
+      error: (error) => {
+        console.error('Error updating currency:', error);
+        this.currencyUpdateStatus = {
+          success: false,
+          message: 'Failed to update currency'
+        };
+      }
+    });
   }
 }

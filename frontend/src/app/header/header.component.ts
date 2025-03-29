@@ -7,9 +7,9 @@ import { UserDropdownComponent } from "./user-dropdown/user-dropdown.component";
 
 @Component({
   selector: 'app-header',
-  imports: [CommonModule, ThemeToggleButtonComponent, NotificationDropdownComponent, UserDropdownComponent],
   templateUrl: './header.component.html',
-  styleUrls: ['./header.component.scss']
+  styleUrls: ['./header.component.css'],
+  standalone: true
 })
 export class HeaderComponent implements OnInit, OnDestroy {
   isApplicationMenuOpen = false;
