@@ -4,10 +4,18 @@ import { CommonModule } from '@angular/common';
 import { ThemeToggleButtonComponent } from "./theme-toggle-button/theme-toggle-button.component";
 import { NotificationDropdownComponent } from "./notification-dropdown/notification-dropdown.component";
 import { UserDropdownComponent } from "./user-dropdown/user-dropdown.component";
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-header',
   templateUrl: './header.component.html',
+  imports: [
+    CommonModule,
+    RouterModule,
+    ThemeToggleButtonComponent,
+    NotificationDropdownComponent,
+    UserDropdownComponent
+  ],
   styleUrls: ['./header.component.css'],
   standalone: true
 })
