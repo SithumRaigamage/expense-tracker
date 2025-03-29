@@ -5,7 +5,7 @@ import { Component } from '@angular/core';
   selector: 'app-notification-dropdown',
   imports: [CommonModule],
   templateUrl: './notification-dropdown.component.html',
-  styleUrls: ['./notification-dropdown.component.scss']
+  styleUrls: ['./notification-dropdown.component.css'] // Changed from .scss to .css
 })
 export class NotificationDropdownComponent {
   isOpen = false;

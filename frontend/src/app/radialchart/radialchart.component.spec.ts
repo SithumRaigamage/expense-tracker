@@ -1,18 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { RadialChartComponent } from './radialchart.component'; // Fixed casing
 
-import { RadialchartComponent } from './radialchart.component';
-
-describe('RadialchartComponent', () => {
-  let component: RadialchartComponent;
-  let fixture: ComponentFixture<RadialchartComponent>;
+describe('RadialChartComponent', () => {
+  let component: RadialChartComponent;
+  let fixture: ComponentFixture<RadialChartComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [RadialchartComponent]
+      declarations: [ RadialChartComponent ]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(RadialchartComponent);
+    fixture = TestBed.createComponent(RadialChartComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
