@@ -7,6 +7,11 @@ import { User } from '../models/User';
 import { SettingsService } from '../services/settings.service';
 import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
+import { Currency } from '../services/settings.service';
+import { SupportLink, FAQ } from '../services/settings.service';
+import { FaIconLibrary } from '@fortawesome/angular-fontawesome';
+import { fas } from '@fortawesome/free-solid-svg-icons';
+import { map } from 'rxjs/operators';
 
 interface PaymentMethod {
   id: string;
@@ -42,11 +47,16 @@ export class SettingsComponent implements OnInit {
   previewImage: SafeUrl | null = null;
   passwordForm: FormGroup;
   emailForm: FormGroup;
+  currencies: Currency[] = [];
+  selectedCurrency: string = 'LKR'; // Default currency
+  supportLinks: SupportLink[] = [];
+  faqs: (FAQ & { isOpen: boolean })[] = []; // Explicitly include isOpen
 
   constructor(
     private settingsService: SettingsService,
     private fb: FormBuilder,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    library: FaIconLibrary
   ) {
     this.paymentForm = this.fb.group({
       type: ['visa', Validators.required],
@@ -68,11 +78,15 @@ export class SettingsComponent implements OnInit {
       newEmail: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required]]
     });
+
+    library.addIconPacks(fas);
   }
 
   ngOnInit(): void {
     this.loadUserProfile();
     this.loadPaymentMethods();
+    this.loadCurrencies();
+    this.loadSupportContent();
   }
 
   loadUserProfile(): void {
@@ -93,6 +107,36 @@ export class SettingsComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading payment methods:', error);
+      }
+    });
+  }
+
+  loadCurrencies(): void {
+    this.settingsService.getCurrencies().subscribe({
+      next: (currencies) => {
+        this.currencies = currencies;
+      },
+      error: (error) => {
+        console.error('Error loading currencies:', error);
+      }
+    });
+  }
+
+  loadSupportContent(): void {
+    this.settingsService.getSupportLinks().subscribe({
+      next: (links) => {
+        this.supportLinks = links;
+      }
+    });
+
+    this.settingsService.getFAQs().pipe(
+      map(faqs => faqs.map(faq => ({
+        ...faq,
+        isOpen: false // Initialize each FAQ as closed
+      })))
+    ).subscribe({
+      next: (faqs) => {
+        this.faqs = faqs;
       }
     });
   }
@@ -305,5 +349,23 @@ export class SettingsComponent implements OnInit {
         }
       });
     }
+  }
+
+  onCurrencyChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    this.settingsService.updateCurrency(select.value).subscribe({
+      next: () => {
+        this.selectedCurrency = select.value;
+        alert('Currency updated successfully');
+      },
+      error: (error) => {
+        console.error('Error updating currency:', error);
+        alert('Failed to update currency');
+      }
+    });
+  }
+
+  toggleFAQ(faq: FAQ & { isOpen: boolean }): void {
+    faq.isOpen = !faq.isOpen;
   }
 }

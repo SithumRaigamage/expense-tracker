@@ -24,6 +24,24 @@ export interface CardIcon {
   mastercard: IconDefinition;
 }
 
+export interface Currency {
+  code: string;
+  name: string;
+  symbol: string;
+}
+
+export interface SupportLink {
+  title: string;
+  url: string;
+  icon: string;
+}
+
+export interface FAQ {
+  question: string;
+  answer: string;
+  isOpen?: boolean; // Add optional isOpen property
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -68,6 +86,44 @@ export class SettingsService {
     visa: faCcVisa,
     mastercard: faCcMastercard
   };
+
+  private currencies: Currency[] = [
+    { code: 'USD', name: 'US Dollar', symbol: '$' },
+    { code: 'EUR', name: 'Euro', symbol: '€' },
+    { code: 'GBP', name: 'British Pound', symbol: '£' },
+    { code: 'LKR', name: 'Sri Lankan Rupee', symbol: 'Rs' },
+    { code: 'INR', name: 'Indian Rupee', symbol: '₹' },
+    { code: 'JPY', name: 'Japanese Yen', symbol: '¥' }
+  ];
+
+  private supportLinks: SupportLink[] = [
+    {
+      title: 'Documentation',
+      url: '',
+      icon: 'book'
+    },
+    {
+      title: 'Help Center',
+      url: '',
+      icon: 'question-circle'
+    },
+    {
+      title: 'Contact Support',
+      url: '',
+      icon: 'envelope'
+    }
+  ];
+
+  private faqs: FAQ[] = [
+    {
+      question: 'How do I add a new wallet?',
+      answer: 'Go to the Wallets section and click the "Add New" button. Fill in the required details and save.'
+    },
+    {
+      question: 'How do I export my transactions?',
+      answer: 'Navigate to the Transactions page, click "Export" and choose your preferred format (CSV or PDF).'
+    }
+  ];
 
   getUserProfile(): Observable<User> {
     return of(this.dummyUser);
@@ -191,5 +247,28 @@ export class SettingsService {
         return throwError(() => new Error('Failed to change email'));
       })
     );
+  }
+
+  getCurrencies(): Observable<Currency[]> {
+    return of(this.currencies);
+  }
+
+  updateCurrency(currencyCode: string): Observable<void> {
+    // Simulate API call
+    return new Observable<void>(observer => {
+      setTimeout(() => {
+        // In a real app, you would update the user's currency preference
+        observer.next();
+        observer.complete();
+      }, 500);
+    });
+  }
+
+  getSupportLinks(): Observable<SupportLink[]> {
+    return of(this.supportLinks);
+  }
+
+  getFAQs(): Observable<FAQ[]> {
+    return of(this.faqs);
   }
 }
