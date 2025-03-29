@@ -1,13 +1,11 @@
 export interface User {
-  id: string;
+  name: string;
+  role: string;
+  location: string;
+  profileImage: string;
   firstName: string;
   lastName: string;
   email: string;
-  phone?: string;
-  bio?: string;
-  name?: string;
-  role?: string;
-  profileImage?: string;
-  location: string;
-  preferredCurrency: string;
+  phone: string;
+  bio: string;
 }
