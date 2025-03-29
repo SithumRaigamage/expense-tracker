@@ -90,26 +90,6 @@
           }
         }
       }
-    },
-    "expense-tracker": {
-      "architect": {
-        "build": {
-          "options": {
-            "assets": [
-              "src/favicon.ico",
-              "src/assets"
-            ]
-          }
-        },
-        "test": {
-          "options": {
-            "assets": [
-              "src/favicon.ico",
-              "src/assets"
-            ]
-          }
-        }
-      }
     }
   }
 }
