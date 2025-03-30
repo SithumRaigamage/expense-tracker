@@ -16,7 +16,7 @@ import { map } from 'rxjs/operators';
 interface PaymentMethod {
   id: string;
   type: 'visa' | 'mastercard';
-  lastFour: string;
+  cardNumber: string;
   expiryMonth: number;
   expiryYear: number;
   isDefault: boolean;
@@ -60,7 +60,12 @@ export class SettingsComponent implements OnInit {
   ) {
     this.paymentForm = this.fb.group({
       type: ['visa', Validators.required],
-      lastFour: ['', [Validators.required, Validators.pattern('^[0-9]{4}$')]],
+      cardNumber: ['', [
+        Validators.required,
+        Validators.pattern('^[0-9]{16}$'), // Validate 16-digit card numbers
+        Validators.minLength(16),
+        Validators.maxLength(16)
+      ]],
       expiryMonth: ['', [Validators.required, Validators.min(1), Validators.max(12)]],
       expiryYear: ['', [Validators.required, Validators.min(23), Validators.max(99)]],
       isDefault: [false]
@@ -248,7 +253,7 @@ export class SettingsComponent implements OnInit {
       this.selectedPaymentId = id;
       this.paymentForm.patchValue({
         type: method.type,
-        lastFour: method.lastFour,
+        cardNumber: method.cardNumber, // Use full card number
         expiryMonth: method.expiryMonth,
         expiryYear: method.expiryYear,
         isDefault: method.isDefault
@@ -367,5 +372,9 @@ export class SettingsComponent implements OnInit {
 
   toggleFAQ(faq: FAQ & { isOpen: boolean }): void {
     faq.isOpen = !faq.isOpen;
+  }
+
+  getLastFourDigits(cardNumber: string): string {
+    return cardNumber.slice(-4);
   }
 }

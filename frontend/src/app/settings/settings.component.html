@@ -211,7 +211,7 @@
               {{ method.type === 'visa' ? 'VISA' : 'MASTERCARD' }}
             </p>
             <p class="text-gray-900 dark:text-white font-medium tracking-widest text-lg">
-              •••• •••• •••• {{ method.lastFour }}
+              •••• •••• •••• {{ getLastFourDigits(method.cardNumber) }}
             </p>
           </div>
           <fa-icon
@@ -223,7 +223,7 @@
         <div class="absolute inset-0 rounded-2xl bg-gray-900/0 group-hover:bg-gray-900/5 dark:group-hover:bg-gray-900/20 transition-colors">
           <div class="absolute right-4 top-4 flex -space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
             <button (click)="setDefaultPaymentMethod(method.id)"
-                    *ngIf="!method.isDefault"
+                    *ngIf="method.isDefault"
                     class="p-2 bg-white dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
@@ -432,12 +432,13 @@
         </div>
 
         <div>
-          <label class="mb-2.5 block text-black dark:text-white">Last 4 Digits</label>
-          <input type="text" formControlName="lastFour"
-                 class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700">
-          <div *ngIf="paymentForm.get('lastFour')?.errors?.['pattern']"
+          <label class="mb-2.5 block text-black dark:text-white">Card Number</label>
+          <input type="text" formControlName="cardNumber"
+                 class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700"
+                 placeholder="Enter 16-digit card number">
+          <div *ngIf="paymentForm.get('cardNumber')?.errors?.['pattern']"
                class="mt-1 text-sm text-red-500">
-            Please enter 4 digits only
+            Please enter a valid 16-digit card number
           </div>
         </div>
 

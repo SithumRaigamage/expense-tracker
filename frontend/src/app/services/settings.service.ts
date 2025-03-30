@@ -8,7 +8,7 @@ import { catchError } from 'rxjs/operators';
 interface PaymentMethod {
   id: string;
   type: 'visa' | 'mastercard';
-  lastFour: string;
+  cardNumber: string; // Changed from lastFour to full cardNumber
   expiryMonth: number;
   expiryYear: number;
   isDefault: boolean;
@@ -62,7 +62,7 @@ export class SettingsService {
     {
       id: '1',
       type: 'visa',
-      lastFour: '4242',
+      cardNumber: '4242424242424242', // Full card number
       expiryMonth: 12,
       expiryYear: 24,
       isDefault: true
@@ -70,7 +70,7 @@ export class SettingsService {
     {
       id: '2',
       type: 'mastercard',
-      lastFour: '5555',
+      cardNumber: '5555555555554444', // Full card number
       expiryMonth: 9,
       expiryYear: 25,
       isDefault: false
@@ -101,11 +101,6 @@ export class SettingsService {
       title: 'Documentation',
       url: '',
       icon: 'book'
-    },
-    {
-      title: 'Help Center',
-      url: '',
-      icon: 'question-circle'
     },
     {
       title: 'Contact Support',
