@@ -19,19 +19,28 @@ import {
   faStar,
   faFeed,
   faBell,
-  faUsers,
-  faShareNodes
+  faChevronRight,
+  faChevronDown
 } from '@fortawesome/free-solid-svg-icons';
 import { SidebarService } from '../services/sidebar-service.service';
+
+interface SubNavItem {
+  name: string;
+  path: string;
+  badge?: string;
+  isNew?: boolean;
+}
 
 interface NavItem {
   name: string;
   icon: IconDefinition;
-  path: string;  // Make path required since we're removing subItems
+  path: string;
   badge?: string;
   isLocked?: boolean;
   isNew?: boolean;
   isUpcoming?: boolean;
+  subItems?: SubNavItem[];
+  isOpen?: boolean;
 }
 
 @Component({
@@ -47,6 +56,8 @@ export class SidebarComponent implements OnInit {
   moneyIcon = faMoneyCheckDollar;
   lockIcon = faLock;
   sparklesIcon = faStar;
+  chevronRight = faChevronRight;
+  chevronDown = faChevronDown;
 
   navItems: NavItem[] = [
     {
@@ -118,22 +129,40 @@ export class SidebarComponent implements OnInit {
     {
       icon: faGear,
       name: 'Settings',
-      path: '/settings'
+      path: '/settings',
+      isOpen: false,
+      subItems: [
+        { name: 'Profile', path: '/settings/profile' },
+        { name: 'Payment Methods', path: '/settings/payment-methods' },
+        { name: 'Security', path: '/settings/security' }
+      ]
     },
     {
       icon: faCircleQuestion,
       name: 'Help Center',
-      path: '/help'
+      path: '/help',
+      isOpen: false,
+      subItems: [
+        { name: 'FAQs', path: '/help/faqs' },
+        { name: 'Documentation', path: '/help/docs' },
+        { name: 'Contact Support', path: '/help/support' }
+      ]
     },
     {
       icon: faFeed,
       name: 'Feedback',
       path: '/feedback'
     },
-    { icon: faBell,
+    {
+      icon: faBell,
       name: 'Notifications',
-      path: '/notifications'
-    },
+      path: '/notifications',
+      isOpen: false,
+      subItems: [
+        { name: 'All Notifications', path: '/notifications/all' },
+        { name: 'Settings', path: '/notifications/settings' }
+      ]
+    }
   ];
 
   constructor(private router: Router, private sidebarService: SidebarService) {}
@@ -146,5 +175,13 @@ export class SidebarComponent implements OnInit {
 
   isActive(path: string): boolean {
     return this.router.url === path;
+  }
+
+  // Add this method to the SidebarComponent class
+  toggleSubNav(item: NavItem, event: Event): void {
+    event.preventDefault();
+    if (item.subItems) {
+      item.isOpen = !item.isOpen;
+    }
   }
 }
