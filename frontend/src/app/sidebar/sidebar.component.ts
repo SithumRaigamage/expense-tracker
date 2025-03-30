@@ -152,16 +152,6 @@ export class SidebarComponent implements OnInit {
       icon: faFeed,
       name: 'Feedback',
       path: '/feedback'
-    },
-    {
-      icon: faBell,
-      name: 'Notifications',
-      path: '/notifications',
-      isOpen: false,
-      subItems: [
-        { name: 'All Notifications', path: '/notifications/all' },
-        { name: 'Settings', path: '/notifications/settings' }
-      ]
     }
   ];
 

@@ -54,15 +54,21 @@ export const routes: Routes = [
   {
     path: 'settings',
     title: 'Settings',
-    component: SettingsComponent
+    component: SettingsComponent,
+    children: [
+      { path: 'profile', component: SettingsComponent, title: 'Profile Settings' },
+      { path: 'payment-methods', component: SettingsComponent, title: 'Payment Methods' },
+      { path: 'security', component: SettingsComponent, title: 'Security Settings' }
+    ]
   },
   {
     path: 'help',
     component: HelpComponent,
-    title: 'Help Center'
-  },
-  {
-    path: '**',
-    redirectTo: 'dashboard'
+    title: 'Help Center',
+    children: [
+      { path: 'faqs', component: HelpComponent, title: 'FAQs' },
+      { path: 'docs', component: HelpComponent, title: 'Documentation' },
+      { path: 'support', component: HelpComponent, title: 'Contact Support' }
+    ]
   }
 ];
