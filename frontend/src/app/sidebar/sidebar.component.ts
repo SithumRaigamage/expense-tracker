@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { FontAwesomeModule, FaIconLibrary } from '@fortawesome/angular-fontawesome';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import {
   faMoneyCheckDollar,
@@ -165,7 +165,32 @@ export class SidebarComponent implements OnInit {
     }
   ];
 
-  constructor(private router: Router, private sidebarService: SidebarService) {}
+  constructor(
+    private router: Router,
+    private sidebarService: SidebarService,
+    library: FaIconLibrary
+  ) {
+    // Add icons to the library
+    library.addIcons(
+      faMoneyCheckDollar,
+      faGaugeHigh,
+      faWallet,
+      faChartLine,
+      faShieldHalved,
+      faGear,
+      faCircleQuestion,
+      faBullseye,
+      faFileInvoiceDollar,
+      faGraduationCap,
+      faComments,
+      faLock,
+      faStar,
+      faFeed,
+      faBell,
+      faChevronRight,
+      faChevronDown
+    );
+  }
 
   ngOnInit(): void {
     this.sidebarService.isOpen$.subscribe(
@@ -177,7 +202,6 @@ export class SidebarComponent implements OnInit {
     return this.router.url === path;
   }
 
-  // Add this method to the SidebarComponent class
   toggleSubNav(item: NavItem, event: Event): void {
     event.preventDefault();
     if (item.subItems) {

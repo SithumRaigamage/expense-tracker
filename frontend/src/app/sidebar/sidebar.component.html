@@ -89,10 +89,10 @@
                 <span class="flex-1" [class.hidden]="!isExpanded && !isHovered">{{ item.name }}</span>
               </div>
               <!-- Dropdown arrow for items with subitems -->
-              <fa-icon *ngIf="item.subItems && (isExpanded || isHovered)"
-                       [icon]="item.isOpen ? 'chevron-down' : 'chevron-right'"
-                       class="w-4 h-4 transition-transform"
-                       [class.rotate-180]="item.isOpen">
+              <fa-icon
+                *ngIf="item.subItems && (isExpanded || isHovered)"
+                [icon]="item.isOpen ? chevronDown : chevronRight"
+                class="w-4 h-4 transition-transform">
               </fa-icon>
             </a>
 
