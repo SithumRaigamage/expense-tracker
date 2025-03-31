@@ -1,0 +1,6 @@
+projectKey=expense-tracker
+serverUrl=http://localhost:8080
+serverVersion=25.3.0.104237
+dashboardUrl=http://localhost:8080/dashboard?id=expense-tracker
+ceTaskId=4b6e3fef-5c80-4882-9d74-40c016afd2a3
+ceTaskUrl=http://localhost:8080/api/ce/task?id=4b6e3fef-5c80-4882-9d74-40c016afd2a3
