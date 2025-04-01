@@ -14,18 +14,32 @@ export class RecentTransactionsComponent implements OnInit {
   transactions: Transaction[] = [];
   displayedTransactions: Transaction[] = [];
   showAll: boolean = false;
-  private readonly INITIAL_DISPLAY_COUNT = 15;
+  private readonly INITIAL_DISPLAY_COUNT = 5; // Changed to show fewer items initially
 
   constructor(private transactionService: TransactionService) {}
 
   ngOnInit() {
-    const currentDate = new Date();
+    const currentDate = new Date(2025, 2, 1); // March 1, 2025
+    this.loadTransactions(currentDate);
+  }
+
+  private loadTransactions(date: Date): void {
     this.transactionService.getMonthlyTransactions(
-      currentDate.getMonth(),
-      currentDate.getFullYear()
-    ).subscribe(transactions => {
-      this.transactions = transactions;
-      this.updateDisplayedTransactions();
+      date.getMonth(),
+      date.getFullYear()
+    ).subscribe({
+      next: (transactions) => {
+        // Sort transactions by date in descending order (most recent first)
+        this.transactions = transactions.sort((a, b) =>
+          new Date(b.date).getTime() - new Date(a.date).getTime()
+        );
+        this.updateDisplayedTransactions();
+        console.log('Loaded transactions:', this.transactions);
+        console.log('Loaded transactions length:', this.transactions.length);
+      },
+      error: (error) => {
+        console.error('Error loading transactions:', error);
+      }
     });
   }
 
@@ -35,9 +49,11 @@ export class RecentTransactionsComponent implements OnInit {
   }
 
   private updateDisplayedTransactions() {
-    this.displayedTransactions = this.showAll
-      ? this.transactions
-      : this.transactions.slice(0, this.INITIAL_DISPLAY_COUNT);
+    if (this.showAll) {
+      this.displayedTransactions = [...this.transactions];
+    } else {
+      this.displayedTransactions = this.transactions.slice(0, this.INITIAL_DISPLAY_COUNT);
+    }
   }
 
   getBadgeColor(type: string): 'success' | 'error' {
@@ -48,8 +64,9 @@ export class RecentTransactionsComponent implements OnInit {
     return `LKR ${amount.toLocaleString()}`;
   }
 
-  formatDate(date: Date): string {
-    return date.toLocaleDateString('en-US', {
+  formatDate(date: Date | string): string {
+    const dateObj = date instanceof Date ? date : new Date(date);
+    return dateObj.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric'

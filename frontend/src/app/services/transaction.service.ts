@@ -278,12 +278,24 @@ export class TransactionService {
 
   getMonthlyTransactions(month: number, year: number): Observable<Transaction[]> {
     return this.transactions.pipe(
-      map(transactions =>
-        transactions.filter(transaction =>
-          transaction.date.getMonth() === month &&
-          transaction.date.getFullYear() === year
-        )
-      )
+      map(transactions => {
+        //console.log('All transactions:', transactions);
+        const filtered = transactions.filter(transaction => {
+          // Ensure we're working with a Date object
+          const transDate = transaction.date instanceof Date
+            ? transaction.date
+            : new Date(transaction.date);
+
+          // Add debugging
+          //console.log('Transaction date:', transDate, 'Month:', transDate.getMonth(), 'Year:', transDate.getFullYear());
+          //console.log('Comparing with:', month, year);
+
+          return transDate.getMonth() === month &&
+                 transDate.getFullYear() === year;
+        });
+        //console.log('Filtered transactions:', filtered);
+        return filtered;
+      })
     );
   }
 

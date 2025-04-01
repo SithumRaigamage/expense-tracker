@@ -27,7 +27,7 @@ export class MetricsComponent implements OnInit, OnDestroy {
       this.walletService.getMetrics().subscribe(
         metrics => {
           this.metrics = metrics;
-          console.log(this.metrics);
+          //console.log(this.metrics);
         }
       )
     );

@@ -310,7 +310,7 @@ export class SettingsComponent implements OnInit {
 
   setDefaultPaymentMethod(id: string): void {
     // TODO: Implement setting default payment method
-    console.log('Setting default payment method:', id);
+    //console.log('Setting default payment method:', id);
   }
 
   passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
