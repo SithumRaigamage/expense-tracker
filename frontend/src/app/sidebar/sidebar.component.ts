@@ -134,7 +134,8 @@ export class SidebarComponent implements OnInit {
       subItems: [
         { name: 'Profile', path: '/settings/profile' },
         { name: 'Payment Methods', path: '/settings/payment-methods' },
-        { name: 'Security', path: '/settings/security' }
+        { name: 'About & Support', path: '/settings/about' },
+        { name: 'Currency', path: '/settings/currency' },
       ]
     },
     {
@@ -145,7 +146,9 @@ export class SidebarComponent implements OnInit {
       subItems: [
         { name: 'FAQs', path: '/help/faqs' },
         { name: 'Documentation', path: '/help/docs' },
-        { name: 'Contact Support', path: '/help/support' }
+        { name: 'Contact Support', path: '/help/support' },
+        { name: 'Troubleshooting', path: '/help/troubleshooting' },
+        { name: 'Release Notes', path: '/help/release-notes' },
       ]
     },
     {
