@@ -14,6 +14,10 @@ import { PaymentMethodsComponent } from './settings/payment-methods/payment-meth
 import { CurrenyComponent } from './settings/curreny/curreny.component';
 import { AboutSupportComponent } from './settings/about-support/about-support.component';
 import { DocumentationComponent } from './settings/documentation/documentation.component';
+import { FaqComponent } from './settings/faq/faq.component';
+import { TroubleshootingComponent } from './settings/troubleshooting/troubleshooting.component';
+import { ReleaseNotesComponent } from './settings/release-notes/release-notes.component';
+import { SupportComponent } from './settings/support/support.component';
 
 export const routes: Routes = [
   {
@@ -74,11 +78,11 @@ export const routes: Routes = [
     title: 'Help Center',
     children: [
       { path: '', redirectTo: 'help', pathMatch: 'full' },
-      { path: 'faqs', component: HelpComponent, title: 'FAQs' },
+      { path: 'faqs', component: FaqComponent, title: 'FAQs' },
       { path: 'docs', component: DocumentationComponent, title: 'Documentation' },
-      { path: 'support', component: HelpComponent, title: 'Contact Support' },
-      { path: 'troubleshooting', component: HelpComponent, title: 'Troubleshooting' },
-      { path: 'release-notes', component: HelpComponent, title: 'Release Notes' }
+      { path: 'support', component: SupportComponent, title: 'Contact Support' },
+      { path: 'troubleshooting', component: TroubleshootingComponent, title: 'Troubleshooting' },
+      { path: 'release-notes', component: ReleaseNotesComponent, title: 'Release Notes' }
     ]
   }
 ];
