@@ -137,7 +137,7 @@ export class SidebarComponent implements OnInit {
       subItems: [
         { name: 'Profile', path: '/settings/profile' },
         { name: 'Payment Methods', path: '/settings/payment-methods' },
-        { name: 'About & Support', path: '/settings/about' },
+        { name: 'About & Support', path: '/settings/about & support' },
         { name: 'Currency', path: '/settings/currency' },
       ]
     },
