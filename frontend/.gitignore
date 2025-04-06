@@ -40,3 +40,14 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+ SonarQube
+.scannerwork/
+.sonarlint/
+sonar-project.properties
+.vscode/settings.json
+
+# SonarQube Analysis Results
+coverage/
+.sonar/
+report-task.txt

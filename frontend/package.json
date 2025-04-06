@@ -8,7 +8,11 @@
     "watch": "ng build frontend --watch --configuration development",
     "test": "ng test frontend",
     "test:coverage": "ng test frontend --code-coverage",
-    "lint": "ng lint frontend"
+    "lint": "ng lint frontend",
+    "sonar": "sonar-scanner",
+    "test:sonar": "npm run test:coverage && npm run sonar",
+    "sonar:quick": "sonar-scanner -Dsonar.qualitygate.wait=false",
+    "sonar:analyze": "npm run test:coverage && sonar-scanner"
   },
   "private": true,
   "dependencies": {
@@ -47,6 +51,7 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
-    "typescript": "~5.7.2"
+    "typescript": "~5.7.2",
+    "sonar-scanner": "^3.1.0"
   }
 }
