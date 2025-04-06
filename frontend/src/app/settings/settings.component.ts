@@ -49,8 +49,6 @@ export class SettingsComponent implements OnInit {
   previewImage: SafeUrl | null = null;
   passwordForm: FormGroup;
   emailForm: FormGroup;
-  currencies: Currency[] = [];
-  selectedCurrency: string = 'LKR'; // Default currency
   supportLinks: SupportLink[] = [];
   faqs: (FAQ & { isOpen: boolean })[] = []; // Explicitly include isOpen
 
@@ -92,7 +90,6 @@ export class SettingsComponent implements OnInit {
   ngOnInit(): void {
     this.loadUserProfile();
     this.loadPaymentMethods();
-    this.loadCurrencies();
     this.loadSupportContent();
   }
 
@@ -114,17 +111,6 @@ export class SettingsComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading payment methods:', error);
-      }
-    });
-  }
-
-  loadCurrencies(): void {
-    this.settingsService.getCurrencies().subscribe({
-      next: (currencies) => {
-        this.currencies = currencies;
-      },
-      error: (error) => {
-        console.error('Error loading currencies:', error);
       }
     });
   }
@@ -356,20 +342,6 @@ export class SettingsComponent implements OnInit {
         }
       });
     }
-  }
-
-  onCurrencyChange(event: Event): void {
-    const select = event.target as HTMLSelectElement;
-    this.settingsService.updateCurrency(select.value).subscribe({
-      next: () => {
-        this.selectedCurrency = select.value;
-        alert('Currency updated successfully');
-      },
-      error: (error) => {
-        console.error('Error updating currency:', error);
-        alert('Failed to update currency');
-      }
-    });
   }
 
   toggleFAQ(faq: FAQ & { isOpen: boolean }): void {
