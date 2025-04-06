@@ -38,6 +38,112 @@
   </div>
 </div>
 
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-5">
+  <!-- Password Section -->
+  <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
+    <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-1">
+      Password
+    </h3>
+    <div class="space-y-6">
+      <div class="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
+        <div class="flex flex-col gap-5">
+          <form [formGroup]="passwordForm" (ngSubmit)="onPasswordChange()" class="grid grid-cols-1 gap-4">
+            <div>
+              <label class="mb-2.5 block text-black dark:text-white">Current Password</label>
+              <input type="password" formControlName="currentPassword"
+                class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700"
+                placeholder="Enter current password">
+              <div *ngIf="passwordForm.get('currentPassword')?.touched && passwordForm.get('currentPassword')?.invalid"
+                class="text-red-500 text-sm mt-1">
+                Current password is required
+              </div>
+            </div>
+
+            <div>
+              <label class="mb-2.5 block text-black dark:text-white">New Password</label>
+              <input type="password" formControlName="newPassword"
+                class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700"
+                placeholder="Enter new password">
+              <div *ngIf="passwordForm.get('newPassword')?.touched && passwordForm.get('newPassword')?.invalid"
+                class="text-red-500 text-sm mt-1">
+                Password must be at least 8 characters
+              </div>
+            </div>
+
+            <div>
+              <label class="mb-2.5 block text-black dark:text-white">Confirm Password</label>
+              <input type="password" formControlName="confirmPassword"
+                class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700"
+                placeholder="Confirm new password">
+              <div *ngIf="passwordForm.get('confirmPassword')?.touched && passwordForm.hasError('passwordMismatch')"
+                class="text-red-500 text-sm mt-1">
+                Passwords do not match
+              </div>
+            </div>
+
+            <div class="flex justify-end mt-4">
+              <button type="submit"
+                class="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-black hover:bg-primary-dark"
+                [disabled]="passwordForm.invalid">
+                Change Password
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Email Section -->
+  <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
+    <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-1">
+      Email Address
+    </h3>
+    <div class="space-y-6">
+      <div class="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
+        <div class="flex flex-col gap-5">
+          <form [formGroup]="emailForm" (ngSubmit)="onEmailChange()" class="grid grid-cols-1 gap-4">
+            <div>
+              <label class="mb-2.5 block text-black dark:text-white">Current Email</label>
+              <input type="email" [value]="user?.email" disabled
+                class="w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-2.5 dark:border-gray-700 dark:bg-gray-800">
+            </div>
+
+            <div>
+              <label class="mb-2.5 block text-black dark:text-white">New Email</label>
+              <input type="email" formControlName="newEmail"
+                class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700"
+                placeholder="Enter new email">
+              <div *ngIf="emailForm.get('newEmail')?.touched && emailForm.get('newEmail')?.invalid"
+                class="text-red-500 text-sm mt-1">
+                Please enter a valid email address
+              </div>
+            </div>
+
+            <div>
+              <label class="mb-2.5 block text-black dark:text-white">Password</label>
+              <input type="password" formControlName="password"
+                class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700"
+                placeholder="Enter your password">
+              <div *ngIf="emailForm.get('password')?.touched && emailForm.get('password')?.invalid"
+                class="text-red-500 text-sm mt-1">
+                Password is required
+              </div>
+            </div>
+
+            <div class="flex justify-end mt-4">
+              <button type="submit" class="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-black hover:bg-primary-dark"
+                [disabled]="emailForm.invalid">
+                Change Email
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Profile Modal -->
 <div *ngIf="isOpen"
   class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/30 dark:bg-black/30">

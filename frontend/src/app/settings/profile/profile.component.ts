@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router'; // Add this import
-import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { User } from '../../models/User';
 import { SettingsService } from '../../services/settings.service';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
@@ -12,7 +12,8 @@ import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
   imports: [
     CommonModule,
     FormsModule,
-    RouterModule  // Add RouterModule to imports
+    ReactiveFormsModule,
+    RouterModule
   ],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.css'
@@ -23,11 +24,27 @@ export class ProfileComponent implements OnInit {
   formData: Partial<User> = {};
   selectedImage: File | null = null;
   previewImage: SafeUrl | null = null;
+  passwordForm: FormGroup;
+  emailForm: FormGroup;
 
   constructor(
     private settingsService: SettingsService,
-    private sanitizer: DomSanitizer
-  ) {}
+    private sanitizer: DomSanitizer,
+    private fb: FormBuilder
+  ) {
+    // Initialize password form
+    this.passwordForm = this.fb.group({
+      currentPassword: ['', [Validators.required]],
+      newPassword: ['', [Validators.required, Validators.minLength(8)]],
+      confirmPassword: ['', [Validators.required]]
+    }, { validators: this.passwordMatchValidator });
+
+    // Initialize email form
+    this.emailForm = this.fb.group({
+      newEmail: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required]]
+    });
+  }
 
   ngOnInit(): void {
     this.loadUserProfile();
@@ -124,6 +141,49 @@ export class ProfileComponent implements OnInit {
         },
         error: (error) => {
           console.error('Error updating user profile:', error);
+        }
+      });
+    }
+  }
+
+  passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
+    const newPassword = control.get('newPassword');
+    const confirmPassword = control.get('confirmPassword');
+
+    if (newPassword && confirmPassword && newPassword.value !== confirmPassword.value) {
+      return { passwordMismatch: true };
+    }
+    return null;
+  }
+
+  onPasswordChange(): void {
+    if (this.passwordForm.valid) {
+      const { currentPassword, newPassword } = this.passwordForm.value;
+      this.settingsService.changePassword(currentPassword, newPassword).subscribe({
+        next: () => {
+          alert('Password changed successfully');
+          this.passwordForm.reset();
+        },
+        error: (error) => {
+          console.error('Error changing password:', error);
+          alert('Failed to change password. Please try again.');
+        }
+      });
+    }
+  }
+
+  onEmailChange(): void {
+    if (this.emailForm.valid) {
+      const { newEmail, password } = this.emailForm.value;
+      this.settingsService.changeEmail(newEmail, password).subscribe({
+        next: () => {
+          alert('Email changed successfully');
+          this.emailForm.reset();
+          this.loadUserProfile();
+        },
+        error: (error) => {
+          console.error('Error changing email:', error);
+          alert('Failed to change email. Please try again.');
         }
       });
     }
