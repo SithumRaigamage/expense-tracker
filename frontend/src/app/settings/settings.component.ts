@@ -12,6 +12,7 @@ import { SupportLink, FAQ } from '../services/settings.service';
 import { FaIconLibrary } from '@fortawesome/angular-fontawesome';
 import { fas } from '@fortawesome/free-solid-svg-icons';
 import { map } from 'rxjs/operators';
+import { RouterModule } from '@angular/router';
 
 interface PaymentMethod {
   id: string;
@@ -29,7 +30,8 @@ interface PaymentMethod {
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    FontAwesomeModule
+    FontAwesomeModule,
+    RouterModule
   ],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.css'

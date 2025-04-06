@@ -4,6 +4,7 @@ import { TransactionsComponent } from './Navigation/transactions/transactions.co
 import { BudgetComponent } from './Navigation/budget/budget.component';
 import { EmergencyFundComponent } from './Navigation/emergency-fund/emergency-fund.component';
 import { WalletsComponent } from './Navigation/wallets/wallets.component';
+import { ProfileComponent } from './settings/profile/profile.component';
 
 import { HelpComponent } from './Navigation/help/help.component';
 import { MonthlyTargetComponent } from './Navigation/target/target.component';
@@ -56,7 +57,8 @@ export const routes: Routes = [
     title: 'Settings',
     component: SettingsComponent,
     children: [
-      { path: 'profile', component: SettingsComponent, title: 'Profile Settings' },
+      { path: '', redirectTo: 'profile', pathMatch: 'full' }, // Add this line
+      { path: 'profile', component: ProfileComponent, title: 'Profile Settings' },
       { path: 'payment-methods', component: SettingsComponent, title: 'Payment Methods' },
       { path: 'security', component: SettingsComponent, title: 'Security Settings' }
     ]
