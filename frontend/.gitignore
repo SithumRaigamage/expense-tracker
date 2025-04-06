@@ -41,13 +41,22 @@ testem.log
 .DS_Store
 Thumbs.db
 
- SonarQube
+# SonarQube
 .scannerwork/
 .sonarlint/
 sonar-project.properties
 .vscode/settings.json
-
-# SonarQube Analysis Results
 coverage/
 .sonar/
 report-task.txt
+.sonarqube/
+.sonar-cache/
+
+# Environment Variables
+.env
+.env.local
+
+# IDE - VSCode SonarLint
+.vscode/*
+!.vscode/extensions.json
+.idea/sonarlint/
