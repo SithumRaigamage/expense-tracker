@@ -45,7 +45,7 @@ export class PaymentMethodsComponent {
     library: FaIconLibrary
   ) {
     library.addIconPacks(fas);
-
+    // Initialize the form with default values
     this.paymentForm = this.fb.group({
       type: ['visa', Validators.required],
       cardNumber: ['', [
@@ -68,6 +68,7 @@ export class PaymentMethodsComponent {
     this.settingsService.getPaymentMethods().subscribe({
       next: (methods) => {
         this.paymentMethods = methods;
+        console.log('Payment methods loaded:', this.paymentMethods);
       },
       error: (error) => {
         console.error('Error loading payment methods:', error);
@@ -158,7 +159,7 @@ export class PaymentMethodsComponent {
 
   setDefaultPaymentMethod(id: string): void {
     // TODO: Implement setting default payment method
-    //console.log('Setting default payment method:', id);
+    console.log('Setting default payment method:', id);
   }
 
 }

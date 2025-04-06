@@ -12,8 +12,7 @@ import { RouterModule } from '@angular/router';
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.css'
 })
-export class SettingsComponent implements OnInit {
-  ngOnInit(): void {
-    throw new Error('Method not implemented.');
-  }
+export class SettingsComponent  {
+
+  
 }

@@ -88,3 +88,73 @@
     <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Add a payment method to get started</p>
   </div>
 </div>
+
+<div *ngIf="isPaymentModalOpen"
+     class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/30 dark:bg-black/30">
+  <div class="max-w-[500px] m-4">
+    <div class="relative w-full overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-8">
+      <div class="mb-6">
+        <h4 class="text-xl font-semibold text-gray-800 dark:text-white/90">
+          {{ isEditMode ? 'Edit Payment Method' : 'Add Payment Method' }}
+        </h4>
+      </div>
+
+      <form [formGroup]="paymentForm" (ngSubmit)="onPaymentSubmit()" class="space-y-4">
+        <div>
+          <label class="mb-2.5 block text-black dark:text-white">Card Type</label>
+          <select formControlName="type"
+                  class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700">
+            <option value="visa">Visa</option>
+            <option value="mastercard">Mastercard</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="mb-2.5 block text-black dark:text-white">Card Number</label>
+          <input type="text" formControlName="cardNumber"
+                 class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700"
+                 placeholder="Enter 16-digit card number">
+          <div *ngIf="paymentForm.get('cardNumber')?.errors?.['pattern']"
+               class="mt-1 text-sm text-red-500">
+            Please enter a valid 16-digit card number
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="mb-2.5 block text-black dark:text-white">Expiry Month (MM)</label>
+            <input type="number" formControlName="expiryMonth"
+                   class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700">
+          </div>
+          <div>
+            <label class="mb-2.5 block text-black dark:text-white">Expiry Year (YY)</label>
+            <input type="number" formControlName="expiryYear"
+                   class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700">
+          </div>
+        </div>
+
+        <div class="flex items-center">
+          <input type="checkbox" formControlName="isDefault"
+                 class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary">
+          <label class="ml-2 text-sm text-gray-700 dark:text-gray-300">
+            Set as default payment method
+          </label>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 mt-6">
+          <button type="button" (click)="closePaymentModal()"
+                  class="rounded-lg border border-gray-300 bg-transparent px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800">
+            Cancel
+          </button>
+          <button type="submit"
+                  [disabled]="!paymentForm.valid"
+                  class="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-black hover:bg-primary-dark disabled:opacity-50">
+            {{ isEditMode ? 'Update' : 'Add' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
