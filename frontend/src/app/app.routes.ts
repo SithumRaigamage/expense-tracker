@@ -13,6 +13,7 @@ import { SettingsComponent } from './settings/settings.component';
 import { PaymentMethodsComponent } from './settings/payment-methods/payment-methods.component';
 import { CurrenyComponent } from './settings/curreny/curreny.component';
 import { AboutSupportComponent } from './settings/about-support/about-support.component';
+import { DocumentationComponent } from './settings/documentation/documentation.component';
 
 export const routes: Routes = [
   {
@@ -60,12 +61,11 @@ export const routes: Routes = [
     title: 'Settings',
     component: SettingsComponent,
     children: [
-      { path: '', redirectTo: 'profile', pathMatch: 'full' }, // Add this line
+      { path: '', redirectTo: 'profile', pathMatch: 'full' },
       { path: 'profile', component: ProfileComponent, title: 'Profile Settings' },
       { path: 'payment-methods', component: PaymentMethodsComponent, title: 'Payment Methods' },
       { path: 'currency', component: CurrenyComponent, title: 'Currency Settings' },
       { path: 'about & support', component: AboutSupportComponent, title: 'About & Support' }
-
     ]
   },
   {
@@ -73,9 +73,12 @@ export const routes: Routes = [
     component: HelpComponent,
     title: 'Help Center',
     children: [
+      { path: '', redirectTo: 'help', pathMatch: 'full' },
       { path: 'faqs', component: HelpComponent, title: 'FAQs' },
-      { path: 'docs', component: HelpComponent, title: 'Documentation' },
-      { path: 'support', component: HelpComponent, title: 'Contact Support' }
+      { path: 'docs', component: DocumentationComponent, title: 'Documentation' },
+      { path: 'support', component: HelpComponent, title: 'Contact Support' },
+      { path: 'troubleshooting', component: HelpComponent, title: 'Troubleshooting' },
+      { path: 'release-notes', component: HelpComponent, title: 'Release Notes' }
     ]
   }
 ];
