@@ -10,6 +10,7 @@ import { HelpComponent } from './Navigation/help/help.component';
 import { MonthlyTargetComponent } from './Navigation/target/target.component';
 import { BillsComponent } from './Navigation/bills/bills.component';
 import { SettingsComponent } from './settings/settings.component';
+import { PaymentMethodsComponent } from './settings/payment-methods/payment-methods.component';
 
 export const routes: Routes = [
   {
@@ -59,7 +60,7 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'profile', pathMatch: 'full' }, // Add this line
       { path: 'profile', component: ProfileComponent, title: 'Profile Settings' },
-      { path: 'payment-methods', component: SettingsComponent, title: 'Payment Methods' },
+      { path: 'payment-methods', component: PaymentMethodsComponent, title: 'Payment Methods' },
       { path: 'security', component: SettingsComponent, title: 'Security Settings' }
     ]
   },

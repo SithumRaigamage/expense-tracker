@@ -14,15 +14,6 @@ import { fas } from '@fortawesome/free-solid-svg-icons';
 import { map } from 'rxjs/operators';
 import { RouterModule } from '@angular/router';
 
-interface PaymentMethod {
-  id: string;
-  type: 'visa' | 'mastercard';
-  cardNumber: string;
-  expiryMonth: number;
-  expiryYear: number;
-  isDefault: boolean;
-}
-
 @Component({
   selector: 'app-settings',
   standalone: true,
@@ -40,7 +31,6 @@ export class SettingsComponent implements OnInit {
   user: User | null = null;
   isOpen = false;
   formData: Partial<User> = {};
-  paymentMethods: PaymentMethod[] = [];
   isPaymentModalOpen = false;
   isEditMode = false;
   selectedPaymentId: string | null = null;
@@ -89,7 +79,6 @@ export class SettingsComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadUserProfile();
-    this.loadPaymentMethods();
     this.loadSupportContent();
   }
 
@@ -100,17 +89,6 @@ export class SettingsComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading user profile:', error);
-      }
-    });
-  }
-
-  loadPaymentMethods(): void {
-    this.settingsService.getPaymentMethods().subscribe({
-      next: (methods) => {
-        this.paymentMethods = methods;
-      },
-      error: (error) => {
-        console.error('Error loading payment methods:', error);
       }
     });
   }
@@ -132,14 +110,6 @@ export class SettingsComponent implements OnInit {
         this.faqs = faqs;
       }
     });
-  }
-
-  getCardImage(type: 'visa' | 'mastercard'): string {
-    return this.settingsService.getCardImage(type);
-  }
-
-  getCardIcon(type: 'visa' | 'mastercard'): IconDefinition {
-    return this.settingsService.getCardIcon(type);
   }
 
   initializeFormData(): void {
@@ -234,68 +204,6 @@ export class SettingsComponent implements OnInit {
     this.isPaymentModalOpen = true;
   }
 
-  editPaymentMethod(id: string): void {
-    const method = this.paymentMethods.find(m => m.id === id);
-    if (method) {
-      this.isEditMode = true;
-      this.selectedPaymentId = id;
-      this.paymentForm.patchValue({
-        type: method.type,
-        cardNumber: method.cardNumber, // Use full card number
-        expiryMonth: method.expiryMonth,
-        expiryYear: method.expiryYear,
-        isDefault: method.isDefault
-      });
-      this.isPaymentModalOpen = true;
-    }
-  }
-
-  deletePaymentMethod(id: string): void {
-    if (confirm('Are you sure you want to delete this payment method?')) {
-      this.settingsService.deletePaymentMethod(id).subscribe({
-        next: () => {
-          this.loadPaymentMethods();
-        },
-        error: (error) => {
-          console.error('Error deleting payment method:', error);
-        }
-      });
-    }
-  }
-
-  onPaymentSubmit(): void {
-    if (this.paymentForm.valid) {
-      const formData = this.paymentForm.value;
-
-      if (this.isEditMode && this.selectedPaymentId) {
-        this.settingsService.updatePaymentMethod(this.selectedPaymentId, formData).subscribe({
-          next: () => {
-            this.loadPaymentMethods();
-            this.closePaymentModal();
-          },
-          error: (error) => {
-            console.error('Error updating payment method:', error);
-          }
-        });
-      } else {
-        this.settingsService.addPaymentMethod(formData).subscribe({
-          next: () => {
-            this.loadPaymentMethods();
-            this.closePaymentModal();
-          },
-          error: (error) => {
-            console.error('Error adding payment method:', error);
-          }
-        });
-      }
-    }
-  }
-
-  closePaymentModal(): void {
-    this.isPaymentModalOpen = false;
-    this.paymentForm.reset({ type: 'visa', isDefault: false });
-  }
-
   setDefaultPaymentMethod(id: string): void {
     // TODO: Implement setting default payment method
     //console.log('Setting default payment method:', id);
@@ -348,7 +256,5 @@ export class SettingsComponent implements OnInit {
     faq.isOpen = !faq.isOpen;
   }
 
-  getLastFourDigits(cardNumber: string): string {
-    return cardNumber.slice(-4);
-  }
+
 }
