@@ -18,6 +18,7 @@ import { FaqComponent } from './settings/faq/faq.component';
 import { TroubleshootingComponent } from './settings/troubleshooting/troubleshooting.component';
 import { ReleaseNotesComponent } from './settings/release-notes/release-notes.component';
 import { SupportComponent } from './settings/support/support.component';
+import { FeedbackComponent } from './feedback/feedback.component';
 
 export const routes: Routes = [
   {
@@ -84,5 +85,10 @@ export const routes: Routes = [
       { path: 'troubleshooting', component: TroubleshootingComponent, title: 'Troubleshooting' },
       { path: 'release-notes', component: ReleaseNotesComponent, title: 'Release Notes' }
     ]
+  },
+  {
+    path: 'feedback',
+    component: FeedbackComponent,
+    title: 'Feedback'
   }
 ];
