@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { User } from '../../models/User';
-import { Currency, SettingsService } from '../../services/settings.service';
+import { SettingsService } from '../../services/settings.service';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 
 @Component({
@@ -26,8 +26,7 @@ export class ProfileComponent implements OnInit {
   previewImage: SafeUrl | null = null;
   passwordForm: FormGroup;
   emailForm: FormGroup;
-  selectedCurrency: string = 'LKR'; // Default currency
-  currencies: Currency[] = [];
+
 
   constructor(
     private settingsService: SettingsService,
@@ -50,19 +49,9 @@ export class ProfileComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadUserProfile();
-    this.loadCurrencies();
   }
 
-  loadCurrencies(): void {
-    this.settingsService.getCurrencies().subscribe({
-      next: (currencies) => {
-        this.currencies = currencies;
-      },
-      error: (error) => {
-        console.error('Error loading currencies:', error);
-      }
-    });
-  }
+
 
   loadUserProfile(): void {
     this.settingsService.getUserProfile().subscribe({
@@ -201,19 +190,5 @@ export class ProfileComponent implements OnInit {
         }
       });
     }
-  }
-
-  onCurrencyChange(event: Event): void {
-    const select = event.target as HTMLSelectElement;
-    this.settingsService.updateCurrency(select.value).subscribe({
-      next: () => {
-        this.selectedCurrency = select.value;
-        alert('Currency updated successfully');
-      },
-      error: (error) => {
-        console.error('Error updating currency:', error);
-        alert('Failed to update currency');
-      }
-    });
   }
 }

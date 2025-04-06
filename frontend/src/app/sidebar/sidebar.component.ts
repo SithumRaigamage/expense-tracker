@@ -28,7 +28,10 @@ interface SubNavItem {
   name: string;
   path: string;
   badge?: string;
+  isLocked?: boolean;
   isNew?: boolean;
+  isUpcoming?: boolean;
+  isOpen?: boolean;
 }
 
 interface NavItem {
