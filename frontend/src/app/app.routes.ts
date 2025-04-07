@@ -19,6 +19,7 @@ import { TroubleshootingComponent } from './settings/troubleshooting/troubleshoo
 import { ReleaseNotesComponent } from './settings/release-notes/release-notes.component';
 import { SupportComponent } from './settings/support/support.component';
 import { FeedbackComponent } from './feedback/feedback.component';
+import { ChatComponent } from './chat/chat.component';
 
 export const routes: Routes = [
   {
@@ -60,6 +61,11 @@ export const routes: Routes = [
     path: 'bills',
     component: BillsComponent,
     title: 'Bills & Payments'
+  },
+  {
+    path: 'chat',
+    component: ChatComponent,
+    title: 'Chat'
   },
   {
     path: 'settings',
