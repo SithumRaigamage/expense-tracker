@@ -20,6 +20,7 @@ import { ReleaseNotesComponent } from './settings/release-notes/release-notes.co
 import { SupportComponent } from './settings/support/support.component';
 import { FeedbackComponent } from './feedback/feedback.component';
 import { ChatComponent } from './chat/chat.component';
+import { EducationComponent } from './education/education.component';
 
 export const routes: Routes = [
   {
@@ -61,6 +62,11 @@ export const routes: Routes = [
     path: 'bills',
     component: BillsComponent,
     title: 'Bills & Payments'
+  },
+  {
+    path: 'financial-education',
+    component: EducationComponent,
+    title: 'Financial Education'
   },
   {
     path: 'chat',

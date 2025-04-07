@@ -122,9 +122,9 @@ export class SidebarComponent implements OnInit {
       icon: faComments,
       name: 'Chat',
       path: '/chat',
-      isUpcoming: false,
+      isUpcoming: true,
       isNew: false,
-      isLocked: false
+      isLocked: true
     }
   ];
 
