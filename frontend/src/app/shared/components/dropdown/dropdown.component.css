@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+/* Ensure proper z-index stacking for dropdown component */
+.dropdown-container {
+  position: relative;
+  z-index: 100000;
+}
+
+/* Ensure dropdowns always appear above other content */
+:host {
+  z-index: 100000;
+  position: relative;
+}

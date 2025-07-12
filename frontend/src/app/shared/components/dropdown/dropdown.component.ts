@@ -11,7 +11,7 @@ import { DropdownDirective } from '../../../directives/dropdown.directive';
       *ngIf="isOpen"
       [appDropdown]="isOpen"
       (closeDropdown)="onClose.emit()"
-      class="absolute z-40 right-0 mt-2 rounded-xl border border-gray-200 bg-white shadow-theme-lg dark:border-gray-800 dark:bg-gray-dark"
+      class="absolute z-[100000] right-0 mt-2 rounded-xl border border-gray-200 bg-white shadow-theme-lg dark:border-gray-800 dark:bg-gray-dark"
       [class]="class">
       <ng-content></ng-content>
     </div>
