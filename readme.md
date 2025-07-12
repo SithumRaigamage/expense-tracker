@@ -97,6 +97,22 @@ npm run test:coverage
 npm run lint
 ```
 
+## SonarQube Setup
+
+1. Copy configuration templates:
+   ```bash
+   cp sonar-project.properties.template sonar-project.properties
+   ```
+
+2. Set your SonarQube token:
+   ```bash
+   export SONAR_TOKEN=your_token_here
+   ```
+
+3. Update `sonar-project.properties` with your specific configuration
+
+4. Install VS Code SonarLint extension
+
 ## 📚 Learning Outcomes
 
 - ⚡ Angular component architecture

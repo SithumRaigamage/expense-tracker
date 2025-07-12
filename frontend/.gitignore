@@ -40,3 +40,23 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# SonarQube
+.scannerwork/
+.sonarlint/
+sonar-project.properties
+.vscode/settings.json
+coverage/
+.sonar/
+report-task.txt
+.sonarqube/
+.sonar-cache/
+
+# Environment Variables
+.env
+.env.local
+
+# IDE - VSCode SonarLint
+.vscode/*
+!.vscode/extensions.json
+.idea/sonarlint/
