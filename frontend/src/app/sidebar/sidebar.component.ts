@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { FontAwesomeModule, FaIconLibrary } from '@fortawesome/angular-fontawesome';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import {
   faMoneyCheckDollar,
@@ -19,19 +19,31 @@ import {
   faStar,
   faFeed,
   faBell,
-  faUsers,
-  faShareNodes
+  faChevronRight,
+  faChevronDown
 } from '@fortawesome/free-solid-svg-icons';
 import { SidebarService } from '../services/sidebar-service.service';
 
-interface NavItem {
+interface SubNavItem {
   name: string;
-  icon: IconDefinition;
-  path: string;  // Make path required since we're removing subItems
+  path: string;
   badge?: string;
   isLocked?: boolean;
   isNew?: boolean;
   isUpcoming?: boolean;
+  isOpen?: boolean;
+}
+
+interface NavItem {
+  name: string;
+  icon: IconDefinition;
+  path: string;
+  badge?: string;
+  isLocked?: boolean;
+  isNew?: boolean;
+  isUpcoming?: boolean;
+  subItems?: SubNavItem[];
+  isOpen?: boolean;
 }
 
 @Component({
@@ -47,6 +59,8 @@ export class SidebarComponent implements OnInit {
   moneyIcon = faMoneyCheckDollar;
   lockIcon = faLock;
   sparklesIcon = faStar;
+  chevronRight = faChevronRight;
+  chevronDown = faChevronDown;
 
   navItems: NavItem[] = [
     {
@@ -118,25 +132,61 @@ export class SidebarComponent implements OnInit {
     {
       icon: faGear,
       name: 'Settings',
-      path: '/settings'
+      path: '/settings',
+      isOpen: false,
+      subItems: [
+        { name: 'Profile', path: '/settings/profile' },
+        { name: 'Payment Methods', path: '/settings/payment-methods' },
+        { name: 'About & Support', path: '/settings/about & support' },
+        { name: 'Currency', path: '/settings/currency' },
+      ]
     },
     {
       icon: faCircleQuestion,
       name: 'Help Center',
-      path: '/help'
+      path: '/help',
+      isOpen: false,
+      subItems: [
+        { name: 'FAQs', path: '/help/faqs' },
+        { name: 'Documentation', path: '/help/docs' },
+        { name: 'Contact Support', path: '/help/support' },
+        { name: 'Troubleshooting', path: '/help/troubleshooting' },
+        { name: 'Release Notes', path: '/help/release-notes' },
+      ]
     },
     {
       icon: faFeed,
       name: 'Feedback',
       path: '/feedback'
-    },
-    { icon: faBell,
-      name: 'Notifications',
-      path: '/notifications'
-    },
+    }
   ];
 
-  constructor(private router: Router, private sidebarService: SidebarService) {}
+  constructor(
+    private router: Router,
+    private sidebarService: SidebarService,
+    library: FaIconLibrary
+  ) {
+    // Add icons to the library
+    library.addIcons(
+      faMoneyCheckDollar,
+      faGaugeHigh,
+      faWallet,
+      faChartLine,
+      faShieldHalved,
+      faGear,
+      faCircleQuestion,
+      faBullseye,
+      faFileInvoiceDollar,
+      faGraduationCap,
+      faComments,
+      faLock,
+      faStar,
+      faFeed,
+      faBell,
+      faChevronRight,
+      faChevronDown
+    );
+  }
 
   ngOnInit(): void {
     this.sidebarService.isOpen$.subscribe(
@@ -146,5 +196,12 @@ export class SidebarComponent implements OnInit {
 
   isActive(path: string): boolean {
     return this.router.url === path;
+  }
+
+  toggleSubNav(item: NavItem, event: Event): void {
+    event.preventDefault();
+    if (item.subItems) {
+      item.isOpen = !item.isOpen;
+    }
   }
 }

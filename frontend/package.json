@@ -3,12 +3,16 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
-    "watch": "ng build --watch --configuration development",
-    "test": "ng test",
-    "test:coverage": "ng test --code-coverage",
-    "lint": "ng lint"
+    "start": "ng serve frontend",
+    "build": "ng build frontend",
+    "watch": "ng build frontend --watch --configuration development",
+    "test": "ng test frontend",
+    "test:coverage": "ng test frontend --code-coverage",
+    "lint": "ng lint frontend",
+    "sonar": "sonar-scanner",
+    "test:sonar": "npm run test:coverage && npm run sonar",
+    "sonar:quick": "sonar-scanner -Dsonar.qualitygate.wait=false",
+    "sonar:analyze": "npm run test:coverage && sonar-scanner"
   },
   "private": true,
   "dependencies": {
@@ -17,6 +21,7 @@
     "@angular/compiler": "^19.1.0",
     "@angular/core": "^19.1.0",
     "@angular/forms": "^19.1.0",
+    "@angular/material": "^19.2.8",
     "@angular/platform-browser": "^19.1.0",
     "@angular/platform-browser-dynamic": "^19.1.0",
     "@angular/router": "^19.1.0",
@@ -46,6 +51,7 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
-    "typescript": "~5.7.2"
+    "typescript": "~5.7.2",
+    "sonar-scanner": "^3.1.0"
   }
 }

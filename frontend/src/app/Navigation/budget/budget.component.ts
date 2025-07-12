@@ -82,7 +82,7 @@ export class BudgetComponent implements OnInit {
       if (this.drawerMode === 'add') {
         this.productBudgetService.addGoal(this.currentGoal);
 
-        console.log(this.currentGoal);
+        //(this.currentGoal);
       } else if (this.drawerMode === 'edit' && this.selectedGoalId) {
         this.productBudgetService.updateGoal({
           ...this.currentGoal,
@@ -121,7 +121,7 @@ export class BudgetComponent implements OnInit {
   private loadGoals(): void {
     this.productBudgetService.getGoals().subscribe(goals => {
       this.goals = goals;
-      console.log(goals);
+      //console.log(goals);
     });
   }
 

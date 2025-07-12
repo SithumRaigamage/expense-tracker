@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: expense-tracker-frontend
+    ports:
+      - "4200:4200"
+    volumes:
+      - ../:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development

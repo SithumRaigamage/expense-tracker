@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { DropdownComponent } from '../../shared/components/dropdown/dropdown.component';
+import { DropdownComponent } from '../../shared/components/Dropdown/dropdown.component';
 
 interface MenuItem {
   icon: string;
