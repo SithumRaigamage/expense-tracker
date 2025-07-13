@@ -1,7 +1,9 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, combineLatest, map } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { BehaviorSubject, Observable, map, tap, catchError, throwError } from 'rxjs';
 import { Wallet } from '../models/Wallet';
 import { Metric } from '../models/Metric';
+import { AuthService } from './auth.service';
 import {
   faMoneyBillWave,
   faBuildingColumns,
@@ -13,7 +15,6 @@ import {
   faWallet
 } from '@fortawesome/free-solid-svg-icons';
 
-// First, add the Transaction interface
 export interface WalletTransaction {
   amount: number;
   type: 'income' | 'expense';
@@ -22,51 +23,77 @@ export interface WalletTransaction {
   date: Date;
 }
 
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  count?: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class WalletService {
-  private wallets = new BehaviorSubject<Wallet[]>([
-    {
-      id: '1',
-      name: 'Main Wallet',
-      type: 'cash',
-      balance: 15000.00,
-      currency: 'LKR'
-    },
-    {
-      id: '2',
-      name: 'BOC Account',
-      type: 'bank',
-      balance: 100000.00,
-      currency: 'LKR',
-    },
-    {
-      id: '3',
-      name: 'Fixed Deposit',
-      type: 'savings',
-      balance: 100000.00,
-      currency: 'LKR',
-    },
-    {
-      id: '4',
-      name: 'Credit Card',
-      type: 'credit',
-      balance: -5000.00,  // Negative balance for credit
-      currency: 'LKR',
-    },
-    {
-      id: '5',
-      name: 'Personal Loan',
-      type: 'loan',
-      balance: -150000.00,  // Negative balance for loans
-      currency: 'LKR',
-    }
-  ]);
+  private apiUrl = 'http://localhost:3001/api/v1/wallets';
+  private wallets = new BehaviorSubject<Wallet[]>([]);
+  private error = new BehaviorSubject<string | null>(null);
+  private loading = new BehaviorSubject<boolean>(false);
 
   wallets$ = this.wallets.asObservable();
+  error$ = this.error.asObservable();
+  loading$ = this.loading.asObservable();
 
-  private getWalletTypeIcon(type: string) {
+  private authService = inject(AuthService);
+
+  constructor(private http: HttpClient) {
+    this.loadWallets();
+  }
+
+  private getHttpOptions() {
+    const token = this.authService.getToken();
+    return {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : ''
+      })
+    };
+  }
+
+  private loadWallets(): void {
+    this.loading.next(true);
+    this.error.next(null);
+
+    this.http.get<ApiResponse<Wallet[]>>(this.apiUrl, this.getHttpOptions())
+      .pipe(
+        map(response => response.data),
+        catchError(error => {
+          console.error('Error loading wallets:', error);
+          let errorMessage = 'Failed to connect to the server. Please check if the backend is running.';
+
+          if (error.status === 401) {
+            errorMessage = 'You are not authorized. Please login again.';
+          } else if (error.status === 404) {
+            errorMessage = 'Wallets endpoint not found.';
+          } else if (error.status === 0) {
+            errorMessage = 'Cannot connect to the server. Please check if the backend is running on http://localhost:3001';
+          }
+
+          this.error.next(errorMessage);
+          return throwError(() => error);
+        })
+      )
+      .subscribe({
+        next: (wallets) => {
+          this.wallets.next(wallets);
+          this.loading.next(false);
+        },
+        error: () => {
+          this.wallets.next([]);
+          this.loading.next(false);
+        }
+      });
+  }
+
+  getWalletTypeIcon(type: string) {
     switch (type) {
       case 'bank': return faBuildingColumns;
       case 'cash': return faMoneyBillWave;
@@ -79,7 +106,7 @@ export class WalletService {
     }
   }
 
-  private getWalletTypeLabel(type: string) {
+  getWalletTypeLabel(type: string) {
     switch (type) {
       case 'bank': return 'Bank Balance';
       case 'cash': return 'Cash in Hand';
@@ -101,24 +128,79 @@ export class WalletService {
     );
   }
 
-  addWallet(wallet: Omit<Wallet, 'id'>): void {
-    const newWallet = {
-      ...wallet,
-      id: Date.now().toString()
-    };
-    this.wallets.next([...this.wallets.value, newWallet]);
+  addWallet(walletData: Omit<Wallet, 'id'>): Observable<Wallet> {
+    return this.http.post<ApiResponse<Wallet>>(this.apiUrl, walletData, this.getHttpOptions())
+      .pipe(
+        map(response => response.data),
+        tap(wallet => {
+          const currentWallets = this.wallets.value;
+          this.wallets.next([...currentWallets, wallet]);
+        }),
+        catchError(error => {
+          console.error('Error adding wallet:', error);
+          let errorMessage = 'Failed to add wallet. Please try again.';
+
+          if (error.status === 401) {
+            errorMessage = 'You are not authorized. Please login again.';
+          } else if (error.status === 400) {
+            errorMessage = 'Invalid wallet data. Please check your input.';
+          }
+
+          throw new Error(errorMessage);
+        })
+      );
   }
 
-  updateWallet(id: string, wallet: Partial<Wallet>): void {
-    const updatedWallets = this.wallets.value.map(w =>
-      w.id === id ? { ...w, ...wallet } : w
-    );
-    this.wallets.next(updatedWallets);
+  updateWallet(id: string, walletData: Partial<Wallet>): Observable<Wallet> {
+    return this.http.put<ApiResponse<Wallet>>(`${this.apiUrl}/${id}`, walletData, this.getHttpOptions())
+      .pipe(
+        map(response => response.data),
+        tap(updatedWallet => {
+          const currentWallets = this.wallets.value;
+          const updatedWallets = currentWallets.map(w =>
+            w.id === id ? { ...w, ...updatedWallet } : w
+          );
+          this.wallets.next(updatedWallets);
+        }),
+        catchError(error => {
+          console.error('Error updating wallet:', error);
+          let errorMessage = 'Failed to update wallet. Please try again.';
+
+          if (error.status === 401) {
+            errorMessage = 'You are not authorized. Please login again.';
+          } else if (error.status === 404) {
+            errorMessage = 'Wallet not found.';
+          } else if (error.status === 400) {
+            errorMessage = 'Invalid wallet data. Please check your input.';
+          }
+
+          throw new Error(errorMessage);
+        })
+      );
   }
 
-  deleteWallet(id: string): void {
-    const filteredWallets = this.wallets.value.filter(w => w.id !== id);
-    this.wallets.next(filteredWallets);
+  deleteWallet(id: string): Observable<void> {
+    return this.http.delete<ApiResponse<any>>(`${this.apiUrl}/${id}`, this.getHttpOptions())
+      .pipe(
+        map(() => void 0),
+        tap(() => {
+          const currentWallets = this.wallets.value;
+          const filteredWallets = currentWallets.filter(w => w.id !== id);
+          this.wallets.next(filteredWallets);
+        }),
+        catchError(error => {
+          console.error('Error deleting wallet:', error);
+          let errorMessage = 'Failed to delete wallet. Please try again.';
+
+          if (error.status === 401) {
+            errorMessage = 'You are not authorized. Please login again.';
+          } else if (error.status === 404) {
+            errorMessage = 'Wallet not found.';
+          }
+
+          throw new Error(errorMessage);
+        })
+      );
   }
 
   getAllWallets(): Observable<Wallet[]> {
@@ -140,7 +222,7 @@ export class WalletService {
             label: this.getWalletTypeLabel(type),
             value: totalBalance,
             percentage: 0,
-            trend: totalBalance < 0 ? 'down' : 'up', // Changed trend calculation
+            trend: totalBalance < 0 ? 'down' : 'up',
             currency: 'LKR'
           };
         });
@@ -157,13 +239,19 @@ export class WalletService {
 
     if (!wallet) return;
 
-    // Update wallet balance
     const updatedWallet = {
       ...wallet,
-      balance: wallet.balance + transaction.amount // amount is negative for expenses
+      balance: wallet.balance + transaction.amount
     };
 
-    // Update wallet with new balance
-    this.updateWallet(walletId, updatedWallet);
+    this.updateWallet(walletId, updatedWallet).subscribe();
+  }
+
+  refreshWallets(): void {
+    this.loadWallets();
+  }
+
+  clearError(): void {
+    this.error.next(null);
   }
 }
