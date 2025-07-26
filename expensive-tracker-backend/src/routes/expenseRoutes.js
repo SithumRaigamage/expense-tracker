@@ -7,7 +7,8 @@ const {
   updateExpense,
   deleteExpense,
   getExpenseStats,
-  getMonthlyExpenses
+  getMonthlyExpenses,
+  getMonthlyStats
 } = require('../controllers/expenseController');
 
 const { protect } = require('../middleware/auth');
@@ -18,6 +19,7 @@ router.use(protect);
 // Special routes (must come before /:id routes)
 router.get('/stats/summary', getExpenseStats);
 router.get('/monthly', getMonthlyExpenses);
+router.get('/monthly-stats', getMonthlyStats);
 
 // Main CRUD routes
 router.route('/')

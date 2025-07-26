@@ -129,21 +129,6 @@
                 {{category.name}} ({{category.type}})
               </option>
             </select>
-            <button type="button"
-                    (click)="createCategoriesIfNeeded()"
-                    class="mt-2 text-sm text-blue-500 hover:text-blue-700">
-              Create Categories If Missing
-            </button>
-            <button type="button"
-                    (click)="forceRefreshCategories()"
-                    class="mt-2 ml-2 text-sm text-purple-500 hover:text-purple-700">
-              Force Refresh Categories
-            </button>
-            <button type="button"
-                    (click)="debugCategories()"
-                    class="mt-2 ml-2 text-sm text-green-500 hover:text-green-700">
-              Debug Categories
-            </button>
           </div>
 
           <div class="flex justify-end gap-4">
@@ -154,7 +139,7 @@
             </button>
             <button type="submit"
                     [disabled]="!transactionForm.valid"
-                    class="rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium text-white hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed">
+                    class="rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium text-black hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed">
               {{selectedTransaction ? 'Save Changes' : 'Add Transaction'}}
             </button>
           </div>

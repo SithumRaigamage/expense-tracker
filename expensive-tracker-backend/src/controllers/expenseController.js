@@ -39,7 +39,7 @@ const getExpenses = async (req, res, next) => {
 
     // Execute query with pagination
     const expenses = await Expense.find(filter)
-      .populate('category', 'name color icon')
+      .populate('category', 'name color icon type')
       .sort(sort)
       .skip(skip)
       .limit(parseInt(limit));
@@ -68,7 +68,7 @@ const getExpense = async (req, res, next) => {
     const expense = await Expense.findOne({
       _id: req.params.id,
       user: req.user.id
-    }).populate('category', 'name color icon');
+    }).populate('category', 'name color icon type');
 
     if (!expense) {
       return res.status(404).json({
@@ -94,11 +94,11 @@ const createExpense = async (req, res, next) => {
     // Add user to req.body
     req.body.user = req.user.id;
 
-    // Ensure we have either title or description
-    if (!req.body.title && !req.body.description) {
+    // Ensure we have description (it's required)
+    if (!req.body.description) {
       return res.status(400).json({
         success: false,
-        error: 'Either title or description is required'
+        error: 'Description is required'
       });
     }
 
@@ -111,7 +111,11 @@ const createExpense = async (req, res, next) => {
     if (req.body.category) {
       const categoryExists = await Category.findOne({
         _id: req.body.category,
-        user: req.user.id
+        $or: [
+          { user: req.user.id },  // User's own categories
+          { user: { $exists: false } }, // System default categories
+          { user: null }  // Also match null user (system defaults)
+        ]
       });
 
       if (!categoryExists) {
@@ -122,16 +126,19 @@ const createExpense = async (req, res, next) => {
       }
     }
 
+    console.log('Creating expense with data:', req.body);
+    
     const expense = await Expense.create(req.body);
     
     // Populate category before returning
-    await expense.populate('category', 'name color icon');
+    await expense.populate('category', 'name color icon type');
 
     res.status(201).json({
       success: true,
       data: expense
     });
   } catch (error) {
+    console.error('Error creating expense:', error);
     next(error);
   }
 };
@@ -176,7 +183,7 @@ const updateExpense = async (req, res, next) => {
         new: true,
         runValidators: true
       }
-    ).populate('category', 'name color icon');
+    ).populate('category', 'name color icon type');
 
     if (!expense) {
       return res.status(404).json({
@@ -345,7 +352,7 @@ const getMonthlyExpenses = async (req, res, next) => {
         $lte: endDate
       }
     })
-    .populate('category', 'name color icon')
+    .populate('category', 'name color icon type')
     .sort({ date: -1 });
 
     // Calculate monthly stats
@@ -369,6 +376,66 @@ const getMonthlyExpenses = async (req, res, next) => {
   }
 };
 
+// @desc    Get monthly statistics for specific month/year
+// @route   GET /api/v1/expenses/monthly-stats
+// @access  Private
+const getMonthlyStats = async (req, res, next) => {
+  try {
+    const { month, year } = req.query;
+    
+    if (!month || !year) {
+      return res.status(400).json({
+        success: false,
+        error: 'Month and year are required'
+      });
+    }
+
+    // Create date range for the month
+    const startDate = new Date(year, month - 1, 1); // month is 1-indexed in query
+    const endDate = new Date(year, month, 0, 23, 59, 59);
+
+    // Find all transactions for the user in the given month
+    const expenses = await Expense.find({
+      user: req.user.id,
+      date: {
+        $gte: startDate,
+        $lte: endDate
+      }
+    }).populate('category', 'name color icon type');
+
+    // Group by category type to calculate income and expenses
+    let totalIncome = 0;
+    let totalExpenses = 0;
+
+    expenses.forEach(expense => {
+      const type = expense.category?.type;
+      
+      if (type === 'income') {
+        totalIncome += expense.amount;
+      } else if (type === 'expense') {
+        totalExpenses += expense.amount;
+      }
+    });
+
+    const netSavings = totalIncome - totalExpenses;
+    const transactionCount = expenses.length;
+
+    res.status(200).json({
+      success: true,
+      data: {
+        totalIncome,
+        totalExpenses,
+        netSavings,
+        transactionCount,
+        month: parseInt(month),
+        year: parseInt(year)
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getExpenses,
   getExpense,
@@ -376,5 +443,6 @@ module.exports = {
   updateExpense,
   deleteExpense,
   getExpenseStats,
-  getMonthlyExpenses
+  getMonthlyExpenses,
+  getMonthlyStats
 };
