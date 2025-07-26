@@ -21,11 +21,17 @@
     <fa-icon [icon]="faExclamationTriangle" class="text-red-500 text-4xl mb-4"></fa-icon>
     <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">Connection Error</h3>
     <p class="text-gray-600 dark:text-gray-400 mb-4 max-w-md mx-auto">{{ error }}</p>
-    <button
+    <button *ngIf="!isAuthError"
       (click)="refreshWallets()"
       class="inline-flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors">
       <fa-icon [icon]="faRefresh"></fa-icon>
       Try Again
+    </button>
+    <button *ngIf="isAuthError"
+      (click)="goToLogin()"
+      class="inline-flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors">
+      <fa-icon [icon]="faArrowRight"></fa-icon>
+      Go to Login
     </button>
   </div>
 

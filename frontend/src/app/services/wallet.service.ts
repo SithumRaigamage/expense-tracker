@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { BehaviorSubject, Observable, map, tap, catchError, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, map, tap, catchError, throwError, of } from 'rxjs';
 import { Wallet } from '../models/Wallet';
 import { Metric } from '../models/Metric';
 import { AuthService } from './auth.service';
@@ -37,6 +37,7 @@ export class WalletService {
   private wallets = new BehaviorSubject<Wallet[]>([]);
   private error = new BehaviorSubject<string | null>(null);
   private loading = new BehaviorSubject<boolean>(false);
+  private currentUserId: string | null = null;
 
   wallets$ = this.wallets.asObservable();
   error$ = this.error.asObservable();
@@ -45,7 +46,16 @@ export class WalletService {
   private authService = inject(AuthService);
 
   constructor(private http: HttpClient) {
-    this.loadWallets();
+    // Subscribe to the current user to get the user ID
+    this.authService.currentUser$.subscribe(user => {
+      this.currentUserId = user?.id || null;
+      if (this.currentUserId) {
+        this.loadWallets();
+      } else {
+        // Clear wallets if user is not authenticated
+        this.wallets.next([]);
+      }
+    });
   }
 
   private getHttpOptions() {
@@ -59,6 +69,12 @@ export class WalletService {
   }
 
   private loadWallets(): void {
+    if (!this.currentUserId) {
+      this.error.next('Not authenticated. Please log in.');
+      this.wallets.next([]);
+      return;
+    }
+
     this.loading.next(true);
     this.error.next(null);
 
@@ -66,7 +82,8 @@ export class WalletService {
       .pipe(
         map(response => response.data.map(wallet => ({
           ...wallet,
-          id: wallet.id || (wallet as any)._id // Handle both _id and id
+          id: wallet.id || (wallet as any)._id, // Handle both _id and id
+          user: wallet.user || this.currentUserId || '' // Ensure user ID is present as string
         }))),
         catchError(error => {
           console.error('Error loading wallets:', error);
@@ -132,7 +149,17 @@ export class WalletService {
   }
 
   addWallet(walletData: Omit<Wallet, 'id'>): Observable<Wallet> {
-    return this.http.post<ApiResponse<Wallet>>(this.apiUrl, walletData, this.getHttpOptions())
+    if (!this.currentUserId) {
+      return throwError(() => new Error('Not authenticated. Please log in.'));
+    }
+
+    // Add the user ID to the wallet data
+    const walletWithUser = {
+      ...walletData,
+      user: this.currentUserId
+    };
+
+    return this.http.post<ApiResponse<Wallet>>(this.apiUrl, walletWithUser, this.getHttpOptions())
       .pipe(
         map(response => ({
           ...response.data,
@@ -162,7 +189,14 @@ export class WalletService {
   }
 
   updateWallet(id: string, walletData: Partial<Wallet>): Observable<Wallet> {
-    return this.http.put<ApiResponse<Wallet>>(`${this.apiUrl}/${id}`, walletData, this.getHttpOptions())
+    if (!this.currentUserId) {
+      return throwError(() => new Error('Not authenticated. Please log in.'));
+    }
+
+    // Remove user field to prevent changing ownership
+    const { user, ...dataToUpdate } = walletData;
+
+    return this.http.put<ApiResponse<Wallet>>(`${this.apiUrl}/${id}`, dataToUpdate, this.getHttpOptions())
       .pipe(
         map(response => ({
           ...response.data,
@@ -197,6 +231,10 @@ export class WalletService {
   }
 
   deleteWallet(id: string): Observable<void> {
+    if (!this.currentUserId) {
+      return throwError(() => new Error('Not authenticated. Please log in.'));
+    }
+
     return this.http.delete<ApiResponse<any>>(`${this.apiUrl}/${id}`, this.getHttpOptions())
       .pipe(
         map(() => void 0),
@@ -221,9 +259,13 @@ export class WalletService {
   }
 
   bulkDeleteWallets(walletIds: string[]): Observable<{ deletedCount: number; requestedCount: number }> {
+    if (!this.currentUserId) {
+      return throwError(() => new Error('Not authenticated. Please log in.'));
+    }
+
     return this.http.delete<ApiResponse<{ deletedCount: number; requestedCount: number }>>(`${this.apiUrl}/bulk`, {
       ...this.getHttpOptions(),
-      body: { walletIds }
+      body: { walletIds, userId: this.currentUserId }
     })
       .pipe(
         map(response => response.data),
@@ -248,11 +290,16 @@ export class WalletService {
   }
 
   restoreWallet(id: string): Observable<Wallet> {
-    return this.http.patch<ApiResponse<Wallet>>(`${this.apiUrl}/${id}/restore`, {}, this.getHttpOptions())
+    if (!this.currentUserId) {
+      return throwError(() => new Error('Not authenticated. Please log in.'));
+    }
+
+    return this.http.patch<ApiResponse<Wallet>>(`${this.apiUrl}/${id}/restore`, { userId: this.currentUserId }, this.getHttpOptions())
       .pipe(
         map(response => ({
           ...response.data,
-          id: response.data.id || (response.data as any)._id
+          id: response.data.id || (response.data as any)._id,
+          user: response.data.user || this.currentUserId || ''
         })),
         tap(restoredWallet => {
           const currentWallets = this.wallets.value;
@@ -280,6 +327,10 @@ export class WalletService {
   }
 
   getWalletStats(): Observable<any> {
+    if (!this.currentUserId) {
+      return throwError(() => new Error('Not authenticated. Please log in.'));
+    }
+
     return this.http.get<ApiResponse<any>>(`${this.apiUrl}/stats`, this.getHttpOptions())
       .pipe(
         map(response => response.data),
@@ -340,5 +391,21 @@ export class WalletService {
 
   clearError(): void {
     this.error.next(null);
+  }
+
+  /**
+   * Check if the current user is authenticated and has access to wallets
+   * @returns True if the user is authenticated
+   */
+  isUserAuthenticated(): boolean {
+    return !!this.currentUserId;
+  }
+
+  /**
+   * Get the current user ID
+   * @returns The current user ID or null if not authenticated
+   */
+  getCurrentUserId(): string | null {
+    return this.currentUserId;
   }
 }

@@ -27,7 +27,7 @@ const seedUser = async () => {
     // Create test user
     const testUser = await User.create({
       name: 'sithum raigamage',
-      email: 'sraig2002@gmail.com',
+      email: 'test123@gmail.com',
       password: 'password123',
       currency: 'LKR',
       isActive: true

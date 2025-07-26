@@ -7,6 +7,7 @@ import { Subscription } from 'rxjs';
 import { Wallet } from '../../models/Wallet';
 import { WalletService } from '../../services/wallet.service';
 import { DialogService } from '../../shared/services/dialog.service';
+import { Router } from '@angular/router';
 
 import { materialImports } from '../../shared/material.module';
 
@@ -39,12 +40,14 @@ export class WalletsComponent implements OnInit, OnDestroy {
   wallets: Wallet[] = [];
   error: string | null = null;
   isLoading = false;
+  isAuthError = false;
   private subscription: Subscription;
 
   constructor(
     private fb: FormBuilder,
     private walletService: WalletService,
-    private dialogService: DialogService
+    private dialogService: DialogService,
+    private router: Router
   ) {
     this.subscription = new Subscription();
     this.initForm();
@@ -62,6 +65,8 @@ export class WalletsComponent implements OnInit, OnDestroy {
     this.subscription.add(
       this.walletService.error$.subscribe(error => {
         this.error = error;
+        // Check if it's an authentication error
+        this.isAuthError = error?.includes('Not authenticated') || error?.includes('authorized') || false;
       })
     );
 
@@ -186,6 +191,10 @@ export class WalletsComponent implements OnInit, OnDestroy {
   refreshWallets() {
     this.walletService.clearError();
     this.walletService.refreshWallets();
+  }
+
+  goToLogin() {
+    this.router.navigate(['/login']);
   }
 
   formatCurrency(amount: number): string {
