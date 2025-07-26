@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MetricsComponent } from "./metrics/metrics.component";
+import { MetricsComponent } from "../shared/metrics/metrics.component";
 import { MonthlyTargetComponent } from "../monthly-target/monthly-target.component";
 import { MonthlyStatComponent } from "../monthly-stat/monthly-stat.component";
 import { StatchartComponent } from "../statchart/statchart.component";

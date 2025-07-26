@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { BadgeComponent } from '../dasboard/badge/badge.component';
+import { BadgeComponent } from '../shared/badge/badge.component';
 import { TransactionService } from '../services/transaction.service';
 import { Transaction } from '../models/Transaction';
 
