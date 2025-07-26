@@ -19,7 +19,7 @@ import { SupportComponent } from './settings/support/support.component';
 import { FeedbackComponent } from './feedback/feedback.component';
 import { ChatComponent } from './chat/chat.component';
 import { EducationComponent } from './education/education.component';
-import { AuthGuard } from './guards/auth.guard';
+import { AuthGuard } from './core/guards/auth.guard';
 import { ManageWalletsComponent } from './dasboard/components/manage-wallets/manage-wallets.component';
 import { MainLayoutComponent } from './main-layout/main-layout.component';
 
@@ -32,11 +32,11 @@ export const routes: Routes = [
   // Auth routes (without layout)
   {
     path: 'login',
-    loadComponent: () => import('./auth/login/login.component').then(m => m.LoginComponent)
+    loadComponent: () => import('./core/auth/login/login.component').then(m => m.LoginComponent)
   },
   {
     path: 'register',
-    loadComponent: () => import('./auth/register/register.component').then(m => m.RegisterComponent)
+    loadComponent: () => import('./core/auth/register/register.component').then(m => m.RegisterComponent)
   },
   // Protected routes (with main layout)
   {

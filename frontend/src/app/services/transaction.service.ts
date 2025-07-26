@@ -76,7 +76,7 @@ export class TransactionService {
       )
       .subscribe({
         next: (categories) => {
-          console.log('Categories loaded:', categories);
+          //console.log('Categories loaded:', categories);
           this.categories.next(categories);
           // If no categories exist, create default ones
           if (categories.length === 0) {
@@ -205,6 +205,21 @@ export class TransactionService {
 
   getCategories(): Observable<Category[]> {
     return this.categories.asObservable();
+  }
+
+  getRecentTransactions(limit: number = 10): Observable<Transaction[]> {
+    return this.transactions.pipe(
+      map(transactions => {
+        // Sort transactions by date, most recent first
+        return [...transactions]
+          .sort((a, b) => {
+            const dateA = a.date instanceof Date ? a.date : new Date(a.date);
+            const dateB = b.date instanceof Date ? b.date : new Date(b.date);
+            return dateB.getTime() - dateA.getTime();
+          })
+          .slice(0, limit);
+      })
+    );
   }
 
   getMonthlyTransactions(month: number, year: number): Observable<Transaction[]> {

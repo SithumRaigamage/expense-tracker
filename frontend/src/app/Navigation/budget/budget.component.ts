@@ -25,6 +25,15 @@ export class BudgetComponent implements OnInit {
   selectedGoalId: string | null = null;
   availableWallets: Wallet[] = [];
   selectedWalletId: string = '';
+  isLoading = false;
+  searchQuery = '';
+  sortOption = 'progress';
+  filterOption = 'all';
+
+  // Image upload properties
+  imageInputTab: 'url' | 'upload' = 'url';
+  uploadedFile: File | null = null;
+  isUploading = false;
 
   constructor(
     private productBudgetService: ProductbudgetService,
@@ -46,13 +55,76 @@ export class BudgetComponent implements OnInit {
     };
   }
 
+  // Image upload functionality
+  triggerFileInput(): void {
+    document.getElementById('imageUpload')?.click();
+  }
+
+  handleImageUpload(event: Event): void {
+    const fileInput = event.target as HTMLInputElement;
+    if (fileInput.files && fileInput.files[0]) {
+      const file = fileInput.files[0];
+
+      // Check file size (limit to 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        alert('Image is too large. Maximum size is 2MB.');
+        fileInput.value = '';
+        this.uploadedFile = null;
+        return;
+      }
+
+      // Check file type
+      if (!file.type.match('image.*')) {
+        alert('Only image files are allowed.');
+        fileInput.value = '';
+        this.uploadedFile = null;
+        return;
+      }
+
+      // Store the file reference
+      this.uploadedFile = file;
+
+      // Set uploading status to show loading indicator
+      this.isUploading = true;
+
+      // Convert to base64 string for preview and storage
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        // Set the image URL to the base64 string
+        this.currentGoal.imageUrl = e.target.result;
+        // Hide loading indicator
+        this.isUploading = false;
+      };
+
+      reader.onerror = () => {
+        alert('Error reading file. Please try again.');
+        this.isUploading = false;
+        this.uploadedFile = null;
+        fileInput.value = '';
+      };
+
+      reader.readAsDataURL(file);
+    }
+  }
+
   openDrawer(mode: DrawerMode, goal?: ProductBudget): void {
     this.drawerMode = mode;
     this.isDrawerOpen = true;
 
+    // Reset image upload state
+    this.imageInputTab = 'url';
+    this.uploadedFile = null;
+    this.isUploading = false;
+
     if (goal && (mode === 'edit' || mode === 'addMoney')) {
       this.currentGoal = { ...goal };
       this.selectedGoalId = goal.id;
+
+      // If editing and the goal has an image URL that appears to be a data URL,
+      // switch to upload tab for a better UX
+      if (mode === 'edit' && goal.imageUrl && goal.imageUrl.startsWith('data:image')) {
+        this.imageInputTab = 'upload';
+      }
     } else {
       this.currentGoal = this.getEmptyGoal();
       this.selectedGoalId = null;
@@ -61,6 +133,14 @@ export class BudgetComponent implements OnInit {
 
   closeDrawer(): void {
     this.isDrawerOpen = false;
+
+    // Reset image upload state when closing
+    if (this.drawerMode === 'add' || this.drawerMode === 'edit') {
+      this.imageInputTab = 'url';
+      this.uploadedFile = null;
+      this.isUploading = false;
+    }
+
     this.drawerMode = null;
     this.currentGoal = this.getEmptyGoal();
     this.addAmount = 0;
@@ -80,16 +160,29 @@ export class BudgetComponent implements OnInit {
   submitForm(): void {
     if (this.validateGoal(this.currentGoal)) {
       if (this.drawerMode === 'add') {
-        this.productBudgetService.addGoal(this.currentGoal);
-
-        //(this.currentGoal);
+        this.productBudgetService.addGoal(this.currentGoal).subscribe({
+          next: () => {
+            this.closeDrawer();
+          },
+          error: (error) => {
+            console.error('Error adding goal:', error);
+            alert('Failed to add goal: ' + error.message);
+          }
+        });
       } else if (this.drawerMode === 'edit' && this.selectedGoalId) {
         this.productBudgetService.updateGoal({
           ...this.currentGoal,
           id: this.selectedGoalId
+        }).subscribe({
+          next: () => {
+            this.closeDrawer();
+          },
+          error: (error) => {
+            console.error('Error updating goal:', error);
+            alert('Failed to update goal: ' + error.message);
+          }
         });
       }
-      this.closeDrawer();
     }
   }
 
@@ -101,11 +194,29 @@ export class BudgetComponent implements OnInit {
         // Update wallet balance
         this.walletService.updateWallet(this.selectedWalletId, {
           balance: selectedWallet.balance - this.addAmount
-        });
+        }).subscribe({
+          next: () => {
+            // Add money to goal
+            this.productBudgetService.addMoney(this.selectedGoalId!, this.addAmount).subscribe({
+              next: () => {
+                this.closeDrawer();
+              },
+              error: (error) => {
+                console.error('Error adding money to goal:', error);
+                alert('Failed to add money to goal: ' + error.message);
 
-        // Add money to goal
-        this.productBudgetService.addMoney(this.selectedGoalId, this.addAmount);
-        this.closeDrawer();
+                // Restore wallet balance if adding money to goal fails
+                this.walletService.updateWallet(this.selectedWalletId, {
+                  balance: selectedWallet.balance
+                }).subscribe();
+              }
+            });
+          },
+          error: (error) => {
+            console.error('Error updating wallet balance:', error);
+            alert('Failed to update wallet: ' + error.message);
+          }
+        });
       } else {
         alert('Insufficient funds in selected wallet');
       }
@@ -114,14 +225,28 @@ export class BudgetComponent implements OnInit {
 
   deleteGoal(id: string): void {
     if (confirm('Are you sure you want to delete this goal?')) {
-      this.productBudgetService.deleteGoal(id);
+      this.productBudgetService.deleteGoal(id).subscribe({
+        next: () => {
+          // Goal was successfully deleted, now update the UI
+          this.loadGoals();
+        },
+        error: (error) => {
+          console.error('Error deleting goal:', error);
+          alert('Failed to delete goal: ' + error.message);
+        }
+      });
     }
   }
 
   private loadGoals(): void {
-    this.productBudgetService.getGoals().subscribe(goals => {
-      this.goals = goals;
-      //console.log(goals);
+    this.productBudgetService.getGoals().subscribe({
+      next: (goals) => {
+        this.goals = goals;
+      },
+      error: (error) => {
+        console.error('Error loading goals:', error);
+        alert('Failed to load budget goals: ' + error.message);
+      }
     });
   }
 

@@ -19,15 +19,12 @@ export class RecentTransactionsComponent implements OnInit {
   constructor(private transactionService: TransactionService) {}
 
   ngOnInit() {
-    const currentDate = new Date(); // Use current date instead of hardcoded
-    this.loadTransactions(currentDate);
+    this.loadRecentTransactions();
   }
 
-  private loadTransactions(date: Date): void {
-    this.transactionService.getMonthlyTransactions(
-      date.getMonth(),
-      date.getFullYear()
-    ).subscribe({
+  private loadRecentTransactions(): void {
+    // Get all recent transactions regardless of month
+    this.transactionService.getRecentTransactions(20).subscribe({
       next: (transactions) => {
         // Sort transactions by date in descending order (most recent first)
         this.transactions = transactions.sort((a, b) =>
@@ -71,5 +68,10 @@ export class RecentTransactionsComponent implements OnInit {
       day: 'numeric',
       year: 'numeric'
     });
+  }
+
+  refreshTransactions(): void {
+    this.transactionService.refreshTransactions();
+    this.loadRecentTransactions();
   }
 }
