@@ -22,7 +22,7 @@ import {
   faChevronRight,
   faChevronDown
 } from '@fortawesome/free-solid-svg-icons';
-import { SidebarService } from '../services/sidebar-service.service';
+import { SidebarService } from '../../../services/sidebar-service.service';
 
 interface SubNavItem {
   name: string;

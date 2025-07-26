@@ -1,5 +1,5 @@
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { SidebarService } from '../services/sidebar-service.service';
+import { SidebarService } from '../../../services/sidebar-service.service';
 import { CommonModule } from '@angular/common';
 import { ThemeToggleButtonComponent } from "./theme-toggle-button/theme-toggle-button.component";
 import { NotificationDropdownComponent } from "./notification-dropdown/notification-dropdown.component";

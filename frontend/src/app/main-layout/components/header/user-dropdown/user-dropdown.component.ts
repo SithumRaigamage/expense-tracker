@@ -1,8 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { DropdownComponent } from '../../shared/components/Dropdown/dropdown.component';
-import { AuthService } from '../../services/auth.service';
+import { DropdownComponent } from '../../../../shared/components/Dropdown/dropdown.component';
+import { AuthService } from '../../../../services/auth.service';
 import { Subscription } from 'rxjs';
 
 interface MenuItem {
