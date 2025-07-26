@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { ChartTabComponent } from "../chart-tab/chart-tab.component";
-import { TransactionService } from '../services/transaction.service';
+import { ChartTabComponent } from "../../../chart-tab/chart-tab.component";
+import { TransactionService } from '../../../services/transaction.service';
 import {
   ApexChart,
   ApexAxisChartSeries,

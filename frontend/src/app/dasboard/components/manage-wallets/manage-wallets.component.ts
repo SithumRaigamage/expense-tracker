@@ -1,7 +1,7 @@
-import { Wallet } from './../models/Wallet';
+import { Wallet } from '../../../models/Wallet';
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { WalletService } from '../services/wallet.service';
+import { WalletService } from '../../../services/wallet.service';
 import { RouterModule } from '@angular/router';
 
 @Component({

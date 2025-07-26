@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RadialChartComponent } from '../radialchart/radialchart.component';
-import { TargetService } from '../services/target.service';
+import { RadialChartComponent } from '../../../radialchart/radialchart.component';
+import { TargetService } from '../../../services/target.service';
 
 @Component({
   selector: 'app-monthly-target',

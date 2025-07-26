@@ -14,7 +14,7 @@ import {
   ApexFill,
   ApexTheme
 } from 'ng-apexcharts';
-import { TransactionService } from '../services/transaction.service';
+import { TransactionService } from '../../../services/transaction.service';
 import { Subscription } from 'rxjs';
 
 interface EmergencyTransaction {

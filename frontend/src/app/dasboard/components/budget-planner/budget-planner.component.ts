@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ProductbudgetService } from '../services/productbudget.service';
-import { ProductBudget } from '../models/ProductBudget';
+import { ProductbudgetService } from '../../../services/productbudget.service';
+import { ProductBudget } from '../../../models/ProductBudget';
 
 @Component({
   selector: 'app-budget-planner',

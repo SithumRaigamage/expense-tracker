@@ -2,9 +2,9 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faArrowUp, faArrowDown } from '@fortawesome/free-solid-svg-icons';
-import { BadgeComponent } from '../badge/badge.component';
-import { Metric } from '../../models/Metric';
-import { WalletService } from '../../services/wallet.service';
+import { BadgeComponent } from '../../../shared/badge/badge.component';
+import { Metric } from '../../../models/Metric';
+import { WalletService } from '../../../services/wallet.service';
 import { Subscription } from 'rxjs';
 
 @Component({

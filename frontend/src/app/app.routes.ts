@@ -21,7 +21,7 @@ import { FeedbackComponent } from './feedback/feedback.component';
 import { ChatComponent } from './chat/chat.component';
 import { EducationComponent } from './education/education.component';
 import { AuthGuard } from './guards/auth.guard';
-import { ManageWalletsComponent } from './manage-wallets/manage-wallets.component';
+import { ManageWalletsComponent } from './dasboard/components/manage-wallets/manage-wallets.component';
 import { MainLayoutComponent } from './main-layout/main-layout.component';
 
 export const routes: Routes = [

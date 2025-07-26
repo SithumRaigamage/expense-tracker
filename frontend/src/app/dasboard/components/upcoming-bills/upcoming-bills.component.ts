@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { BillsService } from '../services/bill.service';
-import { Bill } from '../models/Bill';
+import { BillsService } from '../../../services/bill.service';
+import { Bill } from '../../../models/Bill';
 
 
 @Component({
