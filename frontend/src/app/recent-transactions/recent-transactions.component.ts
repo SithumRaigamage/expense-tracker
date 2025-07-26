@@ -19,7 +19,7 @@ export class RecentTransactionsComponent implements OnInit {
   constructor(private transactionService: TransactionService) {}
 
   ngOnInit() {
-    const currentDate = new Date(2025, 2, 1); // March 1, 2025
+    const currentDate = new Date(); // Use current date instead of hardcoded
     this.loadTransactions(currentDate);
   }
 

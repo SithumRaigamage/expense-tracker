@@ -19,27 +19,53 @@ export class MonthlyStatComponent implements OnInit {
     total: 0
   };
   transactions: Transaction[] = [];
+  isLoading = true;
+  errorMessage = '';
 
   constructor(private transactionService: TransactionService) {}
 
   ngOnInit() {
+    this.loadData();
+  }
+
+  private loadData() {
     const currentDate = new Date();
+    this.isLoading = true;
+    this.errorMessage = '';
 
     // Get monthly stats
     this.transactionService.getMonthlyStats(
       currentDate.getMonth(),
       currentDate.getFullYear()
-    ).subscribe(stats => {
-      this.currentMonthStats = stats;
+    ).subscribe({
+      next: (stats) => {
+        this.currentMonthStats = stats;
+      },
+      error: (error) => {
+        console.error('Error loading monthly stats:', error);
+        this.errorMessage = 'Failed to load monthly statistics';
+      }
     });
 
     // Get all transactions for the chart
-    this.transactionService.getTransactions().subscribe(transactions => {
-      this.transactions = transactions;
+    this.transactionService.getTransactions().subscribe({
+      next: (transactions) => {
+        this.transactions = transactions;
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading transactions:', error);
+        this.errorMessage = 'Failed to load transactions';
+        this.isLoading = false;
+      }
     });
   }
 
   onTabChanged(type: 'income' | 'expense' | 'all'): void {
     this.currentChartType = type;
+  }
+
+  refreshData(): void {
+    this.loadData();
   }
 }

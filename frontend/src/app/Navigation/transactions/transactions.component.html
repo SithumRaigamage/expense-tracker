@@ -9,6 +9,16 @@
     </button>
   </div>
 
+  <!-- Error Message -->
+  <div *ngIf="errorMessage" class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+    {{errorMessage}}
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="mb-4 p-4 bg-blue-100 border border-blue-400 text-blue-700 rounded-lg">
+    Processing...
+  </div>
+
   <!-- Transactions Table -->
   <div class="overflow-x-auto">
     <table class="w-full text-left text-sm text-gray-500 dark:text-gray-400">
@@ -52,11 +62,11 @@
 
   <!-- Side Drawer -->
   <div *ngIf="isDrawerOpen"
-       class="fixed inset-0 bg-gray-900/50 z-40"
+       class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[60000] transition-opacity"
        (click)="closeDrawer()">
   </div>
 
-  <div class="fixed inset-y-0 right-0 w-96 bg-white dark:bg-gray-800 shadow-lg transform transition-transform duration-300 ease-in-out z-50"
+  <div class="fixed inset-y-0 right-0 w-96 bg-white dark:bg-gray-800 shadow-xl transform transition-transform duration-300 ease-in-out z-[60001]"
        [class.translate-x-full]="!isDrawerOpen"
        [class.translate-x-0]="isDrawerOpen">
     <div class="h-full flex flex-col">
@@ -98,15 +108,6 @@
 
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Category
-            </label>
-            <input type="text"
-                   formControlName="category"
-                   class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Type
             </label>
             <select formControlName="type"
@@ -114,6 +115,35 @@
               <option value="expense">Expense</option>
               <option value="income">Income</option>
             </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Category ({{categories.length}} available, {{filteredCategories.length}} for {{currentTransactionType}})
+            </label>
+            <select formControlName="category"
+                    class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+              <option value="">Select a category</option>
+              <option *ngFor="let category of filteredCategories"
+                      [value]="category.name">
+                {{category.name}} ({{category.type}})
+              </option>
+            </select>
+            <button type="button"
+                    (click)="createCategoriesIfNeeded()"
+                    class="mt-2 text-sm text-blue-500 hover:text-blue-700">
+              Create Categories If Missing
+            </button>
+            <button type="button"
+                    (click)="forceRefreshCategories()"
+                    class="mt-2 ml-2 text-sm text-purple-500 hover:text-purple-700">
+              Force Refresh Categories
+            </button>
+            <button type="button"
+                    (click)="debugCategories()"
+                    class="mt-2 ml-2 text-sm text-green-500 hover:text-green-700">
+              Debug Categories
+            </button>
           </div>
 
           <div class="flex justify-end gap-4">

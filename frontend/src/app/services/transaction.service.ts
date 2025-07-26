@@ -1,300 +1,223 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, map } from 'rxjs';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { BehaviorSubject, Observable, map, tap, catchError, throwError, of } from 'rxjs';
 import { Transaction } from '../models/Transaction';
+import { AuthService } from './auth.service';
+
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  message?: string;
+  error?: string;
+}
+
+interface Category {
+  _id: string;
+  name: string;
+  type: 'income' | 'expense';
+  icon?: string;
+  color?: string;
+  user?: string;
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  __v?: number;
+}
+
+interface ExpenseResponse {
+  _id: string;
+  amount: number;
+  description: string;
+  category: Category;
+  date: string;
+  user: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface MonthlyStats {
+  totalIncome: number;
+  totalExpenses: number;
+  netSavings: number;
+  transactionCount: number;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class TransactionService {
+  private apiUrl = 'http://localhost:3001/api/v1';
   private transactions = new BehaviorSubject<Transaction[]>([]);
+  private categories = new BehaviorSubject<Category[]>([]);
 
-  constructor() {
-    this.transactions.next([
+  constructor(private http: HttpClient, private authService: AuthService) {
+    // Load data immediately if already authenticated
+    if (this.authService.isAuthenticated()) {
+      this.loadCategories();
+      this.loadTransactions();
+    }
 
-      {
-        id: 0,
-        date: new Date(2025, 2, 1),
-        amount: 5000,
-        description: 'Dad Icome',
-        category: 'Salary',
-        type: 'income'
-      },
-      {
-        id: 1,
-        date: new Date(2025, 2, 1),
-        amount: 75000,
-        description: 'Monthly Salary',
-        category: 'Salary',
-        type: 'income'
-      },
-      {
-        id: 2,
-        date: new Date(2025, 2, 5),
-        amount: 25000,
-        description: 'Rent Payment',
-        category: 'Housing',
-        type: 'expense'
-      },
-      {
-        id: 3,
-        date: new Date(2025, 2, 10),
-        amount: 15000,
-        description: 'Groceries',
-        category: 'Food',
-        type: 'expense'
-      },
-      {
-        id: 4,
-        date: new Date(2025, 2, 15),
-        amount: 12000,
-        description: 'Freelance Project',
-        category: 'Extra Income',
-        type: 'income'
-      },
-      {
-        id: 5,
-        date: new Date(2025, 2, 20),
-        amount: 8000,
-        description: 'Electricity Bill',
-        category: 'Utilities',
-        type: 'expense'
-      },
-
-      // February 2025
-      {
-        id: 6,
-        date: new Date(2025, 1, 1),
-        amount: 75000,
-        description: 'Monthly Salary',
-        category: 'Salary',
-        type: 'income'
-      },
-      {
-        id: 7,
-        date: new Date(2025, 1, 3),
-        amount: 25000,
-        description: 'Rent Payment',
-        category: 'Housing',
-        type: 'expense'
-      },
-      {
-        id: 8,
-        date: new Date(2025, 1, 5),
-        amount: 18000,
-        description: 'Online Course',
-        category: 'Education',
-        type: 'expense'
-      },
-      {
-        id: 9,
-        date: new Date(2025, 1, 10),
-        amount: 15000,
-        description: 'Consulting Fee',
-        category: 'Extra Income',
-        type: 'income'
-      },
-      {
-        id: 10,
-        date: new Date(2025, 1, 15),
-        amount: 12000,
-        description: 'Groceries',
-        category: 'Food',
-        type: 'expense'
-      },
-
-      // January 2025
-      {
-        id: 11,
-        date: new Date(2025, 0, 1),
-        amount: 72000,
-        description: 'Monthly Salary',
-        category: 'Salary',
-        type: 'income'
-      },
-      {
-        id: 12,
-        date: new Date(2025, 0, 5),
-        amount: 25000,
-        description: 'Rent Payment',
-        category: 'Housing',
-        type: 'expense'
-      },
-      {
-        id: 13,
-        date: new Date(2025, 0, 10),
-        amount: 20000,
-        description: 'New Laptop',
-        category: 'Electronics',
-        type: 'expense'
-      },
-      {
-        id: 14,
-        date: new Date(2025, 0, 15),
-        amount: 8000,
-        description: 'Internet Bill',
-        category: 'Utilities',
-        type: 'expense'
-      },
-      {
-        id: 15,
-        date: new Date(2025, 0, 20),
-        amount: 18000,
-        description: 'Part-time Work',
-        category: 'Extra Income',
-        type: 'income'
-      },
-
-      // December 2024
-      {
-        id: 16,
-        date: new Date(2024, 11, 1),
-        amount: 72000,
-        description: 'Monthly Salary',
-        category: 'Salary',
-        type: 'income'
-      },
-      {
-        id: 17,
-        date: new Date(2024, 11, 5),
-        amount: 25000,
-        description: 'Rent Payment',
-        category: 'Housing',
-        type: 'expense'
-      },
-      {
-        id: 18,
-        date: new Date(2024, 11, 10),
-        amount: 30000,
-        description: 'Holiday Shopping',
-        category: 'Shopping',
-        type: 'expense'
-      },
-      {
-        id: 19,
-        date: new Date(2024, 11, 15),
-        amount: 15000,
-        description: 'Year-end Bonus',
-        category: 'Bonus',
-        type: 'income'
-      },
-      {
-        id: 20,
-        date: new Date(2024, 11, 20),
-        amount: 12000,
-        description: 'Groceries',
-        category: 'Food',
-        type: 'expense'
-      },
-
-      // November 2024
-      {
-        id: 21,
-        date: new Date(2024, 10, 1),
-        amount: 72000,
-        description: 'Monthly Salary',
-        category: 'Salary',
-        type: 'income'
-      },
-      {
-        id: 22,
-        date: new Date(2024, 10, 5),
-        amount: 25000,
-        description: 'Rent Payment',
-        category: 'Housing',
-        type: 'expense'
-      },
-      {
-        id: 23,
-        date: new Date(2024, 10, 10),
-        amount: 10000,
-        description: 'Medical Checkup',
-        category: 'Healthcare',
-        type: 'expense'
-      },
-      {
-        id: 24,
-        date: new Date(2024, 10, 15),
-        amount: 8000,
-        description: 'Internet Bill',
-        category: 'Utilities',
-        type: 'expense'
-      },
-      {
-        id: 25,
-        date: new Date(2024, 10, 20),
-        amount: 20000,
-        description: 'Freelance Project',
-        category: 'Extra Income',
-        type: 'income'
-      },
-
-      // October 2024
-      {
-        id: 26,
-        date: new Date(2024, 9, 1),
-        amount: 70000,
-        description: 'Monthly Salary',
-        category: 'Salary',
-        type: 'income'
-      },
-      {
-        id: 27,
-        date: new Date(2024, 9, 5),
-        amount: 25000,
-        description: 'Rent Payment',
-        category: 'Housing',
-        type: 'expense'
-      },
-      {
-        id: 28,
-        date: new Date(2024, 9, 10),
-        amount: 15000,
-        description: 'Groceries',
-        category: 'Food',
-        type: 'expense'
-      },
-      {
-        id: 29,
-        date: new Date(2024, 9, 15),
-        amount: 7500,
-        description: 'Mobile Bill',
-        category: 'Utilities',
-        type: 'expense'
-      },
-      {
-        id: 30,
-        date: new Date(2024, 9, 20),
-        amount: 25000,
-        description: 'Website Development',
-        category: 'Extra Income',
-        type: 'income'
+    // Also load data when user becomes authenticated
+    this.authService.currentUser$.subscribe(user => {
+      if (user) {
+        this.loadCategories();
+        this.loadTransactions();
       }
-    ]);
+    });
+  }
+
+  private loadCategories(): void {
+    console.log('Loading categories...');
+
+    this.http.get<ApiResponse<Category[]>>(`${this.apiUrl}/categories`)
+      .pipe(
+        map(response => response.data),
+        catchError(this.handleError)
+      )
+      .subscribe({
+        next: (categories) => {
+          console.log('Categories loaded:', categories);
+          this.categories.next(categories);
+          // If no categories exist, create default ones
+          if (categories.length === 0) {
+            console.log('No categories found, creating defaults...');
+            this.createDefaultCategories();
+          }
+        },
+        error: (error) => {
+          console.error('Error loading categories:', error);
+        }
+      });
+  }
+
+  private createDefaultCategories(): void {
+    console.log('Creating default categories...');
+
+    this.http.post<ApiResponse<Category[]>>(`${this.apiUrl}/categories/defaults`, {})
+      .pipe(
+        map(response => response.data),
+        catchError((error) => {
+          console.error('Error creating default categories, falling back to manual creation:', error);
+          // Fallback: create categories manually
+          return this.createCategoriesManually();
+        })
+      )
+      .subscribe({
+        next: (categories) => {
+          console.log('Default categories created:', categories);
+          this.categories.next(categories);
+        },
+        error: (error) => {
+          console.error('Final error creating default categories:', error);
+        }
+      });
+  }
+
+  private createCategoriesManually(): Observable<Category[]> {
+    const defaultCategories = [
+      { name: 'Salary', type: 'income' as const },
+      { name: 'Freelance', type: 'income' as const },
+      { name: 'Investment', type: 'income' as const },
+      { name: 'Food', type: 'expense' as const },
+      { name: 'Transportation', type: 'expense' as const },
+      { name: 'Entertainment', type: 'expense' as const },
+      { name: 'Utilities', type: 'expense' as const },
+      { name: 'Healthcare', type: 'expense' as const }
+    ];
+
+    console.log('Creating categories manually:', defaultCategories);
+
+    return new Observable<Category[]>(observer => {
+      const createdCategories: Category[] = [];
+      let completedRequests = 0;
+
+      defaultCategories.forEach((category, index) => {
+        this.http.post<ApiResponse<Category>>(`${this.apiUrl}/categories`, category)
+          .pipe(
+            map(response => response.data),
+            catchError(error => {
+              console.error('Error creating category:', category.name, error);
+              return of(null);
+            })
+          )
+          .subscribe({
+            next: (created) => {
+              if (created) {
+                createdCategories.push(created);
+                console.log('Created category:', created);
+              }
+              completedRequests++;
+
+              if (completedRequests === defaultCategories.length) {
+                console.log('All categories created:', createdCategories);
+                observer.next(createdCategories);
+                observer.complete();
+              }
+            },
+            error: (error) => {
+              console.error('Error in category creation:', error);
+              completedRequests++;
+
+              if (completedRequests === defaultCategories.length) {
+                observer.next(createdCategories);
+                observer.complete();
+              }
+            }
+          });
+      });
+    });
+  }
+
+  private loadTransactions(): void {
+    console.log('Loading transactions...');
+
+    this.http.get<ApiResponse<ExpenseResponse[]>>(`${this.apiUrl}/expenses`)
+      .pipe(
+        map(response => response.data),
+        map(expenses => this.mapExpensesToTransactions(expenses)),
+        catchError(this.handleError)
+      )
+      .subscribe({
+        next: (transactions) => {
+          console.log('Transactions loaded:', transactions);
+          this.transactions.next(transactions);
+        },
+        error: (error) => {
+          console.error('Error loading transactions:', error);
+        }
+      });
+  }
+
+  private mapExpensesToTransactions(expenses: ExpenseResponse[]): Transaction[] {
+    return expenses.map(expense => ({
+      id: expense._id,
+      amount: expense.amount,
+      description: expense.description,
+      category: expense.category.name,
+      type: expense.category.type,
+      date: new Date(expense.date)
+    }));
   }
 
   getTransactions(): Observable<Transaction[]> {
     return this.transactions.asObservable();
   }
 
+  getCategories(): Observable<Category[]> {
+    return this.categories.asObservable();
+  }
+
   getMonthlyTransactions(month: number, year: number): Observable<Transaction[]> {
     return this.transactions.pipe(
       map(transactions => {
-        //console.log('All transactions:', transactions);
-        const filtered = transactions.filter(transaction => {
-          // Ensure we're working with a Date object
+        return transactions.filter(transaction => {
           const transDate = transaction.date instanceof Date
             ? transaction.date
             : new Date(transaction.date);
 
-          // Add debugging
-          //console.log('Transaction date:', transDate, 'Month:', transDate.getMonth(), 'Year:', transDate.getFullYear());
-          //console.log('Comparing with:', month, year);
-
           return transDate.getMonth() === month &&
                  transDate.getFullYear() === year;
         });
-        //console.log('Filtered transactions:', filtered);
-        return filtered;
       })
     );
   }
@@ -304,43 +227,197 @@ export class TransactionService {
     expense: number;
     total: number;
   }> {
-    return this.getMonthlyTransactions(month, year).pipe(
-      map(transactions => {
-        const income = transactions
-          .filter(t => t.type === 'income')
-          .reduce((sum, t) => sum + t.amount, 0);
-        const expense = transactions
-          .filter(t => t.type === 'expense')
-          .reduce((sum, t) => sum + t.amount, 0);
-        return {
-          income,
-          expense,
-          total: income - expense
-        };
+    if (!this.authService.isAuthenticated()) {
+      return of({ income: 0, expense: 0, total: 0 });
+    }
+
+    // Call backend API for monthly stats
+    const params = { month: month + 1, year }; // Backend expects 1-based month
+    return this.http.get<ApiResponse<MonthlyStats>>(`${this.apiUrl}/expenses/monthly-stats`, { params })
+      .pipe(
+        map(response => ({
+          income: response.data.totalIncome,
+          expense: response.data.totalExpenses,
+          total: response.data.netSavings
+        })),
+        catchError(() => {
+          // Fallback to client-side calculation
+          return this.getMonthlyTransactions(month, year).pipe(
+            map(transactions => {
+              const income = transactions
+                .filter(t => t.type === 'income')
+                .reduce((sum, t) => sum + t.amount, 0);
+              const expense = transactions
+                .filter(t => t.type === 'expense')
+                .reduce((sum, t) => sum + t.amount, 0);
+              return {
+                income,
+                expense,
+                total: income - expense
+              };
+            })
+          );
+        })
+      );
+  }
+
+  addTransaction(transaction: Omit<Transaction, 'id'>): Observable<Transaction> {
+    if (!this.authService.isAuthenticated()) {
+      return throwError(() => new Error('User not authenticated'));
+    }
+
+    // Find the category ID based on the category name
+    const categories = this.categories.getValue();
+    const category = categories.find(cat => cat.name === transaction.category);
+
+    if (!category) {
+      return throwError(() => new Error('Category not found'));
+    }
+
+    const expenseData = {
+      amount: transaction.amount,
+      description: transaction.description,
+      category: category._id,
+      date: transaction.date
+    };
+
+    return this.http.post<ApiResponse<ExpenseResponse>>(`${this.apiUrl}/expenses`, expenseData)
+      .pipe(
+        map(response => response.data),
+        map(expense => ({
+          id: expense._id,
+          amount: expense.amount,
+          description: expense.description,
+          category: expense.category.name,
+          type: expense.category.type,
+          date: new Date(expense.date)
+        })),
+        tap(newTransaction => {
+          const current = this.transactions.getValue();
+          this.transactions.next([...current, newTransaction]);
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  updateTransaction(transaction: Transaction): Observable<Transaction> {
+    if (!this.authService.isAuthenticated()) {
+      return throwError(() => new Error('User not authenticated'));
+    }
+
+    // Find the category ID based on the category name
+    const categories = this.categories.getValue();
+    const category = categories.find(cat => cat.name === transaction.category);
+
+    if (!category) {
+      return throwError(() => new Error('Category not found'));
+    }
+
+    const expenseData = {
+      amount: transaction.amount,
+      description: transaction.description,
+      category: category._id,
+      date: transaction.date
+    };
+
+    return this.http.put<ApiResponse<ExpenseResponse>>(`${this.apiUrl}/expenses/${transaction.id}`, expenseData)
+      .pipe(
+        map(response => response.data),
+        map(expense => ({
+          id: expense._id,
+          amount: expense.amount,
+          description: expense.description,
+          category: expense.category.name,
+          type: expense.category.type,
+          date: new Date(expense.date)
+        })),
+        tap(updatedTransaction => {
+          const current = this.transactions.getValue();
+          const index = current.findIndex(t => t.id === updatedTransaction.id);
+          if (index !== -1) {
+            current[index] = updatedTransaction;
+            this.transactions.next([...current]);
+          }
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  deleteTransaction(id: string | number): Observable<void> {
+    if (!this.authService.isAuthenticated()) {
+      return throwError(() => new Error('User not authenticated'));
+    }
+
+    return this.http.delete<ApiResponse<any>>(`${this.apiUrl}/expenses/${id}`)
+      .pipe(
+        tap(() => {
+          const current = this.transactions.getValue();
+          this.transactions.next(current.filter(t => t.id !== id));
+        }),
+        map(() => void 0),
+        catchError(this.handleError)
+      );
+  }
+
+  refreshTransactions(): void {
+    this.loadTransactions();
+  }
+
+  refreshCategories(): void {
+    this.loadCategories();
+  }
+
+  // Method to ensure categories are loaded
+  ensureCategoriesLoaded(): Observable<Category[]> {
+    return this.categories.pipe(
+      tap(categories => {
+        if (categories.length === 0) {
+          this.loadCategories();
+        }
       })
     );
   }
 
-  addTransaction(transaction: Omit<Transaction, 'id'>): void {
-    const current = this.transactions.getValue();
-    const newTransaction = {
-      ...transaction,
-      id: Math.max(...current.map(t => t.id), 0) + 1
-    };
-    this.transactions.next([...current, newTransaction]);
+  // Public method to force create categories
+  createCategories(): Observable<Category[]> {
+    console.log('Force creating categories...');
+    return this.createCategoriesManually().pipe(
+      tap(categories => {
+        console.log('Categories force created:', categories);
+        this.categories.next(categories);
+      })
+    );
   }
 
-  updateTransaction(transaction: Transaction): void {
-    const current = this.transactions.getValue();
-    const index = current.findIndex(t => t.id === transaction.id);
-    if (index !== -1) {
-      current[index] = transaction;
-      this.transactions.next([...current]);
+  // Public method to force refresh categories
+  forceRefreshCategories(): Observable<Category[]> {
+    console.log('Force refreshing categories...');
+
+    // Add cache busting parameter to force fresh data
+    const cacheBuster = new Date().getTime();
+    return this.http.get<ApiResponse<Category[]>>(`${this.apiUrl}/categories?_=${cacheBuster}`)
+      .pipe(
+        map(response => response.data),
+        tap(categories => {
+          console.log('Categories force refreshed:', categories);
+          this.categories.next(categories);
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  private handleError(error: HttpErrorResponse): Observable<never> {
+    let errorMessage = 'An error occurred';
+
+    if (error.error?.error) {
+      errorMessage = error.error.error;
+    } else if (error.error?.message) {
+      errorMessage = error.error.message;
+    } else if (error.message) {
+      errorMessage = error.message;
     }
-  }
 
-  deleteTransaction(id: number): void {
-    const current = this.transactions.getValue();
-    this.transactions.next(current.filter(t => t.id !== id));
+    console.error('Transaction Service Error:', error);
+    return throwError(() => new Error(errorMessage));
   }
 }

@@ -64,7 +64,10 @@ export class WalletService {
 
     this.http.get<ApiResponse<Wallet[]>>(this.apiUrl, this.getHttpOptions())
       .pipe(
-        map(response => response.data),
+        map(response => response.data.map(wallet => ({
+          ...wallet,
+          id: wallet.id || (wallet as any)._id // Handle both _id and id
+        }))),
         catchError(error => {
           console.error('Error loading wallets:', error);
           let errorMessage = 'Failed to connect to the server. Please check if the backend is running.';
@@ -131,7 +134,10 @@ export class WalletService {
   addWallet(walletData: Omit<Wallet, 'id'>): Observable<Wallet> {
     return this.http.post<ApiResponse<Wallet>>(this.apiUrl, walletData, this.getHttpOptions())
       .pipe(
-        map(response => response.data),
+        map(response => ({
+          ...response.data,
+          id: response.data.id || (response.data as any)._id
+        })),
         tap(wallet => {
           const currentWallets = this.wallets.value;
           this.wallets.next([...currentWallets, wallet]);
@@ -143,7 +149,11 @@ export class WalletService {
           if (error.status === 401) {
             errorMessage = 'You are not authorized. Please login again.';
           } else if (error.status === 400) {
-            errorMessage = 'Invalid wallet data. Please check your input.';
+            if (error.error?.error?.includes('already exists')) {
+              errorMessage = 'A wallet with this name already exists.';
+            } else {
+              errorMessage = 'Invalid wallet data. Please check your input.';
+            }
           }
 
           throw new Error(errorMessage);
@@ -154,7 +164,10 @@ export class WalletService {
   updateWallet(id: string, walletData: Partial<Wallet>): Observable<Wallet> {
     return this.http.put<ApiResponse<Wallet>>(`${this.apiUrl}/${id}`, walletData, this.getHttpOptions())
       .pipe(
-        map(response => response.data),
+        map(response => ({
+          ...response.data,
+          id: response.data.id || (response.data as any)._id
+        })),
         tap(updatedWallet => {
           const currentWallets = this.wallets.value;
           const updatedWallets = currentWallets.map(w =>
@@ -171,7 +184,11 @@ export class WalletService {
           } else if (error.status === 404) {
             errorMessage = 'Wallet not found.';
           } else if (error.status === 400) {
-            errorMessage = 'Invalid wallet data. Please check your input.';
+            if (error.error?.error?.includes('already exists')) {
+              errorMessage = 'A wallet with this name already exists.';
+            } else {
+              errorMessage = 'Invalid wallet data. Please check your input.';
+            }
           }
 
           throw new Error(errorMessage);
@@ -199,6 +216,76 @@ export class WalletService {
           }
 
           throw new Error(errorMessage);
+        })
+      );
+  }
+
+  bulkDeleteWallets(walletIds: string[]): Observable<{ deletedCount: number; requestedCount: number }> {
+    return this.http.delete<ApiResponse<{ deletedCount: number; requestedCount: number }>>(`${this.apiUrl}/bulk`, {
+      ...this.getHttpOptions(),
+      body: { walletIds }
+    })
+      .pipe(
+        map(response => response.data),
+        tap(() => {
+          const currentWallets = this.wallets.value;
+          const filteredWallets = currentWallets.filter(w => !walletIds.includes(w.id));
+          this.wallets.next(filteredWallets);
+        }),
+        catchError(error => {
+          console.error('Error bulk deleting wallets:', error);
+          let errorMessage = 'Failed to delete wallets. Please try again.';
+
+          if (error.status === 401) {
+            errorMessage = 'You are not authorized. Please login again.';
+          } else if (error.status === 400) {
+            errorMessage = 'Invalid wallet IDs provided.';
+          }
+
+          throw new Error(errorMessage);
+        })
+      );
+  }
+
+  restoreWallet(id: string): Observable<Wallet> {
+    return this.http.patch<ApiResponse<Wallet>>(`${this.apiUrl}/${id}/restore`, {}, this.getHttpOptions())
+      .pipe(
+        map(response => ({
+          ...response.data,
+          id: response.data.id || (response.data as any)._id
+        })),
+        tap(restoredWallet => {
+          const currentWallets = this.wallets.value;
+          this.wallets.next([...currentWallets, restoredWallet]);
+        }),
+        catchError(error => {
+          console.error('Error restoring wallet:', error);
+          let errorMessage = 'Failed to restore wallet. Please try again.';
+
+          if (error.status === 401) {
+            errorMessage = 'You are not authorized. Please login again.';
+          } else if (error.status === 404) {
+            errorMessage = 'Deleted wallet not found.';
+          } else if (error.status === 400) {
+            if (error.error?.error?.includes('already exists')) {
+              errorMessage = 'A wallet with this name already exists. Please rename the existing wallet first.';
+            } else {
+              errorMessage = 'Cannot restore this wallet.';
+            }
+          }
+
+          throw new Error(errorMessage);
+        })
+      );
+  }
+
+  getWalletStats(): Observable<any> {
+    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/stats`, this.getHttpOptions())
+      .pipe(
+        map(response => response.data),
+        catchError(error => {
+          console.error('Error getting wallet stats:', error);
+          throw new Error('Failed to get wallet statistics.');
         })
       );
   }

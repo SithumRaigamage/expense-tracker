@@ -1,0 +1,26 @@
+/* Z-index hierarchy for the application
+   This ensures consistent stacking order throughout the app
+*/
+
+/* Base layers */
+:root {
+  --z-default: 1;
+  --z-dropdown: 1000;
+  --z-sticky: 2000;
+  --z-fixed: 3000;
+  --z-header: 50000; /* Currently used by the header */
+  --z-modal-backdrop: 60000; /* For modal/drawer backdrops */
+  --z-modal: 60001; /* For modal/drawer content */
+  --z-popover: 70000;
+  --z-tooltip: 80000;
+  --z-toast: 90000;
+}
+
+/* Usage in tailwind classes */
+.z-backdrop {
+  z-index: var(--z-modal-backdrop) !important;
+}
+
+.z-modal {
+  z-index: var(--z-modal) !important;
+}

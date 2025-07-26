@@ -2,16 +2,19 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faWallet, faPlus, faPencil, faTrash, faMoneyBillWave, faBuildingColumns, faCreditCard, faPiggyBank, faBitcoinSign, faChartLine, faHandHoldingDollar, faRefresh, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
+import { faWallet, faPlus, faPencil, faTrash, faMoneyBillWave, faBuildingColumns, faCreditCard, faPiggyBank, faBitcoinSign, faChartLine, faHandHoldingDollar, faRefresh, faExclamationTriangle, faEdit, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import { Subscription } from 'rxjs';
 import { Wallet } from '../../models/Wallet';
 import { WalletService } from '../../services/wallet.service';
+import { DialogService } from '../../shared/services/dialog.service';
+
+import { materialImports } from '../../shared/material.module';
 
 @Component({
   selector: 'app-wallets',
   templateUrl: './wallets.component.html',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FontAwesomeModule]
+  imports: [CommonModule, ReactiveFormsModule, FontAwesomeModule, ...materialImports]
 })
 export class WalletsComponent implements OnInit, OnDestroy {
   faWallet = faWallet;
@@ -27,6 +30,8 @@ export class WalletsComponent implements OnInit, OnDestroy {
   faHandHoldingDollar = faHandHoldingDollar;
   faRefresh = faRefresh;
   faExclamationTriangle = faExclamationTriangle;
+  faEdit = faEdit;
+  faArrowRight = faArrowRight;
 
   walletForm!: FormGroup;
   isDrawerOpen = false;
@@ -38,7 +43,8 @@ export class WalletsComponent implements OnInit, OnDestroy {
 
   constructor(
     private fb: FormBuilder,
-    private walletService: WalletService
+    private walletService: WalletService,
+    private dialogService: DialogService
   ) {
     this.subscription = new Subscription();
     this.initForm();
@@ -161,17 +167,20 @@ export class WalletsComponent implements OnInit, OnDestroy {
   }
 
   deleteWallet(id: string) {
-    if (confirm('Are you sure you want to delete this wallet?')) {
-      this.walletService.deleteWallet(id).subscribe({
-        next: () => {
-          console.log('Wallet deleted successfully');
-        },
-        error: (error) => {
-          console.error('Error deleting wallet:', error);
-          alert(error.message || 'Error deleting wallet');
-        }
-      });
-    }
+    this.dialogService.confirmDelete('wallet').subscribe(result => {
+      if (result) {
+        this.walletService.deleteWallet(id).subscribe({
+          next: () => {
+            console.log('Wallet deleted successfully');
+          },
+          error: (error) => {
+            console.error('Error deleting wallet:', error);
+            // We could use another dialog here instead of alert, but keeping it simple for now
+            alert(error.message || 'Error deleting wallet');
+          }
+        });
+      }
+    });
   }
 
   refreshWallets() {
