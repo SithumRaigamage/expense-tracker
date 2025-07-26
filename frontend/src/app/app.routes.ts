@@ -6,7 +6,6 @@ import { EmergencyFundComponent } from './Navigation/emergency-fund/emergency-fu
 import { WalletsComponent } from './Navigation/wallets/wallets.component';
 import { ProfileComponent } from './settings/profile/profile.component';
 import { HelpComponent } from './Navigation/help/help.component';
-import { MonthlyTargetComponent } from './Navigation/target/target.component';
 import { BillsComponent } from './Navigation/bills/bills.component';
 import { SettingsComponent } from './settings/settings.component';
 import { PaymentMethodsComponent } from './settings/payment-methods/payment-methods.component';
@@ -74,11 +73,6 @@ export const routes: Routes = [
         path: 'emergency-fund',
         component: EmergencyFundComponent,
         title: 'Emergency Fund'
-      },
-      {
-        path: 'monthly-target',
-        component: MonthlyTargetComponent,
-        title: 'Monthly Target'
       },
       {
         path: 'bills',

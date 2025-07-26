@@ -82,13 +82,6 @@ export class SidebarComponent implements OnInit {
       isNew: false
     },
     {
-      icon: faBullseye,
-      name: 'Monthly Target',
-      path: '/monthly-target',
-      isNew: false,
-      isLocked: false
-    },
-    {
       icon: faFileInvoiceDollar,
       name: 'Bills',
       path: '/bills',
