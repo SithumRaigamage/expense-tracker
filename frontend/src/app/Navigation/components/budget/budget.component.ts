@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ProductbudgetService } from '../../services/productbudget.service';
-import { ProductBudget } from '../../models/ProductBudget';
-import { WalletService } from '../../services/wallet.service';
-import { Wallet } from '../../models/Wallet';
+import { ProductbudgetService } from '../../../services/productbudget.service';
+import { ProductBudget } from '../../../core/models/ProductBudget';
+import { WalletService } from '../../../services/wallet.service';
+import { Wallet } from '../../../core/models/Wallet';
 import { FilterPipe } from './filter.pipe';
 
 type DrawerMode = 'add' | 'edit' | 'addMoney' | null;

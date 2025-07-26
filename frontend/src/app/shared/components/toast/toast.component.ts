@@ -8,8 +8,8 @@ import {
   faExclamationTriangle,
   faTimes
 } from '@fortawesome/free-solid-svg-icons';
-import { ToastMsg } from '../models/ToastMsg';
-import { ToastmsgService } from '../services/toastmsg.service';
+import { ToastMsg } from '../../../core/models/ToastMsg';
+import { ToastmsgService } from '../../../services/toastmsg.service';
 
 @Component({
   selector: 'app-toast',

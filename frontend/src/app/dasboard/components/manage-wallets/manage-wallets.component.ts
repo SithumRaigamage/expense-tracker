@@ -1,4 +1,4 @@
-import { Wallet } from '../../../models/Wallet';
+import { Wallet } from '../../../core/models/Wallet';
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { WalletService } from '../../../services/wallet.service';

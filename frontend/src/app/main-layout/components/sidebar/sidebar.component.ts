@@ -81,13 +81,13 @@ export class SidebarComponent implements OnInit {
       path: '/transactions',
       isNew: false
     },
-    {
-      icon: faFileInvoiceDollar,
-      name: 'Bills',
-      path: '/bills',
-      isNew: false,
-      isLocked: false
-    },
+    // {
+    //   icon: faFileInvoiceDollar,
+    //   name: 'Bills',
+    //   path: '/bills',
+    //   isNew: false,
+    //   isLocked: false
+    // },
     {
       icon: faChartLine,
       name: 'Product Budget',

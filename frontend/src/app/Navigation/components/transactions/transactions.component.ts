@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { TransactionService } from '../../services/transaction.service';
+import { TransactionService } from '../../../services/transaction.service';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faPlus, faPencil, faTrash } from '@fortawesome/free-solid-svg-icons';
-import { Transaction } from '../../models/Transaction';
+import { Transaction } from '../../../core/models/Transaction';
 
 interface Category {
   _id: string;

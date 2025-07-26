@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ChartComponent } from '../../../chart/chart.component';
 import { MonthlyTransactionTabComponent } from '../../../monthly-transaction-tab/monthly-transaction-tab.component';
 import { TransactionService } from '../../../services/transaction.service';
-import { Transaction } from '../../../models/Transaction';
+import { Transaction } from '../../../core/models/Transaction';
 
 @Component({
   selector: 'app-monthly-stat',

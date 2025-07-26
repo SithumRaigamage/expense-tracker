@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { Currency, SettingsService } from '../../services/settings.service';
+import { Currency, SettingsService } from '../../../../services/settings.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 

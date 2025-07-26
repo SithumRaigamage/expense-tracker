@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { BehaviorSubject, Observable, map, tap, catchError, throwError, of } from 'rxjs';
-import { Transaction } from '../models/Transaction';
+import { Transaction } from '../core/models/Transaction';
 import { AuthService } from './auth.service';
 
 interface ApiResponse<T> {

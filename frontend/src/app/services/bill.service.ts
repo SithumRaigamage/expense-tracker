@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { Bill, BillTransaction } from '../models/Bill';
+import { Bill, BillTransaction } from '../core/models/Bill';
 import { WalletService, WalletTransaction } from './wallet.service';
 
 @Injectable({

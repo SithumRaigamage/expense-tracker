@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Observable, tap, catchError, throwError, map } from 'rxjs';
+import { BehaviorSubject, Observable, tap, catchError, throwError, map, of } from 'rxjs';
+import { TokenService } from '../core/services/token.service';
 
 interface ApiResponse<T> {
   success: boolean;
@@ -33,17 +34,46 @@ export class AuthService {
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
-  constructor(private http: HttpClient, private router: Router) {
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private tokenService: TokenService
+  ) {
     this.checkToken();
   }
 
   private checkToken(): void {
-    const token = this.getToken();
-    if (token) {
+    const token = this.tokenService.getToken();
+    const userData = this.getUserFromStorage();
+
+    // If we have both token and user data in localStorage, initialize auth state
+    if (token && userData) {
+      this.currentUserSubject.next(userData);
+
+      // Verify token in the background to ensure it's still valid
       this.verifyToken().subscribe({
         next: (response) => {
           if (response.success) {
             this.currentUserSubject.next(response.data.user);
+            // Update stored user data if needed
+            this.saveUserToStorage(response.data.user);
+          } else {
+            this.logout();
+          }
+        },
+        error: () => {
+          this.logout();
+        }
+      });
+    } else if (token) {
+      // If we have only token but no user data, try to get user data
+      this.verifyToken().subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.currentUserSubject.next(response.data.user);
+            this.saveUserToStorage(response.data.user);
+          } else {
+            this.logout();
           }
         },
         error: () => {
@@ -51,14 +81,13 @@ export class AuthService {
         }
       });
     }
-  }
-
-  register(userData: { name: string; email: string; password: string }): Observable<AuthResponse> {
+  }  register(userData: { name: string; email: string; password: string }): Observable<AuthResponse> {
     return this.http.post<ApiResponse<AuthResponse>>(`${this.apiUrl}/register`, userData)
       .pipe(
         map(response => response.data),
         tap(data => {
-          this.setToken(data.token);
+          this.tokenService.saveToken(data.token);
+          this.saveUserToStorage(data.user);
           this.currentUserSubject.next(data.user);
         }),
         catchError(this.handleError)
@@ -70,7 +99,8 @@ export class AuthService {
       .pipe(
         map(response => response.data),
         tap(data => {
-          this.setToken(data.token);
+          this.tokenService.saveToken(data.token);
+          this.saveUserToStorage(data.user);
           this.currentUserSubject.next(data.user);
         }),
         catchError(this.handleError)
@@ -78,25 +108,45 @@ export class AuthService {
   }
 
   logout(): void {
-    localStorage.removeItem('token');
+    this.tokenService.removeToken();
+    localStorage.removeItem('user');
     this.currentUserSubject.next(null);
     this.router.navigate(['/login']);
   }
 
   verifyToken(): Observable<ApiResponse<{ user: User; valid: boolean }>> {
-    return this.http.get<ApiResponse<{ user: User; valid: boolean }>>(`${this.apiUrl}/verify`);
+    return this.http.get<ApiResponse<{ user: User; valid: boolean }>>(`${this.apiUrl}/verify`)
+      .pipe(
+        catchError(error => {
+          // If there's an error verifying the token, we should clear the auth state
+          this.logout();
+          return throwError(() => error);
+        })
+      );
   }
 
   getToken(): string | null {
-    return localStorage.getItem('token');
+    return this.tokenService.getToken();
   }
 
-  private setToken(token: string): void {
-    localStorage.setItem('token', token);
+  private saveUserToStorage(user: User): void {
+    localStorage.setItem('user', JSON.stringify(user));
+  }
+
+  private getUserFromStorage(): User | null {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      try {
+        return JSON.parse(userData);
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
   }
 
   isAuthenticated(): boolean {
-    const token = this.getToken();
+    const token = this.tokenService.getToken();
     return !!token;
   }
 
@@ -106,7 +156,7 @@ export class AuthService {
 
   private handleError(error: any): Observable<never> {
     let errorMessage = 'An error occurred';
-    
+
     if (error.error?.error) {
       errorMessage = error.error.error;
     } else if (error.message) {

@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { EducationalContent, FinancialTerm } from '../../../models/Education';
+import { EducationalContent, FinancialTerm } from '../../../core/models/Education';
 import { FormsModule } from '@angular/forms';
 
 @Component({

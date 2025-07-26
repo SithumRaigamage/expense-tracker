@@ -2,8 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
-import { User } from '../../models/User';
-import { SettingsService } from '../../services/settings.service';
+import { User } from '../../../../core/models/User';
+import { SettingsService } from '../../../../services/settings.service';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 
 @Component({

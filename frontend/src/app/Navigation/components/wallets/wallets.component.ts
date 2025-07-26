@@ -4,12 +4,12 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faWallet, faPlus, faPencil, faTrash, faMoneyBillWave, faBuildingColumns, faCreditCard, faPiggyBank, faBitcoinSign, faChartLine, faHandHoldingDollar, faRefresh, faExclamationTriangle, faEdit, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import { Subscription } from 'rxjs';
-import { Wallet } from '../../models/Wallet';
-import { WalletService } from '../../services/wallet.service';
-import { DialogService } from '../../shared/services/dialog.service';
+import { Wallet } from '../../../core/models/Wallet';
+import { WalletService } from '../../../services/wallet.service';
+import { DialogService } from '../../../shared/services/dialog.service';
 import { Router } from '@angular/router';
 
-import { materialImports } from '../../shared/material.module';
+import { materialImports } from '../../../shared/material.module';
 
 @Component({
   selector: 'app-wallets',

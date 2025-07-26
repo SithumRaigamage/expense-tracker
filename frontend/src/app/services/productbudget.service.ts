@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError, of } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
-import { ProductBudget } from '../models/ProductBudget';
+import { ProductBudget } from '../core/models/ProductBudget';
 import { AuthService } from './auth.service';
 
 interface ApiResponse<T> {

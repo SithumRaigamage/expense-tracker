@@ -3,9 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { ProductbudgetService } from '../../../services/productbudget.service';
-import { ProductBudget } from '../../../models/ProductBudget';
+import { ProductBudget } from '../../../core/models/ProductBudget';
 import { WalletService } from '../../../services/wallet.service';
-import { Wallet } from '../../../models/Wallet';
+import { Wallet } from '../../../core/models/Wallet';
 
 @Component({
   selector: 'app-budget-planner',

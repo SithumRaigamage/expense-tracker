@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { BillsService } from '../../services/bill.service';
-import { WalletService } from '../../services/wallet.service';
-import { Bill, BillTransaction } from '../../models/Bill';
-import { Wallet } from '../../models/Wallet';
+import { BillsService } from '../../../services/bill.service';
+import { WalletService } from '../../../services/wallet.service';
+import { Bill, BillTransaction } from '../../../core/models/Bill';
+import { Wallet } from '../../../core/models/Wallet';
 
 @Component({
   selector: 'app-bills',

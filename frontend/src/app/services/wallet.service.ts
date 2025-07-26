@@ -1,8 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable, map, tap, catchError, throwError, of } from 'rxjs';
-import { Wallet } from '../models/Wallet';
-import { Metric } from '../models/Metric';
+import { Wallet } from '../core/models/Wallet';
+import { Metric } from '../core/models/Metric';
 import { AuthService } from './auth.service';
 import {
   faMoneyBillWave,

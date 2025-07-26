@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, of, throwError } from 'rxjs';
-import { User } from '../models/User';
+import { User } from '../core/models/User';
 import { faCcVisa, faCcMastercard } from '@fortawesome/free-brands-svg-icons';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { catchError } from 'rxjs/operators';
