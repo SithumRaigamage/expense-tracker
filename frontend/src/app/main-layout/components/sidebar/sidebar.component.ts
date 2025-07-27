@@ -155,7 +155,7 @@ export class SidebarComponent implements OnInit {
       name: 'Feedback',
       path: '/feedback',
       isUpcoming: true,
-      isNew: true,
+      isNew: false,
       isLocked: true
     }
   ];
