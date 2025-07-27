@@ -197,15 +197,20 @@ export class BudgetComponent implements OnInit {
         }).subscribe({
           next: () => {
             // Add money to goal
+            console.log(`Adding ${this.addAmount} to goal ${this.selectedGoalId}`);
             this.productBudgetService.addMoney(this.selectedGoalId!, this.addAmount).subscribe({
-              next: () => {
+              next: (updatedGoal) => {
+                console.log('Successfully updated goal:', updatedGoal);
+                this.loadGoals();
                 this.closeDrawer();
               },
               error: (error) => {
                 console.error('Error adding money to goal:', error);
+                console.error('Error details:', error.name, error.status, error.message);
                 alert('Failed to add money to goal: ' + error.message);
 
                 // Restore wallet balance if adding money to goal fails
+                console.log('Restoring wallet balance...');
                 this.walletService.updateWallet(this.selectedWalletId, {
                   balance: selectedWallet.balance
                 }).subscribe();

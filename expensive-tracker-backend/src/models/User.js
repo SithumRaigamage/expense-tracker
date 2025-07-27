@@ -9,6 +9,16 @@ const userSchema = new mongoose.Schema({
     trim: true,
     maxlength: [50, 'Name cannot be more than 50 characters']
   },
+  firstName: {
+    type: String,
+    trim: true,
+    maxlength: [25, 'First name cannot be more than 25 characters']
+  },
+  lastName: {
+    type: String,
+    trim: true,
+    maxlength: [25, 'Last name cannot be more than 25 characters']
+  },
   email: {
     type: String,
     required: [true, 'Please add an email'],
@@ -34,10 +44,32 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  profileImage: {
+    type: String,
+    default: ''
+  },
+  phone: {
+    type: String,
+    trim: true,
+    match: [
+      /^(\+\d{1,3})?\s?\(?\d{1,4}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/,
+      'Please provide a valid phone number'
+    ]
+  },
+  bio: {
+    type: String,
+    maxlength: [500, 'Bio cannot be more than 500 characters']
+  },
+  location: {
+    type: String,
+    trim: true,
+    maxlength: [100, 'Location cannot be more than 100 characters']
+  },
   role: {
     type: String,
-    enum: ['user', 'admin'],
-    default: 'user'
+    trim: true,
+    default: 'user',
+    maxlength: [50, 'Role cannot be more than 50 characters']
   },
   isActive: {
     type: Boolean,

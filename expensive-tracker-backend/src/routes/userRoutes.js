@@ -9,8 +9,12 @@ const {
   changePassword,
   verifyToken
 } = require('../controllers/userController');
-
+const {
+  uploadProfileImage,
+  deleteProfileImage
+} = require('../controllers/profileController');
 const { protect } = require('../middleware/auth');
+const fileUpload = require('../middleware/fileUpload');
 
 // Public routes
 router.post('/register', register);
@@ -25,5 +29,10 @@ router.route('/profile')
   .get(getProfile)
   .put(updateProfile);
 router.put('/change-password', changePassword);
+
+// Profile image routes
+router.route('/profile/image')
+  .post(fileUpload.single('profileImage'), uploadProfileImage)
+  .delete(deleteProfileImage);
 
 module.exports = router;

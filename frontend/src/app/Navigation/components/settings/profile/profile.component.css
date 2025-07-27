@@ -1,0 +1,74 @@
+.bg-primary {
+  background-color: #6366f1 !important;
+  color: white !important;
+}
+
+.bg-primary-dark {
+  background-color: #4f46e5 !important;
+}
+
+.hover\:bg-primary-dark:hover {
+  background-color: #4f46e5 !important;
+}
+
+/* Make sure the upload button is visible */
+.absolute.bottom-0.right-0 {
+  z-index: 10 !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  background-color: #6366f1 !important;
+  color: white !important;
+}
+
+/* Fix for form elements */
+form input, form textarea {
+  background-color: white !important;
+  color: #333 !important;
+}
+
+/* Submit button styling */
+button[type="submit"] {
+  background-color: #6366f1 !important;
+  color: white !important;
+  cursor: pointer !important;
+}
+
+button[type="submit"]:disabled {
+  background-color: #a5a6f6 !important;
+  cursor: not-allowed !important;
+}
+
+/* Error message styling */
+.error-message {
+  color: #e53e3e !important;
+  background-color: #fff5f5 !important;
+  border: 1px solid #fc8181 !important;
+  padding: 8px 12px !important;
+  border-radius: 4px !important;
+  margin: 10px 0 !important;
+  font-size: 14px !important;
+}
+
+/* Success message styling */
+.success-message {
+  color: #38a169 !important;
+  background-color: #f0fff4 !important;
+  border: 1px solid #9ae6b4 !important;
+  padding: 8px 12px !important;
+  border-radius: 4px !important;
+  margin: 10px 0 !important;
+  font-size: 14px !important;
+}
+
+/* Connection error indicator */
+.connection-error {
+  position: fixed !important;
+  bottom: 20px !important;
+  right: 20px !important;
+  background-color: #e53e3e !important;
+  color: white !important;
+  padding: 10px 15px !important;
+  border-radius: 4px !important;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
+  z-index: 9999 !important;
+}

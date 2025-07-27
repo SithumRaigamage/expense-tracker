@@ -8,7 +8,7 @@ import { ProfileComponent } from './Navigation/components/settings/profile/profi
 import { HelpComponent } from './Navigation/components/help/help.component';
 import { BillsComponent } from './Navigation/components/bills/bills.component';
 import { SettingsComponent } from './Navigation/components/settings/settings.component';
-import { PaymentMethodsComponent } from './Navigation/components/settings/payment-methods/payment-methods.component';
+
 import { CurrenyComponent } from './Navigation/components/settings/curreny/curreny.component';
 import { AboutSupportComponent } from './Navigation/components/settings/about-support/about-support.component';
 import { DocumentationComponent } from './Navigation/components/settings/documentation/documentation.component';
@@ -96,7 +96,6 @@ export const routes: Routes = [
         children: [
           { path: '', redirectTo: 'profile', pathMatch: 'full' },
           { path: 'profile', component: ProfileComponent, title: 'Profile Settings' },
-          { path: 'payment-methods', component: PaymentMethodsComponent, title: 'Payment Methods' },
           { path: 'currency', component: CurrenyComponent, title: 'Currency Settings' },
           { path: 'about & support', component: AboutSupportComponent, title: 'About & Support' }
         ]

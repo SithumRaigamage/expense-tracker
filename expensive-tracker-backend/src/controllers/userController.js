@@ -202,10 +202,22 @@ const updateProfile = async (req, res, next) => {
   try {
     const fieldsToUpdate = {
       name: req.body.name,
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
       email: req.body.email,
       currency: req.body.currency,
-      avatar: req.body.avatar
+      avatar: req.body.avatar,
+      profileImage: req.body.profileImage,
+      phone: req.body.phone,
+      bio: req.body.bio,
+      location: req.body.location,
+      role: req.body.role
     };
+
+    // If firstName and lastName are provided but name is not, construct the name
+    if (!fieldsToUpdate.name && fieldsToUpdate.firstName && fieldsToUpdate.lastName) {
+      fieldsToUpdate.name = `${fieldsToUpdate.firstName} ${fieldsToUpdate.lastName}`;
+    }
 
     // Remove undefined fields
     Object.keys(fieldsToUpdate).forEach(key => 

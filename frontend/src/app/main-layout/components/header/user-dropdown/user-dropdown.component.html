@@ -1,9 +1,11 @@
 <div class="relative dropdown-container" *ngIf="currentUser">
   <button (click)="toggleDropdown()" class="flex items-center text-gray-700 dropdown-toggle dark:text-gray-400">
     <span class="mr-3 overflow-hidden rounded-full h-11 w-11">
-      <img 
-        [src]="currentUser.avatar || 'assets/images/user/owner.png'" 
-        [alt]="currentUser.name" />
+      <img
+        [src]="currentUser.avatar || getDefaultAvatarUrl()"
+        [alt]="currentUser.name"
+        crossorigin="anonymous"
+        (error)="handleImageError($event)" />
     </span>
 
     <span class="block mr-1 font-medium text-theme-sm">{{ currentUser.name.split(' ')[0] }}</span>

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError, of } from 'rxjs';
-import { catchError, map, tap } from 'rxjs/operators';
+import { catchError, map, tap, switchMap } from 'rxjs/operators';
 import { ProductBudget } from '../core/models/ProductBudget';
 import { AuthService } from './auth.service';
 
@@ -147,9 +147,25 @@ export class ProductbudgetService {
       return throwError(() => new Error('User not authenticated'));
     }
 
-    return this.http.post<ApiResponse<any>>(`${this.apiUrl}/productbudgets/${id}/addMoney`, { amount })
+    // Get the current saved amount first
+    return this.http.get<ApiResponse<ProductBudget>>(`${this.apiUrl}/productbudgets/${id}`)
       .pipe(
         map(response => response.data),
+        switchMap((goal: any) => {
+          // Calculate the new total amount
+          const currentAmount = goal.savedAmount || 0;
+          const newAmount = currentAmount + amount;
+          
+          // Update the entire goal using PUT instead of PATCH (which might be having issues)
+          return this.http.put<ApiResponse<ProductBudget>>(`${this.apiUrl}/productbudgets/${id}`, { 
+            savedAmount: newAmount,
+            name: goal.name,
+            imageUrl: goal.imageUrl,
+            targetAmount: goal.targetAmount,
+            targetDate: goal.targetDate
+          });
+        }),
+        map((response: ApiResponse<any>) => response.data),
         map(updatedGoal => ({
           id: updatedGoal._id,
           name: updatedGoal.name,

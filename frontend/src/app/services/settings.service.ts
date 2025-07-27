@@ -1,14 +1,16 @@
 import { Injectable } from '@angular/core';
+import { HttpClient, HttpHeaders, HttpEventType, HttpEvent } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
+import { map, catchError, tap, filter } from 'rxjs/operators';
 import { User } from '../core/models/User';
 import { faCcVisa, faCcMastercard } from '@fortawesome/free-brands-svg-icons';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
-import { catchError } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 
 interface PaymentMethod {
   id: string;
   type: 'visa' | 'mastercard';
-  cardNumber: string; // Changed from lastFour to full cardNumber
+  cardNumber: string;
   expiryMonth: number;
   expiryYear: number;
   isDefault: boolean;
@@ -39,43 +41,29 @@ export interface SupportLink {
 export interface FAQ {
   question: string;
   answer: string;
-  isOpen?: boolean; // Add optional isOpen property
+  isOpen?: boolean;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class SettingsService {
-  private dummyUser: User = {
-    name: 'Sithum Raigamage',
-    firstName: 'Sithum',
-    lastName: 'Raigamage',
-    role: 'Software Engineer',
-    location: 'Colombo, Sri Lanka',
-    profileImage: 'assets/images/user/owner.png',
-    email: 'sraig2002@gmail.com',
-    phone: '+94 77 123 4567',
-    bio: 'Enthusiastic software engineering intern with a passion for web development and new technologies. Currently learning Angular and TypeScript while contributing to full-stack projects.'
-  };
+  private apiUrl = environment.apiUrl;
+  private user: User | null = null;
 
-  private dummyPaymentMethods: PaymentMethod[] = [
-    {
-      id: '1',
-      type: 'visa',
-      cardNumber: '4242424242424242', // Full card number
-      expiryMonth: 12,
-      expiryYear: 24,
-      isDefault: true
-    },
-    {
-      id: '2',
-      type: 'mastercard',
-      cardNumber: '5555555555554444', // Full card number
-      expiryMonth: 9,
-      expiryYear: 25,
-      isDefault: false
-    }
-  ];
+  // Method to check if the server is reachable
+  checkServerConnection(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/health`).pipe(
+      tap(response => console.log('Backend server is reachable:', response)),
+      catchError(error => {
+        console.error('Backend connection check failed:', error);
+        if (error.status === 0) {
+          return throwError(() => new Error('Cannot connect to the server. Please ensure the backend server is running on port 3001.'));
+        }
+        return throwError(() => new Error('Backend server health check failed: ' + (error.message || 'Unknown error')));
+      })
+    );
+  }
 
   private cardImages: CardImage = {
     visa: 'assets/images/cards/visa.svg',
@@ -99,12 +87,12 @@ export class SettingsService {
   private supportLinks: SupportLink[] = [
     {
       title: 'Documentation',
-      url: '',
+      url: '/documentation',
       icon: 'book'
     },
     {
       title: 'Contact Support',
-      url: '',
+      url: '/support',
       icon: 'envelope'
     }
   ];
@@ -117,77 +105,232 @@ export class SettingsService {
     {
       question: 'How do I export my transactions?',
       answer: 'Navigate to the Transactions page, click "Export" and choose your preferred format (CSV or PDF).'
+    },
+    {
+      question: 'How do I change my profile picture?',
+      answer: 'Go to Settings > Profile, and click on your profile image or the Edit button. You can upload a new image from there.'
     }
   ];
 
-  getUserProfile(): Observable<User> {
-    return of(this.dummyUser);
-  }
+  constructor(private http: HttpClient) {}
 
-  updateUserProfile(userData: User): Observable<User> {
-    // Simulate API call
-    this.dummyUser = { ...userData };
-    return of(this.dummyUser);
-  }
-
-  updateUserProfileWithImage(formData: FormData): Observable<User> {
-    // For demo purposes, we'll simulate the image upload
-    return new Observable(observer => {
-      setTimeout(() => {
-        const imageUrl = URL.createObjectURL(formData.get('profileImage') as Blob);
-        const updatedUser = {
-          ...this.dummyUser,
-          profileImage: imageUrl
-        };
-        this.dummyUser = updatedUser;
-        observer.next(updatedUser);
-        observer.complete();
-      }, 1000);
+  // Helper method to get auth headers
+  private getHeaders(): HttpHeaders {
+    const token = localStorage.getItem('token');
+    return new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
     });
   }
 
+  getUserProfile(): Observable<User> {
+    const headers = this.getHeaders();
+
+    // Return cached user if available
+    if (this.user) {
+      return of(this.user);
+    }
+
+    // Get user data from API
+    return this.http.get<{success: boolean, data: User}>(`${this.apiUrl}/users/profile`, { headers })
+      .pipe(
+        map(response => {
+          // Map backend user format to frontend User model
+          const userData = response.data;
+          const user: User = {
+            ...userData,
+            // Ensure required fields have default values
+            name: userData.name || '',
+            email: userData.email || '',
+            // Use profileImage if available, fall back to avatar
+            profileImage: userData.profileImage || userData.avatar || '',
+            // If firstName/lastName not provided, try to extract from name
+            firstName: userData.firstName || userData.name?.split(' ')[0] || '',
+            lastName: userData.lastName || (userData.name?.split(' ').length > 1 ?
+              userData.name.split(' ').slice(1).join(' ') : '')
+          };
+
+          this.user = user;
+          return user;
+        }),
+        catchError(error => {
+          console.error('Error fetching user profile:', error);
+          return throwError(() => new Error('Failed to fetch user profile. Please try again later.'));
+        })
+      );
+  }
+
+  updateUserProfile(userData: User): Observable<User> {
+    const headers = this.getHeaders();
+
+    return this.http.put<{success: boolean, data: any}>(`${this.apiUrl}/users/profile`, userData, { headers })
+      .pipe(
+        map(response => {
+          // Map backend response to User model
+          const userData = response.data;
+          const user: User = {
+            ...userData,
+            // Ensure required fields have default values
+            name: userData.name || '',
+            email: userData.email || '',
+            // Use profileImage if available, fall back to avatar
+            profileImage: userData.profileImage || userData.avatar || '',
+            // If firstName/lastName not provided, try to extract from name
+            firstName: userData.firstName || userData.name?.split(' ')[0] || '',
+            lastName: userData.lastName || (userData.name?.split(' ').length > 1 ?
+              userData.name.split(' ').slice(1).join(' ') : '')
+          };
+
+          this.user = user;
+          return user;
+        }),
+        catchError(error => {
+          console.error('Error updating profile:', error);
+          return throwError(() => new Error('Failed to update user profile. Please try again later.'));
+        })
+      );
+  }
+
+  updateUserProfileWithImage(formData: FormData): Observable<User> {
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+
+    console.log('Sending profile image to API...');
+
+    // Log formData contents for debugging
+    formData.forEach((value, key) => {
+      if (key !== 'profileImage') { // Don't log binary data
+        console.log(`FormData contains: ${key}: ${value}`);
+      } else {
+        console.log(`FormData contains file: ${key}`);
+      }
+    });
+
+    // Upload the image to API
+    return this.http.post<{success: boolean, data: any}>(
+      `${this.apiUrl}/users/profile/image`,
+      formData,
+      { headers }
+    ).pipe(
+      tap(response => {
+        console.log('Raw API response:', JSON.stringify(response, null, 2));
+      }),
+      map(response => {
+        console.log('Profile update response received:', response);
+        // Extract user data and image URL from response
+        const userData = response.data.user;
+        const profileImage = response.data.profileImage;
+
+        console.log('Profile image URL from response:', profileImage);
+        console.log('User data profileImage:', userData.profileImage);
+        console.log('User data avatar:', userData.avatar);
+
+        const user: User = {
+          ...userData,
+          // Ensure required fields
+          name: userData.name || '',
+          email: userData.email || '',
+          // Use the new profile image URL and ensure it's properly set
+          profileImage: profileImage || userData.profileImage || userData.avatar || '',
+          // If firstName/lastName not provided, extract from name
+          firstName: userData.firstName || userData.name?.split(' ')[0] || '',
+          lastName: userData.lastName || (userData.name?.split(' ').length > 1 ?
+            userData.name.split(' ').slice(1).join(' ') : '')
+        };
+
+        console.log('Final user object with profileImage:', user.profileImage);
+
+        this.user = user;
+        return user;
+      }),
+      catchError(error => {
+        console.error('Error uploading profile image:', error);
+
+        // Check for connection errors (status 0)
+        if (error.status === 0) {
+          console.error('Connection error - backend server might not be running');
+          return throwError(() => new Error('Cannot connect to the server. Please make sure the backend is running and try again.'));
+        }
+
+        console.error('Error details:', error.error);
+        console.error('Status:', error.status);
+
+        if (error.status === 413) {
+          return throwError(() => new Error('Image file is too large. Please choose a smaller image.'));
+        } else if (error.status === 415) {
+          return throwError(() => new Error('Invalid file type. Please select a valid image file (JPG, PNG).'));
+        } else if (error.status === 403 || error.status === 401) {
+          return throwError(() => new Error('Unauthorized: Please log in again.'));
+        } else if (error.status === 500) {
+          console.error('Server error details:', error.error);
+          return throwError(() => new Error('Server error during file upload. Please try again later.'));
+        }
+
+        // Provide more specific error message if available
+        const errorMessage = error.error?.error || error.message || 'Unknown error';
+        return throwError(() => new Error(`Failed to upload profile image: ${errorMessage}`));
+      })
+    );
+  }
+
   getPaymentMethods(): Observable<PaymentMethod[]> {
-    return of(this.dummyPaymentMethods);
+    const headers = this.getHeaders();
+
+    return this.http.get<{success: boolean, data: PaymentMethod[]}>(`${this.apiUrl}/users/payment-methods`, { headers })
+      .pipe(
+        map(response => response.data),
+        catchError(error => {
+          console.error('Error fetching payment methods:', error);
+          return throwError(() => new Error('Failed to fetch payment methods. Please try again later.'));
+        })
+      );
   }
 
   addPaymentMethod(paymentMethod: Omit<PaymentMethod, 'id'>): Observable<PaymentMethod> {
-    const newPaymentMethod = {
-      ...paymentMethod,
-      id: Math.random().toString(36).substr(2, 9)
-    };
-    this.dummyPaymentMethods.push(newPaymentMethod);
-    return of(newPaymentMethod).pipe(
+    const headers = this.getHeaders();
+
+    return this.http.post<{success: boolean, data: PaymentMethod}>(
+      `${this.apiUrl}/users/payment-methods`,
+      paymentMethod,
+      { headers }
+    ).pipe(
+      map(response => response.data),
       catchError(error => {
         console.error('Error adding payment method:', error);
-        return throwError(() => new Error('Failed to add payment method'));
+        return throwError(() => new Error('Failed to add payment method. Please try again later.'));
       })
     );
   }
 
   updatePaymentMethod(id: string, updates: Partial<PaymentMethod>): Observable<PaymentMethod> {
-    const index = this.dummyPaymentMethods.findIndex(pm => pm.id === id);
-    if (index === -1) {
-      throw new Error('Payment method not found');
-    }
-    this.dummyPaymentMethods[index] = { ...this.dummyPaymentMethods[index], ...updates };
-    return of(this.dummyPaymentMethods[index]).pipe(
+    const headers = this.getHeaders();
+
+    return this.http.put<{success: boolean, data: PaymentMethod}>(
+      `${this.apiUrl}/users/payment-methods/${id}`,
+      updates,
+      { headers }
+    ).pipe(
+      map(response => response.data),
       catchError(error => {
         console.error('Error updating payment method:', error);
-        return throwError(() => new Error('Failed to update payment method'));
+        return throwError(() => new Error('Failed to update payment method. Please try again later.'));
       })
     );
   }
 
   deletePaymentMethod(id: string): Observable<void> {
-    const index = this.dummyPaymentMethods.findIndex(pm => pm.id === id);
-    if (index === -1) {
-      throw new Error('Payment method not found');
-    }
-    this.dummyPaymentMethods.splice(index, 1);
-    return of(void 0).pipe(
+    const headers = this.getHeaders();
+
+    return this.http.delete<{success: boolean, data: any}>(
+      `${this.apiUrl}/users/payment-methods/${id}`,
+      { headers }
+    ).pipe(
+      map(() => void 0),
       catchError(error => {
         console.error('Error deleting payment method:', error);
-        return throwError(() => new Error('Failed to delete payment method'));
+        return throwError(() => new Error('Failed to delete payment method. Please try again later.'));
       })
     );
   }
@@ -201,45 +344,47 @@ export class SettingsService {
   }
 
   changePassword(currentPassword: string, newPassword: string): Observable<void> {
-    // Simulate API call
-    return new Observable<void>(observer => {
-      setTimeout(() => {
-        // Simulate password validation
-        if (currentPassword === 'wrong-password') {
-          observer.error(new Error('Current password is incorrect'));
-          return;
-        }
+    const headers = this.getHeaders();
 
-        // In a real application, you would make an API call here
-        observer.next(void 0);
-        observer.complete();
-      }, 1000);
-    }).pipe(
+    return this.http.put<{success: boolean, data: any}>(
+      `${this.apiUrl}/users/change-password`,
+      { currentPassword, newPassword },
+      { headers }
+    ).pipe(
+      map(() => void 0),
       catchError(error => {
         console.error('Error changing password:', error);
-        return throwError(() => new Error('Failed to change password'));
+
+        if (error.status === 401) {
+          return throwError(() => new Error('Current password is incorrect'));
+        }
+
+        return throwError(() => new Error('Failed to change password. Please try again later.'));
       })
     );
   }
 
   changeEmail(newEmail: string, password: string): Observable<void> {
-    // Simulate API call
-    return new Observable<void>(observer => {
-      setTimeout(() => {
-        // Simulate password validation
-        if (password === 'wrong-password') {
-          observer.error(new Error('Invalid password'));
-          return;
-        }
+    const headers = this.getHeaders();
 
-        this.dummyUser.email = newEmail;
-        observer.next(void 0);
-        observer.complete();
-      }, 1000);
-    }).pipe(
+    return this.http.put<{success: boolean, data: any}>(
+      `${this.apiUrl}/users/change-email`,
+      { newEmail, password },
+      { headers }
+    ).pipe(
+      map(() => {
+        if (this.user) {
+          this.user.email = newEmail;
+        }
+        return void 0;
+      }),
       catchError(error => {
         console.error('Error changing email:', error);
-        return throwError(() => new Error('Failed to change email'));
+
+        if (error.status === 401) {
+          return throwError(() => new Error('Password is incorrect'));
+        }
+        return throwError(() => new Error('Failed to change email. Please try again later.'));
       })
     );
   }
@@ -249,14 +394,19 @@ export class SettingsService {
   }
 
   updateCurrency(currencyCode: string): Observable<void> {
-    // Simulate API call
-    return new Observable<void>(observer => {
-      setTimeout(() => {
-        // In a real app, you would update the user's currency preference
-        observer.next();
-        observer.complete();
-      }, 500);
-    });
+    const headers = this.getHeaders();
+
+    return this.http.put<{success: boolean, data: any}>(
+      `${this.apiUrl}/users/profile`,
+      { currency: currencyCode },
+      { headers }
+    ).pipe(
+      map(() => void 0),
+      catchError(error => {
+        console.error('Error updating currency:', error);
+        return throwError(() => new Error('Failed to update currency'));
+      })
+    );
   }
 
   getSupportLinks(): Observable<SupportLink[]> {

@@ -127,11 +127,12 @@ export class SidebarComponent implements OnInit {
       name: 'Settings',
       path: '/settings',
       isOpen: false,
+      isUpcoming: false,
+      isNew: false,
       subItems: [
-        { name: 'Profile', path: '/settings/profile' },
-        { name: 'Payment Methods', path: '/settings/payment-methods' },
-        { name: 'About & Support', path: '/settings/about & support' },
-        { name: 'Currency', path: '/settings/currency' },
+        { name: 'Profile', path: '/settings/profile', isLocked: false, isNew: false, isUpcoming: false },
+        { name: 'About & Support', path: '/settings/about & support', isLocked: true, isNew: false, isUpcoming: true },
+        { name: 'Currency', path: '/settings/currency', isLocked: true, isNew: false, isUpcoming: true },
       ]
     },
     {
@@ -139,18 +140,23 @@ export class SidebarComponent implements OnInit {
       name: 'Help Center',
       path: '/help',
       isOpen: false,
+      isUpcoming: false,
+      isNew: false,
       subItems: [
-        { name: 'FAQs', path: '/help/faqs' },
-        { name: 'Documentation', path: '/help/docs' },
-        { name: 'Contact Support', path: '/help/support' },
-        { name: 'Troubleshooting', path: '/help/troubleshooting' },
-        { name: 'Release Notes', path: '/help/release-notes' },
+        { name: 'FAQs', path: '/help/faqs', isLocked: true, isNew: false, isUpcoming: true },
+        { name: 'Documentation', path: '/help/docs', isLocked: true, isNew: false, isUpcoming: true },
+        { name: 'Contact Support', path: '/help/support', isLocked: true, isNew: false, isUpcoming: false },
+        { name: 'Troubleshooting', path: '/help/troubleshooting', isLocked: true, isNew: false, isUpcoming: true },
+        { name: 'Release Notes', path: '/help/release-notes', isLocked: false, isNew: true, isUpcoming: false },
       ]
     },
     {
       icon: faFeed,
       name: 'Feedback',
-      path: '/feedback'
+      path: '/feedback',
+      isUpcoming: true,
+      isNew: true,
+      isLocked: true
     }
   ];
 
@@ -179,6 +185,26 @@ export class SidebarComponent implements OnInit {
       faChevronRight,
       faChevronDown
     );
+
+    // Update parent item lock status based on subitems
+    this.updateParentLockStatus();
+  }
+
+  /**
+   * Updates the lock status of parent navigation items based on their subitems.
+   * If all subitems are locked, the parent will be locked.
+   * If at least one subitem is not locked, the parent will not be locked.
+   */
+  updateParentLockStatus(): void {
+    this.othersItems.forEach(item => {
+      if (item.subItems && item.subItems.length > 0) {
+        // Check if all subitems are locked
+        const allSubitemsLocked = item.subItems.every(subItem => subItem.isLocked === true);
+
+        // Update parent lock status based on subitems
+        item.isLocked = allSubitemsLocked;
+      }
+    });
   }
 
   ngOnInit(): void {
@@ -193,7 +219,9 @@ export class SidebarComponent implements OnInit {
 
   toggleSubNav(item: NavItem, event: Event): void {
     event.preventDefault();
-    if (item.subItems) {
+
+    // Only toggle if the item has subitems and is not completely locked
+    if (item.subItems && !item.isLocked) {
       item.isOpen = !item.isOpen;
     }
   }

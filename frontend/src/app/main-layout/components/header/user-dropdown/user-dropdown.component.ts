@@ -59,6 +59,7 @@ export class UserDropdownComponent implements OnInit, OnDestroy {
     // Subscribe to current user changes
     this.userSubscription = this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
+      console.log('Current user on header:', this.currentUser);
     });
   }
 
@@ -77,5 +78,18 @@ export class UserDropdownComponent implements OnInit, OnDestroy {
   logout(): void {
     this.authService.logout();
     this.closeDropdown();
+  }
+
+  getDefaultAvatarUrl(): string {
+    // Return the path to the default avatar image
+    return '/assets/images/user/default-avatar.svg';
+  }
+
+  handleImageError(event: Event): void {
+    // Safe type assertion for the event target
+    const imgElement = event.target as HTMLImageElement;
+    if (imgElement) {
+      imgElement.src = this.getDefaultAvatarUrl();
+    }
   }
 }
