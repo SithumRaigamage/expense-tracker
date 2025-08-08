@@ -95,12 +95,48 @@ ng serve
 cd ../expensive-tracker-backend
 node scripts/seedReleaseNotes.js
 ```
-## Database 
 
+
+## Database 
+```
 mongod-start
 
 mongod-stop
+```
 
+## 🐳 Containerization
+
+### Frontend Container
+
+```bash
+# Build frontend Docker image
+cd frontend
+docker build -t expense-tracker:1.0.3 .
+
+# Run frontend container
+docker run -d -p 4200:80 --name expense-tracker-frontend expense-tracker:1.0.3
+```
+
+### Security Scanning
+
+We use Trivy for container security scanning:
+
+```bash
+# Scan Docker image for vulnerabilities
+trivy image expense-tracker:1.0.3
+
+# Export scan results
+trivy image expense-tracker:1.0.3 -f json -o ./docs/trivy-reports/vulnerabilities.json
+```
+
+## � Project Documentation
+
+- [Release Notes API](./expensive-tracker-backend/docs/release-notes-api.md)
+- [Wallet API](./expensive-tracker-backend/docs/wallet-api.md)
+- [Product Budget API](./expensive-tracker-backend/docs/product-budget-api.md)
+- [Frontend Documentation](./frontend/docs/docs.md)
+- [Docker Setup](./frontend/README.md#docker)
+```
 
 ## 🧪 Testing
 

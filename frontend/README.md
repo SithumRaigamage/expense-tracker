@@ -57,3 +57,44 @@ Angular CLI does not come with an end-to-end testing framework by default. You c
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+
+
+## Docker
+
+### Building the Docker Image
+
+To build the Docker image, run:
+
+```bash
+docker build -t expense-tracker:1.0.3 .
+```
+
+### Running the Container
+
+To run the container, use:
+
+```bash
+docker run -d -p 4200:80 --name expense-tracker-frontend expense-tracker:1.0.3
+```
+
+This will start the application and make it accessible at `http://localhost:4200`.
+
+### Docker Configuration
+
+The Docker setup uses:
+
+- Node.js Alpine for building the Angular application
+- Nginx Alpine for serving the compiled application
+- Custom Nginx configuration for proper Angular routing
+
+### Security Scanning
+
+We use Trivy for container security scanning:
+
+```bash
+trivy image expense-tracker:1.0.3
+```
+
+Scan reports are stored in the `docs/trivy-reports/` directory.
+
+
