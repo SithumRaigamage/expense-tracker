@@ -1,0 +1,145 @@
+<aside class="relative h-full">
+  <div class="fixed flex flex-col top-0 left-0 h-screen bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 transition-all duration-300 ease-in-out z-40 border-r border-gray-200"
+       [class.w-72]="isExpanded || isHovered"
+       [class.w-24]="!isExpanded && !isHovered"
+       (mouseenter)="!isExpanded && (isHovered = true)"
+       (mouseleave)="isHovered = false">
+
+    <!-- Logo Section -->
+    <div class="flex-shrink-0 h-[77px] flex items-center justify-center border-b border-gray-200 dark:border-gray-800">
+      <fa-icon [icon]="moneyIcon" size="2x" class="text-gray-900 dark:text-white"></fa-icon>
+      <span class="ml-3 text-lg font-semibold text-gray-900 dark:text-white" [class.hidden]="!isExpanded && !isHovered">
+        Expense Tracker
+      </span>
+    </div>
+
+    <!-- Navigation Links -->
+    <div class="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
+      <div class="p-4 space-y-6">
+        <!-- Main Menu Items -->
+        <div class="space-y-1">
+          <h2 class="mb-4 text-xs uppercase text-gray-400"
+              [class.text-center]="!isExpanded && !isHovered">
+            {{(isExpanded || isHovered) ? 'Menu' : '•••'}}
+          </h2>
+
+          <!-- Navigation Items -->
+          <ng-container *ngFor="let item of navItems">
+            <div *ngIf="!item.isLocked" class="relative group">
+              <a [routerLink]="item.path"
+                 routerLinkActive="bg-gray-50 text-primary dark:bg-gray-800 dark:text-white"
+                 class="relative flex items-center px-4 py-3 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white transition-colors mb-2">
+
+                <!-- Icon -->
+                <fa-icon [icon]="item.icon" class="flex-shrink-0 w-8 h-8 mr-4"></fa-icon>
+
+                <!-- Name and Badges Container -->
+                <div class="flex-1 flex items-center justify-between min-w-0" [class.hidden]="!isExpanded && !isHovered">
+                  <!-- Name -->
+                  <span class="truncate">{{ item.name }}</span>
+
+                  <!-- Badges Container -->
+                  <div class="flex items-center gap-2 ml-2 flex-shrink-0">
+                    <!-- New Feature Badge -->
+                    <span *ngIf="item.isNew"
+                          class="flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-primary/10 text-primary rounded-full">
+                      <fa-icon [icon]="sparklesIcon" class="w-3 h-3"></fa-icon>
+                      New
+                    </span>
+
+                    <!-- Upcoming Feature Badge -->
+                    <span *ngIf="item.isUpcoming" class="px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 rounded-full">Coming Soon</span>
+                  </div>
+                </div>
+              </a>
+            </div>
+          </ng-container>
+        </div>
+
+        <!-- Others Section -->
+        <div class="space-y-1">
+          <h2 class="mb-4 text-xs uppercase text-gray-400"
+              [class.text-center]="!isExpanded && !isHovered">
+            {{(isExpanded || isHovered) ? 'Others' : '•••'}}
+          </h2>
+
+          <ng-container *ngFor="let item of othersItems">
+            <div *ngIf="!item.isLocked" class="mb-2 relative group">
+              <!-- Main Item -->
+              <a [routerLink]="item.subItems ? null : item.path"
+                 (click)="item.subItems && toggleSubNav(item, $event)"
+                 routerLinkActive="bg-gray-50 text-primary dark:bg-gray-800 dark:text-white"
+                 class="flex items-center justify-between px-4 py-3 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white transition-colors">
+                <div class="flex items-center gap-x-4">
+                  <fa-icon [icon]="item.icon" class="flex-shrink-0 w-6 h-6"></fa-icon>
+                  <!-- Name and Badges Container -->
+                  <div class="flex-1 flex items-center justify-between min-w-0" [class.hidden]="!isExpanded && !isHovered">
+                    <!-- Name -->
+                    <span class="truncate">{{ item.name }}</span>
+
+                    <!-- Badges Container -->
+                    <div class="flex items-center gap-2 ml-2 flex-shrink-0">
+                      <!-- New Feature Badge -->
+                      <span *ngIf="item.isNew"
+                            class="flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-primary/10 text-primary rounded-full">
+                        <fa-icon [icon]="sparklesIcon" class="w-3 h-3"></fa-icon>
+                        New
+                      </span>
+
+                      <!-- Upcoming Feature Badge -->
+                      <span *ngIf="item.isUpcoming" class="px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 rounded-full">Coming Soon</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Dropdown arrow for items with subitems -->
+                <fa-icon
+                  *ngIf="item.subItems && (isExpanded || isHovered)"
+                  [icon]="item.isOpen ? chevronDown : chevronRight"
+                  class="w-4 h-4 transition-transform">
+                </fa-icon>
+              </a>
+
+              <!-- Sub Items -->
+              <div *ngIf="item.subItems && item.isOpen && (isExpanded || isHovered)"
+                   class="ml-10 mt-1 space-y-1">
+                <ng-container *ngFor="let subItem of item.subItems">
+                  <div *ngIf="!subItem.isLocked" class="relative group">
+                    <a [routerLink]="subItem.path"
+                       routerLinkActive="text-primary dark:text-white"
+                       class="block px-4 py-2 text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white rounded-lg transition-colors">
+
+                      <!-- Name and Badges Container for Sub Items -->
+                      <div class="flex items-center justify-between">
+                        <!-- Name -->
+                        <span class="truncate">{{ subItem.name }}</span>
+
+                        <!-- Badges Container -->
+                        <div class="flex items-center gap-2 ml-2">
+                          <!-- Badge -->
+                          <span *ngIf="subItem.badge"
+                                class="px-2 py-0.5 text-xs font-medium bg-primary/10 text-primary rounded-full">
+                            {{ subItem.badge }}
+                          </span>
+
+                          <!-- New Feature Badge -->
+                          <span *ngIf="subItem.isNew"
+                                class="flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-primary/10 text-primary rounded-full">
+                            <fa-icon [icon]="sparklesIcon" class="w-3 h-3"></fa-icon>
+                            New
+                          </span>
+
+                          <!-- Upcoming Feature Badge -->
+                          <span *ngIf="subItem.isUpcoming" class="px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 rounded-full">Coming Soon</span>
+                        </div>
+                      </div>
+                    </a>
+                  </div>
+                </ng-container>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+  </div>
+</aside>

@@ -1,7 +1,9 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, combineLatest, map } from 'rxjs';
-import { Wallet } from '../models/Wallet';
-import { Metric } from '../models/Metric';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { BehaviorSubject, Observable, map, tap, catchError, throwError, of } from 'rxjs';
+import { Wallet } from '../core/models/Wallet';
+import { Metric } from '../core/models/Metric';
+import { AuthService } from './auth.service';
 import {
   faMoneyBillWave,
   faBuildingColumns,
@@ -13,7 +15,6 @@ import {
   faWallet
 } from '@fortawesome/free-solid-svg-icons';
 
-// First, add the Transaction interface
 export interface WalletTransaction {
   amount: number;
   type: 'income' | 'expense';
@@ -22,51 +23,97 @@ export interface WalletTransaction {
   date: Date;
 }
 
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  count?: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class WalletService {
-  private wallets = new BehaviorSubject<Wallet[]>([
-    {
-      id: '1',
-      name: 'Main Wallet',
-      type: 'cash',
-      balance: 15000.00,
-      currency: 'LKR'
-    },
-    {
-      id: '2',
-      name: 'BOC Account',
-      type: 'bank',
-      balance: 100000.00,
-      currency: 'LKR',
-    },
-    {
-      id: '3',
-      name: 'Fixed Deposit',
-      type: 'savings',
-      balance: 100000.00,
-      currency: 'LKR',
-    },
-    {
-      id: '4',
-      name: 'Credit Card',
-      type: 'credit',
-      balance: -5000.00,  // Negative balance for credit
-      currency: 'LKR',
-    },
-    {
-      id: '5',
-      name: 'Personal Loan',
-      type: 'loan',
-      balance: -150000.00,  // Negative balance for loans
-      currency: 'LKR',
-    }
-  ]);
+  private apiUrl = 'http://localhost:3001/api/v1/wallets';
+  private wallets = new BehaviorSubject<Wallet[]>([]);
+  private error = new BehaviorSubject<string | null>(null);
+  private loading = new BehaviorSubject<boolean>(false);
+  private currentUserId: string | null = null;
 
   wallets$ = this.wallets.asObservable();
+  error$ = this.error.asObservable();
+  loading$ = this.loading.asObservable();
 
-  private getWalletTypeIcon(type: string) {
+  private authService = inject(AuthService);
+
+  constructor(private http: HttpClient) {
+    // Subscribe to the current user to get the user ID
+    this.authService.currentUser$.subscribe(user => {
+      this.currentUserId = user?.id || null;
+      if (this.currentUserId) {
+        this.loadWallets();
+      } else {
+        // Clear wallets if user is not authenticated
+        this.wallets.next([]);
+      }
+    });
+  }
+
+  private getHttpOptions() {
+    const token = this.authService.getToken();
+    return {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : ''
+      })
+    };
+  }
+
+  private loadWallets(): void {
+    if (!this.currentUserId) {
+      this.error.next('Not authenticated. Please log in.');
+      this.wallets.next([]);
+      return;
+    }
+
+    this.loading.next(true);
+    this.error.next(null);
+
+    this.http.get<ApiResponse<Wallet[]>>(this.apiUrl, this.getHttpOptions())
+      .pipe(
+        map(response => response.data.map(wallet => ({
+          ...wallet,
+          id: wallet.id || (wallet as any)._id, // Handle both _id and id
+          user: wallet.user || this.currentUserId || '' // Ensure user ID is present as string
+        }))),
+        catchError(error => {
+          console.error('Error loading wallets:', error);
+          let errorMessage = 'Failed to connect to the server. Please check if the backend is running.';
+
+          if (error.status === 401) {
+            errorMessage = 'You are not authorized. Please login again.';
+          } else if (error.status === 404) {
+            errorMessage = 'Wallets endpoint not found.';
+          } else if (error.status === 0) {
+            errorMessage = 'Cannot connect to the server. Please check if the backend is running on http://localhost:3001';
+          }
+
+          this.error.next(errorMessage);
+          return throwError(() => error);
+        })
+      )
+      .subscribe({
+        next: (wallets) => {
+          this.wallets.next(wallets);
+          this.loading.next(false);
+        },
+        error: () => {
+          this.wallets.next([]);
+          this.loading.next(false);
+        }
+      });
+  }
+
+  getWalletTypeIcon(type: string) {
     switch (type) {
       case 'bank': return faBuildingColumns;
       case 'cash': return faMoneyBillWave;
@@ -79,7 +126,7 @@ export class WalletService {
     }
   }
 
-  private getWalletTypeLabel(type: string) {
+  getWalletTypeLabel(type: string) {
     switch (type) {
       case 'bank': return 'Bank Balance';
       case 'cash': return 'Cash in Hand';
@@ -101,24 +148,277 @@ export class WalletService {
     );
   }
 
-  addWallet(wallet: Omit<Wallet, 'id'>): void {
-    const newWallet = {
-      ...wallet,
-      id: Date.now().toString()
+  addWallet(walletData: Omit<Wallet, 'id'>): Observable<Wallet> {
+    if (!this.currentUserId) {
+      return throwError(() => new Error('Not authenticated. Please log in.'));
+    }
+
+    // Add the user ID to the wallet data
+    const walletWithUser = {
+      ...walletData,
+      user: this.currentUserId
     };
-    this.wallets.next([...this.wallets.value, newWallet]);
+
+    return this.http.post<ApiResponse<Wallet>>(this.apiUrl, walletWithUser, this.getHttpOptions())
+      .pipe(
+        map(response => ({
+          ...response.data,
+          id: response.data.id || (response.data as any)._id
+        })),
+        tap(wallet => {
+          const currentWallets = this.wallets.value;
+          this.wallets.next([...currentWallets, wallet]);
+        }),
+        catchError(error => {
+          console.error('Error adding wallet:', error);
+          let errorMessage = 'Failed to add wallet. Please try again.';
+
+          if (error.status === 401) {
+            errorMessage = 'You are not authorized. Please login again.';
+          } else if (error.status === 400) {
+            if (error.error?.error?.includes('already exists')) {
+              errorMessage = 'A wallet with this name already exists.';
+            } else {
+              errorMessage = 'Invalid wallet data. Please check your input.';
+            }
+          }
+
+          throw new Error(errorMessage);
+        })
+      );
   }
 
-  updateWallet(id: string, wallet: Partial<Wallet>): void {
-    const updatedWallets = this.wallets.value.map(w =>
-      w.id === id ? { ...w, ...wallet } : w
-    );
-    this.wallets.next(updatedWallets);
+  updateWallet(id: string, walletData: Partial<Wallet>): Observable<Wallet> {
+    if (!this.currentUserId) {
+      return throwError(() => new Error('Not authenticated. Please log in.'));
+    }
+
+    // Remove user field to prevent changing ownership
+    const { user, ...dataToUpdate } = walletData;
+
+    return this.http.put<ApiResponse<Wallet>>(`${this.apiUrl}/${id}`, dataToUpdate, this.getHttpOptions())
+      .pipe(
+        map(response => ({
+          ...response.data,
+          id: response.data.id || (response.data as any)._id
+        })),
+        tap(updatedWallet => {
+          const currentWallets = this.wallets.value;
+          const updatedWallets = currentWallets.map(w =>
+            w.id === id ? { ...w, ...updatedWallet } : w
+          );
+          this.wallets.next(updatedWallets);
+        }),
+        catchError(error => {
+          console.error('Error updating wallet:', error);
+          let errorMessage = 'Failed to update wallet. Please try again.';
+
+          if (error.status === 401) {
+            errorMessage = 'You are not authorized. Please login again.';
+          } else if (error.status === 404) {
+            errorMessage = 'Wallet not found.';
+          } else if (error.status === 400) {
+            if (error.error?.error?.includes('already exists')) {
+              errorMessage = 'A wallet with this name already exists.';
+            } else {
+              errorMessage = 'Invalid wallet data. Please check your input.';
+            }
+          }
+
+          throw new Error(errorMessage);
+        })
+      );
   }
 
-  deleteWallet(id: string): void {
-    const filteredWallets = this.wallets.value.filter(w => w.id !== id);
-    this.wallets.next(filteredWallets);
+  deleteWallet(id: string): Observable<void> {
+    if (!this.currentUserId) {
+      return throwError(() => new Error('Not authenticated. Please log in.'));
+    }
+
+    return this.http.delete<ApiResponse<any>>(`${this.apiUrl}/${id}`, this.getHttpOptions())
+      .pipe(
+        map(() => void 0),
+        tap(() => {
+          const currentWallets = this.wallets.value;
+          const filteredWallets = currentWallets.filter(w => w.id !== id);
+          this.wallets.next(filteredWallets);
+        }),
+        catchError(error => {
+          console.error('Error deleting wallet:', error);
+          let errorMessage = 'Failed to delete wallet. Please try again.';
+
+          if (error.status === 401) {
+            errorMessage = 'You are not authorized. Please login again.';
+          } else if (error.status === 404) {
+            errorMessage = 'Wallet not found.';
+          }
+
+          throw new Error(errorMessage);
+        })
+      );
+  }
+
+  bulkDeleteWallets(walletIds: string[]): Observable<{ deletedCount: number; requestedCount: number }> {
+    if (!this.currentUserId) {
+      return throwError(() => new Error('Not authenticated. Please log in.'));
+    }
+
+    return this.http.delete<ApiResponse<{ deletedCount: number; requestedCount: number }>>(`${this.apiUrl}/bulk`, {
+      ...this.getHttpOptions(),
+      body: { walletIds, userId: this.currentUserId }
+    })
+      .pipe(
+        map(response => response.data),
+        tap(() => {
+          const currentWallets = this.wallets.value;
+          const filteredWallets = currentWallets.filter(w => !walletIds.includes(w.id));
+          this.wallets.next(filteredWallets);
+        }),
+        catchError(error => {
+          console.error('Error bulk deleting wallets:', error);
+          let errorMessage = 'Failed to delete wallets. Please try again.';
+
+          if (error.status === 401) {
+            errorMessage = 'You are not authorized. Please login again.';
+          } else if (error.status === 400) {
+            errorMessage = 'Invalid wallet IDs provided.';
+          }
+
+          throw new Error(errorMessage);
+        })
+      );
+  }
+
+  restoreWallet(id: string): Observable<Wallet> {
+    if (!this.currentUserId) {
+      return throwError(() => new Error('Not authenticated. Please log in.'));
+    }
+
+    return this.http.patch<ApiResponse<Wallet>>(`${this.apiUrl}/${id}/restore`, { userId: this.currentUserId }, this.getHttpOptions())
+      .pipe(
+        map(response => ({
+          ...response.data,
+          id: response.data.id || (response.data as any)._id,
+          user: response.data.user || this.currentUserId || ''
+        })),
+        tap(restoredWallet => {
+          const currentWallets = this.wallets.value;
+          this.wallets.next([...currentWallets, restoredWallet]);
+        }),
+        catchError(error => {
+          console.error('Error restoring wallet:', error);
+          let errorMessage = 'Failed to restore wallet. Please try again.';
+
+          if (error.status === 401) {
+            errorMessage = 'You are not authorized. Please login again.';
+          } else if (error.status === 404) {
+            errorMessage = 'Deleted wallet not found.';
+          } else if (error.status === 400) {
+            if (error.error?.error?.includes('already exists')) {
+              errorMessage = 'A wallet with this name already exists. Please rename the existing wallet first.';
+            } else {
+              errorMessage = 'Cannot restore this wallet.';
+            }
+          }
+
+          throw new Error(errorMessage);
+        })
+      );
+  }
+
+  /**
+   * Add multiple wallets in bulk
+   * @param wallets Array of wallet data objects to be added
+   * @returns Observable with success and failure counts and failure details
+   */
+  bulkAddWallets(wallets: Omit<Wallet, 'id' | 'user'>[]): Observable<{
+    successCount: number;
+    failedCount: number;
+    failedWallets?: Array<{name: string; error: string}>;
+  }> {
+    if (!this.currentUserId) {
+      return throwError(() => new Error('Not authenticated. Please log in.'));
+    }
+
+    // Check if wallets array is empty
+    if (!wallets.length) {
+      return of({ successCount: 0, failedCount: 0 });
+    }
+
+    // Since many backends might not have a bulk endpoint, we'll implement the sequential approach here
+    // and avoid the 404 error for an endpoint that might not exist
+    return new Observable<{
+      successCount: number;
+      failedCount: number;
+      failedWallets?: Array<{name: string; error: string}>;
+    }>(observer => {
+      let successCount = 0;
+      let failedCount = 0;
+      let completed = 0;
+      const total = wallets.length;
+      const failedWallets: Array<{name: string; error: string}> = [];
+
+      // Process wallets one by one
+      wallets.forEach(wallet => {
+        // Add the user ID to the wallet (ensuring it's a string)
+        const walletWithUser = {
+          ...wallet,
+          user: this.currentUserId || ''
+        };
+
+        this.addWallet(walletWithUser).subscribe({
+          next: () => {
+            successCount++;
+            completed++;
+            if (completed === total) {
+              observer.next({
+                successCount,
+                failedCount,
+                failedWallets: failedWallets.length > 0 ? failedWallets : undefined
+              });
+              // Refresh wallets to display the newly added ones
+              this.refreshWallets();
+              observer.complete();
+            }
+          },
+          error: (error) => {
+            console.error(`Error adding wallet "${wallet.name}":`, error);
+            failedCount++;
+            completed++;
+
+            // Track failed wallet details
+            failedWallets.push({
+              name: wallet.name,
+              error: error.message || 'Unknown error'
+            });
+
+            if (completed === total) {
+              observer.next({
+                successCount,
+                failedCount,
+                failedWallets: failedWallets.length > 0 ? failedWallets : undefined
+              });
+              // Still refresh to show successful imports
+              this.refreshWallets();
+              observer.complete();
+            }
+          }
+        });
+      });
+    });
+  }  getWalletStats(): Observable<any> {
+    if (!this.currentUserId) {
+      return throwError(() => new Error('Not authenticated. Please log in.'));
+    }
+
+    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/stats`, this.getHttpOptions())
+      .pipe(
+        map(response => response.data),
+        catchError(error => {
+          console.error('Error getting wallet stats:', error);
+          throw new Error('Failed to get wallet statistics.');
+        })
+      );
   }
 
   getAllWallets(): Observable<Wallet[]> {
@@ -140,7 +440,7 @@ export class WalletService {
             label: this.getWalletTypeLabel(type),
             value: totalBalance,
             percentage: 0,
-            trend: totalBalance < 0 ? 'down' : 'up', // Changed trend calculation
+            trend: totalBalance < 0 ? 'down' : 'up',
             currency: 'LKR'
           };
         });
@@ -157,13 +457,35 @@ export class WalletService {
 
     if (!wallet) return;
 
-    // Update wallet balance
     const updatedWallet = {
       ...wallet,
-      balance: wallet.balance + transaction.amount // amount is negative for expenses
+      balance: wallet.balance + transaction.amount
     };
 
-    // Update wallet with new balance
-    this.updateWallet(walletId, updatedWallet);
+    this.updateWallet(walletId, updatedWallet).subscribe();
+  }
+
+  refreshWallets(): void {
+    this.loadWallets();
+  }
+
+  clearError(): void {
+    this.error.next(null);
+  }
+
+  /**
+   * Check if the current user is authenticated and has access to wallets
+   * @returns True if the user is authenticated
+   */
+  isUserAuthenticated(): boolean {
+    return !!this.currentUserId;
+  }
+
+  /**
+   * Get the current user ID
+   * @returns The current user ID or null if not authenticated
+   */
+  getCurrentUserId(): string | null {
+    return this.currentUserId;
   }
 }

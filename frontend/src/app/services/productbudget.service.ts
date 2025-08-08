@@ -1,115 +1,295 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { ProductBudget } from '../models/ProductBudget';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { BehaviorSubject, Observable, throwError, of } from 'rxjs';
+import { catchError, map, tap, switchMap } from 'rxjs/operators';
+import { ProductBudget } from '../core/models/ProductBudget';
+import { AuthService } from './auth.service';
+
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  message?: string;
+  error?: string;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProductbudgetService {
+  private apiUrl = 'http://localhost:3001/api/v1';
+  private goals = new BehaviorSubject<ProductBudget[]>([]);
 
-  private goals = new BehaviorSubject<ProductBudget[]>([
-    {
-      id: '1',
-      name: 'Anker Liberty 4NC All-New True-Wireless Earbuds',
-      imageUrl: 'assets/images/product_goals/anker_liberty_4nc.png',
-      targetAmount: 16500,
-      savedAmount: 15000,
-      targetDate: new Date('2025-12-31')
-    },
-    {
-      id: '2',
-      name: 'Monitor Stand',
-      imageUrl: 'assets/images/product_goals/monitor_stand.png',
-      targetAmount: 9000,
-      savedAmount: 0,
-      targetDate: new Date('2025-03-31')
-    },
-    {
-      id: '3',
-      name: 'Baseus Wireless Charger',
-      imageUrl: 'assets/images/product_goals/wireless-charger-9.png',
-      targetAmount: 8000,
-      savedAmount: 0,
-      targetDate: new Date('2025-12-31')
-    },
-    {
-      id: '4',
-      name: 'Ugreen Vertical Laptop Stand Holder',
-      imageUrl: 'assets/images/product_goals/ugreen_laptop_stand.png',
-      targetAmount: 5000,
-      savedAmount: 0,
-      targetDate: new Date('2025-12-31')
-    },
-    {
-      id: '5',
-      name: 'Ugreen 2 in 1 Wireless Charger',
-      imageUrl: 'assets/images/product_goals/ugreen_wireless_charger.png',
-      targetAmount: 10000,
-      savedAmount: 0,
-      targetDate: new Date('2025-12-31')
-    },
-    {
-      id: '6',
-      name: 'Ugreen lightning to female aux adapter',
-      imageUrl: 'assets/images/product_goals/ugreen_lightning_to_aux.png',
-      targetAmount: 2000,
-      savedAmount: 0,
-      targetDate: new Date('2025-12-31')
-    },
-    {
-      id: '7',
-      name: 'MSI Gaming Monitor',
-      imageUrl: 'assets/images/product_goals/msi_monitor.png',
-      targetAmount: 66000,
-      savedAmount: 0,
-      targetDate: new Date('2025-12-31')
-    },
-    {
-      id: '8',
-      name: 'Kingston 1TB SSD',
-      imageUrl: 'assets/images/product_goals/kingston_ssd.png',
-      targetAmount: 18500,
-      savedAmount: 0,
-      targetDate: new Date('2025-12-31')
+  constructor(private http: HttpClient, private authService: AuthService) {
+    // Load goals when the service is initialized if user is authenticated
+    if (this.authService.isAuthenticated()) {
+      this.loadGoals();
     }
-  ]);
+
+    // Also load goals when user becomes authenticated
+    this.authService.currentUser$.subscribe(user => {
+      if (user) {
+        this.loadGoals();
+      }
+    });
+  }
+
+  private loadGoals(): void {
+    console.log('Loading product budget goals...');
+
+    this.http.get<ApiResponse<ProductBudget[]>>(`${this.apiUrl}/productbudgets`)
+      .pipe(
+        map(response => response.data),
+        map(goals => this.mapApiGoalsToProductBudgets(goals)),
+        catchError(this.handleError)
+      )
+      .subscribe({
+        next: (goals) => {
+          console.log('Product budget goals loaded:', goals);
+          this.goals.next(goals);
+        },
+        error: (error) => {
+          console.error('Error loading product budget goals:', error);
+        }
+      });
+  }
+
+  private mapApiGoalsToProductBudgets(goals: any[]): ProductBudget[] {
+    return goals.map(goal => ({
+      id: goal._id,
+      name: goal.name,
+      imageUrl: goal.imageUrl,
+      targetAmount: goal.targetAmount,
+      savedAmount: goal.savedAmount,
+      targetDate: new Date(goal.targetDate)
+    }));
+  }
 
   getGoals(): Observable<ProductBudget[]> {
+    // If goals are empty, try loading them first
+    if (this.goals.getValue().length === 0 && this.authService.isAuthenticated()) {
+      this.loadGoals();
+    }
     return this.goals.asObservable();
   }
 
-  addGoal(goal: Omit<ProductBudget, 'id'>): void {
-    const currentGoals = this.goals.getValue();
-    const newGoal = {
-      ...goal,
-      id: (currentGoals.length + 1).toString()
-    };
-    this.goals.next([...currentGoals, newGoal]);
-  }
-
-  updateGoal(goal: ProductBudget): void {
-    const currentGoals = this.goals.getValue();
-    const index = currentGoals.findIndex(g => g.id === goal.id);
-    if (index !== -1) {
-      currentGoals[index] = goal;
-      this.goals.next([...currentGoals]);
+  addGoal(goal: Omit<ProductBudget, 'id'>): Observable<ProductBudget> {
+    if (!this.authService.isAuthenticated()) {
+      return throwError(() => new Error('User not authenticated'));
     }
+
+    return this.http.post<ApiResponse<any>>(`${this.apiUrl}/productbudgets`, goal)
+      .pipe(
+        map(response => response.data),
+        map(newGoal => ({
+          id: newGoal._id,
+          name: newGoal.name,
+          imageUrl: newGoal.imageUrl,
+          targetAmount: newGoal.targetAmount,
+          savedAmount: newGoal.savedAmount,
+          targetDate: new Date(newGoal.targetDate)
+        })),
+        tap(newGoal => {
+          const currentGoals = this.goals.getValue();
+          this.goals.next([...currentGoals, newGoal]);
+        }),
+        catchError(this.handleError)
+      );
   }
 
-  deleteGoal(id: string): void {
-    const currentGoals = this.goals.getValue();
-    this.goals.next(currentGoals.filter(goal => goal.id !== id));
+  updateGoal(goal: ProductBudget): Observable<ProductBudget> {
+    if (!this.authService.isAuthenticated()) {
+      return throwError(() => new Error('User not authenticated'));
+    }
+
+    const { id, ...goalData } = goal;
+
+    return this.http.put<ApiResponse<any>>(`${this.apiUrl}/productbudgets/${id}`, goalData)
+      .pipe(
+        map(response => response.data),
+        map(updatedGoal => ({
+          id: updatedGoal._id,
+          name: updatedGoal.name,
+          imageUrl: updatedGoal.imageUrl,
+          targetAmount: updatedGoal.targetAmount,
+          savedAmount: updatedGoal.savedAmount,
+          targetDate: new Date(updatedGoal.targetDate)
+        })),
+        tap(updatedGoal => {
+          const currentGoals = this.goals.getValue();
+          const index = currentGoals.findIndex(g => g.id === updatedGoal.id);
+          if (index !== -1) {
+            currentGoals[index] = updatedGoal;
+            this.goals.next([...currentGoals]);
+          }
+        }),
+        catchError(this.handleError)
+      );
   }
 
-  addMoney(id: string, amount: number): void {
-    const currentGoals = this.goals.getValue();
-    const index = currentGoals.findIndex(g => g.id === id);
-    if (index !== -1) {
-      currentGoals[index] = {
-        ...currentGoals[index],
-        savedAmount: currentGoals[index].savedAmount + amount
+  deleteGoal(id: string): Observable<void> {
+    if (!this.authService.isAuthenticated()) {
+      return throwError(() => new Error('User not authenticated'));
+    }
+
+    return this.http.delete<ApiResponse<any>>(`${this.apiUrl}/productbudgets/${id}`)
+      .pipe(
+        map(() => void 0),
+        tap(() => {
+          const currentGoals = this.goals.getValue();
+          this.goals.next(currentGoals.filter(goal => goal.id !== id));
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  addMoney(id: string, amount: number): Observable<ProductBudget> {
+    if (!this.authService.isAuthenticated()) {
+      return throwError(() => new Error('User not authenticated'));
+    }
+
+    // Get the current saved amount first
+    return this.http.get<ApiResponse<ProductBudget>>(`${this.apiUrl}/productbudgets/${id}`)
+      .pipe(
+        map(response => response.data),
+        switchMap((goal: any) => {
+          // Calculate the new total amount
+          const currentAmount = goal.savedAmount || 0;
+          const newAmount = currentAmount + amount;
+
+          // Update the entire goal using PUT instead of PATCH (which might be having issues)
+          return this.http.put<ApiResponse<ProductBudget>>(`${this.apiUrl}/productbudgets/${id}`, {
+            savedAmount: newAmount,
+            name: goal.name,
+            imageUrl: goal.imageUrl,
+            targetAmount: goal.targetAmount,
+            targetDate: goal.targetDate
+          });
+        }),
+        map((response: ApiResponse<any>) => response.data),
+        map(updatedGoal => ({
+          id: updatedGoal._id,
+          name: updatedGoal.name,
+          imageUrl: updatedGoal.imageUrl,
+          targetAmount: updatedGoal.targetAmount,
+          savedAmount: updatedGoal.savedAmount,
+          targetDate: new Date(updatedGoal.targetDate)
+        })),
+        tap(updatedGoal => {
+          const currentGoals = this.goals.getValue();
+          const index = currentGoals.findIndex(g => g.id === updatedGoal.id);
+          if (index !== -1) {
+            currentGoals[index] = updatedGoal;
+            this.goals.next([...currentGoals]);
+          }
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  refreshGoals(): void {
+    this.loadGoals();
+  }
+
+  bulkAddGoals(goals: Omit<ProductBudget, 'id'>[]): Observable<{
+    successCount: number;
+    failedCount: number;
+    failedGoals?: { name: string; error: string }[];
+  }> {
+    if (!this.authService.isAuthenticated()) {
+      return throwError(() => new Error('User not authenticated'));
+    }
+
+    console.log('Bulk adding goals:', goals);
+
+    // Track successful and failed goals
+    let successCount = 0;
+    let failedCount = 0;
+    const failedGoals: { name: string; error: string }[] = [];
+    const successfulGoals: ProductBudget[] = [];
+
+    // Create an observable that will emit the final result
+    return new Observable(observer => {
+      // Process each goal sequentially
+      const processGoal = (index: number) => {
+        if (index >= goals.length) {
+          // All goals processed, update the local BehaviorSubject
+          if (successfulGoals.length > 0) {
+            const currentGoals = this.goals.getValue();
+            this.goals.next([...currentGoals, ...successfulGoals]);
+          }
+
+          // Emit the final result
+          observer.next({
+            successCount,
+            failedCount,
+            failedGoals: failedGoals.length > 0 ? failedGoals : undefined
+          });
+          observer.complete();
+          return;
+        }
+
+        // Process the current goal
+        const goal = goals[index];
+        this.http.post<ApiResponse<any>>(`${this.apiUrl}/productbudgets`, goal)
+          .pipe(
+            map(response => response.data),
+            map(newGoal => ({
+              id: newGoal._id,
+              name: newGoal.name,
+              imageUrl: newGoal.imageUrl,
+              targetAmount: newGoal.targetAmount,
+              savedAmount: newGoal.savedAmount,
+              targetDate: new Date(newGoal.targetDate)
+            })),
+            catchError(error => {
+              console.error(`Error adding goal '${goal.name}':`, error);
+              failedCount++;
+              failedGoals.push({
+                name: goal.name,
+                error: error.message || 'Unknown error'
+              });
+              return of(null);
+            })
+          )
+          .subscribe({
+            next: (newGoal) => {
+              if (newGoal) {
+                successCount++;
+                successfulGoals.push(newGoal);
+              }
+              // Process the next goal
+              processGoal(index + 1);
+            },
+            error: (error) => {
+              console.error(`Unexpected error adding goal '${goal.name}':`, error);
+              failedCount++;
+              failedGoals.push({
+                name: goal.name,
+                error: error.message || 'Unknown error'
+              });
+              // Continue with the next goal despite the error
+              processGoal(index + 1);
+            }
+          });
       };
-      this.goals.next([...currentGoals]);
+
+      // Start processing the goals
+      processGoal(0);
+    });
+  }
+
+  private handleError(error: HttpErrorResponse): Observable<never> {
+    let errorMessage = 'An error occurred';
+
+    if (error.error?.error) {
+      errorMessage = error.error.error;
+    } else if (error.error?.message) {
+      errorMessage = error.error.message;
+    } else if (error.message) {
+      errorMessage = error.message;
     }
+
+    console.error('Product Budget Service Error:', error);
+    return throwError(() => new Error(errorMessage));
   }
 }

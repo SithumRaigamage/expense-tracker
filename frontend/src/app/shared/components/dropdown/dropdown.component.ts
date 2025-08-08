@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DropdownDirective } from '../../../directives/dropdown.directive';
+import { DropdownDirective } from '../../../core/directives/dropdown.directive';
 
 @Component({
   selector: 'app-dropdown',

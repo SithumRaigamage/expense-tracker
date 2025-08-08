@@ -15,7 +15,7 @@ import {
   NgApexchartsModule,
   ApexTheme
 } from 'ng-apexcharts';
-import { Transaction } from '../models/Transaction';
+import { Transaction } from '../core/models/Transaction';
 
 export type ChartOptions = {
   series: ApexAxisChartSeries;

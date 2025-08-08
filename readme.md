@@ -38,7 +38,15 @@ A modern expense tracking application built with Angular, designed to help users
 - Secure card management
 - Default payment settings
 
+### 📝 Release Notes Management
+
+- Role-based access control (Admin/User)
+- Version tracking with semantic versioning
+- Detailed changelog including features, bug fixes, and improvements
+- Admin dashboard for managing release information
+
 ### 🎨 UI/UX Features
+
 - 📱 Responsive design
 - 🌓 Dark/Light themes
 - ✅ Form validation
@@ -82,7 +90,17 @@ npm install
 
 # Start development server
 ng serve
+
+# Seed the database with sample release notes (optional)
+cd ../expensive-tracker-backend
+node scripts/seedReleaseNotes.js
 ```
+## Database 
+
+mongod-start
+
+mongod-stop
+
 
 ## 🧪 Testing
 
@@ -113,6 +131,12 @@ npm run lint
 
 4. Install VS Code SonarLint extension
 
+## 📚 Documentation
+
+- [Release Notes API](./expensive-tracker-backend/docs/release-notes-api.md)
+- [Wallet API](./expensive-tracker-backend/docs/wallet-api.md)
+- [Product Budget API](./expensive-tracker-backend/docs/product-budget-api.md)
+
 ## 📚 Learning Outcomes
 
 - ⚡ Angular component architecture
@@ -135,6 +159,7 @@ npm run lint
 - [x] User authentication
 - [x] Payment method management
 - [x] Dark/Light theme
+- [x] Release notes management
 - [ ] Expense categories
 - [ ] Budget tracking
 - [ ] Financial reports

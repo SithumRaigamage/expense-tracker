@@ -21,6 +21,11 @@ const categorySchema = new mongoose.Schema({
     default: '#6366f1',
     match: [/^#[0-9A-F]{6}$/i, 'Please provide a valid hex color']
   },
+  type: {
+    type: String,
+    enum: ['income', 'expense'],
+    required: [true, 'Category type is required']
+  },
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

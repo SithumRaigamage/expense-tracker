@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { Target } from '../models/Target';
+import { Target } from '../core/models/Target';
 
 
 @Injectable({
