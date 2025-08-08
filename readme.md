@@ -83,6 +83,12 @@ npm install
 # Start development server
 ng serve
 ```
+## Database 
+
+mongod-start
+
+mongod-stop
+
 
 ## 🧪 Testing
 
