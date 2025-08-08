@@ -16,9 +16,9 @@ import { FaqComponent } from './Navigation/components/settings/faq/faq.component
 import { TroubleshootingComponent } from './Navigation/components/settings/troubleshooting/troubleshooting.component';
 import { ReleaseNotesComponent } from './Navigation/components/settings/release-notes/release-notes.component';
 import { SupportComponent } from './Navigation/components/settings/support/support.component';
-import { FeedbackComponent } from './feedback/feedback.component';
+import { FeedbackComponent } from './Navigation/components/feedback/feedback.component';
 import { ChatComponent } from './Navigation/components/chat/chat.component';
-import { EducationComponent } from './education/education.component';
+import { EducationComponent } from './Navigation/components/education/education.component';
 import { AuthGuard } from './core/guards/auth.guard';
 import { ManageWalletsComponent } from './dasboard/components/manage-wallets/manage-wallets.component';
 import { MainLayoutComponent } from './main-layout/main-layout.component';
