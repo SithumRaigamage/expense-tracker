@@ -118,6 +118,12 @@ export class AuthService {
   verifyToken(): Observable<ApiResponse<{ user: User; valid: boolean }>> {
     return this.http.get<ApiResponse<{ user: User; valid: boolean }>>(`${this.apiUrl}/verify`)
       .pipe(
+        tap(response => {
+          if (response.success) {
+            this.currentUserSubject.next(response.data.user);
+            this.saveUserToStorage(response.data.user);
+          }
+        }),
         catchError(error => {
           // If there's an error verifying the token, we should clear the auth state
           this.logout();
@@ -153,6 +159,11 @@ export class AuthService {
 
   getCurrentUser(): User | null {
     return this.currentUserSubject.value;
+  }
+
+  isAdmin(): boolean {
+    const currentUser = this.getCurrentUser();
+    return !!(currentUser && currentUser.role === 'admin');
   }
 
   private handleError(error: any): Observable<never> {

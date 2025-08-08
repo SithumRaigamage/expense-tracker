@@ -57,7 +57,8 @@ const register = async (req, res, next) => {
           currency: user.currency,
           avatar: user.avatar,
           isActive: user.isActive,
-          lastLogin: user.lastLogin
+          lastLogin: user.lastLogin,
+          role: user.role
         },
         token
       }
@@ -140,7 +141,8 @@ const login = async (req, res, next) => {
           currency: user.currency,
           avatar: user.avatar,
           isActive: user.isActive,
-          lastLogin: user.lastLogin
+          lastLogin: user.lastLogin,
+          role: user.role
         },
         token
       }
@@ -323,7 +325,8 @@ const verifyToken = async (req, res, next) => {
           currency: user.currency,
           avatar: user.avatar,
           isActive: user.isActive,
-          lastLogin: user.lastLogin
+          lastLogin: user.lastLogin,
+          role: user.role
         },
         valid: true
       }

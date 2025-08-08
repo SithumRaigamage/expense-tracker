@@ -1,6 +1,59 @@
-# Data Migration Scripts
+# Scripts
 
-This folder contains scripts to help with data migration and maintenance of the expense tracker application.
+This directory contains utility scripts for the Expense Tracker application.
+
+## Available Scripts
+
+### Seed Release Notes
+
+```bash
+node seedReleaseNotes.js
+```
+
+This script populates the database with sample release notes. It will:
+
+- Clear all existing release notes
+- Add comprehensive release notes with features, bugfixes, and improvements
+- Display a summary of the seeded data
+
+The script includes detailed release notes for versions:
+
+- 2.0.0 (Latest) - Role-based release notes and admin features
+- 1.5.0 - User profile and budget management features
+- 1.2.0 - Analytics dashboard and reporting features
+- 1.1.0 - Smart categorization and multiple wallet support
+- 1.0.0 - Initial stable release with core functionality
+- 0.9.0-beta - Beta release with basic features
+
+### Clear Categories
+
+```bash
+node clearCategories.js
+```
+
+This script removes all categories from the database.
+
+### Seed User
+
+```bash
+node seedUser.js
+```
+
+This script creates a default user in the database.
+
+### Update User References
+
+```bash
+node updateUserReferences.js
+```
+
+This script updates user references in the database.
+
+## Notes
+
+- These scripts require the application's environment variables to be properly configured
+- Make sure MongoDB is running before executing these scripts
+- Some scripts may clear existing data, so use with caution in production environments
 
 ## updateUserReferences.js
 

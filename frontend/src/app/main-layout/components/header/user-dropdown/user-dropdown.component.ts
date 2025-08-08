@@ -49,7 +49,7 @@ export class UserDropdownComponent implements OnInit, OnDestroy {
     // Subscribe to current user changes
     this.userSubscription = this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
-      console.log('Current user on header:', this.currentUser);
+      //console.log('Current user on header:', this.currentUser);
     });
   }
 

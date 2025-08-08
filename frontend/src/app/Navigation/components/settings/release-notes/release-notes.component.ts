@@ -66,10 +66,7 @@ export class ReleaseNotesComponent implements OnInit {
     const currentUser = this.authService.getCurrentUser();
 
     // Set isAdmin to true if user has admin role
-    this.isAdmin = !!(currentUser && currentUser.role === 'admin');
-
-    // For development/testing: uncomment this line to force admin role
-    // this.isAdmin = true;
+    this.isAdmin = this.authService.isAdmin();
   }
 
   loadReleaseNotes(): void {
@@ -152,6 +149,8 @@ export class ReleaseNotesComponent implements OnInit {
     }
 
     this.isLoading = true;
+    this.error = ''; // Clear any previous errors
+
     this.releaseNoteService.deleteReleaseNote(id).subscribe({
       next: () => {
         this.releases = this.releases.filter(r => r._id !== id);
@@ -161,7 +160,7 @@ export class ReleaseNotesComponent implements OnInit {
         if (err.status === 403) {
           this.error = 'You do not have permission to delete release notes. Admin privileges required.';
         } else {
-          this.error = 'Failed to delete release note.';
+          this.error = 'Failed to delete release note: ' + (err.error?.message || err.message || 'Unknown error');
         }
         console.error('Error deleting release note:', err);
         this.isLoading = false;
@@ -185,6 +184,7 @@ export class ReleaseNotesComponent implements OnInit {
     };
 
     this.isLoading = true;
+    this.error = ''; // Clear any previous errors
 
     if (this.editMode && this.currentReleaseId) {
       // Update existing release note
@@ -201,7 +201,7 @@ export class ReleaseNotesComponent implements OnInit {
           if (err.status === 403) {
             this.error = 'You do not have permission to update release notes. Admin privileges required.';
           } else {
-            this.error = 'Failed to update release note.';
+            this.error = 'Failed to update release note: ' + (err.error?.message || err.message || 'Unknown error');
           }
           console.error('Error updating release note:', err);
           this.isLoading = false;
@@ -219,7 +219,7 @@ export class ReleaseNotesComponent implements OnInit {
           if (err.status === 403) {
             this.error = 'You do not have permission to create release notes. Admin privileges required.';
           } else {
-            this.error = 'Failed to create release note.';
+            this.error = 'Failed to create release note: ' + (err.error?.message || err.message || 'Unknown error');
           }
           console.error('Error creating release note:', err);
           this.isLoading = false;

@@ -223,8 +223,8 @@ export class SettingsService {
         const userData = response.data.user;
         const profileImage = response.data.profileImage;
 
-        console.log('Profile image URL from response:', profileImage);
-        console.log('User data profileImage:', userData.profileImage);
+        //console.log('Profile image URL from response:', profileImage);
+        //console.log('User data profileImage:', userData.profileImage);
         console.log('User data avatar:', userData.avatar);
 
         const user: User = {
