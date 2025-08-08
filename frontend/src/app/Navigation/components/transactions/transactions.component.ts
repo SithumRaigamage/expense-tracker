@@ -8,6 +8,7 @@ import {
   faEdit, faRefresh, faFilter, faSearch, faChevronLeft, faChevronRight
 } from '@fortawesome/free-solid-svg-icons';
 import { Transaction } from '../../../core/models/Transaction';
+import { ToastmsgService } from '../../../services/toastmsg.service';
 
 interface Category {
   _id: string;
@@ -63,7 +64,8 @@ export class TransactionsComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private transactionService: TransactionService
+    private transactionService: TransactionService,
+    private toastService: ToastmsgService
   ) {
     this.transactionForm = this.createForm();
     this.filterForm = this.createFilterForm();
@@ -193,12 +195,18 @@ export class TransactionsComponent implements OnInit {
       operation.subscribe({
         next: (transaction) => {
           console.log('Transaction saved:', transaction);
+          if (this.selectedTransaction) {
+            this.toastService.show('Transaction updated successfully', 'warning');
+          } else {
+            this.toastService.show('Transaction added successfully', 'success');
+          }
           this.closeDrawer();
           this.isLoading = false;
         },
         error: (error) => {
           console.error('Error saving transaction:', error);
-          this.errorMessage = error.message || 'Failed to save transaction';
+          this.toastService.show(error.message || 'Error saving transaction', 'error');
+          this.errorMessage = error.message || 'Failed to save transaction. Please try again.';
           this.isLoading = false;
         }
       });
@@ -315,12 +323,13 @@ export class TransactionsComponent implements OnInit {
             .map(t => `• ${t.description}: ${t.error}`)
             .join('\n');
 
-          // Use a simple alert with details
-          alert(`Successfully imported ${result.successCount} transactions.\n\n${result.failedCount} transaction(s) failed to import:\n${failureDetails}`);
+          // Show toast messages
+          this.toastService.show(`Successfully imported ${result.successCount} transactions`, 'success');
+          this.toastService.show(`${result.failedCount} transaction(s) failed to import`, 'warning');
         } else if (result.failedCount > 0) {
-          alert(`${result.successCount} transactions imported successfully. ${result.failedCount} transactions failed to import.`);
+          this.toastService.show(`${result.successCount} transactions imported successfully. ${result.failedCount} transactions failed.`, 'warning');
         } else {
-          alert(`${result.successCount} transactions imported successfully!`);
+          this.toastService.show(`${result.successCount} transactions imported successfully!`, 'success');
         }
         // Refresh the transactions list with a small delay to ensure backend processing is complete
         setTimeout(() => {
@@ -337,6 +346,7 @@ export class TransactionsComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error importing transactions:', error);
+        this.toastService.show(error.message || 'Failed to import transactions', 'error');
         this.errorMessage = error.message || 'Failed to import transactions. Please try again.';
         this.isLoading = false;
       }
@@ -354,9 +364,11 @@ export class TransactionsComponent implements OnInit {
       this.transactionService.deleteTransaction(id).subscribe({
         next: () => {
           console.log('Transaction deleted successfully');
+          this.toastService.show('Transaction deleted successfully', 'error');
         },
         error: (error) => {
           console.error('Error deleting transaction:', error);
+          this.toastService.show(error.message || 'Failed to delete transaction', 'error');
           this.errorMessage = error.message || 'Failed to delete transaction';
         }
       });

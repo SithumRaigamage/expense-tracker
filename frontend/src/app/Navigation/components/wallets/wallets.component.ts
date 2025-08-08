@@ -13,6 +13,7 @@ import { Wallet } from '../../../core/models/Wallet';
 import { WalletService } from '../../../services/wallet.service';
 import { DialogService } from '../../../shared/services/dialog.service';
 import { Router } from '@angular/router';
+import { ToastmsgService } from '../../../services/toastmsg.service';
 
 import { materialImports } from '../../../shared/material.module';
 
@@ -62,7 +63,8 @@ export class WalletsComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private walletService: WalletService,
     private dialogService: DialogService,
-    private router: Router
+    private router: Router,
+    private toastService: ToastmsgService
   ) {
     this.subscription = new Subscription();
     this.initForm();
@@ -177,12 +179,13 @@ export class WalletsComponent implements OnInit, OnDestroy {
         this.walletService.updateWallet(this.selectedWallet.id, walletData).subscribe({
           next: () => {
             console.log('Wallet updated successfully');
+            this.toastService.show('Wallet updated successfully', 'warning');
             this.closeDrawer();
             this.isLoading = false;
           },
           error: (error) => {
             console.error('Error updating wallet:', error);
-            alert(error.message || 'Error updating wallet');
+            this.toastService.show(error.message || 'Error updating wallet', 'error');
             this.isLoading = false;
           }
         });
@@ -190,12 +193,13 @@ export class WalletsComponent implements OnInit, OnDestroy {
         this.walletService.addWallet(walletData).subscribe({
           next: () => {
             console.log('Wallet added successfully');
+            this.toastService.show('Wallet added successfully', 'success');
             this.closeDrawer();
             this.isLoading = false;
           },
           error: (error) => {
             console.error('Error adding wallet:', error);
-            alert(error.message || 'Error adding wallet');
+            this.toastService.show(error.message || 'Error adding wallet', 'error');
             this.isLoading = false;
           }
         });
@@ -305,19 +309,20 @@ export class WalletsComponent implements OnInit, OnDestroy {
             .map(w => `• ${w.name}: ${w.error}`)
             .join('\n');
 
-          // Use a simple alert with details
-          alert(`Successfully imported ${result.successCount} wallets.\n\n${result.failedCount} wallet(s) failed to import:\n${failureDetails}`);
+          // Show success and warning
+          this.toastService.show(`Successfully imported ${result.successCount} wallets`, 'success');
+          this.toastService.show(`${result.failedCount} wallet(s) failed to import`, 'warning');
         } else if (result.failedCount > 0) {
-          alert(`${result.successCount} wallets imported successfully. ${result.failedCount} wallets failed to import.`);
+          this.toastService.show(`${result.successCount} wallets imported successfully. ${result.failedCount} wallets failed.`, 'warning');
         } else {
-          alert(`${result.successCount} wallets imported successfully!`);
+          this.toastService.show(`${result.successCount} wallets imported successfully!`, 'success');
         }
         this.closeDrawer();
         this.isLoading = false;
       },
       error: (error) => {
         console.error('Error importing wallets:', error);
-        alert(error.message || 'Error importing wallets');
+        this.toastService.show(error.message || 'Error importing wallets', 'error');
         this.isLoading = false;
       }
     });
@@ -335,11 +340,11 @@ export class WalletsComponent implements OnInit, OnDestroy {
         this.walletService.deleteWallet(id).subscribe({
           next: () => {
             console.log('Wallet deleted successfully');
+            this.toastService.show('Wallet deleted successfully', 'error');
           },
           error: (error) => {
             console.error('Error deleting wallet:', error);
-            // We could use another dialog here instead of alert, but keeping it simple for now
-            alert(error.message || 'Error deleting wallet');
+            this.toastService.show(error.message || 'Error deleting wallet', 'error');
           }
         });
       }

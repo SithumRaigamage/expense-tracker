@@ -1,37 +1,107 @@
 [
   {
     "name": "New iPhone",
-    "imageUrl": "https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-15-pro-select-202309-6-7inch-naturaltitanium?wid=2560&hei=1440&fmt=p-jpg&qlt=80&.v=1693011871972",
-    "targetAmount": 1199.99,
-    "savedAmount": 300,
+    "imageUrl": "https://images.unsplash.com/photo-1591337676887-a217a6970a8a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1280&q=80",
+    "targetAmount": 450000,
+    "savedAmount": 112500,
     "targetDate": "2025-12-25"
   },
   {
     "name": "Gaming Laptop",
-    "imageUrl": "https://m.media-amazon.com/images/I/71nz3cIcFOL._AC_UF1000,1000_QL80_.jpg",
-    "targetAmount": 1599.99,
-    "savedAmount": 550,
+    "imageUrl": "https://images.unsplash.com/photo-1603481588273-2f908a9a7a1b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1280&q=80",
+    "targetAmount": 600000,
+    "savedAmount": 206250,
     "targetDate": "2026-01-15"
   },
   {
     "name": "Vacation to Bali",
-    "imageUrl": "https://a.cdn-hotels.com/gdcs/production40/d811/5e89ad90-8f10-11e8-b6b0-0242ac110007.jpg",
-    "targetAmount": 3500,
-    "savedAmount": 1200,
+    "imageUrl": "https://images.unsplash.com/photo-1537996194471-e657df975ab4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1280&q=80",
+    "targetAmount": 1312500,
+    "savedAmount": 450000,
     "targetDate": "2025-10-01"
   },
   {
     "name": "Smart TV",
-    "imageUrl": "https://images.samsung.com/is/image/samsung/p6pim/levant/ua55cu7000uxzn/gallery/levant-crystal-uhd-cu7000-458967-ua55cu7000uxzn-536841177",
-    "targetAmount": 899.99,
-    "savedAmount": 250,
+    "imageUrl": "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1280&q=80",
+    "targetAmount": 337500,
+    "savedAmount": 93750,
     "targetDate": "2025-11-15"
   },
   {
     "name": "Home Theater System",
-    "imageUrl": "https://www.lg.com/in/images/home-theaters/md07554363/gallery/LHD667-D-1.jpg",
-    "targetAmount": 799.99,
-    "savedAmount": 200,
+    "imageUrl": "https://images.unsplash.com/photo-1535016120720-40c646be5580?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1280&q=80",
+    "targetAmount": 300000,
+    "savedAmount": 75000,
     "targetDate": "2026-02-10"
+  },
+  {
+    "name": "Electric Car Down Payment",
+    "imageUrl": "https://images.unsplash.com/photo-1560958089-b8a1929cea89?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1280&q=80",
+    "targetAmount": 1875000,
+    "savedAmount": 656250,
+    "targetDate": "2026-06-30"
+  },
+  {
+    "name": "Professional Camera",
+    "imageUrl": "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1280&q=80",
+    "targetAmount": 937500,
+    "savedAmount": 318750,
+    "targetDate": "2025-09-15"
+  },
+  {
+    "name": "Kitchen Renovation",
+    "imageUrl": "https://images.unsplash.com/photo-1556912172-45b7abe8b7e1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1280&q=80",
+    "targetAmount": 4500000,
+    "savedAmount": 1312500,
+    "targetDate": "2026-04-01"
+  },
+  {
+    "name": "New MacBook Pro",
+    "imageUrl": "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1280&q=80",
+    "targetAmount": 750000,
+    "savedAmount": 300000,
+    "targetDate": "2025-12-01"
+  },
+  {
+    "name": "Designer Handbag",
+    "imageUrl": "https://images.unsplash.com/photo-1584917865442-de89df76afd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1280&q=80",
+    "targetAmount": 562500,
+    "savedAmount": 187500,
+    "targetDate": "2025-10-10"
+  },
+  {
+    "name": "Emergency Fund",
+    "imageUrl": "https://images.unsplash.com/photo-1579621970588-a35d0e7ab9b6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1280&q=80",
+    "targetAmount": 3750000,
+    "savedAmount": 1687500,
+    "targetDate": "2026-12-31"
+  },
+  {
+    "name": "Wedding Fund",
+    "imageUrl": "https://images.unsplash.com/photo-1529634806980-85c3dd6d34ac?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1280&q=80",
+    "targetAmount": 9375000,
+    "savedAmount": 2812500,
+    "targetDate": "2026-08-15"
+  },
+  {
+    "name": "Gaming Console",
+    "imageUrl": "https://images.unsplash.com/photo-1605901309584-818e25960a8f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1280&q=80",
+    "targetAmount": 187500,
+    "savedAmount": 75000,
+    "targetDate": "2025-11-25"
+  },
+  {
+    "name": "Luxury Watch",
+    "imageUrl": "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1280&q=80",
+    "targetAmount": 3000000,
+    "savedAmount": 1050000,
+    "targetDate": "2026-05-20"
+  },
+  {
+    "name": "College Tuition",
+    "imageUrl": "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1280&q=80",
+    "targetAmount": 11250000,
+    "savedAmount": 4500000,
+    "targetDate": "2026-09-01"
   }
 ]
