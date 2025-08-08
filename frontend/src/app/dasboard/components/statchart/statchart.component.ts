@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { ChartTabComponent } from "../../../chart-tab/chart-tab.component";
+import { ChartTabComponent } from "../../../shared/components/chart-tab/chart-tab.component";
 import { TransactionService } from '../../../services/transaction.service';
 import {
   ApexChart,

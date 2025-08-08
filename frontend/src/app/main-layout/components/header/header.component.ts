@@ -1,8 +1,6 @@
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { SidebarService } from '../../../services/sidebar-service.service';
 import { CommonModule } from '@angular/common';
-import { ThemeToggleButtonComponent } from "./theme-toggle-button/theme-toggle-button.component";
-import { NotificationDropdownComponent } from "./notification-dropdown/notification-dropdown.component";
 import { UserDropdownComponent } from "./user-dropdown/user-dropdown.component";
 import { RouterModule } from '@angular/router';
 
@@ -12,8 +10,6 @@ import { RouterModule } from '@angular/router';
   imports: [
     CommonModule,
     RouterModule,
-    ThemeToggleButtonComponent,
-    NotificationDropdownComponent,
     UserDropdownComponent
   ],
   styleUrls: ['./header.component.css'],
