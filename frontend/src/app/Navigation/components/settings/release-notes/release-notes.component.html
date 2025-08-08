@@ -132,21 +132,20 @@
       <!-- Release Item -->
       <div *ngFor="let release of filteredReleases"
            class="border border-gray-100 rounded-lg">
-  <!-- Release Header -->
-        <div class="flex items-center justify-between p-4 hover:bg-gray-50">
-          <button (click)="toggleRelease(release)"
-                  class="flex items-center gap-4 flex-1">
+        <!-- Release Header -->
+        <div class="flex items-center justify-between p-4 hover:bg-gray-50" (click)="toggleRelease(release)">
+          <div class="flex items-center gap-4 flex-1 cursor-pointer">
             <span class="font-medium text-gray-800">Version {{ release.version }}</span>
             <span class="text-sm text-gray-500">{{ release.date | date:'mediumDate' }}</span>
-          </button>
+          </div>
 
           <!-- Admin Actions -->
           <div *ngIf="isAdmin" class="flex items-center gap-2">
-            <button (click)="editReleaseNote(release)"
+            <button (click)="editReleaseNote(release); $event.stopPropagation()"
                     class="p-2 text-gray-500 hover:text-primary hover:bg-gray-100 rounded">
               <fa-icon [icon]="editIcon"></fa-icon>
             </button>
-            <button (click)="deleteReleaseNote(release._id!)"
+            <button (click)="deleteReleaseNote(release._id!); $event.stopPropagation()"
                     class="p-2 text-gray-500 hover:text-red-500 hover:bg-gray-100 rounded">
               <fa-icon [icon]="trashIcon"></fa-icon>
             </button>
