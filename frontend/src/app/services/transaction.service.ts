@@ -169,9 +169,12 @@ export class TransactionService {
   }
 
   private loadTransactions(): void {
-    console.log('Loading transactions...');
+    console.log('Loading transactions with limit=1000 for pagination...');
 
-    this.http.get<ApiResponse<ExpenseResponse[]>>(`${this.apiUrl}/expenses`)
+    // Set a large limit to get all transactions
+    const params = { limit: '1000' };
+
+    this.http.get<ApiResponse<ExpenseResponse[]>>(`${this.apiUrl}/expenses`, { params })
       .pipe(
         map(response => response.data),
         map(expenses => this.mapExpensesToTransactions(expenses)),
@@ -179,7 +182,7 @@ export class TransactionService {
       )
       .subscribe({
         next: (transactions) => {
-          console.log('Transactions loaded:', transactions);
+          console.log('Transactions loaded:', transactions.length);
           this.transactions.next(transactions);
         },
         error: (error) => {
@@ -200,6 +203,12 @@ export class TransactionService {
   }
 
   getTransactions(): Observable<Transaction[]> {
+    return this.transactions.asObservable();
+  }
+
+  getAllTransactions(): Observable<Transaction[]> {
+    // Force a refresh of transactions with a large limit to get all
+    this.loadTransactions();
     return this.transactions.asObservable();
   }
 
@@ -372,6 +381,77 @@ export class TransactionService {
         map(() => void 0),
         catchError(this.handleError)
       );
+  }
+
+  /**
+   * Add multiple transactions in bulk
+   * @param transactions Array of transaction data objects to be added
+   * @returns Observable with success and failure counts and failure details
+   */
+  bulkAddTransactions(transactions: Omit<Transaction, 'id'>[]): Observable<{
+    successCount: number;
+    failedCount: number;
+    failedTransactions?: Array<{description: string; error: string}>;
+  }> {
+    if (!this.authService.isAuthenticated()) {
+      return throwError(() => new Error('User not authenticated'));
+    }
+
+    // Check if transactions array is empty
+    if (!transactions.length) {
+      return of({ successCount: 0, failedCount: 0 });
+    }
+
+    // Since many backends might not have a bulk endpoint, implement the sequential approach
+    return new Observable<{
+      successCount: number;
+      failedCount: number;
+      failedTransactions?: Array<{description: string; error: string}>;
+    }>(observer => {
+      let successCount = 0;
+      let failedCount = 0;
+      let completed = 0;
+      const total = transactions.length;
+      const failedTransactions: Array<{description: string; error: string}> = [];
+
+      // Process transactions one by one
+      transactions.forEach(transaction => {
+        this.addTransaction(transaction).subscribe({
+          next: () => {
+            successCount++;
+            completed++;
+            if (completed === total) {
+              observer.next({
+                successCount,
+                failedCount,
+                failedTransactions: failedTransactions.length > 0 ? failedTransactions : undefined
+              });
+              observer.complete();
+            }
+          },
+          error: (error) => {
+            console.error(`Error adding transaction "${transaction.description}":`, error);
+            failedCount++;
+            completed++;
+
+            // Track failed transaction details
+            failedTransactions.push({
+              description: transaction.description,
+              error: error.message || 'Unknown error'
+            });
+
+            if (completed === total) {
+              observer.next({
+                successCount,
+                failedCount,
+                failedTransactions: failedTransactions.length > 0 ? failedTransactions : undefined
+              });
+              observer.complete();
+            }
+          }
+        });
+      });
+    });
   }
 
   refreshTransactions(): void {

@@ -111,8 +111,38 @@
       </div>
 
       <div class="p-6 flex-1 overflow-y-auto">
-        <!-- Add/Edit Form will go here -->
-        <form [formGroup]="walletForm" (ngSubmit)="onSubmit()" class="space-y-6">
+        <!-- Tab Navigation -->
+        <div *ngIf="!selectedWallet" class="mb-6 border-b border-gray-200 dark:border-gray-700">
+          <ul class="flex flex-wrap -mb-px text-sm font-medium text-center">
+            <li class="mr-2">
+              <a (click)="switchTab('manual')"
+                 [class.text-primary-600]="activeTab === 'manual'"
+                 [class.border-primary-600]="activeTab === 'manual'"
+                 [class.dark:border-primary-500]="activeTab === 'manual'"
+                 [class.active]="activeTab === 'manual'"
+                 class="inline-block p-4 border-b-2 rounded-t-lg cursor-pointer"
+                 [class.border-transparent]="activeTab !== 'manual'">
+                <fa-icon [icon]="faEdit" class="mr-2"></fa-icon>
+                Manual Entry
+              </a>
+            </li>
+            <li class="mr-2">
+              <a (click)="switchTab('upload')"
+                 [class.text-primary-600]="activeTab === 'upload'"
+                 [class.border-primary-600]="activeTab === 'upload'"
+                 [class.dark:border-primary-500]="activeTab === 'upload'"
+                 [class.active]="activeTab === 'upload'"
+                 class="inline-block p-4 border-b-2 rounded-t-lg cursor-pointer"
+                 [class.border-transparent]="activeTab !== 'upload'">
+                <fa-icon [icon]="faUpload" class="mr-2"></fa-icon>
+                Import JSON
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Manual Entry Form -->
+        <form *ngIf="activeTab === 'manual' || selectedWallet" [formGroup]="walletForm" (ngSubmit)="onSubmit()" class="space-y-6">
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Wallet Name
@@ -225,7 +255,92 @@
             </button>
           </div>
         </form>
+
+        <!-- JSON Upload Form -->
+        <div *ngIf="activeTab === 'upload' && !selectedWallet" class="space-y-6">
+          <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 border border-dashed border-gray-300 dark:border-gray-600">
+            <div class="text-center">
+              <fa-icon [icon]="faFileUpload" class="text-gray-400 text-4xl mb-3"></fa-icon>
+              <h3 class="text-lg font-medium text-gray-700 dark:text-gray-300 mb-1">Upload Wallet JSON</h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                Upload a JSON file to import wallets in bulk
+              </p>
+
+              <div *ngIf="jsonError" class="mb-4 p-3 bg-red-100 text-red-700 rounded-md text-sm">
+                {{ jsonError }}
+              </div>
+
+              <div *ngIf="jsonPreview" class="mb-4">
+                <h4 class="text-md font-medium text-gray-700 dark:text-gray-300 mb-2">Preview ({{ jsonPreview.length }} wallets)</h4>
+                <div class="overflow-auto max-h-40 rounded-md border border-gray-200 dark:border-gray-600">
+                  <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-left text-sm">
+                    <thead class="bg-gray-100 dark:bg-gray-800">
+                      <tr>
+                        <th class="px-4 py-2">Name</th>
+                        <th class="px-4 py-2">Type</th>
+                        <th class="px-4 py-2">Balance</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
+                      <tr *ngFor="let wallet of jsonPreview">
+                        <td class="px-4 py-2">{{ wallet.name }}</td>
+                        <td class="px-4 py-2 capitalize">{{ wallet.type }}</td>
+                        <td class="px-4 py-2">{{ formatCurrency(wallet.balance) }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <label for="json-upload" class="inline-flex items-center justify-center gap-2 rounded-lg bg-primary-500 px-5 py-2.5 text-sm font-medium text-black hover:bg-primary-600 cursor-pointer">
+                <fa-icon [icon]="faUpload"></fa-icon>
+                Choose File
+                <input type="file" id="json-upload" accept=".json" class="hidden" (change)="onFileSelected($event)">
+              </label>
+
+              <p *ngIf="selectedFile" class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                Selected: {{ selectedFile.name }}
+              </p>
+            </div>
+          </div>
+
+          <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-sm text-gray-600 dark:text-gray-300">
+            <h4 class="font-medium mb-2">Expected JSON Format:</h4>
+            <pre class="bg-gray-100 dark:bg-gray-800 p-3 rounded-md overflow-auto text-xs">
+[
+  {{ '{' }}
+    "name": "Wallet Name",
+    "type": "cash|bank|credit|savings|crypto|investment|loan",
+    "balance": 1000,
+    "currency": "LKR"
+  {{ '}' }},
+  ...
+]</pre>
+          </div>
+
+          <div class="flex justify-end gap-4 mt-8">
+            <button type="button"
+                    (click)="closeDrawer()"
+                    class="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors">
+              Cancel
+            </button>
+            <button type="button"
+                    [disabled]="!selectedFile || isLoading || jsonError"
+                    (click)="importWallets()"
+                    class="rounded-lg bg-primary-500 px-5 py-2.5 text-sm font-medium text-black hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md transition-all flex items-center gap-2">
+              <span *ngIf="isLoading" class="flex items-center gap-2">
+                <fa-icon class="animate-spin" [icon]="faRefresh"></fa-icon>
+                Importing...
+              </span>
+              <span *ngIf="!isLoading" class="flex items-center gap-2">
+                <fa-icon [icon]="faFileImport"></fa-icon>
+                Import Wallets
+              </span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </div>
+<!-- End of file -->

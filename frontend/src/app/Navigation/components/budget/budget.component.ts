@@ -36,6 +36,12 @@ export class BudgetComponent implements OnInit {
   uploadedFile: File | null = null;
   isUploading = false;
 
+  // JSON import properties
+  activeTab: 'manual' | 'upload' = 'manual';
+  selectedFile: File | null = null;
+  jsonPreview: Omit<ProductBudget, 'id'>[] | null = null;
+  jsonError: string | null = null;
+
   constructor(
     private productBudgetService: ProductbudgetService,
     private walletService: WalletService
@@ -112,25 +118,27 @@ export class BudgetComponent implements OnInit {
   openDrawer(mode: DrawerMode, goal?: ProductBudget): void {
     this.drawerMode = mode;
     this.isDrawerOpen = true;
+    this.activeTab = 'manual'; // Default to manual entry when opening drawer
 
-    // Reset image upload state
-    this.imageInputTab = 'url';
-    this.uploadedFile = null;
-    this.isUploading = false;
-
-    if (goal && (mode === 'edit' || mode === 'addMoney')) {
-      this.currentGoal = { ...goal };
+    // Reset form data
+    if (mode === 'edit' && goal) {
+      this.currentGoal = {
+        name: goal.name,
+        imageUrl: goal.imageUrl,
+        targetAmount: goal.targetAmount,
+        savedAmount: goal.savedAmount,
+        targetDate: goal.targetDate
+      };
       this.selectedGoalId = goal.id;
-
-      // If editing and the goal has an image URL that appears to be a data URL,
-      // switch to upload tab for a better UX
-      if (mode === 'edit' && goal.imageUrl && goal.imageUrl.startsWith('data:image')) {
-        this.imageInputTab = 'upload';
-      }
-    } else {
+    } else if (mode === 'add') {
       this.currentGoal = this.getEmptyGoal();
-      this.selectedGoalId = null;
+    } else if (mode === 'addMoney' && goal) {
+      this.selectedGoalId = goal.id;
+      this.addAmount = 0;
     }
+
+    // Reset file upload data
+    this.resetFileUpload();
   }
 
   closeDrawer(): void {
@@ -142,6 +150,9 @@ export class BudgetComponent implements OnInit {
       this.uploadedFile = null;
       this.isUploading = false;
     }
+
+    // Reset JSON upload state
+    this.resetFileUpload();
 
     this.drawerMode = null;
     this.currentGoal = this.getEmptyGoal();
@@ -160,6 +171,167 @@ export class BudgetComponent implements OnInit {
       case 'addMoney': return 'Add Money to Goal';
       default: return '';
     }
+  }
+
+  switchTab(tab: 'manual' | 'upload') {
+    if (this.activeTab !== tab) {
+      this.activeTab = tab;
+
+      // Reset form data when switching tabs
+      if (tab === 'manual') {
+        this.resetFileUpload();
+      } else {
+        this.currentGoal = this.getEmptyGoal();
+      }
+    }
+  }
+
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      this.selectedFile = input.files[0];
+      this.processJsonData();
+    }
+  }
+
+  processJsonData() {
+    if (!this.selectedFile) {
+      this.jsonError = 'No file selected';
+      this.jsonPreview = null;
+      return;
+    }
+
+    // Clear previous data
+    this.jsonError = null;
+    this.jsonPreview = null;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const json = JSON.parse(e.target?.result as string);
+
+        // Validate the JSON structure
+        if (!Array.isArray(json)) {
+          this.jsonError = 'Invalid JSON format: Expected an array of goals';
+          return;
+        }
+
+        // Validate each goal
+        const goals: Omit<ProductBudget, 'id'>[] = [];
+        const errors: string[] = [];
+
+        json.forEach((item, index) => {
+          // Validate required fields
+          if (!item.name) errors.push(`Goal ${index + 1}: Missing name`);
+          if (!item.targetAmount) errors.push(`Goal ${index + 1}: Missing targetAmount`);
+          if (!item.targetDate) errors.push(`Goal ${index + 1}: Missing targetDate`);
+
+          // Convert target amount to number if it's a string
+          if (typeof item.targetAmount === 'string') {
+            item.targetAmount = parseFloat(item.targetAmount);
+          }
+
+          // Convert saved amount to number if it's a string
+          if (typeof item.savedAmount === 'string') {
+            item.savedAmount = parseFloat(item.savedAmount);
+          }
+
+          // Convert target date to Date object
+          if (item.targetDate) {
+            try {
+              item.targetDate = new Date(item.targetDate);
+            } catch (e) {
+              errors.push(`Goal ${index + 1}: Invalid date format`);
+            }
+          }
+
+          // If valid, add to goals array
+          if (item.name && item.targetAmount && item.targetDate) {
+            goals.push({
+              name: item.name,
+              imageUrl: item.imageUrl || '',
+              targetAmount: item.targetAmount,
+              savedAmount: item.savedAmount || 0,
+              targetDate: new Date(item.targetDate)
+            });
+          }
+        });
+
+        if (errors.length > 0) {
+          this.jsonError = `Validation errors:\n${errors.join('\n')}`;
+          return;
+        }
+
+        if (goals.length === 0) {
+          this.jsonError = 'No valid goals found in the file';
+          return;
+        }
+
+        this.jsonPreview = goals;
+        console.log('Parsed goals:', this.jsonPreview);
+      } catch (e) {
+        console.error('Error parsing JSON:', e);
+        this.jsonError = 'Failed to parse JSON file. Please check the file format.';
+      }
+    };
+
+    reader.onerror = () => {
+      this.jsonError = 'Error reading file';
+    };
+
+    reader.readAsText(this.selectedFile);
+  }
+
+  importGoals() {
+    if (!this.jsonPreview || this.isLoading) {
+      return;
+    }
+
+    this.isLoading = true;
+
+    // Use the bulkAddGoals method
+    this.productBudgetService.bulkAddGoals(this.jsonPreview).subscribe({
+      next: (result) => {
+        console.log(`Successfully imported ${result.successCount} goals`);
+        if (result.failedCount > 0 && result.failedGoals) {
+          // Create a more detailed message about the failures
+          const failureDetails = result.failedGoals
+            .map(g => `• ${g.name}: ${g.error}`)
+            .join('\n');
+
+          // Use a simple alert with details
+          alert(`Successfully imported ${result.successCount} goals.\n\n${result.failedCount} goal(s) failed to import:\n${failureDetails}`);
+        } else if (result.failedCount > 0) {
+          alert(`${result.successCount} goals imported successfully. ${result.failedCount} goals failed to import.`);
+        } else {
+          alert(`${result.successCount} goals imported successfully!`);
+        }
+
+        // Refresh the goals list with a small delay to ensure backend processing is complete
+        setTimeout(() => {
+          this.productBudgetService.refreshGoals();
+          this.loadGoals();
+          // Apply filters to the refreshed data
+          setTimeout(() => {
+            this.applyFilters();
+          }, 300);
+        }, 500);
+
+        this.closeDrawer();
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error importing goals:', error);
+        alert('Failed to import goals: ' + (error.message || 'Unknown error'));
+        this.isLoading = false;
+      }
+    });
+  }
+
+  resetFileUpload() {
+    this.selectedFile = null;
+    this.jsonPreview = null;
+    this.jsonError = null;
   }
 
   submitForm(): void {

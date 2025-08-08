@@ -14,6 +14,7 @@ const categoryRoutes = require('./routes/categoryRoutes');
 const userRoutes = require('./routes/userRoutes');
 const walletRoutes = require('./routes/walletRoutes');
 const productBudgetRoutes = require('./routes/productBudgetRoutes');
+const releaseNoteRoutes = require('./routes/releaseNoteRoutes');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -73,6 +74,7 @@ app.use('/api/v1/categories', categoryRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/wallets', walletRoutes);
 app.use('/api/v1/productbudgets', productBudgetRoutes);
+app.use('/api/v1/release-notes', releaseNoteRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

@@ -2,7 +2,12 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faWallet, faPlus, faPencil, faTrash, faMoneyBillWave, faBuildingColumns, faCreditCard, faPiggyBank, faBitcoinSign, faChartLine, faHandHoldingDollar, faRefresh, faExclamationTriangle, faEdit, faArrowRight } from '@fortawesome/free-solid-svg-icons';
+import {
+  faWallet, faPlus, faPencil, faTrash, faMoneyBillWave, faBuildingColumns,
+  faCreditCard, faPiggyBank, faBitcoinSign, faChartLine, faHandHoldingDollar,
+  faRefresh, faExclamationTriangle, faEdit, faArrowRight, faUpload,
+  faFileUpload, faFileImport
+} from '@fortawesome/free-solid-svg-icons';
 import { Subscription } from 'rxjs';
 import { Wallet } from '../../../core/models/Wallet';
 import { WalletService } from '../../../services/wallet.service';
@@ -33,6 +38,9 @@ export class WalletsComponent implements OnInit, OnDestroy {
   faExclamationTriangle = faExclamationTriangle;
   faEdit = faEdit;
   faArrowRight = faArrowRight;
+  faUpload = faUpload;
+  faFileUpload = faFileUpload;
+  faFileImport = faFileImport;
 
   walletForm!: FormGroup;
   isDrawerOpen = false;
@@ -41,6 +49,13 @@ export class WalletsComponent implements OnInit, OnDestroy {
   error: string | null = null;
   isLoading = false;
   isAuthError = false;
+  activeTab: 'manual' | 'upload' = 'manual';
+
+  // File upload related properties
+  selectedFile: File | null = null;
+  jsonPreview: Wallet[] | null = null;
+  jsonError: string | null = null;
+
   private subscription: Subscription;
 
   constructor(
@@ -114,6 +129,7 @@ export class WalletsComponent implements OnInit, OnDestroy {
   openDrawer(wallet?: Wallet) {
     this.isDrawerOpen = true;
     this.selectedWallet = wallet || null;
+    this.activeTab = 'manual';  // Always default to manual when editing
 
     if (wallet) {
       this.walletForm.patchValue({
@@ -134,6 +150,22 @@ export class WalletsComponent implements OnInit, OnDestroy {
     this.isDrawerOpen = false;
     this.selectedWallet = null;
     this.walletForm.reset();
+    this.resetFileUpload();
+  }
+
+  switchTab(tab: 'manual' | 'upload') {
+    if (this.activeTab !== tab) {
+      this.activeTab = tab;
+
+      // Reset form data when switching tabs
+      if (tab === 'manual') {
+        this.resetFileUpload();
+      } else {
+        this.walletForm.reset({
+          currency: 'LKR'
+        });
+      }
+    }
   }
 
   onSubmit() {
@@ -169,6 +201,132 @@ export class WalletsComponent implements OnInit, OnDestroy {
         });
       }
     }
+  }
+
+  // File upload methods
+  onFileSelected(event: Event) {
+    const element = event.target as HTMLInputElement;
+    const file = element.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    this.selectedFile = file;
+    this.jsonError = null;
+    this.jsonPreview = null;
+
+    if (!file.name.endsWith('.json')) {
+      this.jsonError = 'Please select a valid JSON file';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      try {
+        const json = JSON.parse(e.target.result);
+        this.processJsonData(json);
+      } catch (error) {
+        console.error('Error parsing JSON:', error);
+        this.jsonError = 'Invalid JSON format. Please check the file structure.';
+      }
+    };
+
+    reader.onerror = () => {
+      this.jsonError = 'Error reading file. Please try again.';
+    };
+
+    reader.readAsText(file);
+  }
+
+  processJsonData(data: any) {
+    // Validate the JSON structure
+    if (!Array.isArray(data)) {
+      this.jsonError = 'Invalid JSON format. Expected an array of wallets.';
+      return;
+    }
+
+    const validWallets: Wallet[] = [];
+    const errors: string[] = [];
+
+    data.forEach((item: any, index: number) => {
+      if (!item.name) {
+        errors.push(`Wallet at index ${index} is missing a name`);
+      }
+
+      if (!item.type || !['cash', 'bank', 'credit', 'savings', 'crypto', 'investment', 'loan'].includes(item.type)) {
+        errors.push(`Wallet "${item.name || index}" has an invalid type`);
+      }
+
+      if (item.balance === undefined || isNaN(Number(item.balance))) {
+        errors.push(`Wallet "${item.name || index}" has an invalid balance`);
+      }
+
+      if (!errors.length) {
+        validWallets.push({
+          id: '', // Will be assigned by server
+          name: item.name,
+          type: item.type,
+          balance: Number(item.balance),
+          currency: item.currency || 'LKR',
+          paymentMethod: item.paymentMethod || '',
+          user: '' // Will be assigned by server
+        });
+      }
+    });
+
+    if (errors.length) {
+      this.jsonError = `Found ${errors.length} issues in your data:\n${errors.slice(0, 3).join('\n')}${errors.length > 3 ? `\n...and ${errors.length - 3} more issues` : ''}`;
+      return;
+    }
+
+    if (validWallets.length === 0) {
+      this.jsonError = 'No valid wallets found in the file.';
+      return;
+    }
+
+    this.jsonPreview = validWallets;
+  }
+
+  importWallets() {
+    if (!this.jsonPreview || this.isLoading) {
+      return;
+    }
+
+    this.isLoading = true;
+
+    // Use the updated bulkAddWallets method that now handles sequential processing
+    this.walletService.bulkAddWallets(this.jsonPreview).subscribe({
+      next: (result) => {
+        console.log(`Successfully imported ${result.successCount} wallets`);
+        if (result.failedCount > 0 && result.failedWallets) {
+          // Create a more detailed message about the failures
+          const failureDetails = result.failedWallets
+            .map(w => `• ${w.name}: ${w.error}`)
+            .join('\n');
+
+          // Use a simple alert with details
+          alert(`Successfully imported ${result.successCount} wallets.\n\n${result.failedCount} wallet(s) failed to import:\n${failureDetails}`);
+        } else if (result.failedCount > 0) {
+          alert(`${result.successCount} wallets imported successfully. ${result.failedCount} wallets failed to import.`);
+        } else {
+          alert(`${result.successCount} wallets imported successfully!`);
+        }
+        this.closeDrawer();
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error importing wallets:', error);
+        alert(error.message || 'Error importing wallets');
+        this.isLoading = false;
+      }
+    });
+  }
+
+  resetFileUpload() {
+    this.selectedFile = null;
+    this.jsonPreview = null;
+    this.jsonError = null;
   }
 
   deleteWallet(id: string) {

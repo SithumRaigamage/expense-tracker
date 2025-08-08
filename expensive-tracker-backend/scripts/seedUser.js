@@ -13,13 +13,14 @@ const seedUser = async () => {
     console.log('✅ Connected to MongoDB');
 
     // Check if test user already exists
-    const existingUser = await User.findOne({ email: 'test@example.com' });
+    const existingUser = await User.findOne({ email: 'test123@gmail.com' });
     
     if (existingUser) {
       console.log('👤 Test user already exists:');
       console.log(`   Email: ${existingUser.email}`);
       console.log(`   Name: ${existingUser.name}`);
       console.log(`   Currency: ${existingUser.currency}`);
+      console.log(`   Role: ${existingUser.role || 'user'}`);
       console.log(`   Active: ${existingUser.isActive}`);
       return;
     }
@@ -30,6 +31,7 @@ const seedUser = async () => {
       email: 'test123@gmail.com',
       password: 'password123',
       currency: 'LKR',
+      role: 'admin',
       isActive: true
     });
 
@@ -38,11 +40,13 @@ const seedUser = async () => {
     console.log(`   Email: ${testUser.email}`);
     console.log(`   Name: ${testUser.name}`);
     console.log(`   Currency: ${testUser.currency}`);
+    console.log(`   Role: ${testUser.role}`);
     console.log(`   Active: ${testUser.isActive}`);
     console.log('');
     console.log('🔑 You can now login with:');
-    console.log('   Email: test@example.com');
+    console.log('   Email: test123@gmail.com');
     console.log('   Password: password123');
+    console.log('   Role: admin');
 
   } catch (error) {
     console.error('❌ Error creating test user:', error.message);
@@ -72,6 +76,7 @@ const seedRealisticUser = async () => {
       console.log(`   Email: ${existingUser.email}`);
       console.log(`   Name: ${existingUser.name}`);
       console.log(`   Currency: ${existingUser.currency}`);
+      console.log(`   Role: ${existingUser.role || 'user'}`);
       console.log(`   Active: ${existingUser.isActive}`);
       return;
     }
@@ -82,6 +87,7 @@ const seedRealisticUser = async () => {
       email: 'sraig2002@gmail.com',
       password: 'sithum123',
       currency: 'LKR',
+      role: 'admin',
       isActive: true
     });
 
@@ -90,11 +96,13 @@ const seedRealisticUser = async () => {
     console.log(`   Email: ${sithumUser.email}`);
     console.log(`   Name: ${sithumUser.name}`);
     console.log(`   Currency: ${sithumUser.currency}`);
+    console.log(`   Role: ${sithumUser.role}`);
     console.log(`   Active: ${sithumUser.isActive}`);
     console.log('');
     console.log('🔑 You can now login with:');
     console.log('   Email: sraig2002@gmail.com');
     console.log('   Password: sithum123');
+    console.log('   Role: admin');
 
   } catch (error) {
     console.error('❌ Error creating Sithum user:', error.message);

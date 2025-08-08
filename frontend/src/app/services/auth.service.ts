@@ -19,6 +19,7 @@ interface User {
   avatar?: string;
   isActive: boolean;
   lastLogin: Date;
+  role?: string;
 }
 
 interface AuthResponse {

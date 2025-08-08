@@ -19,6 +19,93 @@
     Processing...
   </div>
 
+  <!-- Filter Section -->
+  <div class="mb-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
+    <div class="flex items-center mb-4">
+      <h3 class="text-lg font-medium text-gray-900 dark:text-white mr-2">
+        <fa-icon [icon]="faFilter"></fa-icon> Filters
+      </h3>
+      <button (click)="resetFilters()" class="text-xs text-gray-500 hover:text-gray-700">
+        Reset
+      </button>
+    </div>
+
+    <form [formGroup]="filterForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <!-- Start Date -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Start Date
+        </label>
+        <input
+          type="date"
+          formControlName="startDate"
+          class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+        >
+      </div>
+
+      <!-- End Date -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          End Date
+        </label>
+        <input
+          type="date"
+          formControlName="endDate"
+          class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+        >
+      </div>
+
+      <!-- Type -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Type
+        </label>
+        <select
+          formControlName="type"
+          class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+        >
+          <option value="">All Types</option>
+          <option value="income">Income</option>
+          <option value="expense">Expense</option>
+        </select>
+      </div>
+
+      <!-- Category -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Category
+        </label>
+        <select
+          formControlName="category"
+          class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+        >
+          <option value="">All Categories</option>
+          <option *ngFor="let category of categories" [value]="category.name">
+            {{category.name}}
+          </option>
+        </select>
+      </div>
+
+      <!-- Search -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Search
+        </label>
+        <div class="relative">
+          <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+            <fa-icon [icon]="faSearch" class="text-gray-400"></fa-icon>
+          </div>
+          <input
+            type="text"
+            formControlName="searchTerm"
+            placeholder="Search by description..."
+            class="w-full rounded-md border border-gray-300 pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+          >
+        </div>
+      </div>
+    </form>
+  </div>
+
   <!-- Transactions Table -->
   <div class="overflow-x-auto">
     <table class="w-full text-left text-sm text-gray-500 dark:text-gray-400">
@@ -60,6 +147,36 @@
     </table>
   </div>
 
+  <!-- Pagination -->
+  <div class="flex items-center justify-between py-4">
+    <div class="text-sm text-gray-700 dark:text-gray-300">
+      Showing <span class="font-medium">{{transactions.length}}</span> of <span class="font-medium">{{filteredTransactions.length}}</span> transactions
+    </div>
+    <div class="flex items-center space-x-2">
+      <button
+        (click)="goToPage(currentPage - 1)"
+        [disabled]="currentPage === 1"
+        class="inline-flex items-center justify-center rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
+        [class.opacity-50]="currentPage === 1"
+      >
+        <fa-icon [icon]="faChevronLeft"></fa-icon>
+      </button>
+
+      <span class="text-sm text-gray-700 dark:text-gray-300">
+        Page {{currentPage}} of {{totalPages}}
+      </span>
+
+      <button
+        (click)="goToPage(currentPage + 1)"
+        [disabled]="currentPage === totalPages"
+        class="inline-flex items-center justify-center rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
+        [class.opacity-50]="currentPage === totalPages"
+      >
+        <fa-icon [icon]="faChevronRight"></fa-icon>
+      </button>
+    </div>
+  </div>
+
   <!-- Side Drawer -->
   <div *ngIf="isDrawerOpen"
        class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[60000] transition-opacity"
@@ -70,14 +187,51 @@
        [class.translate-x-full]="!isDrawerOpen"
        [class.translate-x-0]="isDrawerOpen">
     <div class="h-full flex flex-col">
-      <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+      <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
           {{selectedTransaction ? 'Edit Transaction' : 'Add Transaction'}}
         </h2>
+        <button (click)="closeDrawer()" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+          <span class="sr-only">Close</span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-500 dark:text-gray-400">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
       </div>
 
       <div class="p-6 flex-1 overflow-y-auto">
-        <form [formGroup]="transactionForm" (ngSubmit)="onSubmit()" class="space-y-6">
+        <!-- Tab Navigation (only show tabs when adding new, not when editing) -->
+        <div *ngIf="!selectedTransaction" class="mb-6 border-b border-gray-200 dark:border-gray-700">
+          <ul class="flex flex-wrap -mb-px text-sm font-medium text-center">
+            <li class="mr-2">
+              <a (click)="switchTab('manual')"
+                 [class.text-primary-600]="activeTab === 'manual'"
+                 [class.border-primary-600]="activeTab === 'manual'"
+                 [class.dark:border-primary-500]="activeTab === 'manual'"
+                 [class.active]="activeTab === 'manual'"
+                 class="inline-block p-4 border-b-2 rounded-t-lg cursor-pointer"
+                 [class.border-transparent]="activeTab !== 'manual'">
+                <fa-icon [icon]="faEdit" class="mr-2"></fa-icon>
+                Manual Entry
+              </a>
+            </li>
+            <li class="mr-2">
+              <a (click)="switchTab('upload')"
+                 [class.text-primary-600]="activeTab === 'upload'"
+                 [class.border-primary-600]="activeTab === 'upload'"
+                 [class.dark:border-primary-500]="activeTab === 'upload'"
+                 [class.active]="activeTab === 'upload'"
+                 class="inline-block p-4 border-b-2 rounded-t-lg cursor-pointer"
+                 [class.border-transparent]="activeTab !== 'upload'">
+                <fa-icon [icon]="faUpload" class="mr-2"></fa-icon>
+                Import JSON
+              </a>
+            </li>
+          </ul>
+        </div>
+        <!-- Manual Entry Form -->
+        <form *ngIf="activeTab === 'manual' || selectedTransaction" [formGroup]="transactionForm" (ngSubmit)="onSubmit()" class="space-y-6">
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Date
@@ -144,6 +298,98 @@
             </button>
           </div>
         </form>
+
+        <!-- JSON Upload Form -->
+        <div *ngIf="activeTab === 'upload' && !selectedTransaction" class="space-y-6">
+          <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 border border-dashed border-gray-300 dark:border-gray-600">
+            <div class="text-center">
+              <fa-icon [icon]="faFileUpload" class="text-gray-400 text-4xl mb-3"></fa-icon>
+              <h3 class="text-lg font-medium text-gray-700 dark:text-gray-300 mb-1">Upload Transactions JSON</h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                Upload a JSON file to import transactions in bulk
+              </p>
+
+              <div *ngIf="jsonError" class="mb-4 p-3 bg-red-100 text-red-700 rounded-md text-sm">
+                {{ jsonError }}
+              </div>
+
+              <div *ngIf="jsonPreview" class="mb-4">
+                <h4 class="text-md font-medium text-gray-700 dark:text-gray-300 mb-2">Preview ({{ jsonPreview.length }} transactions)</h4>
+                <div class="overflow-auto max-h-40 rounded-md border border-gray-200 dark:border-gray-600">
+                  <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-left text-sm">
+                    <thead class="bg-gray-100 dark:bg-gray-800">
+                      <tr>
+                        <th class="px-4 py-2">Date</th>
+                        <th class="px-4 py-2">Description</th>
+                        <th class="px-4 py-2">Category</th>
+                        <th class="px-4 py-2">Type</th>
+                        <th class="px-4 py-2">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
+                      <tr *ngFor="let transaction of jsonPreview">
+                        <td class="px-4 py-2">{{ transaction.date | date }}</td>
+                        <td class="px-4 py-2">{{ transaction.description }}</td>
+                        <td class="px-4 py-2">{{ transaction.category }}</td>
+                        <td class="px-4 py-2 capitalize">{{ transaction.type }}</td>
+                        <td class="px-4 py-2" [ngClass]="{
+                          'text-green-500': transaction.type === 'income',
+                          'text-red-500': transaction.type === 'expense'
+                        }">{{ transaction.amount | currency:'LKR' }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <label for="json-upload" class="inline-flex items-center justify-center gap-2 rounded-lg bg-primary-500 px-5 py-2.5 text-sm font-medium text-black hover:bg-primary-600 cursor-pointer">
+                <fa-icon [icon]="faUpload"></fa-icon>
+                Choose File
+                <input type="file" id="json-upload" accept=".json" class="hidden" (change)="onFileSelected($event)">
+              </label>
+
+              <p *ngIf="selectedFile" class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                Selected: {{ selectedFile.name }}
+              </p>
+            </div>
+          </div>
+
+          <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-sm text-gray-600 dark:text-gray-300">
+            <h4 class="font-medium mb-2">Expected JSON Format:</h4>
+            <pre class="bg-gray-100 dark:bg-gray-800 p-3 rounded-md overflow-auto text-xs">
+[
+  {{ '{' }}
+    "description": "Transaction Description",
+    "type": "income|expense",
+    "amount": 1000,
+    "category": "Category Name",
+    "date": "2025-08-08"
+  {{ '}' }},
+  ...
+]</pre>
+          </div>
+
+          <div class="flex justify-end gap-4 mt-8">
+            <button type="button"
+                    (click)="closeDrawer()"
+                    class="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors">
+              Cancel
+            </button>
+            <button type="button"
+                    [disabled]="!selectedFile || isLoading || jsonError"
+                    (click)="importTransactions()"
+                    class="rounded-lg bg-primary-500 px-5 py-2.5 text-sm font-medium text-black hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md transition-all flex items-center gap-2">
+              <span *ngIf="isLoading" class="flex items-center gap-2">
+                <fa-icon class="animate-spin" [icon]="faRefresh"></fa-icon>
+                Importing...
+              </span>
+              <span *ngIf="!isLoading" class="flex items-center gap-2">
+                <fa-icon [icon]="faFileImport"></fa-icon>
+                Import Transactions
+              </span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>

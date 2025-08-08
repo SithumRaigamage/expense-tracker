@@ -155,9 +155,9 @@ export class ProductbudgetService {
           // Calculate the new total amount
           const currentAmount = goal.savedAmount || 0;
           const newAmount = currentAmount + amount;
-          
+
           // Update the entire goal using PUT instead of PATCH (which might be having issues)
-          return this.http.put<ApiResponse<ProductBudget>>(`${this.apiUrl}/productbudgets/${id}`, { 
+          return this.http.put<ApiResponse<ProductBudget>>(`${this.apiUrl}/productbudgets/${id}`, {
             savedAmount: newAmount,
             name: goal.name,
             imageUrl: goal.imageUrl,
@@ -188,6 +188,94 @@ export class ProductbudgetService {
 
   refreshGoals(): void {
     this.loadGoals();
+  }
+
+  bulkAddGoals(goals: Omit<ProductBudget, 'id'>[]): Observable<{
+    successCount: number;
+    failedCount: number;
+    failedGoals?: { name: string; error: string }[];
+  }> {
+    if (!this.authService.isAuthenticated()) {
+      return throwError(() => new Error('User not authenticated'));
+    }
+
+    console.log('Bulk adding goals:', goals);
+
+    // Track successful and failed goals
+    let successCount = 0;
+    let failedCount = 0;
+    const failedGoals: { name: string; error: string }[] = [];
+    const successfulGoals: ProductBudget[] = [];
+
+    // Create an observable that will emit the final result
+    return new Observable(observer => {
+      // Process each goal sequentially
+      const processGoal = (index: number) => {
+        if (index >= goals.length) {
+          // All goals processed, update the local BehaviorSubject
+          if (successfulGoals.length > 0) {
+            const currentGoals = this.goals.getValue();
+            this.goals.next([...currentGoals, ...successfulGoals]);
+          }
+
+          // Emit the final result
+          observer.next({
+            successCount,
+            failedCount,
+            failedGoals: failedGoals.length > 0 ? failedGoals : undefined
+          });
+          observer.complete();
+          return;
+        }
+
+        // Process the current goal
+        const goal = goals[index];
+        this.http.post<ApiResponse<any>>(`${this.apiUrl}/productbudgets`, goal)
+          .pipe(
+            map(response => response.data),
+            map(newGoal => ({
+              id: newGoal._id,
+              name: newGoal.name,
+              imageUrl: newGoal.imageUrl,
+              targetAmount: newGoal.targetAmount,
+              savedAmount: newGoal.savedAmount,
+              targetDate: new Date(newGoal.targetDate)
+            })),
+            catchError(error => {
+              console.error(`Error adding goal '${goal.name}':`, error);
+              failedCount++;
+              failedGoals.push({
+                name: goal.name,
+                error: error.message || 'Unknown error'
+              });
+              return of(null);
+            })
+          )
+          .subscribe({
+            next: (newGoal) => {
+              if (newGoal) {
+                successCount++;
+                successfulGoals.push(newGoal);
+              }
+              // Process the next goal
+              processGoal(index + 1);
+            },
+            error: (error) => {
+              console.error(`Unexpected error adding goal '${goal.name}':`, error);
+              failedCount++;
+              failedGoals.push({
+                name: goal.name,
+                error: error.message || 'Unknown error'
+              });
+              // Continue with the next goal despite the error
+              processGoal(index + 1);
+            }
+          });
+      };
+
+      // Start processing the goals
+      processGoal(0);
+    });
   }
 
   private handleError(error: HttpErrorResponse): Observable<never> {

@@ -1,0 +1,639 @@
+[
+  {
+    "description": "Salary for August",
+    "type": "income",
+    "amount": 250000,
+    "category": "Salary",
+    "date": "2025-08-05"
+  },
+  {
+    "description": "Salary for July",
+    "type": "income",
+    "amount": 250000,
+    "category": "Salary",
+    "date": "2025-07-05"
+  },
+  {
+    "description": "Salary for June",
+    "type": "income",
+    "amount": 250000,
+    "category": "Salary",
+    "date": "2025-06-05"
+  },
+  {
+    "description": "Salary for May",
+    "type": "income",
+    "amount": 245000,
+    "category": "Salary",
+    "date": "2025-05-05"
+  },
+  {
+    "description": "Salary for April",
+    "type": "income",
+    "amount": 245000,
+    "category": "Salary",
+    "date": "2025-04-05"
+  },
+  {
+    "description": "Annual Bonus",
+    "type": "income",
+    "amount": 125000,
+    "category": "Salary",
+    "date": "2025-04-10"
+  },
+  {
+    "description": "Salary for March",
+    "type": "income",
+    "amount": 245000,
+    "category": "Salary",
+    "date": "2025-03-05"
+  },
+  {
+    "description": "Salary for February",
+    "type": "income",
+    "amount": 245000,
+    "category": "Salary",
+    "date": "2025-02-05"
+  },
+  {
+    "description": "Freelance work - Website Design",
+    "type": "income",
+    "amount": 35000,
+    "category": "Freelance",
+    "date": "2025-08-03"
+  },
+  {
+    "description": "Freelance work - Logo Design",
+    "type": "income",
+    "amount": 15000,
+    "category": "Freelance",
+    "date": "2025-07-22"
+  },
+  {
+    "description": "Freelance work - Mobile App UI",
+    "type": "income",
+    "amount": 45000,
+    "category": "Freelance",
+    "date": "2025-07-15"
+  },
+  {
+    "description": "Freelance work - Content Writing",
+    "type": "income",
+    "amount": 20000,
+    "category": "Freelance",
+    "date": "2025-06-28"
+  },
+  {
+    "description": "Freelance work - SEO Optimization",
+    "type": "income",
+    "amount": 25000,
+    "category": "Freelance",
+    "date": "2025-06-12"
+  },
+  {
+    "description": "Freelance work - WordPress Development",
+    "type": "income",
+    "amount": 40000,
+    "category": "Freelance",
+    "date": "2025-05-23"
+  },
+  {
+    "description": "Freelance work - Video Editing",
+    "type": "income",
+    "amount": 30000,
+    "category": "Freelance",
+    "date": "2025-05-10"
+  },
+  {
+    "description": "Stock Dividend - ABC Corp",
+    "type": "income",
+    "amount": 15000,
+    "category": "Investment",
+    "date": "2025-08-01"
+  },
+  {
+    "description": "Stock Dividend - XYZ Ltd",
+    "type": "income",
+    "amount": 8500,
+    "category": "Investment",
+    "date": "2025-07-15"
+  },
+  {
+    "description": "Interest Income - Fixed Deposit",
+    "type": "income",
+    "amount": 12000,
+    "category": "Investment",
+    "date": "2025-06-30"
+  },
+  {
+    "description": "Rental Income - Apartment",
+    "type": "income",
+    "amount": 45000,
+    "category": "Investment",
+    "date": "2025-08-02"
+  },
+  {
+    "description": "Rental Income - Apartment",
+    "type": "income",
+    "amount": 45000,
+    "category": "Investment",
+    "date": "2025-07-02"
+  },
+  {
+    "description": "Rental Income - Apartment",
+    "type": "income",
+    "amount": 45000,
+    "category": "Investment",
+    "date": "2025-06-02"
+  },
+  {
+    "description": "Profit from Crypto Trading",
+    "type": "income",
+    "amount": 28000,
+    "category": "Investment",
+    "date": "2025-07-28"
+  },
+  {
+    "description": "Grocery shopping - Keells",
+    "type": "expense",
+    "amount": 15000,
+    "category": "Food",
+    "date": "2025-08-06"
+  },
+  {
+    "description": "Grocery shopping - Cargills",
+    "type": "expense",
+    "amount": 12500,
+    "category": "Food",
+    "date": "2025-07-28"
+  },
+  {
+    "description": "Dinner - Upali's Restaurant",
+    "type": "expense",
+    "amount": 8500,
+    "category": "Food",
+    "date": "2025-08-03"
+  },
+  {
+    "description": "Lunch - Office Cafeteria",
+    "type": "expense",
+    "amount": 1500,
+    "category": "Food",
+    "date": "2025-08-05"
+  },
+  {
+    "description": "Lunch - Office Cafeteria",
+    "type": "expense",
+    "amount": 1200,
+    "category": "Food",
+    "date": "2025-08-06"
+  },
+  {
+    "description": "Lunch - Office Cafeteria",
+    "type": "expense",
+    "amount": 1350,
+    "category": "Food",
+    "date": "2025-08-07"
+  },
+  {
+    "description": "Coffee and Snacks",
+    "type": "expense",
+    "amount": 850,
+    "category": "Food",
+    "date": "2025-08-04"
+  },
+  {
+    "description": "Weekend BBQ Supplies",
+    "type": "expense",
+    "amount": 6500,
+    "category": "Food",
+    "date": "2025-08-02"
+  },
+  {
+    "description": "Grocery shopping - Arpico",
+    "type": "expense",
+    "amount": 18000,
+    "category": "Food",
+    "date": "2025-07-15"
+  },
+  {
+    "description": "Dining Out - Seafood Restaurant",
+    "type": "expense",
+    "amount": 12000,
+    "category": "Food",
+    "date": "2025-07-20"
+  },
+  {
+    "description": "Electricity bill",
+    "type": "expense",
+    "amount": 7500,
+    "category": "Utilities",
+    "date": "2025-08-07"
+  },
+  {
+    "description": "Electricity bill",
+    "type": "expense",
+    "amount": 6800,
+    "category": "Utilities",
+    "date": "2025-07-07"
+  },
+  {
+    "description": "Electricity bill",
+    "type": "expense",
+    "amount": 7200,
+    "category": "Utilities",
+    "date": "2025-06-07"
+  },
+  {
+    "description": "Water bill",
+    "type": "expense",
+    "amount": 2500,
+    "category": "Utilities",
+    "date": "2025-08-10"
+  },
+  {
+    "description": "Water bill",
+    "type": "expense",
+    "amount": 2300,
+    "category": "Utilities",
+    "date": "2025-07-10"
+  },
+  {
+    "description": "Water bill",
+    "type": "expense",
+    "amount": 2400,
+    "category": "Utilities",
+    "date": "2025-06-10"
+  },
+  {
+    "description": "Internet and Cable",
+    "type": "expense",
+    "amount": 5000,
+    "category": "Utilities",
+    "date": "2025-08-15"
+  },
+  {
+    "description": "Internet and Cable",
+    "type": "expense",
+    "amount": 5000,
+    "category": "Utilities",
+    "date": "2025-07-15"
+  },
+  {
+    "description": "Mobile Phone Bill",
+    "type": "expense",
+    "amount": 3500,
+    "category": "Utilities",
+    "date": "2025-08-12"
+  },
+  {
+    "description": "Mobile Phone Bill",
+    "type": "expense",
+    "amount": 3200,
+    "category": "Utilities",
+    "date": "2025-07-12"
+  },
+  {
+    "description": "Movie tickets",
+    "type": "expense",
+    "amount": 3000,
+    "category": "Entertainment",
+    "date": "2025-08-08"
+  },
+  {
+    "description": "Netflix Subscription",
+    "type": "expense",
+    "amount": 1500,
+    "category": "Entertainment",
+    "date": "2025-08-01"
+  },
+  {
+    "description": "Netflix Subscription",
+    "type": "expense",
+    "amount": 1500,
+    "category": "Entertainment",
+    "date": "2025-07-01"
+  },
+  {
+    "description": "Spotify Premium",
+    "type": "expense",
+    "amount": 900,
+    "category": "Entertainment",
+    "date": "2025-08-05"
+  },
+  {
+    "description": "Spotify Premium",
+    "type": "expense",
+    "amount": 900,
+    "category": "Entertainment",
+    "date": "2025-07-05"
+  },
+  {
+    "description": "Concert Tickets",
+    "type": "expense",
+    "amount": 8000,
+    "category": "Entertainment",
+    "date": "2025-07-28"
+  },
+  {
+    "description": "Bowling Night",
+    "type": "expense",
+    "amount": 4500,
+    "category": "Entertainment",
+    "date": "2025-07-15"
+  },
+  {
+    "description": "Gaming Subscription",
+    "type": "expense",
+    "amount": 1200,
+    "category": "Entertainment",
+    "date": "2025-08-03"
+  },
+  {
+    "description": "Book Purchase",
+    "type": "expense",
+    "amount": 2500,
+    "category": "Entertainment",
+    "date": "2025-07-22"
+  },
+  {
+    "description": "Monthly bus pass",
+    "type": "expense",
+    "amount": 5000,
+    "category": "Transportation",
+    "date": "2025-08-02"
+  },
+  {
+    "description": "Monthly bus pass",
+    "type": "expense",
+    "amount": 5000,
+    "category": "Transportation",
+    "date": "2025-07-02"
+  },
+  {
+    "description": "Taxi fare",
+    "type": "expense",
+    "amount": 1200,
+    "category": "Transportation",
+    "date": "2025-08-07"
+  },
+  {
+    "description": "Taxi fare",
+    "type": "expense",
+    "amount": 800,
+    "category": "Transportation",
+    "date": "2025-08-04"
+  },
+  {
+    "description": "Fuel for car",
+    "type": "expense",
+    "amount": 8000,
+    "category": "Transportation",
+    "date": "2025-08-05"
+  },
+  {
+    "description": "Fuel for car",
+    "type": "expense",
+    "amount": 8500,
+    "category": "Transportation",
+    "date": "2025-07-20"
+  },
+  {
+    "description": "Car Maintenance - Oil Change",
+    "type": "expense",
+    "amount": 7500,
+    "category": "Transportation",
+    "date": "2025-07-15"
+  },
+  {
+    "description": "Highway Toll",
+    "type": "expense",
+    "amount": 500,
+    "category": "Transportation",
+    "date": "2025-08-06"
+  },
+  {
+    "description": "Highway Toll",
+    "type": "expense",
+    "amount": 500,
+    "category": "Transportation",
+    "date": "2025-07-25"
+  },
+  {
+    "description": "Doctor appointment",
+    "type": "expense",
+    "amount": 2500,
+    "category": "Healthcare",
+    "date": "2025-08-04"
+  },
+  {
+    "description": "Prescription Medicine",
+    "type": "expense",
+    "amount": 3500,
+    "category": "Healthcare",
+    "date": "2025-08-04"
+  },
+  {
+    "description": "Dental Checkup",
+    "type": "expense",
+    "amount": 4500,
+    "category": "Healthcare",
+    "date": "2025-07-22"
+  },
+  {
+    "description": "Eye Examination",
+    "type": "expense",
+    "amount": 3000,
+    "category": "Healthcare",
+    "date": "2025-07-10"
+  },
+  {
+    "description": "Gym Membership",
+    "type": "expense",
+    "amount": 5000,
+    "category": "Healthcare",
+    "date": "2025-08-01"
+  },
+  {
+    "description": "Gym Membership",
+    "type": "expense",
+    "amount": 5000,
+    "category": "Healthcare",
+    "date": "2025-07-01"
+  },
+  {
+    "description": "Health Insurance Premium",
+    "type": "expense",
+    "amount": 12000,
+    "category": "Healthcare",
+    "date": "2025-08-15"
+  },
+  {
+    "description": "Vitamins and Supplements",
+    "type": "expense",
+    "amount": 2800,
+    "category": "Healthcare",
+    "date": "2025-07-28"
+  },
+  {
+    "description": "House Rent",
+    "type": "expense",
+    "amount": 45000,
+    "category": "Housing",
+    "date": "2025-08-01"
+  },
+  {
+    "description": "House Rent",
+    "type": "expense",
+    "amount": 45000,
+    "category": "Housing",
+    "date": "2025-07-01"
+  },
+  {
+    "description": "Home Repairs - Plumbing",
+    "type": "expense",
+    "amount": 8500,
+    "category": "Housing",
+    "date": "2025-07-12"
+  },
+  {
+    "description": "Cleaning Supplies",
+    "type": "expense",
+    "amount": 2500,
+    "category": "Housing",
+    "date": "2025-08-05"
+  },
+  {
+    "description": "New Furniture - Chair",
+    "type": "expense",
+    "amount": 15000,
+    "category": "Housing",
+    "date": "2025-07-25"
+  },
+  {
+    "description": "Property Maintenance Fee",
+    "type": "expense",
+    "amount": 3000,
+    "category": "Housing",
+    "date": "2025-08-10"
+  },
+  {
+    "description": "Property Maintenance Fee",
+    "type": "expense",
+    "amount": 3000,
+    "category": "Housing",
+    "date": "2025-07-10"
+  },
+  {
+    "description": "New Clothes - Office Wear",
+    "type": "expense",
+    "amount": 8500,
+    "category": "Shopping",
+    "date": "2025-08-03"
+  },
+  {
+    "description": "Shoes",
+    "type": "expense",
+    "amount": 7500,
+    "category": "Shopping",
+    "date": "2025-07-22"
+  },
+  {
+    "description": "Electronics - New Headphones",
+    "type": "expense",
+    "amount": 12000,
+    "category": "Shopping",
+    "date": "2025-07-15"
+  },
+  {
+    "description": "Gift for Friend's Birthday",
+    "type": "expense",
+    "amount": 3500,
+    "category": "Shopping",
+    "date": "2025-08-07"
+  },
+  {
+    "description": "Home Decor Items",
+    "type": "expense",
+    "amount": 5500,
+    "category": "Shopping",
+    "date": "2025-07-30"
+  },
+  {
+    "description": "Smartphone Accessories",
+    "type": "expense",
+    "amount": 3000,
+    "category": "Shopping",
+    "date": "2025-08-02"
+  },
+  {
+    "description": "Laptop - Monthly Payment",
+    "type": "expense",
+    "amount": 15000,
+    "category": "Shopping",
+    "date": "2025-08-05"
+  },
+  {
+    "description": "Laptop - Monthly Payment",
+    "type": "expense",
+    "amount": 15000,
+    "category": "Shopping",
+    "date": "2025-07-05"
+  },
+  {
+    "description": "University Course Fee",
+    "type": "expense",
+    "amount": 25000,
+    "category": "Education",
+    "date": "2025-08-10"
+  },
+  {
+    "description": "Online Course - Data Science",
+    "type": "expense",
+    "amount": 18000,
+    "category": "Education",
+    "date": "2025-07-15"
+  },
+  {
+    "description": "Textbooks",
+    "type": "expense",
+    "amount": 7500,
+    "category": "Education",
+    "date": "2025-08-03"
+  },
+  {
+    "description": "Professional Certification Fee",
+    "type": "expense",
+    "amount": 35000,
+    "category": "Education",
+    "date": "2025-07-20"
+  },
+  {
+    "description": "Language Learning App Subscription",
+    "type": "expense",
+    "amount": 1200,
+    "category": "Education",
+    "date": "2025-08-01"
+  },
+  {
+    "description": "Language Learning App Subscription",
+    "type": "expense",
+    "amount": 1200,
+    "category": "Education",
+    "date": "2025-07-01"
+  },
+  {
+    "description": "Workshop Registration",
+    "type": "expense",
+    "amount": 5000,
+    "category": "Education",
+    "date": "2025-07-28"
+  },
+  {
+    "description": "Library Fee",
+    "type": "expense",
+    "amount": 500,
+    "category": "Education",
+    "date": "2025-08-05"
+  }
+]

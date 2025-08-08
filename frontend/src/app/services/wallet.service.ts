@@ -326,7 +326,87 @@ export class WalletService {
       );
   }
 
-  getWalletStats(): Observable<any> {
+  /**
+   * Add multiple wallets in bulk
+   * @param wallets Array of wallet data objects to be added
+   * @returns Observable with success and failure counts and failure details
+   */
+  bulkAddWallets(wallets: Omit<Wallet, 'id' | 'user'>[]): Observable<{
+    successCount: number;
+    failedCount: number;
+    failedWallets?: Array<{name: string; error: string}>;
+  }> {
+    if (!this.currentUserId) {
+      return throwError(() => new Error('Not authenticated. Please log in.'));
+    }
+
+    // Check if wallets array is empty
+    if (!wallets.length) {
+      return of({ successCount: 0, failedCount: 0 });
+    }
+
+    // Since many backends might not have a bulk endpoint, we'll implement the sequential approach here
+    // and avoid the 404 error for an endpoint that might not exist
+    return new Observable<{
+      successCount: number;
+      failedCount: number;
+      failedWallets?: Array<{name: string; error: string}>;
+    }>(observer => {
+      let successCount = 0;
+      let failedCount = 0;
+      let completed = 0;
+      const total = wallets.length;
+      const failedWallets: Array<{name: string; error: string}> = [];
+
+      // Process wallets one by one
+      wallets.forEach(wallet => {
+        // Add the user ID to the wallet (ensuring it's a string)
+        const walletWithUser = {
+          ...wallet,
+          user: this.currentUserId || ''
+        };
+
+        this.addWallet(walletWithUser).subscribe({
+          next: () => {
+            successCount++;
+            completed++;
+            if (completed === total) {
+              observer.next({
+                successCount,
+                failedCount,
+                failedWallets: failedWallets.length > 0 ? failedWallets : undefined
+              });
+              // Refresh wallets to display the newly added ones
+              this.refreshWallets();
+              observer.complete();
+            }
+          },
+          error: (error) => {
+            console.error(`Error adding wallet "${wallet.name}":`, error);
+            failedCount++;
+            completed++;
+
+            // Track failed wallet details
+            failedWallets.push({
+              name: wallet.name,
+              error: error.message || 'Unknown error'
+            });
+
+            if (completed === total) {
+              observer.next({
+                successCount,
+                failedCount,
+                failedWallets: failedWallets.length > 0 ? failedWallets : undefined
+              });
+              // Still refresh to show successful imports
+              this.refreshWallets();
+              observer.complete();
+            }
+          }
+        });
+      });
+    });
+  }  getWalletStats(): Observable<any> {
     if (!this.currentUserId) {
       return throwError(() => new Error('Not authenticated. Please log in.'));
     }
