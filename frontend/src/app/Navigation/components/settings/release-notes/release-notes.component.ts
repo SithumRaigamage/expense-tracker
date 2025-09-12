@@ -70,24 +70,31 @@ export class ReleaseNotesComponent implements OnInit {
   }
 
   loadReleaseNotes(): void {
-    this.isLoading = true;
-    this.error = '';
+  this.isLoading = true;
+  this.error = '';
 
-    this.releaseNoteService.getReleaseNotes().subscribe({
-      next: (data) => {
-        this.releases = data.map(note => ({
-          ...note,
-          isExpanded: data.indexOf(note) === 0 // Expand the first release by default
-        }));
-        this.isLoading = false;
-      },
-      error: (err) => {
-        this.error = 'Failed to load release notes. Please try again later.';
-        console.error('Error loading release notes:', err);
-        this.isLoading = false;
+  this.releaseNoteService.getReleaseNotes().subscribe({
+    next: (data) => {
+      if (data && data.length > 0) {
+        // Sort by date descending (latest first)
+        const sorted = [...data].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        // Only keep the latest one
+        this.releases = [{
+          ...sorted[0],
+          isExpanded: true
+        }];
+      } else {
+        this.releases = [];
       }
-    });
-  }
+      this.isLoading = false;
+    },
+    error: (err) => {
+      this.error = 'Failed to load release notes. Please try again later.';
+      console.error('Error loading release notes:', err);
+      this.isLoading = false;
+    }
+  });
+}
 
   toggleRelease(release: ReleaseNote): void {
     release.isExpanded = !release.isExpanded;
