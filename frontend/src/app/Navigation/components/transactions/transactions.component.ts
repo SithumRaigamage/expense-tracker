@@ -9,6 +9,9 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { Transaction } from '../../../core/models/Transaction';
 import { ToastmsgService } from '../../../services/toastmsg.service';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { faDownload } from '@fortawesome/free-solid-svg-icons';
 
 interface Category {
   _id: string;
@@ -36,6 +39,7 @@ export class TransactionsComponent implements OnInit {
   faSearch = faSearch;
   faChevronLeft = faChevronLeft;
   faChevronRight = faChevronRight;
+  faDownload = faDownload;
 
   // All loaded transactions
   allTransactions: Transaction[] = [];
@@ -51,6 +55,7 @@ export class TransactionsComponent implements OnInit {
   isLoading = false;
   errorMessage = '';
   activeTab: 'manual' | 'upload' = 'manual';
+  pdfFileName = 'transaction-data.pdf';
 
   // Pagination
   currentPage = 1;
@@ -546,5 +551,44 @@ export class TransactionsComponent implements OnInit {
         this.isLoading = false;
       }
     });
+  }
+
+  downloadPdf() {
+    const doc = new jsPDF();
+
+    // Table columns
+    const columns = [
+    { header: 'Date', dataKey: 'date' },
+    { header: 'Description', dataKey: 'description' },
+    { header: 'Category', dataKey: 'category' },
+    { header: 'Type', dataKey: 'type' },
+    { header: 'Amount', dataKey: 'amount' }
+    ] as const;
+
+    // Table rows
+    type RowType = {
+      date: string;
+      description: string;
+      category: string;
+      type: 'income' | 'expense';
+      amount: number;
+    };
+
+    const rows: RowType[] = this.filteredTransactions.map(t => ({
+      date: t.date instanceof Date ? t.date.toISOString().split('T')[0] : t.date,
+      description: t.description,
+      category: t.category,
+      type: t.type,
+      amount: t.amount
+    }));
+
+    doc.text('Transactions', 14, 16);
+    (autoTable as any)(doc, {
+      head: [columns.map(col => col.header)],
+      body: rows.map(row => columns.map(col => row[col.dataKey as keyof RowType])),
+      startY: 20
+    });
+
+    doc.save(this.pdfFileName);
   }
 }

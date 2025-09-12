@@ -30,6 +30,12 @@
       </button>
     </div>
 
+    <div class="flex justify-end mt-4">
+      <button (click)="downloadPdf()" class="px-4 py-2 bg-primary-600 text-black rounded-md hover:bg-primary-700">
+        <fa-icon [icon]="faDownload" class="mr-2"></fa-icon> Download PDF
+      </button>
+    </div>
+
     <form [formGroup]="filterForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
       <!-- Start Date -->
       <div>
