@@ -25,6 +25,8 @@ interface EmergencyTransaction {
   category: string;
   type: 'deposit' | 'withdrawal';
   balance: number;
+  cumulativeIncome: number;
+  cumulativeExpense: number;
 }
 
 export type EmergencyChartOptions = {
@@ -84,10 +86,16 @@ export class EmergencyFundComponent implements OnInit, OnDestroy {
 
   private initializeChart(): void {
     this.chartOptions = {
-      series: [{
-        name: 'Balance',
-        data: this.transactions.map(t => t.balance)
-      }],
+      series: [
+        {
+          name: 'Total Savings',
+          data: this.transactions.map(t => t.cumulativeIncome)
+        },
+        {
+          name: 'Total Spent',
+          data: this.transactions.map(t => t.cumulativeExpense)
+        }
+      ],
       chart: {
         type: 'area',
         height: 400,
@@ -172,7 +180,7 @@ export class EmergencyFundComponent implements OnInit, OnDestroy {
           stops: [0, 100]
         }
       },
-      colors: [this.COLORS.primary],
+      colors: ['#10B981', '#EF4444'], // Green for Income, Red for Expense
       theme: {
         mode: 'light',
         palette: 'palette1'
@@ -204,16 +212,22 @@ export class EmergencyFundComponent implements OnInit, OnDestroy {
             new Date(a.date).getTime() - new Date(b.date).getTime()
           );
 
-          // Simple trend line: start from 0 and add up
-          let trend = 0;
+          // Calculate running totals for specific types
+          let cumIncome = 0;
+          let cumExpense = 0;
           this.transactions = sortedTransactions.map(t => {
-            trend += t.type === 'income' ? t.amount : -t.amount;
+            const isIncome = t.type === 'income';
+            if (isIncome) cumIncome += t.amount;
+            else cumExpense += t.amount;
+            
             return {
               date: new Date(t.date),
               amount: t.amount,
               category: t.category,
-              type: t.type === 'income' ? 'deposit' : 'withdrawal' as 'deposit' | 'withdrawal',
-              balance: trend
+              type: isIncome ? 'deposit' : 'withdrawal' as 'deposit' | 'withdrawal',
+              balance: cumIncome - cumExpense,
+              cumulativeIncome: cumIncome,
+              cumulativeExpense: cumExpense
             };
           });
 
