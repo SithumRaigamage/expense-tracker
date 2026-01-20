@@ -1,7 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { TransactionService } from '../../../services/transaction.service';
+import { WalletService } from '../../../services/wallet.service';
+import { Wallet } from '../../../core/models/Wallet';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {
   faPlus, faPencil, faTrash, faUpload, faFileUpload, faFileImport,
@@ -50,6 +53,7 @@ export class TransactionsComponent implements OnInit {
   isLoading = false;
   errorMessage = '';
   activeTab: 'manual' | 'upload' = 'manual';
+  wallets: Wallet[] = [];
 
   // Pagination
   currentPage = 1;
@@ -63,7 +67,9 @@ export class TransactionsComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private transactionService: TransactionService
+    private transactionService: TransactionService,
+    private walletService: WalletService,
+    private route: ActivatedRoute
   ) {
     this.transactionForm = this.createForm();
     this.filterForm = this.createFilterForm();
@@ -72,6 +78,7 @@ export class TransactionsComponent implements OnInit {
   ngOnInit() {
     this.loadTransactions();
     this.loadCategories();
+    this.loadWallets();
 
     // Also load categories after a short delay to ensure auth is ready
     setTimeout(() => {
@@ -83,9 +90,40 @@ export class TransactionsComponent implements OnInit {
       this.transactionForm.get('category')?.setValue('');
     });
 
+    // Auto-determine wallet when category changes
+    this.transactionForm.get('category')?.valueChanges.subscribe((categoryId) => {
+      if (categoryId) {
+        this.onCategoryChange(categoryId);
+      }
+    });
+
     // Subscribe to filter changes
     this.filterForm.valueChanges.subscribe(() => {
       this.applyFilters();
+    });
+
+    // Handle query params
+    this.route.queryParams.subscribe(params => {
+      if (params['walletType'] === 'emergencyfund') {
+        const checkWallets = () => {
+          const emergencyWallet = this.wallets.find(w => w.type === 'emergencyfund');
+          if (emergencyWallet) {
+            // Filter the list
+            this.filterForm.patchValue({ wallet: emergencyWallet.id });
+            
+            // If action is add, open the drawer
+            if (params['action'] === 'add') {
+              this.openDrawer();
+              this.transactionForm.get('walletId')?.setValue(emergencyWallet.id);
+              this.transactionForm.get('type')?.setValue('income');
+            }
+          } else if (this.wallets.length === 0) {
+            // Retry if wallets haven't loaded yet
+            setTimeout(checkWallets, 100);
+          }
+        };
+        checkWallets();
+      }
     });
   }
 
@@ -132,8 +170,49 @@ export class TransactionsComponent implements OnInit {
       amount: ['', [Validators.required, Validators.min(0)]],
       description: ['', Validators.required],
       category: ['', Validators.required],
-      type: ['expense', Validators.required]
+      type: ['expense', Validators.required],
+      walletId: ['', Validators.required]
     });
+  }
+
+  private loadWallets() {
+    this.walletService.wallets$.subscribe(wallets => {
+      this.wallets = wallets.filter(w => w.isActive !== false);
+    });
+  }
+
+  // Auto-determine wallet based on category selection
+  onCategoryChange(categoryId: string) {
+    const category = this.categories.find(c => c._id === categoryId);
+    if (!category) return;
+
+    const categoryName = category.name.toLowerCase();
+    const emergencyKeywords = ['health', 'medical', 'emergency', 'hospital', 'doctor'];
+    const isEmergency = emergencyKeywords.some(keyword => categoryName.includes(keyword));
+
+    if (isEmergency) {
+      const emergencyWallet = this.wallets.find(w => w.type === 'emergencyfund');
+      if (emergencyWallet) {
+        this.transactionForm.get('walletId')?.setValue(emergencyWallet.id);
+        return;
+      }
+    }
+
+    if (categoryName.includes('salary')) {
+      const bankWallet = this.wallets.find(w => w.type === 'bank');
+      if (bankWallet) {
+        this.transactionForm.get('walletId')?.setValue(bankWallet.id);
+        return;
+      }
+    }
+
+    // Default: if no wallet selected yet, pick first cash/bank
+    if (!this.transactionForm.get('walletId')?.value) {
+      const defaultWallet = this.wallets.find(w => w.type === 'cash' || w.type === 'bank');
+      if (defaultWallet) {
+        this.transactionForm.get('walletId')?.setValue(defaultWallet.id);
+      }
+    }
   }
 
   openDrawer(transaction?: Transaction) {
@@ -144,7 +223,8 @@ export class TransactionsComponent implements OnInit {
         amount: transaction.amount,
         description: transaction.description,
         category: transaction.category,
-        type: transaction.type
+        type: transaction.type,
+        walletId: transaction.walletId
       });
     } else {
       this.transactionForm.reset({ type: 'expense' });
@@ -279,7 +359,8 @@ export class TransactionsComponent implements OnInit {
           type: item.type,
           amount: Number(item.amount),
           category: item.category,
-          date: new Date(item.date)
+          date: new Date(item.date),
+          walletId: '' // Will be determined by server during bulk import
         });
       }
     });
@@ -441,6 +522,7 @@ export class TransactionsComponent implements OnInit {
       endDate: [''],
       type: [''],
       category: [''],
+      wallet: [''],
       searchTerm: ['']
     });
   }
@@ -459,6 +541,11 @@ export class TransactionsComponent implements OnInit {
     // Apply category filter
     if (filters.category) {
       filtered = filtered.filter(t => t.category === filters.category);
+    }
+
+    // Apply wallet filter
+    if (filters.wallet) {
+      filtered = filtered.filter(t => t.walletId === filters.wallet);
     }
 
     // Apply date range filter

@@ -29,6 +29,7 @@ interface ExpenseResponse {
   amount: number;
   description: string;
   category: Category;
+  wallet: any;
   date: string;
   user: string;
   createdAt: string;
@@ -198,7 +199,12 @@ export class TransactionService {
       description: expense.description,
       category: expense.category.name,
       type: expense.category.type,
-      date: new Date(expense.date)
+      date: new Date(expense.date),
+      walletId: expense.wallet?._id || expense.wallet || '',
+      wallet: expense.wallet ? {
+        name: expense.wallet.name,
+        type: expense.wallet.type
+      } : undefined
     }));
   }
 
@@ -302,6 +308,7 @@ export class TransactionService {
       amount: transaction.amount,
       description: transaction.description,
       category: category._id,
+      wallet: (transaction as any).walletId,
       date: transaction.date
     };
 
@@ -314,7 +321,12 @@ export class TransactionService {
           description: expense.description,
           category: expense.category.name,
           type: expense.category.type,
-          date: new Date(expense.date)
+          date: new Date(expense.date),
+          walletId: expense.wallet?._id || expense.wallet || '',
+          wallet: expense.wallet ? {
+            name: expense.wallet.name,
+            type: expense.wallet.type
+          } : undefined
         })),
         tap(newTransaction => {
           const current = this.transactions.getValue();
@@ -341,6 +353,7 @@ export class TransactionService {
       amount: transaction.amount,
       description: transaction.description,
       category: category._id,
+      wallet: transaction.walletId,
       date: transaction.date
     };
 
@@ -353,7 +366,12 @@ export class TransactionService {
           description: expense.description,
           category: expense.category.name,
           type: expense.category.type,
-          date: new Date(expense.date)
+          date: new Date(expense.date),
+          walletId: expense.wallet?._id || expense.wallet || '',
+          wallet: expense.wallet ? {
+            name: expense.wallet.name,
+            type: expense.wallet.type
+          } : undefined
         })),
         tap(updatedTransaction => {
           const current = this.transactions.getValue();

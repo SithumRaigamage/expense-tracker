@@ -1,4 +1,5 @@
 const { body, param, validationResult } = require('express-validator');
+const { WALLET_TYPES, CURRENCIES } = require('../config/constants');
 
 // Validation middleware to handle errors
 const handleValidationErrors = (req, res, next) => {
@@ -23,7 +24,7 @@ const validateWalletCreation = [
     .withMessage('Wallet name must be between 1 and 50 characters'),
   
   body('type')
-    .isIn(['cash', 'bank', 'credit', 'savings', 'crypto', 'investment', 'loan'])
+    .isIn(['cash', 'bank', 'credit', 'savings', 'crypto', 'investment', 'loan', 'emergencyfund'])
     .withMessage('Invalid wallet type'),
   
   body('balance')
@@ -39,7 +40,7 @@ const validateWalletCreation = [
   
   body('currency')
     .optional()
-    .isIn(['LKR', 'USD', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD', 'CHF', 'CNY', 'INR'])
+    .isIn(CURRENCIES)
     .withMessage('Invalid currency'),
   
   body('paymentMethod')
@@ -67,7 +68,7 @@ const validateWalletUpdate = [
   
   body('type')
     .optional()
-    .isIn(['cash', 'bank', 'credit', 'savings', 'crypto', 'investment', 'loan'])
+    .isIn(['cash', 'bank', 'credit', 'savings', 'crypto', 'investment', 'loan', 'emergencyfund'])
     .withMessage('Invalid wallet type'),
   
   body('balance')
@@ -83,7 +84,7 @@ const validateWalletUpdate = [
   
   body('currency')
     .optional()
-    .isIn(['LKR', 'USD', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD', 'CHF', 'CNY', 'INR'])
+    .isIn(CURRENCIES)
     .withMessage('Invalid currency'),
   
   body('paymentMethod')

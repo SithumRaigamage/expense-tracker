@@ -121,7 +121,8 @@ export class WalletsComponent implements OnInit, OnDestroy {
       'savings': 'text-yellow-600 bg-yellow-100',
       'crypto': 'text-orange-600 bg-orange-100',
       'investment': 'text-indigo-600 bg-indigo-100',
-      'loan': 'text-red-600 bg-red-100'
+      'loan': 'text-red-600 bg-red-100',
+      'emergencyfund': 'text-rose-600 bg-rose-100'
     };
     return colorMap[type] || 'text-gray-600 bg-gray-100';
   }
@@ -254,7 +255,7 @@ export class WalletsComponent implements OnInit, OnDestroy {
         errors.push(`Wallet at index ${index} is missing a name`);
       }
 
-      if (!item.type || !['cash', 'bank', 'credit', 'savings', 'crypto', 'investment', 'loan', 'emergency'].includes(item.type)) {
+      if (!item.type || !['cash', 'bank', 'credit', 'savings', 'crypto', 'investment', 'loan', 'emergencyfund'].includes(item.type)) {
         errors.push(`Wallet "${item.name || index}" has an invalid type`);
       }
 

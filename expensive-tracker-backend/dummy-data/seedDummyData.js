@@ -91,7 +91,8 @@ async function seedDummyData() {
         { name: 'Bank Account', balance: 250000, type: 'bank', currency: user.currency, user: user._id },
         { name: 'Credit Card', balance: -15000, type: 'credit', currency: user.currency, user: user._id },
         { name: 'Savings Account', balance: 750000, type: 'savings', currency: user.currency, user: user._id },
-        { name: 'Investment Wallet', balance: 100000, type: 'investment', currency: user.currency, user: user._id }
+        { name: 'Investment Wallet', balance: 100000, type: 'investment', currency: user.currency, user: user._id },
+        { name: 'Emergency Fund', balance: 150000, type: 'emergencyfund', currency: user.currency, user: user._id }
       ];
       
       const createdWallets = await Wallet.insertMany(walletsData);
@@ -116,8 +117,16 @@ async function seedDummyData() {
         );
         const randomCat = categories[catKeys[Math.floor(Math.random() * catKeys.length)]];
         
-        // Pick random wallet
-        const randomWallet = createdWallets[Math.floor(Math.random() * createdWallets.length)];
+        // Pick smart wallet
+        let randomWallet;
+        const catName = randomCat.name.toLowerCase();
+        if (catName.includes('health') || catName.includes('medical') || catName.includes('insurance')) {
+          randomWallet = createdWallets.find(w => w.type === 'emergencyfund') || createdWallets[0];
+        } else if (isIncome && catName.includes('salary')) {
+          randomWallet = createdWallets.find(w => w.type === 'bank') || createdWallets[1];
+        } else {
+          randomWallet = createdWallets[Math.floor(Math.random() * createdWallets.length)];
+        }
         
         // More realistic random amounts
         let amount;
@@ -160,7 +169,7 @@ async function seedDummyData() {
           amount: user.currency === 'LKR' ? 180000 : 5000,
           category: categories['Salary']._id,
           user: user._id,
-          wallet: createdWallets[1]._id, // Bank
+          wallet: createdWallets.find(w => w.type === 'bank')._id, // Bank
           description: 'Regular Monthly Salary',
           date: new Date(d),
           paymentMethod: 'bank_transfer',
@@ -175,7 +184,7 @@ async function seedDummyData() {
           amount: user.currency === 'LKR' ? 45000 : 1200,
           category: categories['Housing']._id,
           user: user._id,
-          wallet: createdWallets[1]._id, // Bank
+          wallet: createdWallets.find(w => w.type === 'bank')._id, // Bank
           description: 'Regular Housing Payment',
           date: housingDate,
           paymentMethod: 'bank_transfer',

@@ -5,4 +5,9 @@ export interface Transaction {
   description: string;
   category: string;
   type: 'income' | 'expense';
+  walletId: string;
+  wallet?: {
+    name: string;
+    type: string;
+  };
 }

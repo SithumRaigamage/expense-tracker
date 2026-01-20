@@ -10,7 +10,7 @@
       </div>
 
       <div class="flex items-center gap-3">
-        <button
+        <button (click)="navToAddFunds()"
           class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -91,27 +91,33 @@
       <div class="rounded-xl border border-gray-200 bg-gray-50 p-6 dark:border-gray-800 dark:bg-gray-800/50">
         <div class="flex items-center justify-between mb-4">
           <h4 class="font-medium text-gray-900 dark:text-white">Recent Transactions</h4>
-          <button class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+          <button (click)="navToAllTransactions()" class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
             View All
           </button>
         </div>
         <div class="overflow-x-auto">
-          <table class="w-full">
+          <table class="w-full min-w-[600px]">
             <thead>
               <tr class="border-y border-gray-100 dark:border-gray-800">
                 <th class="py-3 px-4 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Date</th>
+                <th class="py-3 px-4 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Category</th>
                 <th class="py-3 px-4 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Amount</th>
                 <th class="py-3 px-4 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Type</th>
-                <th class="py-3 px-4 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Balance</th>
+                <th class="py-3 px-4 text-left text-sm font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">Running Balance</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-              <tr *ngFor="let transaction of transactions">
+              <tr *ngFor="let transaction of paginatedTransactions">
                 <td class="py-3 px-4">
-                  <span class="text-sm text-gray-900 dark:text-white">{{formatDate(transaction.date)}}</span>
+                  <span class="text-sm text-gray-900 dark:text-white whitespace-nowrap">{{formatDate(transaction.date)}}</span>
                 </td>
                 <td class="py-3 px-4">
-                  <span class="text-sm font-medium"
+                  <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                    {{transaction.category}}
+                  </span>
+                </td>
+                <td class="py-3 px-4">
+                  <span class="text-sm font-medium whitespace-nowrap"
                     [ngClass]="transaction.type === 'deposit' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'">
                     {{formatCurrency(transaction.amount)}}
                   </span>
@@ -122,13 +128,42 @@
                     {{transaction.type | titlecase}}
                   </span>
                 </td>
-                <td class="py-3 px-4">
-                  <span
-                    class="text-sm font-medium text-gray-900 dark:text-white">{{formatCurrency(transaction.balance)}}</span>
+                <td class="py-3 px-4 text-right sm:text-left">
+                  <span class="text-sm font-medium text-gray-900 dark:text-white whitespace-nowrap">
+                    {{formatCurrency(transaction.balance)}}
+                  </span>
                 </td>
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div *ngIf="transactions.length > pageSize" class="flex items-center justify-between mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Showing <span class="font-medium">{{(currentPage - 1) * pageSize + 1}}</span> to
+            <span class="font-medium">{{Math.min(currentPage * pageSize, transactions.length)}}</span> of
+            <span class="font-medium">{{transactions.length}}</span> results
+          </p>
+          <div class="flex items-center gap-2">
+            <button
+              (click)="prevPage()"
+              [disabled]="currentPage === 1"
+              class="p-2 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03]"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Page {{currentPage}} of {{totalPages}}
+            </span>
+            <button
+              (click)="nextPage()"
+              [disabled]="currentPage === totalPages"
+              class="p-2 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03]"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+          </div>
         </div>
       </div>
 

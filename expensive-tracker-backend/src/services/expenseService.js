@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const Expense = require('../models/Expense');
 const Category = require('../models/Category');
+const Wallet = require('../models/Wallet');
+const WalletService = require('./walletService');
 const { NotFoundError, BadRequestError } = require('../utils/errors');
 
 /**
@@ -112,13 +114,73 @@ class ExpenseService {
       throw new NotFoundError('Category not found');
     }
 
+    // Determine wallet if not provided
+    if (!expenseData.wallet) {
+      expenseData.wallet = await this.determineWallet(userId, expenseData.category);
+    } else {
+      // Verify wallet exists and belongs to user
+      const wallet = await Wallet.findOne({
+        _id: expenseData.wallet,
+        user: userId,
+        isActive: true
+      });
+
+      if (!wallet) {
+        throw new NotFoundError('Wallet not found');
+      }
+    }
+
     expenseData.user = userId;
     
     // Create expense
     const expense = await Expense.create(expenseData);
+
+    // Update wallet balance
+    const multiplier = category.type === 'income' ? 1 : -1;
+    await WalletService.updateBalance(expense.wallet, userId, expense.amount * multiplier);
     
-    // Populate category info for response
-    return await Expense.findById(expense._id).populate('category', 'name color icon type');
+    // Populate info for response
+    return await Expense.findById(expense._id)
+      .populate('category', 'name color icon type')
+      .populate('wallet', 'name type currency');
+  }
+
+  /**
+   * Determine which wallet to use based on category
+   * @param {string} userId - User ID
+   * @param {string} categoryId - Category ID
+   * @returns {Promise<string>} Wallet ID
+   */
+  static async determineWallet(userId, categoryId) {
+    const category = await Category.findById(categoryId);
+    const categoryName = category.name.toLowerCase();
+    
+    // 1. Check for Emergency Fund
+    const emergencyKeywords = ['health', 'medical', 'emergency', 'hospital', 'doctor'];
+    const isEmergency = emergencyKeywords.some(keyword => categoryName.includes(keyword));
+    
+    if (isEmergency) {
+      const emergencyWallet = await Wallet.findOne({ user: userId, type: 'emergencyfund', isActive: true });
+      if (emergencyWallet) return emergencyWallet._id;
+    }
+    
+    // 2. Check for Bank Account (Salary or Rent)
+    if (categoryName.includes('salary') || categoryName.includes('rent') || categoryName.includes('housing')) {
+      const bankWallet = await Wallet.findOne({ user: userId, type: 'bank', isActive: true });
+      if (bankWallet) return bankWallet._id;
+    }
+    
+    // 3. Fallback: Use any cash or bank wallet
+    const defaultWallet = await Wallet.findOne({ user: userId, isActive: true, type: { $in: ['cash', 'bank'] } });
+    if (defaultWallet) return defaultWallet._id;
+    
+    // 4. Last resort: any active wallet
+    const anyWallet = await Wallet.findOne({ user: userId, isActive: true });
+    if (!anyWallet) {
+      throw new BadRequestError('No active wallets found. Please create a wallet first.');
+    }
+    
+    return anyWallet._id;
   }
 
   /**
@@ -129,9 +191,15 @@ class ExpenseService {
    * @returns {Promise<Object>} Updated expense
    */
   static async updateExpense(expenseId, userId, updateData) {
+    const oldExpense = await Expense.findOne({ _id: expenseId, user: userId }).populate('category');
+    if (!oldExpense) {
+      throw new NotFoundError('Expense not found');
+    }
+
     // If updating category, verify it exists/belongs to user
-    if (updateData.category) {
-      const category = await Category.findOne({
+    let category = oldExpense.category;
+    if (updateData.category && updateData.category.toString() !== oldExpense.category._id.toString()) {
+      category = await Category.findOne({
         _id: updateData.category,
         user: userId
       });
@@ -141,15 +209,27 @@ class ExpenseService {
       }
     }
 
+    // Handle wallet change or amount change
+    const amountChanged = updateData.amount !== undefined && updateData.amount !== oldExpense.amount;
+    const walletChanged = updateData.wallet !== undefined && updateData.wallet.toString() !== oldExpense.wallet.toString();
+
+    if (amountChanged || walletChanged) {
+      // Revert old balance
+      const oldMultiplier = oldExpense.category.type === 'income' ? -1 : 1;
+      await WalletService.updateBalance(oldExpense.wallet, userId, oldExpense.amount * oldMultiplier);
+
+      // Apply new balance (using new amount if provided, else old)
+      const newAmount = updateData.amount !== undefined ? updateData.amount : oldExpense.amount;
+      const newWalletId = updateData.wallet !== undefined ? updateData.wallet : oldExpense.wallet;
+      const newMultiplier = category.type === 'income' ? 1 : -1;
+      await WalletService.updateBalance(newWalletId, userId, newAmount * newMultiplier);
+    }
+
     const expense = await Expense.findOneAndUpdate(
       { _id: expenseId, user: userId },
       updateData,
       { new: true, runValidators: true }
-    ).populate('category', 'name color icon type');
-
-    if (!expense) {
-      throw new NotFoundError('Expense not found');
-    }
+    ).populate('category', 'name color icon type').populate('wallet', 'name type currency');
 
     return expense;
   }
@@ -161,14 +241,16 @@ class ExpenseService {
    * @returns {Promise<boolean>} True if deleted
    */
   static async deleteExpense(expenseId, userId) {
-    const expense = await Expense.findOneAndDelete({
-      _id: expenseId,
-      user: userId
-    });
-
+    const expense = await Expense.findOne({ _id: expenseId, user: userId }).populate('category');
     if (!expense) {
       throw new NotFoundError('Expense not found');
     }
+
+    // Revert wallet balance
+    const multiplier = expense.category.type === 'income' ? -1 : 1;
+    await WalletService.updateBalance(expense.wallet, userId, expense.amount * multiplier);
+
+    await Expense.deleteOne({ _id: expenseId });
 
     return true;
   }

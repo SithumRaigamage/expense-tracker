@@ -78,7 +78,7 @@
       <div class="relative w-full pt-[80%] rounded-xl mb-4 overflow-hidden bg-gray-50 dark:bg-gray-700 group">
         <img [src]="goal.imageUrl" [alt]="goal.name"
           class="absolute inset-0 w-full h-full object-contain p-4 transition-transform duration-300 group-hover:scale-105"
-          onerror="this.src='assets/images/placeholder.png'">
+          onerror="this.src='https://images.unsplash.com/photo-1560393464-5c69a73c5770?w=100&h=100&fit=crop'">
 
         <!-- Target Date Badge -->
         <div
@@ -249,7 +249,7 @@
                 <div *ngIf="currentGoal.imageUrl" class="mb-4 relative">
                   <img [src]="currentGoal.imageUrl"
                     class="w-full h-40 object-contain rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700"
-                    onerror="this.src='assets/images/placeholder.png'">
+                    onerror="this.src='https://images.unsplash.com/photo-1560393464-5c69a73c5770?w=100&h=100&fit=crop'">
                   <button type="button" (click)="currentGoal.imageUrl = ''"
                     class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
@@ -488,7 +488,7 @@
               <div *ngIf="currentGoal.imageUrl" class="mb-4 relative">
                 <img [src]="currentGoal.imageUrl"
                   class="w-full h-40 object-contain rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700"
-                  onerror="this.src='assets/images/placeholder.png'">
+                  onerror="this.src=''">
                 <button type="button" (click)="currentGoal.imageUrl = ''"
                   class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center">
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
@@ -626,7 +626,7 @@
               <div class="flex items-center gap-4">
                 <div *ngIf="currentGoal.imageUrl" class="w-16 h-16">
                   <img [src]="currentGoal.imageUrl" alt="Goal image" class="w-full h-full object-contain rounded-md"
-                    onerror="this.src='assets/images/placeholder.png'">
+                    onerror="this.src='https://images.unsplash.com/photo-1560393464-5c69a73c5770?w=100&h=100&fit=crop'">
                 </div>
                 <div class="flex-1">
                   <h3 class="font-medium text-gray-900 dark:text-white">{{currentGoal.name}}</h3>

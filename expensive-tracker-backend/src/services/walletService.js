@@ -239,6 +239,27 @@ class WalletService {
       }
     };
   }
+
+  /**
+   * Update wallet balance
+   * @param {string} walletId - Wallet ID
+   * @param {string} userId - User ID
+   * @param {number} amount - Amount to add (positive) or subtract (negative)
+   * @returns {Promise<Object>} Updated wallet
+   */
+  static async updateBalance(walletId, userId, amount) {
+    const wallet = await Wallet.findOneAndUpdate(
+      { _id: walletId, user: userId, isActive: true },
+      { $inc: { balance: amount } },
+      { new: true, runValidators: true }
+    );
+
+    if (!wallet) {
+      throw new NotFoundError('Wallet not found');
+    }
+
+    return wallet;
+  }
 }
 
 module.exports = WalletService;

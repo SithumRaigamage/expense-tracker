@@ -22,6 +22,11 @@ const expenseSchema = new mongoose.Schema({
     ref: 'Category',
     required: [true, 'Category is required']
   },
+  wallet: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Wallet',
+    required: [true, 'Wallet is required']
+  },
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

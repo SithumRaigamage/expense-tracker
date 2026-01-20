@@ -15,11 +15,14 @@ import {
   ApexTheme
 } from 'ng-apexcharts';
 import { TransactionService } from '../../../services/transaction.service';
-import { Subscription } from 'rxjs';
+import { WalletService } from '../../../services/wallet.service';
+import { Subscription, combineLatest } from 'rxjs';
+import { Router } from '@angular/router';
 
 interface EmergencyTransaction {
   date: Date;
   amount: number;
+  category: string;
   type: 'deposit' | 'withdrawal';
   balance: number;
 }
@@ -46,6 +49,7 @@ export type EmergencyChartOptions = {
 })
 export class EmergencyFundComponent implements OnInit, OnDestroy {
   public chartOptions!: Partial<EmergencyChartOptions>;
+  protected Math = Math;
 
   private readonly COLORS = {
     primary: '#10B981',
@@ -59,7 +63,16 @@ export class EmergencyFundComponent implements OnInit, OnDestroy {
   targetGoal: number = 100000;
   monthlySaveGoal: number = 5000;
 
-  constructor(private transactionService: TransactionService) {}
+  // Pagination
+  currentPage: number = 1;
+  pageSize: number = 10;
+  totalPages: number = 1;
+
+  constructor(
+    private transactionService: TransactionService,
+    private walletService: WalletService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.loadTransactions();
@@ -168,31 +181,88 @@ export class EmergencyFundComponent implements OnInit, OnDestroy {
   }
 
   private loadTransactions(): void {
-    const currentDate = new Date();
     this.subscription.add(
-      this.transactionService
-        .getMonthlyTransactions(currentDate.getMonth(), currentDate.getFullYear())
-        .subscribe(transactions => {
-          // Only include transactions with category 'Emergency Fund'
-          const emergencyFundTransactions = transactions.filter(t => t.category === 'Emergency Fund');
-          let runningBalance = 0;
-          this.transactions = emergencyFundTransactions
-            .sort((a, b) => a.date.getTime() - b.date.getTime())
-            .map(t => {
-              const isDeposit = t.type === 'income';
-              runningBalance += isDeposit ? t.amount : -t.amount;
-              return {
-                date: t.date,
-                amount: t.amount,
-                type: isDeposit ? 'deposit' : 'withdrawal',
-                balance: runningBalance
-              };
-            });
-
-          this.currentBalance = runningBalance;
+      combineLatest([
+        this.walletService.getAllWallets(),
+        this.transactionService.getTransactions()
+      ]).subscribe(([wallets, allTransactions]: [any[], any[]]) => {
+        const emergencyWallet = wallets.find((w: any) => w.type === 'emergencyfund');
+        if (!emergencyWallet) {
+          this.currentBalance = 0;
+          this.transactions = [];
           this.initializeChart();
-        })
+          return;
+        }
+
+        this.currentBalance = emergencyWallet.balance;
+        
+        if (allTransactions) {
+          const walletTransactions = allTransactions.filter((t: any) => t.walletId === emergencyWallet.id);
+          
+          // Sort by date ascending for the chart
+          const sortedTransactions = [...walletTransactions].sort((a, b) => 
+            new Date(a.date).getTime() - new Date(b.date).getTime()
+          );
+
+          // Simple trend line: start from 0 and add up
+          let trend = 0;
+          this.transactions = sortedTransactions.map(t => {
+            trend += t.type === 'income' ? t.amount : -t.amount;
+            return {
+              date: new Date(t.date),
+              amount: t.amount,
+              category: t.category,
+              type: t.type === 'income' ? 'deposit' : 'withdrawal' as 'deposit' | 'withdrawal',
+              balance: trend
+            };
+          });
+
+          this.initializeChart();
+          this.updatePagination();
+        }
+      })
     );
+  }
+
+  updatePagination(): void {
+    this.totalPages = Math.ceil(this.transactions.length / this.pageSize);
+    if (this.currentPage > this.totalPages) {
+      this.currentPage = Math.max(1, this.totalPages);
+    }
+  }
+
+  get paginatedTransactions(): EmergencyTransaction[] {
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    // For the table, we want newest first, so we reverse the transactions array
+    return [...this.transactions]
+      .sort((a, b) => b.date.getTime() - a.date.getTime())
+      .slice(startIndex, startIndex + this.pageSize);
+  }
+
+  nextPage(): void {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+    }
+  }
+
+  prevPage(): void {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+    }
+  }
+
+  setPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+    }
+  }
+
+  navToAllTransactions(): void {
+    this.router.navigate(['/transactions'], { queryParams: { walletType: 'emergencyfund' } });
+  }
+
+  navToAddFunds(): void {
+    this.router.navigate(['/transactions'], { queryParams: { walletType: 'emergencyfund', action: 'add' } });
   }
 
   formatDate(date: Date): string {

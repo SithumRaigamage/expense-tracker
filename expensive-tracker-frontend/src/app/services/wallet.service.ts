@@ -12,7 +12,8 @@ import {
   faBitcoinSign,
   faChartLine,
   faHandHoldingDollar,
-  faWallet
+  faWallet,
+  faHeartPulse
 } from '@fortawesome/free-solid-svg-icons';
 
 export interface WalletTransaction {
@@ -122,6 +123,7 @@ export class WalletService {
       case 'crypto': return faBitcoinSign;
       case 'investment': return faChartLine;
       case 'loan': return faHandHoldingDollar;
+      case 'emergencyfund': return faHeartPulse;
       default: return faWallet;
     }
   }
@@ -135,6 +137,7 @@ export class WalletService {
       case 'crypto': return 'Crypto Assets';
       case 'investment': return 'Investments';
       case 'loan': return 'Loans';
+      case 'emergencyfund': return 'Emergency Fund';
       default: return type;
     }
   }

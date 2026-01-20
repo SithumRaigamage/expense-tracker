@@ -86,6 +86,22 @@
         </select>
       </div>
 
+      <!-- Wallet -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Wallet
+        </label>
+        <select
+          formControlName="wallet"
+          class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+        >
+          <option value="">All Wallets</option>
+          <option *ngFor="let wallet of wallets" [value]="wallet.id">
+            {{wallet.name}}
+          </option>
+        </select>
+      </div>
+
       <!-- Search -->
       <div>
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -114,6 +130,7 @@
           <th scope="col" class="px-6 py-3">Date</th>
           <th scope="col" class="px-6 py-3">Description</th>
           <th scope="col" class="px-6 py-3">Category</th>
+          <th scope="col" class="px-6 py-3">Wallet</th>
           <th scope="col" class="px-6 py-3">Amount</th>
           <th scope="col" class="px-6 py-3">Type</th>
           <th scope="col" class="px-6 py-3">Actions</th>
@@ -125,6 +142,11 @@
           <td class="px-6 py-4">{{transaction.date | date}}</td>
           <td class="px-6 py-4">{{transaction.description}}</td>
           <td class="px-6 py-4">{{transaction.category}}</td>
+          <td class="px-6 py-4">
+            <span class="px-2 py-1 rounded text-xs bg-gray-100 dark:bg-gray-700">
+              {{transaction.wallet?.name || 'Default'}}
+            </span>
+          </td>
           <td class="px-6 py-4" [ngClass]="{
             'text-green-500': transaction.type === 'income',
             'text-red-500': transaction.type === 'expense'
@@ -281,6 +303,20 @@
               <option *ngFor="let category of filteredCategories"
                       [value]="category.name">
                 {{category.name}} ({{category.type}})
+              </option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Wallet
+            </label>
+            <select formControlName="walletId"
+                    class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+              <option value="">Select a wallet</option>
+              <option *ngFor="let wallet of wallets"
+                      [value]="wallet.id">
+                {{wallet.name}} ({{wallet.balance | currency:wallet.currency}})
               </option>
             </select>
           </div>
