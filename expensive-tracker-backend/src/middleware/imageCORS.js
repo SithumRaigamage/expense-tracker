@@ -1,6 +1,6 @@
 /**
  * Custom middleware for handling CORS specifically for images
- * This ensures images can be loaded from the frontend without CORS errors
+ * This ensures images can be loaded from the expensive-tracker-frontend without CORS errors
  */
 module.exports = (req, res, next) => {
   // Set permissive CORS headers for image files

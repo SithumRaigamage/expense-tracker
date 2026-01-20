@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { CATEGORY_TYPES } = require('../config/constants');
 
 const categorySchema = new mongoose.Schema({
   name: {
@@ -23,7 +24,7 @@ const categorySchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['income', 'expense'],
+    enum: CATEGORY_TYPES,
     required: [true, 'Category type is required']
   },
   user: {

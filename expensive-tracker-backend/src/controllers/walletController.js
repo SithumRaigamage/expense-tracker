@@ -1,404 +1,130 @@
-const Wallet = require('../models/Wallet');
-const mongoose = require('mongoose');
+const asyncHandler = require('express-async-handler');
+const WalletService = require('../services/walletService');
+const { successResponse, createdResponse } = require('../utils/responseFormatter');
 
-// @desc    Get all wallets for user
-// @route   GET /api/v1/wallets
-// @access  Private
-const getWallets = async (req, res, next) => {
-  try {
-    const { page = 1, limit = 10, type, sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
-    
-    // Build filter
-    const filter = { user: req.user.id, isActive: true };
-    if (type) {
-      filter.type = type;
-    }
+/**
+ * @desc    Get all wallets for user
+ * @route   GET /api/v1/wallets
+ * @access  Private
+ */
+const getWallets = asyncHandler(async (req, res) => {
+  const options = {
+    page: req.query.page,
+    limit: req.query.limit,
+    type: req.query.type,
+    sortBy: req.query.sortBy,
+    sortOrder: req.query.sortOrder
+  };
 
-    // Build sort object
-    const sort = {};
-    sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+  const result = await WalletService.getWallets(req.user.id, options);
 
-    const wallets = await Wallet.find(filter)
-      .sort(sort)
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
+  // Use manual pagination response since the service returns { wallets, total }
+  // instead of just an array
+  res.status(200).json({
+    success: true,
+    count: result.wallets.length,
+    total: result.total,
+    pagination: {
+      page: parseInt(options.page) || 1,
+      limit: parseInt(options.limit) || 10,
+      pages: Math.ceil(result.total / (parseInt(options.limit) || 10))
+    },
+    data: result.wallets
+  });
+});
 
-    const total = await Wallet.countDocuments(filter);
+/**
+ * @desc    Get single wallet
+ * @route   GET /api/v1/wallets/:id
+ * @access  Private
+ */
+const getWallet = asyncHandler(async (req, res) => {
+  const wallet = await WalletService.getWallet(req.params.id, req.user.id);
+  
+  successResponse(res, wallet);
+});
 
-    res.status(200).json({
-      success: true,
-      count: wallets.length,
-      total,
-      pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        pages: Math.ceil(total / limit)
-      },
-      data: wallets
+/**
+ * @desc    Create new wallet
+ * @route   POST /api/v1/wallets
+ * @access  Private
+ */
+const createWallet = asyncHandler(async (req, res) => {
+  const wallet = await WalletService.createWallet(req.body, req.user.id);
+  
+  createdResponse(res, wallet, 'Wallet created successfully');
+});
+
+/**
+ * @desc    Update wallet
+ * @route   PUT /api/v1/wallets/:id
+ * @access  Private
+ */
+const updateWallet = asyncHandler(async (req, res) => {
+  const wallet = await WalletService.updateWallet(
+    req.params.id,
+    req.user.id,
+    req.body
+  );
+  
+  successResponse(res, wallet, 200, 'Wallet updated successfully');
+});
+
+/**
+ * @desc    Delete wallet (soft delete)
+ * @route   DELETE /api/v1/wallets/:id
+ * @access  Private
+ */
+const deleteWallet = asyncHandler(async (req, res) => {
+  await WalletService.deleteWallet(req.params.id, req.user.id);
+  
+  successResponse(res, {}, 200, 'Wallet deleted successfully');
+});
+
+/**
+ * @desc    Bulk delete wallets (soft delete)
+ * @route   DELETE /api/v1/wallets/bulk
+ * @access  Private
+ */
+const bulkDeleteWallets = asyncHandler(async (req, res) => {
+  const { walletIds } = req.body;
+  
+  if (!walletIds || !Array.isArray(walletIds) || walletIds.length === 0) {
+    return res.status(400).json({
+      success: false,
+      error: 'Please provide an array of wallet IDs to delete'
     });
-  } catch (error) {
-    next(error);
   }
-};
 
-// @desc    Get single wallet
-// @route   GET /api/v1/wallets/:id
-// @access  Private
-const getWallet = async (req, res, next) => {
-  try {
-    // Validate ObjectId
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid wallet ID format'
-      });
-    }
+  const deletedCount = await WalletService.bulkDeleteWallets(walletIds, req.user.id);
+  
+  successResponse(res, {
+    deletedCount,
+    requestedCount: walletIds.length
+  }, 200, `${deletedCount} wallets deleted successfully`);
+});
 
-    const wallet = await Wallet.findOne({
-      _id: req.params.id,
-      user: req.user.id,
-      isActive: true
-    });
+/**
+ * @desc    Restore deleted wallet
+ * @route   PATCH /api/v1/wallets/:id/restore
+ * @access  Private
+ */
+const restoreWallet = asyncHandler(async (req, res) => {
+  const wallet = await WalletService.restoreWallet(req.params.id, req.user.id);
+  
+  successResponse(res, wallet, 200, 'Wallet restored successfully');
+});
 
-    if (!wallet) {
-      return res.status(404).json({
-        success: false,
-        error: 'Wallet not found'
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      data: wallet
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// @desc    Create new wallet
-// @route   POST /api/v1/wallets
-// @access  Private
-const createWallet = async (req, res, next) => {
-  try {
-    // Add user to req.body
-    req.body.user = req.user.id;
-
-    // Check if wallet with same name already exists for this user
-    const existingWallet = await Wallet.findOne({
-      name: req.body.name,
-      user: req.user.id,
-      isActive: true
-    });
-
-    if (existingWallet) {
-      return res.status(400).json({
-        success: false,
-        error: 'A wallet with this name already exists'
-      });
-    }
-
-    const wallet = await Wallet.create(req.body);
-
-    res.status(201).json({
-      success: true,
-      message: 'Wallet created successfully',
-      data: wallet
-    });
-  } catch (error) {
-    if (error.name === 'ValidationError') {
-      const messages = Object.values(error.errors).map(val => val.message);
-      return res.status(400).json({
-        success: false,
-        error: 'Validation failed',
-        details: messages
-      });
-    }
-    next(error);
-  }
-};
-
-// @desc    Update wallet
-// @route   PUT /api/v1/wallets/:id
-// @access  Private
-const updateWallet = async (req, res, next) => {
-  try {
-    // Validate ObjectId
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid wallet ID format'
-      });
-    }
-
-    // Check if wallet exists and belongs to user
-    const existingWallet = await Wallet.findOne({
-      _id: req.params.id,
-      user: req.user.id,
-      isActive: true
-    });
-
-    if (!existingWallet) {
-      return res.status(404).json({
-        success: false,
-        error: 'Wallet not found'
-      });
-    }
-
-    // If updating name, check for duplicates
-    if (req.body.name && req.body.name !== existingWallet.name) {
-      const duplicateWallet = await Wallet.findOne({
-        name: req.body.name,
-        user: req.user.id,
-        isActive: true,
-        _id: { $ne: req.params.id }
-      });
-
-      if (duplicateWallet) {
-        return res.status(400).json({
-          success: false,
-          error: 'A wallet with this name already exists'
-        });
-      }
-    }
-
-    // Prevent updating user field
-    delete req.body.user;
-
-    const wallet = await Wallet.findOneAndUpdate(
-      { _id: req.params.id, user: req.user.id },
-      req.body,
-      {
-        new: true,
-        runValidators: true
-      }
-    );
-
-    res.status(200).json({
-      success: true,
-      message: 'Wallet updated successfully',
-      data: wallet
-    });
-  } catch (error) {
-    if (error.name === 'ValidationError') {
-      const messages = Object.values(error.errors).map(val => val.message);
-      return res.status(400).json({
-        success: false,
-        error: 'Validation failed',
-        details: messages
-      });
-    }
-    next(error);
-  }
-};
-
-// @desc    Delete wallet (soft delete)
-// @route   DELETE /api/v1/wallets/:id
-// @access  Private
-const deleteWallet = async (req, res, next) => {
-  try {
-    // Validate ObjectId
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid wallet ID format'
-      });
-    }
-
-    const wallet = await Wallet.findOne({
-      _id: req.params.id,
-      user: req.user.id,
-      isActive: true
-    });
-
-    if (!wallet) {
-      return res.status(404).json({
-        success: false,
-        error: 'Wallet not found'
-      });
-    }
-
-    // Soft delete by setting isActive to false
-    await Wallet.findOneAndUpdate(
-      { _id: req.params.id, user: req.user.id },
-      { isActive: false },
-      { new: true }
-    );
-
-    res.status(200).json({
-      success: true,
-      message: 'Wallet deleted successfully',
-      data: {}
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// @desc    Get wallet statistics
-// @route   GET /api/v1/wallets/stats
-// @access  Private
-const getWalletStats = async (req, res, next) => {
-  try {
-    const stats = await Wallet.aggregate([
-      { $match: { user: req.user.id, isActive: true } },
-      {
-        $group: {
-          _id: '$type',
-          totalBalance: { $sum: '$balance' },
-          count: { $sum: 1 },
-          avgBalance: { $avg: '$balance' }
-        }
-      },
-      { $sort: { totalBalance: -1 } }
-    ]);
-
-    const totalStats = await Wallet.aggregate([
-      { $match: { user: req.user.id, isActive: true } },
-      {
-        $group: {
-          _id: null,
-          totalBalance: { $sum: '$balance' },
-          totalWallets: { $sum: 1 },
-          avgBalance: { $avg: '$balance' },
-          maxBalance: { $max: '$balance' },
-          minBalance: { $min: '$balance' }
-        }
-      }
-    ]);
-
-    const currencyStats = await Wallet.aggregate([
-      { $match: { user: req.user.id, isActive: true } },
-      {
-        $group: {
-          _id: '$currency',
-          totalBalance: { $sum: '$balance' },
-          count: { $sum: 1 }
-        }
-      },
-      { $sort: { totalBalance: -1 } }
-    ]);
-
-    res.status(200).json({
-      success: true,
-      data: {
-        byType: stats,
-        byCurrency: currencyStats,
-        overall: totalStats[0] || {
-          totalBalance: 0,
-          totalWallets: 0,
-          avgBalance: 0,
-          maxBalance: 0,
-          minBalance: 0
-        }
-      }
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// @desc    Bulk delete wallets (soft delete)
-// @route   DELETE /api/v1/wallets/bulk
-// @access  Private
-const bulkDeleteWallets = async (req, res, next) => {
-  try {
-    const { walletIds } = req.body;
-
-    if (!walletIds || !Array.isArray(walletIds) || walletIds.length === 0) {
-      return res.status(400).json({
-        success: false,
-        error: 'Wallet IDs array is required'
-      });
-    }
-
-    // Validate all ObjectIds
-    const invalidIds = walletIds.filter(id => !mongoose.Types.ObjectId.isValid(id));
-    if (invalidIds.length > 0) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid wallet ID format',
-        details: invalidIds
-      });
-    }
-
-    const result = await Wallet.updateMany(
-      {
-        _id: { $in: walletIds },
-        user: req.user.id,
-        isActive: true
-      },
-      { isActive: false }
-    );
-
-    res.status(200).json({
-      success: true,
-      message: `${result.modifiedCount} wallets deleted successfully`,
-      data: {
-        deletedCount: result.modifiedCount,
-        requestedCount: walletIds.length
-      }
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// @desc    Restore deleted wallet
-// @route   PATCH /api/v1/wallets/:id/restore
-// @access  Private
-const restoreWallet = async (req, res, next) => {
-  try {
-    // Validate ObjectId
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid wallet ID format'
-      });
-    }
-
-    const wallet = await Wallet.findOne({
-      _id: req.params.id,
-      user: req.user.id,
-      isActive: false
-    });
-
-    if (!wallet) {
-      return res.status(404).json({
-        success: false,
-        error: 'Deleted wallet not found'
-      });
-    }
-
-    // Check if active wallet with same name exists
-    const duplicateWallet = await Wallet.findOne({
-      name: wallet.name,
-      user: req.user.id,
-      isActive: true
-    });
-
-    if (duplicateWallet) {
-      return res.status(400).json({
-        success: false,
-        error: 'A wallet with this name already exists. Please rename the existing wallet first.'
-      });
-    }
-
-    const restoredWallet = await Wallet.findOneAndUpdate(
-      { _id: req.params.id, user: req.user.id },
-      { isActive: true },
-      { new: true }
-    );
-
-    res.status(200).json({
-      success: true,
-      message: 'Wallet restored successfully',
-      data: restoredWallet
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+/**
+ * @desc    Get wallet statistics
+ * @route   GET /api/v1/wallets/stats
+ * @access  Private
+ */
+const getWalletStats = asyncHandler(async (req, res) => {
+  const stats = await WalletService.getWalletStats(req.user.id);
+  
+  successResponse(res, stats);
+});
 
 module.exports = {
   getWallets,
@@ -406,7 +132,7 @@ module.exports = {
   createWallet,
   updateWallet,
   deleteWallet,
-  getWalletStats,
   bulkDeleteWallets,
-  restoreWallet
+  restoreWallet,
+  getWalletStats
 };

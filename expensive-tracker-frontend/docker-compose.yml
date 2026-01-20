@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  expensive-tracker-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: expense-tracker-frontend
+    ports:
+      - "4200:80"
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+
+  # You can add backend service here if needed
+  # backend:
+  #   image: expense-tracker-backend
+  #   container_name: expense-tracker-backend
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - NODE_ENV=production
+  #   restart: unless-stopped

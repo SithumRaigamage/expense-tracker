@@ -38,7 +38,6 @@ Authorization: Bearer <token>
 ```
 
 Note:
-
 - `imageUrl` is optional
 - `savedAmount` is optional, defaults to 0
 - `targetDate` should be an ISO date string
@@ -48,6 +47,7 @@ Note:
 ```json
 {
   "success": true,
+  "message": "Resource created successfully",
   "data": {
     "_id": "60d21b4667d0d8992e610c85",
     "name": "New Laptop",
@@ -78,6 +78,7 @@ Note:
 ```json
 {
   "success": true,
+  "message": "Product budgets retrieved successfully",
   "count": 2,
   "data": [
     {
@@ -114,7 +115,7 @@ Note:
 
 ### Get Product Budget Summary
 
-**Endpoint:** `GET /api/v1/productbudgets/summary`
+**Endpoint:** `GET /api/v1/productbudgets/stats/summary`
 
 **Description:** Get summary statistics for all active product budgets of the current user
 
@@ -180,6 +181,7 @@ Note:
 ```json
 {
   "success": true,
+  "message": "Product budget updated successfully",
   "data": {
     "_id": "60d21b4667d0d8992e610c85",
     "name": "Updated Laptop Name",
@@ -214,6 +216,7 @@ Note:
 ```json
 {
   "success": true,
+  "message": "Saved amount updated successfully",
   "data": {
     "_id": "60d21b4667d0d8992e610c85",
     "name": "New Laptop",
@@ -241,7 +244,8 @@ Note:
 ```json
 {
   "success": true,
-  "message": "Product budget deleted successfully"
+  "message": "Product budget deleted successfully",
+  "data": {}
 }
 ```
 
@@ -250,7 +254,8 @@ Note:
 **Validation Error:**
 ```json
 {
-  "message": "Product name is required"
+  "success": false,
+  "error": "Product name is required"
 }
 ```
 
@@ -258,7 +263,7 @@ Note:
 ```json
 {
   "success": false,
-  "message": "Product budget not found"
+  "error": "Product budget not found"
 }
 ```
 
@@ -266,7 +271,6 @@ Note:
 ```json
 {
   "success": false,
-  "message": "Failed to create product budget",
-  "error": "Error message details"
+  "error": "Failed to create product budget"
 }
 ```

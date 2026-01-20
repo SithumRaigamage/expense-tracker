@@ -1,9 +1,19 @@
+const logger = require('../utils/logger');
+const { AppError } = require('../utils/errors');
+
 const errorHandler = (err, req, res, next) => {
   let error = { ...err };
   error.message = err.message;
 
-  // Log error
-  console.error(err);
+  // Log error with stack trace
+  logger.error('Error occurred:', {
+    message: err.message,
+    stack: err.stack,
+    url: req.originalUrl,
+    method: req.method,
+    ip: req.ip,
+    userId: req.user?.id
+  });
 
   // Mongoose bad ObjectId
   if (err.name === 'CastError') {
@@ -13,7 +23,8 @@ const errorHandler = (err, req, res, next) => {
 
   // Mongoose duplicate key
   if (err.code === 11000) {
-    const message = 'Duplicate field value entered';
+    const field = Object.keys(err.keyValue)[0];
+    const message = `Duplicate field value: ${field}. Please use another value`;
     error = { message, statusCode: 400 };
   }
 
@@ -34,6 +45,20 @@ const errorHandler = (err, req, res, next) => {
     error = { message, statusCode: 401 };
   }
 
+  // Multer file upload errors
+  if (err.name === 'MulterError') {
+    let message = 'File upload error';
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      message = 'File size is too large. Maximum size is 5MB';
+    }
+    error = { message, statusCode: 400 };
+  }
+
+  // Custom AppError
+  if (err instanceof AppError) {
+    error = { message: err.message, statusCode: err.statusCode };
+  }
+
   res.status(error.statusCode || 500).json({
     success: false,
     error: error.message || 'Server Error',
@@ -42,3 +67,4 @@ const errorHandler = (err, req, res, next) => {
 };
 
 module.exports = errorHandler;
+

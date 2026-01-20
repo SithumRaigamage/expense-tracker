@@ -16,20 +16,23 @@ This document provides information about the Release Notes API endpoints.
 - **Method**: `GET`
 - **Authentication**: Not required
 - **Description**: Retrieves all published release notes, sorted by date (newest first).
-- **Response**: Array of release note objects
+- **Response**:
 
 ```json
-[
-  {
-    "_id": "60d21b4667d0d8992e610c85",
-    "version": "1.0.0",
-    "date": "2024-04-06T00:00:00.000Z",
-    "features": ["Feature 1", "Feature 2"],
-    "bugfixes": ["Bugfix 1"],
-    "improvements": ["Improvement 1"],
-    "isPublished": true
-  }
-]
+{
+  "success": true,
+  "data": [
+    {
+      "_id": "60d21b4667d0d8992e610c85",
+      "version": "1.0.0",
+      "date": "2024-04-06T00:00:00.000Z",
+      "features": ["Feature 1", "Feature 2"],
+      "bugfixes": ["Bugfix 1"],
+      "improvements": ["Improvement 1"],
+      "isPublished": true
+    }
+  ]
+}
 ```
 
 ### Get Release Note by Version
@@ -38,17 +41,20 @@ This document provides information about the Release Notes API endpoints.
 - **Method**: `GET`
 - **Authentication**: Not required
 - **Description**: Retrieves a specific release note by its version number.
-- **Response**: A single release note object
+- **Response**:
 
 ```json
 {
-  "_id": "60d21b4667d0d8992e610c85",
-  "version": "1.0.0",
-  "date": "2024-04-06T00:00:00.000Z",
-  "features": ["Feature 1", "Feature 2"],
-  "bugfixes": ["Bugfix 1"],
-  "improvements": ["Improvement 1"],
-  "isPublished": true
+  "success": true,
+  "data": {
+    "_id": "60d21b4667d0d8992e610c85",
+    "version": "1.0.0",
+    "date": "2024-04-06T00:00:00.000Z",
+    "features": ["Feature 1", "Feature 2"],
+    "bugfixes": ["Bugfix 1"],
+    "improvements": ["Improvement 1"],
+    "isPublished": true
+  }
 }
 ```
 
@@ -71,7 +77,15 @@ This document provides information about the Release Notes API endpoints.
 }
 ```
 
-- **Response**: The created release note object
+- **Response**:
+
+```json
+{
+  "success": true,
+  "message": "Resource created successfully",
+  "data": { ... }
+}
+```
 
 ### Update Release Note
 
@@ -92,7 +106,14 @@ This document provides information about the Release Notes API endpoints.
 }
 ```
 
-- **Response**: The updated release note object
+- **Response**:
+
+```json
+{
+  "success": true,
+  "data": { ... }
+}
+```
 
 ### Delete Release Note
 
@@ -104,7 +125,9 @@ This document provides information about the Release Notes API endpoints.
 
 ```json
 {
-  "message": "Release note removed"
+  "success": true,
+  "message": "Release note removed",
+  "data": {}
 }
 ```
 
@@ -122,6 +145,13 @@ This document provides information about the Release Notes API endpoints.
 ## Error Handling
 
 The API returns appropriate HTTP status codes and error messages:
+
+```json
+{
+  "success": false,
+  "error": "Error message details"
+}
+```
 
 - `400 Bad Request`: Invalid request body or parameters
 - `401 Unauthorized`: Missing or invalid authentication

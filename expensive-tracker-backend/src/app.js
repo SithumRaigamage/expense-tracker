@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const dotenv = require('dotenv');
 const fs = require('fs');
+const logger = require('./utils/logger');
 
 // Load environment variables
 dotenv.config();
@@ -19,28 +20,37 @@ const releaseNoteRoutes = require('./routes/releaseNoteRoutes');
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
 const notFound = require('./middleware/notFound');
+const { sanitizeInput } = require('./middleware/validation');
 
 const app = express();
 
 // Security middleware
 app.use(helmet());
 
-// CORS configuration - Allow more permissive settings for development
-app.use(cors({
-  origin: '*', // Allow all origins for testing
+// CORS configuration - Environment-based
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production' 
+    ? (process.env.FRONTEND_URL || 'http://localhost:3000').split(',') 
+    : '*',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization']
-}));
+};
+app.use(cors(corsOptions));
 
 // Logging middleware
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
+} else {
+  app.use(morgan('combined', { stream: logger.stream }));
 }
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Input sanitization middleware
+app.use(sanitizeInput);
 
 // Set static folder for file uploads
 const path = require('path');
@@ -48,7 +58,7 @@ const path = require('path');
 const uploadDir = path.join(__dirname, '../public/uploads');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
-  console.log(`Created upload directory: ${uploadDir}`);
+  logger.info(`Created upload directory: ${uploadDir}`);
 }
 
 // Import custom CORS middleware for images
@@ -66,7 +76,7 @@ app.use('/uploads', express.static(uploadDir, {
     }
   }
 }));
-console.log(`Static file serving set up for path: ${uploadDir} with CORS support`);
+logger.info(`Static file serving set up for: ${uploadDir} with CORS support`);
 
 // Routes
 app.use('/api/v1/expenses', expenseRoutes);

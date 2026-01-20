@@ -1,0 +1,35 @@
+<div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
+  <div *ngFor="let metric of metrics"
+       class="card p-6">
+    <div class="flex items-center justify-between">
+      <div>
+        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+          {{metric.label}}
+        </p>
+        <h4 class="mt-2 text-2xl font-bold tracking-tight text-gray-800 dark:text-white/90">
+          {{formatCurrency(metric.value)}}
+        </h4>
+      </div>
+      <div class="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gray-50 dark:bg-gray-800 shadow-sm">
+        <fa-icon [icon]="metric.icon"
+                [class]="getMetricColor(metric.label)"
+                class="text-lg">
+        </fa-icon>
+      </div>
+    </div>
+    <div class="mt-4 flex items-center gap-2">
+      <app-badge
+        [color]="metric.trend === 'up' ? 'success' : 'error'"
+        variant="light"
+        size="sm"
+        class="font-medium"
+      >
+        <fa-icon [icon]="metric.trend === 'up' ? faArrowUp : faArrowDown"
+                class="mr-1 text-[10px]">
+        </fa-icon>
+        {{metric.percentage}}%
+      </app-badge>
+      <span class="text-xs text-gray-400 dark:text-gray-500">vs last period</span>
+    </div>
+  </div>
+</div>

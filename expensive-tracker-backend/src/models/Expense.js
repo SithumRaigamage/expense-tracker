@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { PAYMENT_METHODS, RECURRING_FREQUENCIES } = require('../config/constants');
 
 const expenseSchema = new mongoose.Schema({
   title: {
@@ -33,7 +34,7 @@ const expenseSchema = new mongoose.Schema({
   },
   paymentMethod: {
     type: String,
-    enum: ['cash', 'credit_card', 'debit_card', 'bank_transfer', 'digital_wallet', 'other'],
+    enum: PAYMENT_METHODS,
     default: 'cash'
   },
   receipt: {
@@ -51,7 +52,7 @@ const expenseSchema = new mongoose.Schema({
   },
   recurringFrequency: {
     type: String,
-    enum: ['daily', 'weekly', 'monthly', 'yearly'],
+    enum: RECURRING_FREQUENCIES,
     default: null
   }
 }, {

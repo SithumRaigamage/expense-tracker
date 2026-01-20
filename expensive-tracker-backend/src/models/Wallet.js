@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { WALLET_TYPES, CURRENCIES } = require('../config/constants');
 
 const walletSchema = new mongoose.Schema({
   name: {
@@ -10,7 +11,7 @@ const walletSchema = new mongoose.Schema({
   type: {
     type: String,
     required: [true, 'Wallet type is required'],
-    enum: ['cash', 'bank', 'credit', 'savings', 'crypto', 'investment', 'loan'],
+    enum: WALLET_TYPES,
     default: 'cash'
   },
   balance: {
@@ -22,7 +23,7 @@ const walletSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Currency is required'],
     default: 'LKR',
-    enum: ['LKR', 'USD', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD', 'CHF', 'CNY', 'INR']
+    enum: CURRENCIES
   },
   paymentMethod: {
     type: String,

@@ -57,7 +57,7 @@ A modern expense tracking application built with Angular, designed to help users
 
 ```
 expense-tracker/
-├── 📱 frontend/
+├── 📱 expensive-tracker-frontend/
 │   ├── 📂 src/
 │   │   ├── 🧩 components/
 │   │   ├── ⚙️ services/
@@ -83,7 +83,7 @@ expense-tracker/
 git clone https://github.com/yourusername/expense-tracker.git
 
 # Navigate to frontend directory
-cd expense-tracker/frontend
+cd expense-tracker/expensive-tracker-frontend
 
 # Install dependencies
 npm install
@@ -110,7 +110,7 @@ mongod-stop
 
 ```bash
 # Build frontend Docker image
-cd frontend
+cd expensive-tracker-frontend
 docker build -t expense-tracker:1.0.3 .
 
 # Run frontend container
@@ -129,13 +129,13 @@ trivy image expense-tracker:1.0.3
 trivy image expense-tracker:1.0.3 -f json -o ./docs/trivy-reports/vulnerabilities.json
 ```
 
-## � Project Documentation
+##  Project Documentation
 
 - [Release Notes API](./expensive-tracker-backend/docs/release-notes-api.md)
 - [Wallet API](./expensive-tracker-backend/docs/wallet-api.md)
 - [Product Budget API](./expensive-tracker-backend/docs/product-budget-api.md)
-- [Frontend Documentation](./frontend/docs/docs.md)
-- [Docker Setup](./frontend/README.md#docker)
+- [Frontend Documentation](./expensive-tracker-frontend/docs/docs.md)
+- [Docker Setup](./expensive-tracker-frontend/README.md#docker)
 ```
 
 ## 🧪 Testing
