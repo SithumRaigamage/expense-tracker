@@ -519,6 +519,46 @@ export class TransactionService {
       );
   }
 
+  // Expense Breakdown Methods
+  getExpenseFlow(dateFilter: { startDate: string; endDate: string }): Observable<any> {
+    const params = {
+      startDate: dateFilter.startDate,
+      endDate: dateFilter.endDate
+    };
+
+    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/expenses/flow`, { params })
+      .pipe(
+        map(response => response.data),
+        catchError(this.handleError)
+      );
+  }
+
+  getExpenseHierarchy(dateFilter: { startDate: string; endDate: string }): Observable<any> {
+    const params = {
+      startDate: dateFilter.startDate,
+      endDate: dateFilter.endDate
+    };
+
+    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/expenses/hierarchy`, { params })
+      .pipe(
+        map(response => response.data),
+        catchError(this.handleError)
+      );
+  }
+
+  getDetailedBreakdown(dateFilter: { startDate: string; endDate: string }): Observable<any> {
+    const params = {
+      startDate: dateFilter.startDate,
+      endDate: dateFilter.endDate
+    };
+
+    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/expenses/breakdown`, { params })
+      .pipe(
+        map(response => response.data),
+        catchError(this.handleError)
+      );
+  }
+
   private handleError(error: HttpErrorResponse): Observable<never> {
     let errorMessage = 'An error occurred';
 

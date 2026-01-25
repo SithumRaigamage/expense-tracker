@@ -18,13 +18,14 @@ export class DashboardService {
     { id: 'metrics', label: 'Key Metrics', isVisible: true, order: 1 },
     { id: 'monthlyStat', label: 'Monthly Statistics', isVisible: true, order: 2 },
     { id: 'expenseFlow', label: 'Fund Flow Analysis', isVisible: true, order: 3 },
-    { id: 'statChart', label: 'Detailed Trend Chart', isVisible: true, order: 4 },
-    { id: 'wallets', label: 'Wallet Management', isVisible: true, order: 4 },
-    { id: 'recentTransactions', label: 'Recent Transactions', isVisible: true, order: 5 },
-    { id: 'budgetPlanner', label: 'Budget Planner', isVisible: true, order: 6 },
-    { id: 'upcomingBills', label: 'Upcoming Bills', isVisible: true, order: 7 },
-    { id: 'emergencyFund', label: 'Emergency Fund', isVisible: true, order: 8 },
-    { id: 'financialEducation', label: 'Financial Tips', isVisible: true, order: 9 }
+    { id: 'expenseBreakdown', label: 'Expense Breakdown', isVisible: true, order: 4 },
+    { id: 'statChart', label: 'Detailed Trend Chart', isVisible: true, order: 5 },
+    { id: 'wallets', label: 'Wallet Management', isVisible: true, order: 6 },
+    { id: 'recentTransactions', label: 'Recent Transactions', isVisible: true, order: 7 },
+    { id: 'budgetPlanner', label: 'Budget Planner', isVisible: true, order: 8 },
+    { id: 'upcomingBills', label: 'Upcoming Bills', isVisible: true, order: 9 },
+    { id: 'emergencyFund', label: 'Emergency Fund', isVisible: true, order: 10 },
+    { id: 'financialEducation', label: 'Financial Tips', isVisible: true, order: 11 }
   ];
 
   private widgetsSubject = new BehaviorSubject<WidgetConfig[]>(this.loadConfig());

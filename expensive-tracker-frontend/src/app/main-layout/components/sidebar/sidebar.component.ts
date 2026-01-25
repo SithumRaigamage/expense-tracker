@@ -125,7 +125,7 @@ export class SidebarComponent implements OnInit {
       subItems: [
         { name: 'Profile', path: '/settings/profile', isLocked: false, isNew: false, isUpcoming: false },
         { name: 'About & Support', path: '/settings/about & support', isLocked: true, isNew: false, isUpcoming: true },
-        { name: 'Currency', path: '/settings/currency', isLocked: true, isNew: false, isUpcoming: true },
+        // { name: 'Currency', path: '/settings/currency', isLocked: true, isNew: false, isUpcoming: true },
       ]
     },
     {
@@ -135,6 +135,7 @@ export class SidebarComponent implements OnInit {
       isOpen: false,
       isUpcoming: false,
       isNew: false,
+      isLocked: false,
       subItems: [
         { name: 'FAQs', path: '/help/faqs', isLocked: true, isNew: false, isUpcoming: true },
         { name: 'Documentation', path: '/help/docs', isLocked: true, isNew: false, isUpcoming: true },
@@ -193,11 +194,31 @@ export class SidebarComponent implements OnInit {
       if (item.subItems && item.subItems.length > 0) {
         // Check if all subitems are locked
         const allSubitemsLocked = item.subItems.every(subItem => subItem.isLocked === true);
-
-        // Update parent lock status based on subitems
-        item.isLocked = allSubitemsLocked;
+        
+        // Only auto-lock parent if it doesn't have an explicit lock status and all subitems are locked
+        if (item.isLocked === undefined || item.isLocked === null) {
+          item.isLocked = allSubitemsLocked;
+        }
       }
     });
+  }
+
+  /**
+   * Checks if an item should be displayed based on its lock status and subitems
+   */
+  shouldDisplayItem(item: NavItem): boolean {
+    // If item is explicitly locked, don't show it
+    if (item.isLocked === true) {
+      return false;
+    }
+    
+    // If item has no subitems, show it if not locked
+    if (!item.subItems || item.subItems.length === 0) {
+      return !item.isLocked;
+    }
+    
+    // If item has subitems, show it if at least one subitem is not locked
+    return item.subItems.some(subItem => !subItem.isLocked);
   }
 
   ngOnInit(): void {
