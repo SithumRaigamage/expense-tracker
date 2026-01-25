@@ -1,0 +1,186 @@
+pipeline {
+    agent any
+
+    environment {
+        // SonarQube Configuration
+        SCANNER_HOME = tool 'SonarScanner'
+        
+        // SonarQube Server Details
+        SONAR_SERVER_URL = 'http://host.docker.internal:9000'
+        SONAR_AUTH_TOKEN = credentials('sonarqube-token') 
+        SONAR_PROJECT_KEY = 'expense-tracker-backend'
+        SONAR_PROJECT_NAME = 'Expense Tracker Backend'
+        
+        // Trivy Reporting
+        TRIVY_REPORT_NAME = 'trivy-report-backend.html'
+        
+        // Notifications
+        SENDER_EMAIL = 'sunilsithum@gmail.com' 
+        RECEIVER_EMAIL = 'sraig2002@gmail.com' 
+    }
+
+    tools {
+        nodejs 'NODEJS'
+    }
+
+    parameters {
+        string(name: 'RELEASE_VERSION', defaultValue: '1.0.0', description: 'Semantic Release Version')
+        string(name: 'GIT_REPO_URL', defaultValue: 'git@github.com:SithumRaigamage/expense-tracker.git', description: 'Git Repository URL')
+        string(name: 'BRANCH', defaultValue: 'main', description: 'Branch to build')
+        choice(name: 'ENVIRONMENT', choices: ['dev', 'qa', 'staging', 'prod'], description: 'Target Environment')
+        booleanParam(name: 'SEND_EMAIL', defaultValue: true, description: 'Send email notifications?')
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                script {
+                    checkout([$class: 'GitSCM', 
+                        branches: [[name: "*/${params.BRANCH}"]], 
+                        userRemoteConfigs: [[url: "git@github.com:SithumRaigamage/expense-tracker.git", credentialsId: 'github-ssh-key']]
+                    ])
+                }
+            }
+        }
+
+        stage('Verify Version') {
+            steps {
+                script {
+                    def versionPattern = /^\d+\.\d+\.\d+$/ 
+                    if (params.RELEASE_VERSION =~ versionPattern) {
+                        echo "Version ${params.RELEASE_VERSION} is valid."
+                    } else {
+                        error "Version ${params.RELEASE_VERSION} is NOT valid SemVer (X.Y.Z)."
+                    }
+                }
+            }
+        }
+        
+        stage('Install') {
+            steps {
+                dir('expensive-tracker-backend') {
+                    sh 'npm install'
+                }
+            }
+        }
+
+        // stage('Test') {
+        //     steps {
+        //         dir('expensive-tracker-backend') {
+        //             sh 'npm test'
+        //         }
+        //     }
+        // }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarServer') { 
+                    dir('expensive-tracker-backend') {
+                        sh "${SCANNER_HOME}/bin/sonar-scanner -Dsonar.projectKey=${SONAR_PROJECT_KEY} -Dsonar.projectName='${SONAR_PROJECT_NAME}' -Dsonar.host.url=${SONAR_SERVER_URL} -Dsonar.login=${SONAR_AUTH_TOKEN} -Dsonar.sources=. -Dsonar.exclusions=node_modules/**,tests/**"
+                    }
+                }
+            }
+        }
+
+        stage('Determine Image Name') {
+            steps {
+                script {
+                    def imageName = "expense-tracker-backend"
+                    if (params.ENVIRONMENT != 'prod') {
+                        imageName = "${params.ENVIRONMENT}-${imageName}"
+                    }
+                    env.FINAL_IMAGE_NAME = imageName
+                }
+            }
+        }
+
+        stage('Build Image') {
+            steps {
+                dir('expensive-tracker-backend') {
+                    sh "docker build -t ${env.FINAL_IMAGE_NAME}:${params.RELEASE_VERSION} ."
+                }
+            }
+        }
+
+        stage('Trivy Security Scan') {
+            steps {
+                script {
+                    try {
+                        sh "trivy image --format template --template \"@contrib/html.tpl\" -o ${TRIVY_REPORT_NAME} ${env.FINAL_IMAGE_NAME}:${params.RELEASE_VERSION}"
+                    } catch (Exception e) {
+                        echo "WARNING: Trivy scan failed: ${e.message}. Continuing pipeline..."
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            archiveArtifacts artifacts: "${env.TRIVY_REPORT_NAME}", allowEmptyArchive: true
+            publishHTML (target: [
+                allowMissing: false,
+                alwaysLinkToLastBuild: true,
+                keepAll: true,
+                reportDir: '.',
+                reportFiles: "${env.TRIVY_REPORT_NAME}",
+                reportName: 'Backend Trivy Security Report'
+            ])
+        }
+        success {
+            script {
+                if (params.SEND_EMAIL) {
+                    emailext (
+                        from: "${env.SENDER_EMAIL}",
+                        to: "${env.RECEIVER_EMAIL}",
+                        subject: "BACKEND BUILD SUCCESS: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
+                        body: generateEmailBody('SUCCESS', '#28a745'),
+                        mimeType: 'text/html'
+                    )
+                }
+            }
+        }
+        failure {
+            script {
+                if (params.SEND_EMAIL) {
+                    emailext (
+                        from: "${env.SENDER_EMAIL}",
+                        to: "${env.RECEIVER_EMAIL}",
+                        subject: "BACKEND BUILD FAILED: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
+                        body: generateEmailBody('FAILURE', '#dc3545'),
+                        mimeType: 'text/html'
+                    )
+                }
+            }
+        }
+    }
+}
+
+def generateEmailBody(status, color) {
+    return """
+    <html>
+    <head>
+        <style>
+            body { font-family: sans-serif; background-color: #f4f4f4; padding: 20px; }
+            .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+            .header { background-color: ${color}; color: #ffffff; padding: 20px; text-align: center; }
+            .content { padding: 30px; }
+            .footer { background-color: #eeeeee; padding: 15px; text-align: center; font-size: 12px; }
+            .button { display: inline-block; padding: 10px 20px; background-color: ${color}; color: #ffffff; text-decoration: none; border-radius: 4px; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header"><h1>Backend Build ${status}</h1></div>
+            <div class="content">
+                <p><strong>Project:</strong> ${env.JOB_NAME}</p>
+                <p><strong>Version:</strong> ${params.RELEASE_VERSION}</p>
+                <p><strong>Environment:</strong> ${params.ENVIRONMENT}</p>
+                <div style="text-align: center;"><a href="${env.BUILD_URL}" class="button">View Progress</a></div>
+            </div>
+            <div class="footer"><p>Generated by Jenkins CI</p></div>
+        </div>
+    </body>
+    </html>
+    """
+}

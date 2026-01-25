@@ -8,7 +8,9 @@ const {
   deleteWallet,
   getWalletStats,
   bulkDeleteWallets,
-  restoreWallet
+  restoreWallet,
+  transferFunds,
+  getExpenseFlow
 } = require('../controllers/walletController');
 
 const { protect } = require('../middleware/auth');
@@ -29,8 +31,14 @@ router.route('/')
 router.route('/stats')
   .get(getWalletStats);
 
+router.route('/flow')
+  .get(getExpenseFlow);
+
 router.route('/bulk')
   .delete(bulkDeleteWallets);
+
+router.route('/transfer')
+  .post(transferFunds);
 
 router.route('/:id')
   .get(validateWalletId, getWallet)

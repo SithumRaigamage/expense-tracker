@@ -1,6 +1,9 @@
 const mongoose = require('mongoose');
 const Wallet = require('../models/Wallet');
-const { NotFoundError, ConflictError } = require('../utils/errors');
+const Category = require('../models/Category');
+const CurrencyService = require('./currencyService');
+const User = require('../models/User');
+const { NotFoundError, ConflictError, BadRequestError } = require('../utils/errors');
 const { PAGINATION } = require('../config/constants');
 
 /**
@@ -40,7 +43,27 @@ class WalletService {
 
     const total = await Wallet.countDocuments(query);
 
-    return { wallets, total };
+    // Get user's primary currency
+    const user = await User.findById(userId);
+    const primaryCurrency = user?.currency || 'LKR';
+
+    // Add converted balances
+    const walletsWithConversion = await Promise.all(wallets.map(async (wallet) => {
+      const walletObj = wallet.toObject();
+      if (wallet.currency !== primaryCurrency) {
+        walletObj.convertedBalance = await CurrencyService.convert(
+          wallet.balance,
+          wallet.currency,
+          primaryCurrency
+        );
+      } else {
+        walletObj.convertedBalance = wallet.balance;
+      }
+      walletObj.primaryCurrency = primaryCurrency;
+      return walletObj;
+    }));
+
+    return { wallets: walletsWithConversion, total, primaryCurrency };
   }
 
   /**
@@ -186,57 +209,71 @@ class WalletService {
    * @returns {Promise<Object>} Wallet statistics
    */
   static async getWalletStats(userId) {
-    // Aggregation pipeline to get stats by type
-    const byType = await Wallet.aggregate([
-      { $match: { user: new mongoose.Types.ObjectId(userId), isActive: true } },
-      {
-        $group: {
-          _id: '$type',
-          totalBalance: { $sum: '$balance' },
-          count: { $sum: 1 },
-          avgBalance: { $avg: '$balance' }
-        }
-      }
-    ]);
+    const user = await User.findById(userId);
+    const primaryCurrency = user?.currency || 'LKR';
+    const wallets = await Wallet.find({ user: userId, isActive: true });
 
-    // Aggregation pipeline to get stats by currency
-    const byCurrency = await Wallet.aggregate([
-      { $match: { user: new mongoose.Types.ObjectId(userId), isActive: true } },
-      {
-        $group: {
-          _id: '$currency',
-          totalBalance: { $sum: '$balance' },
-          count: { $sum: 1 }
-        }
-      }
-    ]);
-
-    // Overall stats (approximation since currencies are different, but useful)
-    // For a real app, we would convert to a base currency
-    const overall = await Wallet.aggregate([
-      { $match: { user: new mongoose.Types.ObjectId(userId), isActive: true } },
-      {
-        $group: {
-          _id: null,
-          totalBalance: { $sum: '$balance' }, // This sums all currencies mixed, which is technically wrong but for now OK as per API requirement or we just list count
-          totalWallets: { $sum: 1 },
-          avgBalance: { $avg: '$balance' },
-          maxBalance: { $max: '$balance' },
-          minBalance: { $min: '$balance' }
-        }
-      }
-    ]);
-
-    return {
-      byType,
-      byCurrency,
-      overall: overall[0] || {
+    const stats = {
+      byType: {},
+      byCurrency: {},
+      overall: {
         totalBalance: 0,
-        totalWallets: 0,
+        totalWallets: wallets.length,
         avgBalance: 0,
         maxBalance: 0,
-        minBalance: 0
+        minBalance: wallets.length > 0 ? Infinity : 0
       }
+    };
+
+    for (const wallet of wallets) {
+      const convertedBalance = await CurrencyService.convert(
+        wallet.balance,
+        wallet.currency,
+        primaryCurrency
+      );
+
+      // Aggregate by type
+      if (!stats.byType[wallet.type]) {
+        stats.byType[wallet.type] = {
+          _id: wallet.type,
+          totalBalance: 0,
+          count: 0
+        };
+      }
+      stats.byType[wallet.type].totalBalance += convertedBalance;
+      stats.byType[wallet.type].count += 1;
+
+      // Aggregate by currency
+      if (!stats.byCurrency[wallet.currency]) {
+        stats.byCurrency[wallet.currency] = {
+          _id: wallet.currency,
+          totalBalance: 0,
+          count: 0
+        };
+      }
+      stats.byCurrency[wallet.currency].totalBalance += wallet.balance; // Native balance
+      stats.byCurrency[wallet.currency].count += 1;
+
+      // Overall stats
+      stats.overall.totalBalance += convertedBalance;
+      if (convertedBalance > stats.overall.maxBalance) {
+        stats.overall.maxBalance = convertedBalance;
+      }
+      if (convertedBalance < stats.overall.minBalance) {
+        stats.overall.minBalance = convertedBalance;
+      }
+    }
+
+    if (wallets.length > 0) {
+      stats.overall.avgBalance = stats.overall.totalBalance / wallets.length;
+      if (stats.overall.minBalance === Infinity) stats.overall.minBalance = 0;
+    }
+
+    return {
+      byType: Object.values(stats.byType),
+      byCurrency: Object.values(stats.byCurrency),
+      overall: stats.overall,
+      primaryCurrency
     };
   }
 
@@ -259,6 +296,205 @@ class WalletService {
     }
 
     return wallet;
+  }
+
+  /**
+   * Transfer funds between wallets
+   * @param {string} userId - User ID
+   * @param {Object} transferData - Transfer data (fromWalletId, toWalletId, amount, description)
+   * @returns {Promise<Object>} Object containing the two transaction records
+   */
+  static async transferFunds(userId, transferData) {
+    const { fromWalletId, toWalletId, amount, description } = transferData;
+
+    if (fromWalletId === toWalletId) {
+      throw new BadRequestError('Source and destination wallets must be different');
+    }
+
+    if (amount <= 0) {
+      throw new BadRequestError('Transfer amount must be greater than zero');
+    }
+
+    let session = null;
+    try {
+      session = await mongoose.startSession();
+      await session.startTransaction();
+      // Standalone MongoDB will throw "Transaction numbers are only allowed on a replica set..." 
+      // when we attempt the first command with a transaction
+      await mongoose.connection.db.command({ ping: 1 }, { session });
+    } catch (error) {
+      if (session) {
+        try {
+          await session.abortTransaction();
+        } catch (e) {
+          // Ignore abort errors
+        }
+        await session.endSession();
+      }
+      session = null;
+    }
+
+    const sessionOptions = session ? { session } : {};
+
+    try {
+      // 1. Verify wallets exist and belong to user
+      const fromWallet = await Wallet.findOne({ _id: fromWalletId, user: userId, isActive: true }, null, sessionOptions);
+      const toWallet = await Wallet.findOne({ _id: toWalletId, user: userId, isActive: true }, null, sessionOptions);
+
+      if (!fromWallet) throw new NotFoundError('Source wallet not found');
+      if (!toWallet) throw new NotFoundError('Destination wallet not found');
+
+      // 2. Ensure "Transfer" categories exist
+      let transferOutCat = await Category.findOne({ user: userId, name: 'Transfer Out', type: 'expense' }, null, sessionOptions);
+      if (!transferOutCat) {
+        const catArray = await Category.create([{
+          user: userId,
+          name: 'Transfer Out',
+          type: 'expense',
+          icon: '📤',
+          color: '#f44336'
+        }], sessionOptions);
+        transferOutCat = catArray[0];
+      }
+
+      let transferInCat = await Category.findOne({ user: userId, name: 'Transfer In', type: 'income' }, null, sessionOptions);
+      if (!transferInCat) {
+        const catArray = await Category.create([{
+          user: userId,
+          name: 'Transfer In',
+          type: 'income',
+          icon: '📥',
+          color: '#4caf50'
+        }], sessionOptions);
+        transferInCat = catArray[0];
+      }
+
+      // 3. Create transactions
+      const Expense = mongoose.model('Expense');
+      
+      const outTransactionArray = await Expense.create([{
+        title: `Transfer to ${toWallet.name}`,
+        amount,
+        description: description || `Transfer to ${toWallet.name}`,
+        category: transferOutCat._id,
+        wallet: fromWalletId,
+        user: userId,
+        date: new Date()
+      }], sessionOptions);
+
+      const inTransactionArray = await Expense.create([{
+        title: `Transfer from ${fromWallet.name}`,
+        amount,
+        description: description || `Transfer from ${fromWallet.name}`,
+        category: transferInCat._id,
+        wallet: toWalletId,
+        user: userId,
+        date: new Date()
+      }], sessionOptions);
+
+      // 4. Update balances
+      fromWallet.balance -= amount;
+      toWallet.balance += amount;
+
+      await fromWallet.save(sessionOptions);
+      await toWallet.save(sessionOptions);
+
+      if (session) {
+        await session.commitTransaction();
+        session.endSession();
+      }
+
+      return {
+        outTransaction: outTransactionArray[0],
+        inTransaction: inTransactionArray[0],
+        fromWalletBalance: fromWallet.balance,
+        toWalletBalance: toWallet.balance
+      };
+    } catch (error) {
+      if (session) {
+        try {
+          await session.abortTransaction();
+        } catch (e) {
+          // Ignore abort errors
+        }
+        session.endSession();
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Get expense breakdown flow (wallets to categories)
+   * @param {string} userId - User ID
+   * @returns {Promise<Object>} Flow data
+   */
+  static async getExpenseFlow(userId) {
+    const Expense = mongoose.model('Expense');
+    
+    // Aggregate expenses by wallet and category (only for expenses, not transfers)
+    const flows = await Expense.aggregate([
+      { 
+        $match: { 
+          user: new mongoose.Types.ObjectId(userId)
+        } 
+      },
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'categoryInfo'
+        }
+      },
+      { $unwind: '$categoryInfo' },
+      { $match: { 'categoryInfo.type': 'expense' } }, // Only expense flows
+      {
+        $group: {
+          _id: { wallet: '$wallet', category: '$category' },
+          amount: { $sum: '$amount' }
+        }
+      },
+      {
+        $lookup: {
+          from: 'wallets',
+          localField: '_id.wallet',
+          foreignField: '_id',
+          as: 'walletInfo'
+        }
+      },
+      {
+        $lookup: {
+          from: 'categories',
+          localField: '_id.category',
+          foreignField: '_id',
+          as: 'categoryInfo'
+        }
+      },
+      { $unwind: '$walletInfo' },
+      { $unwind: '$categoryInfo' },
+      {
+        $project: {
+          _id: 0,
+          source: '$walletInfo.name',
+          sourceId: '$_id.wallet',
+          target: '$categoryInfo.name',
+          targetId: '$_id.category',
+          value: '$amount',
+          color: '$categoryInfo.color'
+        }
+      }
+    ]);
+
+    const wallets = await Wallet.find({ user: userId, isActive: true });
+    const categories = await Category.find({ user: userId, isActive: true, type: 'expense' });
+
+    return {
+      links: flows,
+      nodes: [
+        ...wallets.map(w => ({ id: w._id.toString(), name: w.name, type: 'wallet', color: '#6366f1' })),
+        ...categories.map(c => ({ id: c._id.toString(), name: c.name, type: 'category', color: c.color }))
+      ]
+    };
   }
 }
 

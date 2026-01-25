@@ -343,13 +343,10 @@ export class WalletService {
       return throwError(() => new Error('Not authenticated. Please log in.'));
     }
 
-    // Check if wallets array is empty
     if (!wallets.length) {
       return of({ successCount: 0, failedCount: 0 });
     }
 
-    // Since many backends might not have a bulk endpoint, we'll implement the sequential approach here
-    // and avoid the 404 error for an endpoint that might not exist
     return new Observable<{
       successCount: number;
       failedCount: number;
@@ -359,11 +356,9 @@ export class WalletService {
       let failedCount = 0;
       let completed = 0;
       const total = wallets.length;
-      const failedWallets: Array<{name: string; error: string}> = [];
+      const failedWalletsList: Array<{name: string; error: string}> = [];
 
-      // Process wallets one by one
       wallets.forEach(wallet => {
-        // Add the user ID to the wallet (ensuring it's a string)
         const walletWithUser = {
           ...wallet,
           user: this.currentUserId || ''
@@ -377,9 +372,8 @@ export class WalletService {
               observer.next({
                 successCount,
                 failedCount,
-                failedWallets: failedWallets.length > 0 ? failedWallets : undefined
+                failedWallets: failedWalletsList.length > 0 ? failedWalletsList : undefined
               });
-              // Refresh wallets to display the newly added ones
               this.refreshWallets();
               observer.complete();
             }
@@ -388,9 +382,7 @@ export class WalletService {
             console.error(`Error adding wallet "${wallet.name}":`, error);
             failedCount++;
             completed++;
-
-            // Track failed wallet details
-            failedWallets.push({
+            failedWalletsList.push({
               name: wallet.name,
               error: error.message || 'Unknown error'
             });
@@ -399,9 +391,8 @@ export class WalletService {
               observer.next({
                 successCount,
                 failedCount,
-                failedWallets: failedWallets.length > 0 ? failedWallets : undefined
+                failedWallets: failedWalletsList.length > 0 ? failedWalletsList : undefined
               });
-              // Still refresh to show successful imports
               this.refreshWallets();
               observer.complete();
             }
@@ -409,7 +400,35 @@ export class WalletService {
         });
       });
     });
-  }  getWalletStats(): Observable<any> {
+  }
+
+  /**
+   * Transfer funds between wallets
+   * @param fromWalletId Source wallet ID
+   * @param toWalletId Destination wallet ID
+   * @param amount Amount to transfer
+   * @param description Optional description
+   * @returns Observable with transfer result
+   */
+  transferFunds(fromWalletId: string, toWalletId: string, amount: number, description?: string): Observable<any> {
+    if (!this.currentUserId) {
+      return throwError(() => new Error('Not authenticated. Please log in.'));
+    }
+
+    const transferData = { fromWalletId, toWalletId, amount, description };
+
+    return this.http.post<ApiResponse<any>>(`${this.apiUrl}/transfer`, transferData, this.getHttpOptions())
+      .pipe(
+        tap(() => this.refreshWallets()),
+        catchError(error => {
+          console.error('Error transferring funds:', error);
+          let errorMessage = error.error?.error || 'Failed to transfer funds. Please try again.';
+          throw new Error(errorMessage);
+        })
+      );
+  }
+
+  getWalletStats(): Observable<any> {
     if (!this.currentUserId) {
       return throwError(() => new Error('Not authenticated. Please log in.'));
     }
@@ -424,6 +443,21 @@ export class WalletService {
       );
   }
 
+  getExpenseFlow(): Observable<any> {
+    if (!this.currentUserId) {
+      return throwError(() => new Error('Not authenticated. Please log in.'));
+    }
+
+    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/flow`, this.getHttpOptions())
+      .pipe(
+        map(response => response.data),
+        catchError(error => {
+          console.error('Error getting expense flow:', error);
+          throw new Error('Failed to get expense flow data.');
+        })
+      );
+  }
+
   getAllWallets(): Observable<Wallet[]> {
     return this.wallets$;
   }
@@ -431,12 +465,15 @@ export class WalletService {
   getMetrics(): Observable<Metric[]> {
     return this.wallets$.pipe(
       map(wallets => {
+        if (!wallets.length) return [];
+        
+        const primaryCurrency = wallets[0].primaryCurrency || 'LKR';
         const types = [...new Set(wallets.map(w => w.type))];
-
+        
         return types.map(type => {
           const totalBalance = wallets
             .filter(w => w.type === type)
-            .reduce((acc, w) => acc + w.balance, 0);
+            .reduce((acc, w) => acc + (w.convertedBalance || w.balance), 0);
 
           return {
             icon: this.getWalletTypeIcon(type),
@@ -444,7 +481,7 @@ export class WalletService {
             value: totalBalance,
             percentage: 0,
             trend: totalBalance < 0 ? 'down' : 'up',
-            currency: 'LKR'
+            currency: primaryCurrency
           };
         });
       })
@@ -457,7 +494,6 @@ export class WalletService {
 
   addTransaction(walletId: string, transaction: WalletTransaction): void {
     const wallet = this.getWalletById(walletId);
-
     if (!wallet) return;
 
     const updatedWallet = {
@@ -476,18 +512,10 @@ export class WalletService {
     this.error.next(null);
   }
 
-  /**
-   * Check if the current user is authenticated and has access to wallets
-   * @returns True if the user is authenticated
-   */
   isUserAuthenticated(): boolean {
     return !!this.currentUserId;
   }
 
-  /**
-   * Get the current user ID
-   * @returns The current user ID or null if not authenticated
-   */
   getCurrentUserId(): string | null {
     return this.currentUserId;
   }

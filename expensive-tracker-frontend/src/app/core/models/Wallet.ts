@@ -4,6 +4,8 @@ export interface Wallet {
   type: 'cash' | 'bank' | 'savings' | 'credit' | 'crypto' | 'investment' | 'loan' | 'emergencyfund';
   balance: number;
   currency: string;
+  convertedBalance?: number;
+  primaryCurrency?: string;
   paymentMethod?: string;
   user?: string;
   isActive?: boolean;

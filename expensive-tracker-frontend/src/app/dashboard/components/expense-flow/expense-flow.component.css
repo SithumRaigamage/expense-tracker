@@ -1,0 +1,21 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+svg {
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.05));
+}
+
+rect {
+  transition: all 0.2s ease;
+}
+
+path {
+  transition: stroke-opacity 0.2s ease;
+}
+
+text {
+  user-select: none;
+  pointer-events: none;
+}

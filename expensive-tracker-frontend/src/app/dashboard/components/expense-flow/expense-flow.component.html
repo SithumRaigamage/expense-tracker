@@ -1,0 +1,85 @@
+<div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 h-full flex flex-col">
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <h3 class="text-xl font-bold text-gray-900 dark:text-white">Expense Distribution Flow</h3>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Tracing funds from wallets to expense categories</p>
+    </div>
+    <div class="bg-primary-50 dark:bg-primary-900/10 p-2 rounded-lg">
+      <fa-icon [icon]="faChartPie" class="text-primary-600 dark:text-primary-400"></fa-icon>
+    </div>
+  </div>
+
+  <div class="flex-1 min-h-[400px] relative w-full" *ngIf="!isLoading && nodes.length > 0">
+    <svg viewBox="0 0 1000 400" preserveAspectRatio="xMidYMid meet" class="w-full h-full overflow-hidden">
+      <!-- Gradient Definitions -->
+      <defs>
+        <linearGradient *ngFor="let link of links; let i = index" 
+                        [id]="'gradient-' + i" 
+                        x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#6366f1" stop-opacity="0.3" />
+          <stop offset="100%" [attr.stop-color]="link.color" stop-opacity="0.3" />
+        </linearGradient>
+      </defs>
+
+      <!-- Links -->
+      <g class="links">
+        <path *ngFor="let link of links; let i = index"
+              [attr.d]="link.path"
+              [attr.stroke]="'url(#gradient-' + i + ')'"
+              [attr.stroke-width]="link.strokeWidth"
+              fill="none"
+              class="hover:stroke-opacity-60 transition-all cursor-pointer">
+          <title>{{link.source}} → {{link.target}}: LKR {{link.value.toLocaleString()}}</title>
+        </path>
+      </g>
+
+      <!-- Nodes -->
+      <g class="nodes">
+        <g *ngFor="let node of nodes">
+          <!-- Node Label -->
+          <text [attr.x]="getLabelX(node)"
+                [attr.y]="node.y + (node.height / 2)"
+                [attr.text-anchor]="getLabelAnchor(node)"
+                dominant-baseline="middle"
+                class="text-[11px] font-semibold fill-gray-700 dark:fill-gray-300 tracking-tight">
+            {{node.name | uppercase}}
+          </text>
+
+          <!-- Node Bar -->
+          <rect [attr.x]="node.x"
+                [attr.y]="node.y"
+                [attr.width]="12"
+                [attr.height]="node.height"
+                [attr.fill]="node.color"
+                rx="2"
+                class="shadow-sm transition-transform hover:scale-x-110" />
+          
+          <!-- Value Label -->
+          <!-- <text [attr.x]="node.x + (node.type === 'wallet' ? -15 : 27)"
+                [attr.y]="node.y + (node.height / 2) + 12"
+                [attr.text-anchor]="node.type === 'wallet' ? 'end' : 'start'"
+                class="text-[10px] fill-gray-400 dark:fill-gray-500">
+            LKR {{(node as any).value | number}}
+          </text> -->
+        </g>
+      </g>
+    </svg>
+  </div>
+
+  <div *ngIf="!isLoading && nodes.length === 0" class="flex-1 flex flex-col items-center justify-center py-20 bg-gray-50 dark:bg-gray-800/50 rounded-xl border-2 border-dashed border-gray-100 dark:border-gray-700">
+    <div class="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-4">
+      <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+      </svg>
+    </div>
+    <h4 class="text-gray-900 dark:text-white font-medium">No Flow Data Yet</h4>
+    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Record some expenses to see your fund flow</p>
+  </div>
+
+  <div *ngIf="isLoading" class="flex-1 flex items-center justify-center">
+    <div class="relative w-12 h-12">
+      <div class="absolute inset-0 border-4 border-primary-500/20 rounded-full"></div>
+      <div class="absolute inset-0 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  </div>
+</div>
