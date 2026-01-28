@@ -1,22 +1,21 @@
-version: '3.8'
-
 services:
   expensive-tracker-frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: expense-tracker-frontend:latest
     container_name: expense-tracker-frontend
     ports:
-      - "4200:80"
+      - "${FRONTEND_PORT:-4200}:80"
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=${NODE_ENV:-production}
+      - BACKEND_API_URL=${BACKEND_API_URL:-http://localhost:3001/api/v1}
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost"]
       interval: 30s
       timeout: 10s
       retries: 3
-    deploy:
-      resources:
-        limits:
-          memory: 256M
+    networks:
+      - expense-tracker-network
+
+networks:
+  expense-tracker-network:
+    driver: bridge

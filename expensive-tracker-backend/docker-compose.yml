@@ -11,7 +11,7 @@ services:
     restart: unless-stopped
 
   expensive-tracker-backend:
-    build: .
+    image: expense-tracker-backend:latest
     container_name: expense-tracker-backend
     ports:
       - "3001:3001"
