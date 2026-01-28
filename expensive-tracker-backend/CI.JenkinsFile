@@ -20,6 +20,9 @@ pipeline {
         // Sender and Receiver Emails for Notifications
         SENDER_EMAIL = 'sunilsithum@gmail.com' 
         RECEIVER_EMAIL = 'sraig2002@gmail.com' 
+
+        // GitHub Credentials
+        GITHUB_CREDENTIALS = credentials('github-ssh-key')
     }
 
     tools {
@@ -28,7 +31,7 @@ pipeline {
 
     parameters {
         string(name: 'RELEASE_VERSION', defaultValue: '', description: 'Semantic Release Version (e.g. 1.0.0)')
-        string(name: 'GIT_REPO_URL', defaultValue: 'https://github.com/SithumRaigamage/expense-tracker.git', description: 'Git Repository URL')
+        string(name: 'GIT_REPO_URL', defaultValue: 'git@github.com:SithumRaigamage/expense-tracker.git', description: 'Git Repository URL')
         string(name: 'BRANCH', defaultValue: 'main', description: 'Branch to build')
         choice(name: 'ENVIRONMENT', choices: ['dev', 'qa', 'staging', 'prod'], description: 'Target Environment')
         booleanParam(name: 'SEND_EMAIL', defaultValue: true, description: 'Send email notifications?')
@@ -44,7 +47,10 @@ pipeline {
                     // Explicit checkout:
                     checkout([$class: 'GitSCM', 
                         branches: [[name: "*/${params.BRANCH}"]], 
-                        userRemoteConfigs: [[url: "${params.GIT_REPO_URL}"]]
+                        userRemoteConfigs: [[
+                            url: "${params.GIT_REPO_URL}",
+                            credentialsId: "${GITHUB_CREDENTIALS}"
+                        ]]
                     ])
                 }
             }
