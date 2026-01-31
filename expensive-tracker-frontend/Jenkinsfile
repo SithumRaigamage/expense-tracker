@@ -59,7 +59,7 @@ pipeline {
         stage('Install') {
             steps {
                 dir('expensive-tracker-frontend') {
-                    sh 'npm install'
+                    sh 'npm ci || npm install'
                 }
             }
         }
@@ -76,7 +76,7 @@ pipeline {
             steps {
                 withSonarQubeEnv('SonarServer') { 
                     dir('expensive-tracker-frontend') {
-                        sh "${SCANNER_HOME}/bin/sonar-scanner -Dsonar.projectKey=${SONAR_PROJECT_KEY} -Dsonar.projectName='${SONAR_PROJECT_NAME}' -Dsonar.host.url=${SONAR_SERVER_URL} -Dsonar.login=${SONAR_AUTH_TOKEN} -Dsonar.sources=. -Dsonar.exclusions=node_modules/**,dist/**,**/*.spec.ts"
+                        sh "${SCANNER_HOME}/bin/sonar-scanner -Dsonar.projectKey=${SONAR_PROJECT_KEY} -Dsonar.projectName='${SONAR_PROJECT_NAME}' -Dsonar.host.url=${SONAR_SERVER_URL} -Dsonar.token=${SONAR_AUTH_TOKEN} -Dsonar.sources=. -Dsonar.exclusions=node_modules/**,dist/**,**/*.spec.ts -Dsonar.javascript.node.maxspace=1048"
                     }
                 }
             }
