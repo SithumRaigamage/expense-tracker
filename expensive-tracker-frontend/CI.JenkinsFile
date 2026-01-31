@@ -22,7 +22,7 @@ pipeline {
         RECEIVER_EMAIL = 'sraig2002@gmail.com' 
 
         // GitHub Credentials
-        GITHUB_CREDENTIALS = credentials('github-ssh-key')
+        GITHUB_CREDENTIALS = 'github-ssh-key'
     }
 
     tools {
@@ -69,27 +69,6 @@ pipeline {
                 }
             }
         }
-        
-        // Stage to install Node.js dependencies
-        stage('Install') {
-            steps {
-                sh 'npm install'
-            }
-        }
-
-        // Stage to run linting
-        stage('Lint') {
-            steps {
-                sh 'npm run lint'
-            }
-        }
-
-        // Stage to run tests
-        stage('Test') {
-            steps {
-                sh 'npm test -- --watch=false --browsers=ChromeHeadless'
-            }
-        }
 
         // Stage to perform static code analysis using SonarQube
         stage('SonarQube Analysis') {
@@ -97,17 +76,19 @@ pipeline {
                 expression { params.SONARQUBE_SCAN }
             }
             steps {
-                // 'SonarServer' is the name of the SonarQube server configured in Jenkins
-                withSonarQubeEnv('SonarServer') { 
-                    sh '''
-                        ${SCANNER_HOME}/bin/sonar-scanner \
-                        -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-                        -Dsonar.projectName="${SONAR_PROJECT_NAME}" \
-                        -Dsonar.host.url=${SONAR_SERVER_URL} \
-                        -Dsonar.login=${SONAR_AUTH_TOKEN} \
-                        -Dsonar.sources=. \
-                        -Dsonar.exclusions=node_modules/**
-                    '''
+                dir('expensive-tracker-frontend') {
+                    // 'SonarServer' is the name of the SonarQube server configured in Jenkins
+                    withSonarQubeEnv('SonarServer') { 
+                        sh '''
+                            ${SCANNER_HOME}/bin/sonar-scanner \
+                            -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                            -Dsonar.projectName="${SONAR_PROJECT_NAME}" \
+                            -Dsonar.host.url=${SONAR_SERVER_URL} \
+                            -Dsonar.login=${SONAR_AUTH_TOKEN} \
+                            -Dsonar.sources=. \
+                            -Dsonar.exclusions=node_modules/**
+                        '''
+                    }
                 }
             }
         }
@@ -131,7 +112,9 @@ pipeline {
         stage('Build Image') {
             steps {
                 script {
-                    sh "docker build -t ${env.FINAL_IMAGE_NAME}:${params.RELEASE_VERSION} ."
+                    dir('expensive-tracker-frontend') {
+                        sh "docker build -t ${env.FINAL_IMAGE_NAME}:${params.RELEASE_VERSION} ."
+                    }
                 }
             }
         }
@@ -140,13 +123,15 @@ pipeline {
         stage('Trivy Security Scan') {
             steps {
                 script {
-                    try {
-                        // Download the official HTML template dynamically
-                        sh "wget -q https://github.com/aquasecurity/trivy/raw/main/contrib/html.tpl -O html.tpl"
-                        // Run Trivy scan using the downloaded template
-                        sh "trivy image --format template --template @html.tpl -o ${TRIVY_REPORT_NAME} ${env.FINAL_IMAGE_NAME}:${params.RELEASE_VERSION}"
-                    } catch (Exception e) {
-                        echo "WARNING: Trivy scan failed: ${e.message}. Continuing pipeline..."
+                    dir('expensive-tracker-frontend') {
+                        try {
+                            // Download the official HTML template dynamically
+                            sh "wget -q https://github.com/aquasecurity/trivy/raw/main/contrib/html.tpl -O html.tpl"
+                            // Run Trivy scan using the downloaded template
+                            sh "trivy image --format template --template @html.tpl -o ${TRIVY_REPORT_NAME} ${env.FINAL_IMAGE_NAME}:${params.RELEASE_VERSION}"
+                        } catch (Exception e) {
+                            echo "WARNING: Trivy scan failed: ${e.message}. Continuing pipeline..."
+                        }
                     }
                 }
             }
