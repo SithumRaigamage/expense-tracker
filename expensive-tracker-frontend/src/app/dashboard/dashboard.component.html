@@ -76,50 +76,14 @@
     <app-statchart></app-statchart>
   </div>
 
-  <!-- Expense Flow Analysis -->
-  <div *ngIf="isVisible('expenseFlow')" class="col-span-12 pr-6">
+  <!-- Expense Flow Analysis (Removed as it is redundant) -->
+  <!-- <div *ngIf="isVisible('expenseFlow')" class="col-span-12 pr-6">
     <app-expense-flow></app-expense-flow>
-  </div>
+  </div> -->
 
   <!-- Expense Breakdown (Tabbed: Sankey / Sunburst) -->
   <div *ngIf="isVisible('expenseBreakdown')" class="col-span-12 pr-6">
-    <div class="bg-white  rounded-2xl shadow-sm border border-gray-100 p-6 h-full flex flex-col">
-      <div class="flex items-center justify-between mb-4">
-        <div>
-          <h3 class="text-xl font-bold text-gray-900 ">Expense Breakdown</h3>
-          <p class="text-sm text-gray-500  mt-1">{{ breakdownSubtitle }}</p>
-        </div>
-        <div class="flex items-center gap-3">
-          <div class="bg-primary-50  p-2 rounded-lg">
-            <fa-icon [icon]="faChartPie" class="text-primary-600 "></fa-icon>
-          </div>
-          <div class="flex items-center gap-2">
-            <button (click)="setBreakdownTab('sankey')"
-                    class="px-3 py-1 text-sm rounded-md border"
-                    [ngClass]="{
-                      'bg-primary-50 border-primary-200 text-primary-700 dark:bg-primary-900/10 dark:border-primary-800/30 dark:text-primary-300': breakdownTab === 'sankey',
-                      'bg-white border-gray-200 text-gray-700': breakdownTab !== 'sankey'
-                    }">Sankey</button>
-            <button (click)="setBreakdownTab('sunburst')"
-                    class="px-3 py-1 text-sm rounded-md border"
-                    [ngClass]="{
-                      'bg-primary-50 border-primary-200 text-primary-700 dark:bg-primary-900/10 dark:border-primary-800/30 dark:text-primary-300': breakdownTab === 'sunburst',
-                      'bg-white border-gray-200 text-gray-700': breakdownTab !== 'sunburst'
-                    }">Sunburst</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="flex-1">
-        <div *ngIf="isBreakdownLoading" class="flex items-center justify-center h-64">
-          <div class="relative w-12 h-12">
-            <div class="absolute inset-0 border-4 border-primary-500/20 rounded-full"></div>
-            <div class="absolute inset-0 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        </div>
-        <div *ngIf="!isBreakdownLoading" echarts [options]="breakdownTab === 'sankey' ? sankeyOptions : sunburstOptions" class="w-full h-[420px]"></div>
-      </div>
-    </div>
+    <app-expense-breakdown></app-expense-breakdown>
   </div>
 
   <!-- Wallet Management -->
