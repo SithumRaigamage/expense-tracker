@@ -126,6 +126,28 @@ const getWalletStats = asyncHandler(async (req, res) => {
   successResponse(res, stats);
 });
 
+/**
+ * @desc    Transfer funds between wallets
+ * @route   POST /api/v1/wallets/transfer
+ * @access  Private
+ */
+const transferFunds = asyncHandler(async (req, res) => {
+  const result = await WalletService.transferFunds(req.user.id, req.body);
+  
+  successResponse(res, result, 200, 'Funds transferred successfully');
+});
+
+/**
+ * @desc    Get expense breakdown flow
+ * @route   GET /api/v1/wallets/flow
+ * @access  Private
+ */
+const getExpenseFlow = asyncHandler(async (req, res) => {
+  const result = await WalletService.getExpenseFlow(req.user.id);
+  
+  successResponse(res, result);
+});
+
 module.exports = {
   getWallets,
   getWallet,
@@ -134,5 +156,7 @@ module.exports = {
   deleteWallet,
   bulkDeleteWallets,
   restoreWallet,
-  getWalletStats
+  getWalletStats,
+  transferFunds,
+  getExpenseFlow
 };

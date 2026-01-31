@@ -25,6 +25,7 @@
   "license": "ISC",
   "description": "RESTful API for expense tracking application",
   "dependencies": {
+    "axios": "^1.13.2",
     "bcryptjs": "^2.4.3",
     "chalk": "^4.1.2",
     "compression": "^1.7.4",

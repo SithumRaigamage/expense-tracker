@@ -33,6 +33,8 @@
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@tailwindcss/postcss": "^4.0.14",
     "apexcharts": "^4.5.0",
+    "echarts": "^5.5.0",
+    "ngx-echarts": "^17.2.0",
     "ng-apexcharts": "^1.15.0",
     "postcss": "^8.5.3",
     "rxjs": "~7.8.0",

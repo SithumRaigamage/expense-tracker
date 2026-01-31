@@ -6,12 +6,14 @@ import {
   faWallet, faPlus, faPencil, faTrash, faMoneyBillWave, faBuildingColumns,
   faCreditCard, faPiggyBank, faBitcoinSign, faChartLine, faHandHoldingDollar,
   faRefresh, faExclamationTriangle, faEdit, faArrowRight, faUpload,
-  faFileUpload, faFileImport
+  faFileUpload, faFileImport, faExchangeAlt
 } from '@fortawesome/free-solid-svg-icons';
 import { Subscription } from 'rxjs';
 import { Wallet } from '../../../core/models/Wallet';
 import { WalletService } from '../../../services/wallet.service';
 import { DialogService } from '../../../shared/services/dialog.service';
+import { MatDialog } from '@angular/material/dialog';
+import { TransferDialogComponent } from './transfer-dialog/transfer-dialog.component';
 import { Router } from '@angular/router';
 
 import { materialImports } from '../../../shared/material.module';
@@ -41,15 +43,19 @@ export class WalletsComponent implements OnInit, OnDestroy {
   faUpload = faUpload;
   faFileUpload = faFileUpload;
   faFileImport = faFileImport;
+  faExchangeAlt = faExchangeAlt;
 
   walletForm!: FormGroup;
   isDrawerOpen = false;
   selectedWallet: Wallet | null = null;
   wallets: Wallet[] = [];
+  primaryCurrency: string = 'LKR';
   error: string | null = null;
   isLoading = false;
   isAuthError = false;
   activeTab: 'manual' | 'upload' = 'manual';
+
+  currencies = ['LKR', 'USD', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD', 'CHF', 'CNY', 'INR'];
 
   // File upload related properties
   selectedFile: File | null = null;
@@ -62,17 +68,34 @@ export class WalletsComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private walletService: WalletService,
     private dialogService: DialogService,
+    private dialog: MatDialog,
     private router: Router
   ) {
     this.subscription = new Subscription();
     this.initForm();
   }
 
+  openTransferDialog(wallet?: Wallet) {
+    const dialogRef = this.dialog.open(TransferDialogComponent, {
+      width: '500px',
+      data: { fromWallet: wallet }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        console.log('Transfer successful');
+      }
+    });
+  }
+
   ngOnInit() {
-    // Subscribe to wallets
+    // Subscribe to wallets (now with primary currency)
     this.subscription.add(
-      this.walletService.getAllWallets().subscribe(wallets => {
+      this.walletService.wallets$.subscribe(wallets => {
         this.wallets = wallets;
+        if (wallets.length > 0 && wallets[0].primaryCurrency) {
+          this.primaryCurrency = wallets[0].primaryCurrency;
+        }
       })
     );
 
@@ -356,10 +379,23 @@ export class WalletsComponent implements OnInit, OnDestroy {
     this.router.navigate(['/login']);
   }
 
-  formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-LK', {
+  formatCurrency(amount: number, currencyCode: string = 'LKR'): string {
+    const localeMap: { [key: string]: string } = {
+      'LKR': 'en-LK',
+      'USD': 'en-US',
+      'EUR': 'de-DE',
+      'GBP': 'en-GB',
+      'JPY': 'ja-JP',
+      'CAD': 'en-CA',
+      'AUD': 'en-AU',
+      'CHF': 'de-CH',
+      'CNY': 'zh-CN',
+      'INR': 'en-IN'
+    };
+
+    return new Intl.NumberFormat(localeMap[currencyCode] || 'en-US', {
       style: 'currency',
-      currency: 'LKR',
+      currency: currencyCode,
       minimumFractionDigits: 2
     }).format(amount);
   }

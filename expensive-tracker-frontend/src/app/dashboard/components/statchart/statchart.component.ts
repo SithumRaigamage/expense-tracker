@@ -112,8 +112,34 @@ export class StatchartComponent implements OnInit {
     };
   }
 
-  onPeriodChanged(period: 'monthly' | 'quarterly' | 'annually'): void {
+  private aggregateTrendData(transactions: any[]): any {
+    const years = [...new Set(transactions.map(t => new Date(t.date).getFullYear()))].sort();
+    const series: any[] = [];
+    
+    years.forEach(year => {
+      const yearData = Array(12).fill(0);
+      transactions.filter(t => new Date(t.date).getFullYear() === year && t.type === 'expense')
+        .forEach(t => {
+          yearData[new Date(t.date).getMonth()] += t.amount;
+        });
+      
+      series.push({
+        name: `Expenses ${year}`,
+        data: yearData
+      });
+    });
+
+    return series;
+  }
+
+  onPeriodChanged(period: 'monthly' | 'quarterly' | 'annually' | 'trends'): void {
     this.transactionService.getTransactions().subscribe(transactions => {
+      if (period === 'trends') {
+        const trendData = this.aggregateTrendData(transactions);
+        this.updateChartData(period, trendData);
+        return;
+      }
+
       const monthlyData = this.aggregateMonthlyData(transactions);
       const data = period === 'monthly' ? monthlyData :
                    period === 'quarterly' ? this.aggregateQuarterlyData(monthlyData) :
@@ -123,29 +149,43 @@ export class StatchartComponent implements OnInit {
     });
   }
 
-  private getCategories(period: 'monthly' | 'quarterly' | 'annually'): string[] {
+  private getCategories(period: 'monthly' | 'quarterly' | 'annually' | 'trends'): string[] {
     switch (period) {
       case 'monthly':
+      case 'trends':
         return ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
       case 'quarterly':
         return ["Q1", "Q2", "Q3", "Q4"];
       case 'annually':
-        return ["2024"];
+        return [new Date().getFullYear().toString()];
     }
   }
 
-  private updateChartData(period: 'monthly' | 'quarterly' | 'annually', data: any): void {
+  private updateChartData(period: 'monthly' | 'quarterly' | 'annually' | 'trends', data: any): void {
     const chartType = period === 'annually' ? 'bar' : 'area';
-
-    const updatedOptions: Partial<ChartOptions> = {
-      series: [{
+    
+    let series: any[] = [];
+    let colors: string[] = [];
+    
+    if (period === 'trends') {
+      series = data;
+      // Generate some distinct colors for different years
+      const palette = ['#EF4444', '#F97316', '#F59E0B', '#10B981', '#3B82F6', '#6366F1', '#8B5CF6'];
+      colors = series.map((_, i) => palette[i % palette.length]);
+    } else {
+      series = [{
         name: "Income",
         data: data.income
       },
       {
         name: "Expenses",
         data: data.expenses
-      }],
+      }];
+      colors = [this.COLORS.income, this.COLORS.expense];
+    }
+
+    const updatedOptions: Partial<ChartOptions> = {
+      series: series,
       chart: {
         ...this.chartOptions.chart,
         type: chartType,
@@ -169,16 +209,16 @@ export class StatchartComponent implements OnInit {
       },
       stroke: {
         curve: period === 'annually' ? 'straight' : 'smooth',
-        width: period === 'annually' ? 0 : [2, 2]
+        width: period === 'annually' ? 0 : (period === 'trends' ? 3 : [2, 2])
       },
       fill: {
         type: period === 'annually' ? 'solid' : 'gradient',
         gradient: period === 'annually' ? undefined : {
-          opacityFrom: 0.4,
+          opacityFrom: period === 'trends' ? 0.3 : 0.4,
           opacityTo: 0.1
         }
       },
-      colors: [this.COLORS.income, this.COLORS.expense],
+      colors: colors,
       markers: {
         size: 0,
         strokeColors: "#fff",

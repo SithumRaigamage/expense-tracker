@@ -75,7 +75,7 @@
           </h2>
 
           <ng-container *ngFor="let item of othersItems">
-            <div *ngIf="!item.isLocked" class="relative group">
+            <div *ngIf="shouldDisplayItem(item)" class="relative group">
               <!-- Main Item -->
               <a [routerLink]="item.subItems ? null : item.path"
                  (click)="item.subItems && toggleSubNav(item, $event)"
@@ -110,7 +110,7 @@
               <div *ngIf="item.subItems && item.isOpen && (isExpanded || isHovered)"
                    class="ml-4 mt-1 space-y-1 border-l border-gray-100 dark:border-gray-800 pl-3">
                 <ng-container *ngFor="let subItem of item.subItems">
-                  <a [routerLink]="subItem.path"
+                  <a *ngIf="!subItem.isLocked" [routerLink]="subItem.path"
                      routerLinkActive="menu-dropdown-item-active"
                      class="menu-dropdown-item menu-dropdown-item-inactive">
                     <span class="truncate">{{ subItem.name }}</span>
