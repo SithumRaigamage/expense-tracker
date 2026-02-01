@@ -21,7 +21,7 @@
     "mongodb",
     "jwt"
   ],
-  "author": "Your Name",
+  "author": "Sithum Raigamage",
   "license": "ISC",
   "description": "RESTful API for expense tracking application",
   "dependencies": {
