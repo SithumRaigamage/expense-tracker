@@ -80,9 +80,20 @@
           <form [formGroup]="passwordForm" (ngSubmit)="onPasswordChange()" class="grid grid-cols-1 gap-4">
             <div>
               <label class="mb-2.5 block text-black dark:text-white">Current Password</label>
-              <input type="password" formControlName="currentPassword"
-                class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700"
-                placeholder="Enter current password">
+              <div class="relative">
+                <input [type]="hideCurrent ? 'password' : 'text'" formControlName="currentPassword"
+                  class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 pr-11 dark:border-gray-700 disabled:bg-gray-50 focus:bg-white"
+                  placeholder="Enter current password"
+                  (focus)="clearMaskedPassword('currentPassword', passwordForm)">
+                <button type="button" (click)="hideCurrent = !hideCurrent" 
+                  [disabled]="passwordForm.get('currentPassword')?.value === MASKED_PASSWORD"
+                  class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed">
+                  <fa-icon [icon]="hideCurrent ? faEyeSlash : faEye"></fa-icon>
+                </button>
+              </div>
+              <p class="text-[10px] text-gray-400 mt-1 italic">
+                * To protect your account, your password is encrypted and cannot be retrieved.
+              </p>
               <div *ngIf="passwordForm.get('currentPassword')?.touched && passwordForm.get('currentPassword')?.invalid"
                 class="text-red-500 text-sm mt-1">
                 Current password is required
@@ -91,9 +102,15 @@
 
             <div>
               <label class="mb-2.5 block text-black dark:text-white">New Password</label>
-              <input type="password" formControlName="newPassword"
-                class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700"
-                placeholder="Enter new password">
+              <div class="relative">
+                <input [type]="hideNew ? 'password' : 'text'" formControlName="newPassword"
+                  class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 pr-11 dark:border-gray-700"
+                  placeholder="Enter new password">
+                <button type="button" (click)="hideNew = !hideNew" 
+                  class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700">
+                  <fa-icon [icon]="hideNew ? faEyeSlash : faEye"></fa-icon>
+                </button>
+              </div>
               <div *ngIf="passwordForm.get('newPassword')?.touched && passwordForm.get('newPassword')?.invalid"
                 class="text-red-500 text-sm mt-1">
                 Password must be at least 8 characters
@@ -102,9 +119,15 @@
 
             <div>
               <label class="mb-2.5 block text-black dark:text-white">Confirm Password</label>
-              <input type="password" formControlName="confirmPassword"
-                class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700"
-                placeholder="Confirm new password">
+              <div class="relative">
+                <input [type]="hideConfirm ? 'password' : 'text'" formControlName="confirmPassword"
+                  class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 pr-11 dark:border-gray-700"
+                  placeholder="Confirm new password">
+                <button type="button" (click)="hideConfirm = !hideConfirm" 
+                  class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700">
+                  <fa-icon [icon]="hideConfirm ? faEyeSlash : faEye"></fa-icon>
+                </button>
+              </div>
               <div *ngIf="passwordForm.get('confirmPassword')?.touched && passwordForm.hasError('passwordMismatch')"
                 class="text-red-500 text-sm mt-1">
                 Passwords do not match
@@ -154,9 +177,17 @@
 
             <div>
               <label class="mb-2.5 block text-black dark:text-white">Password</label>
-              <input type="password" formControlName="password"
-                class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700"
-                placeholder="Enter your password">
+              <div class="relative">
+                <input [type]="hideEmailPassword ? 'password' : 'text'" formControlName="password"
+                  class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 pr-11 dark:border-gray-700"
+                  placeholder="Enter your password"
+                  (focus)="clearMaskedPassword('password', emailForm)">
+                <button type="button" (click)="hideEmailPassword = !hideEmailPassword" 
+                  [disabled]="emailForm.get('password')?.value === MASKED_PASSWORD"
+                  class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed">
+                  <fa-icon [icon]="hideEmailPassword ? faEyeSlash : faEye"></fa-icon>
+                </button>
+              </div>
               <div *ngIf="emailForm.get('password')?.touched && emailForm.get('password')?.invalid"
                 class="text-red-500 text-sm mt-1">
                 Password is required

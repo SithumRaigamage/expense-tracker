@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faEye, faEyeSlash, faCheckCircle, faExclamationCircle } from '@fortawesome/free-solid-svg-icons';
 import { User } from '../../../../core/models/User';
 import { SettingsService } from '../../../../services/settings.service';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
@@ -14,7 +16,8 @@ import { finalize } from 'rxjs/operators';
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    RouterModule
+    RouterModule,
+    FontAwesomeModule
   ],
   templateUrl: './profile.component.html',
 })
@@ -32,6 +35,20 @@ export class ProfileComponent implements OnInit {
   isEmailChanging: boolean = false;
   uploadProgress: number = 0;
   imageError: boolean = false;
+
+  // Password visibility
+  hideCurrent = true;
+  hideNew = true;
+  hideConfirm = true;
+  hideEmailPassword = true;
+
+  // Icons
+  faEye = faEye;
+  faEyeSlash = faEyeSlash;
+  faCheckCircle = faCheckCircle;
+  faExclamationCircle = faExclamationCircle;
+
+  readonly MASKED_PASSWORD = '●●●●●●●●●●';
 
   constructor(
     private settingsService: SettingsService,
@@ -75,6 +92,10 @@ export class ProfileComponent implements OnInit {
 
           this.user = user;
           console.log('User profile loaded:', user);
+
+          // Set masked password in forms
+          this.passwordForm.patchValue({ currentPassword: this.MASKED_PASSWORD });
+          this.emailForm.patchValue({ password: this.MASKED_PASSWORD });
 
           // Pre-load images to test CORS and prepare for display
           this.preloadUserImages(user);
@@ -274,11 +295,22 @@ export class ProfileComponent implements OnInit {
     return null;
   }
 
+  clearMaskedPassword(controlName: string, form: FormGroup): void {
+    if (form.get(controlName)?.value === this.MASKED_PASSWORD) {
+      form.get(controlName)?.setValue('');
+    }
+  }
+
   onPasswordChange(): void {
     if (this.passwordForm.valid) {
-      this.isPasswordChanging = true;
       const { currentPassword, newPassword } = this.passwordForm.value;
 
+      if (currentPassword === this.MASKED_PASSWORD) {
+        this.showNotification('Please enter your actual current password.', 'error');
+        return;
+      }
+
+      this.isPasswordChanging = true;
       this.settingsService.changePassword(currentPassword, newPassword).pipe(
         finalize(() => this.isPasswordChanging = false)
       ).subscribe({
@@ -288,7 +320,7 @@ export class ProfileComponent implements OnInit {
         },
         error: (error) => {
           console.error('Error changing password:', error);
-          this.showNotification('Failed to change password. Please check your current password and try again.', 'error');
+          this.showNotification(error.message, 'error');
         }
       });
     }
@@ -296,9 +328,14 @@ export class ProfileComponent implements OnInit {
 
   onEmailChange(): void {
     if (this.emailForm.valid) {
-      this.isEmailChanging = true;
       const { newEmail, password } = this.emailForm.value;
 
+      if (password === this.MASKED_PASSWORD) {
+        this.showNotification('Please enter your password to confirm email change.', 'error');
+        return;
+      }
+
+      this.isEmailChanging = true;
       this.settingsService.changeEmail(newEmail, password).pipe(
         finalize(() => this.isEmailChanging = false)
       ).subscribe({
@@ -309,7 +346,7 @@ export class ProfileComponent implements OnInit {
         },
         error: (error) => {
           console.error('Error changing email:', error);
-          this.showNotification('Failed to change email. Please check your password and try again.', 'error');
+          this.showNotification(error.message, 'error');
         }
       });
     }

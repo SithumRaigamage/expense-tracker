@@ -354,12 +354,9 @@ export class SettingsService {
       map(() => void 0),
       catchError(error => {
         console.error('Error changing password:', error);
-
-        if (error.status === 401) {
-          return throwError(() => new Error('Current password is incorrect'));
-        }
-
-        return throwError(() => new Error('Failed to change password. Please try again later.'));
+        
+        const message = error.error?.message || error.error?.error || 'Failed to change password. Please try again later.';
+        return throwError(() => new Error(message));
       })
     );
   }
