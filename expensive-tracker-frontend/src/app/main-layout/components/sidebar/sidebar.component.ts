@@ -67,19 +67,22 @@ export class SidebarComponent implements OnInit {
       icon: faGaugeHigh,
       name: 'Dashboard',
       path: '/dashboard',
-      isNew: false
+      isNew: false,
+      isLocked: false
     },
     {
       icon: faWallet,
       name: 'Wallets',
       path: '/wallets',
-      isNew: false
+      isNew: false,
+      isLocked: false
     },
     {
       icon: faMoneyCheckDollar,
       name: 'Transactions',
       path: '/transactions',
-      isNew: false
+      isNew: false,
+      isLocked: false
     },
     {
       icon: faChartLine,
@@ -87,14 +90,6 @@ export class SidebarComponent implements OnInit {
       path: '/budget',
       isNew: false,
       isLocked: false
-    },
-    {
-      icon: faShieldHalved,
-      name: 'Emergency Fund',
-      path: '/emergency-fund',
-      isUpcoming: true,
-      isNew: false,
-      isLocked: true
     },
     {
       icon: faGraduationCap,
@@ -125,7 +120,6 @@ export class SidebarComponent implements OnInit {
       subItems: [
         { name: 'Profile', path: '/settings/profile', isLocked: false, isNew: false, isUpcoming: false },
         { name: 'About & Support', path: '/settings/about & support', isLocked: true, isNew: false, isUpcoming: true },
-        // { name: 'Currency', path: '/settings/currency', isLocked: true, isNew: false, isUpcoming: true },
       ]
     },
     {

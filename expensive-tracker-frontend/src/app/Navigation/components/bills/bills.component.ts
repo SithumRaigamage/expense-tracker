@@ -9,12 +9,13 @@ import { CurrencyService } from '../../../core/services/currency.service';
 import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
 import { ExcelExportService } from '../../../services/excel-export.service';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faDownload } from '@fortawesome/free-solid-svg-icons';
+import { faDownload, faEdit, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { SideDrawerComponent } from '../../../shared/components/side-drawer/side-drawer.component';
 
 @Component({
   selector: 'app-bills',
   standalone: true,
-  imports: [CommonModule, FormsModule, AppCurrencyPipe, FontAwesomeModule],
+  imports: [CommonModule, FormsModule, AppCurrencyPipe, FontAwesomeModule, SideDrawerComponent],
   templateUrl: './bills.component.html',
 })
 export class BillsComponent implements OnInit {
@@ -26,6 +27,8 @@ export class BillsComponent implements OnInit {
   currentBill: Partial<Bill> = this.getEmptyBill();
   categories = ['Utilities', 'Subscription', 'Entertainment', 'Internet', 'Insurance'];
   faDownload = faDownload;
+  faEdit = faEdit;
+  faPlus = faPlus;
 
   constructor(
     private billsService: BillsService,
