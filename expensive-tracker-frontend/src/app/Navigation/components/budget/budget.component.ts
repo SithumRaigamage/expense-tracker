@@ -8,18 +8,22 @@ import { Wallet } from '../../../core/models/Wallet';
 import { FilterPipe } from './filter.pipe';
 import { CurrencyService } from '../../../core/services/currency.service';
 import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
+import { ExcelExportService } from '../../../services/excel-export.service';
+import { faDownload } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
 type DrawerMode = 'add' | 'edit' | 'addMoney' | null;
 
 @Component({
   selector: 'app-budget',
   standalone: true,
-  imports: [CommonModule, FormsModule,FilterPipe, AppCurrencyPipe],
+  imports: [CommonModule, FormsModule, FilterPipe, AppCurrencyPipe, FontAwesomeModule],
   templateUrl: './budget.component.html',
 })
 export class BudgetComponent implements OnInit {
   goals: ProductBudget[] = [];
   filteredGoals: ProductBudget[] = [];
+  faDownload = faDownload;
   isDrawerOpen = false;
   drawerMode: DrawerMode = null;
   currentGoal: Omit<ProductBudget, 'id'> = this.getEmptyGoal();
@@ -46,7 +50,8 @@ export class BudgetComponent implements OnInit {
   constructor(
     private productBudgetService: ProductBudgetService,
     private walletService: WalletService,
-    public currencyService: CurrencyService
+    public currencyService: CurrencyService,
+    private excelExportService: ExcelExportService
   ) {}
 
   ngOnInit(): void {
@@ -464,6 +469,13 @@ export class BudgetComponent implements OnInit {
         alert('Failed to load budget goals: ' + error.message);
       }
     });
+  }
+
+  exportBudget(): void {
+    if (this.goals.length === 0) return;
+    
+    const exportData = this.excelExportService.formatDataForExport(this.goals);
+    this.excelExportService.exportToExcel(exportData, 'SavingsGoals', 'Savings Goals');
   }
 
   /**

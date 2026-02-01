@@ -60,4 +60,20 @@
       <p class="text-gray-600 leading-relaxed">{{ accessibilityStatement }}</p>
     </div>
   </div>
+
+  <!-- Data Management Section -->
+  <div class="col-span-12">
+    <div class="bg-white rounded-lg shadow-sm p-6 space-y-4">
+      <h2 class="text-xl font-semibold text-gray-800">Data Management</h2>
+      <p class="text-gray-600">Export all your transactions, wallets, budget goals, and bills into a single Excel file for offline analysis.</p>
+      
+      <button (click)="exportAllData()" 
+              [disabled]="isExporting"
+              class="inline-flex items-center gap-2 rounded-lg bg-green-600 px-6 py-3 text-sm font-medium text-white hover:bg-green-700 transition-colors shadow-sm">
+        <fa-icon [icon]="faDownload" *ngIf="!isExporting"></fa-icon>
+        <span *ngIf="isExporting" class="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>
+        {{ isExporting ? 'Preparing Export...' : 'Export All Data (.xlsx)' }}
+      </button>
+    </div>
+  </div>
 </div>

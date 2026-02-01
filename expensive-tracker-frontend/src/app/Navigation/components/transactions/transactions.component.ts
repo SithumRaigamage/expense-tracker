@@ -8,11 +8,12 @@ import { Wallet } from '../../../core/models/Wallet';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {
   faPlus, faPencil, faTrash, faUpload, faFileUpload, faFileImport,
-  faEdit, faRefresh, faFilter, faSearch, faChevronLeft, faChevronRight
+  faEdit, faRefresh, faFilter, faSearch, faChevronLeft, faChevronRight, faDownload
 } from '@fortawesome/free-solid-svg-icons';
 import { Transaction } from '../../../core/models/Transaction';
 import { CurrencyService } from '../../../core/services/currency.service';
 import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
+import { ExcelExportService } from '../../../services/excel-export.service';
 
 interface Category {
   _id: string;
@@ -39,6 +40,7 @@ export class TransactionsComponent implements OnInit {
   faSearch = faSearch;
   faChevronLeft = faChevronLeft;
   faChevronRight = faChevronRight;
+  faDownload = faDownload;
 
   // All loaded transactions
   allTransactions: Transaction[] = [];
@@ -71,7 +73,8 @@ export class TransactionsComponent implements OnInit {
     private transactionService: TransactionService,
     private walletService: WalletService,
     private route: ActivatedRoute,
-    public currencyService: CurrencyService
+    public currencyService: CurrencyService,
+    private excelExportService: ExcelExportService
   ) {
     this.transactionForm = this.createForm();
     this.filterForm = this.createFilterForm();
@@ -444,6 +447,17 @@ export class TransactionsComponent implements OnInit {
         }
       });
     }
+  }
+
+  exportTransactions() {
+    if (this.allTransactions.length === 0) return;
+    
+    // We export filtered transactions or all transactions? 
+    // Usually user expects filtered data if filtered, but "export" usually means the current view.
+    // Let's export allTransactions but suggest filtered if needed.
+    // User said "export all data into a exceel sheet", let's export all.
+    const exportData = this.excelExportService.formatDataForExport(this.allTransactions);
+    this.excelExportService.exportToExcel(exportData, 'AllTransactions', 'Transactions');
   }
 
   getCategoriesByType(type: 'income' | 'expense'): Category[] {
