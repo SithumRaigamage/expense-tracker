@@ -1,7 +1,7 @@
 # 💰 Expense Tracker Application
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/SithumRaigamage/expense-tracker/main/expensive-tracker-frontend/src/favicon.png" alt="Expense Tracker Logo" width="120"/>
+  <img src="https://raw.githubusercontent.com/SithumRaigamage/expense-tracker/develop/expensive-tracker-frontend/src/favicon.png" alt="Expense Tracker Logo" width="120"/>
 </p>
 
 <p align="center">
