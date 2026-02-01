@@ -146,617 +146,246 @@
     </div>
   </div>
 
-  <!-- Side Drawer Backdrop -->
-  <div *ngIf="isDrawerOpen" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[60000] transition-opacity"
-    (click)="closeDrawer()">
-  </div>
-
   <!-- Side Drawer -->
-  <div
-    class="fixed inset-y-0 right-0 md:w-[450px] w-full bg-white dark:bg-gray-800 shadow-2xl transform transition-all duration-300 ease-in-out z-[60001] overflow-hidden"
-    [class.translate-x-full]="!isDrawerOpen" [class.translate-x-0]="isDrawerOpen">
-    <div class="h-full flex flex-col max-h-screen">
-      <!-- Drawer Header -->
-      <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-        <h2 class="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-          <ng-container [ngSwitch]="drawerMode">
-            <svg *ngSwitchCase="'add'" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-            <svg *ngSwitchCase="'edit'" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-            </svg>
-            <svg *ngSwitchCase="'addMoney'" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-              viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-              stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="12" y1="8" x2="12" y2="16"></line>
-              <line x1="8" y1="12" x2="16" y2="12"></line>
-            </svg>
-          </ng-container>
-          {{getDrawerTitle()}}
-        </h2>
-        <button (click)="closeDrawer()"
-          class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
+  <app-side-drawer
+    [isOpen]="isDrawerOpen"
+    [title]="getDrawerTitle()"
+    [icon]="drawerMode === 'add' ? faPlus : (drawerMode === 'edit' ? faEdit : faPlusCircle)"
+    (close)="closeDrawer()">
+
+    <div class="h-full flex flex-col">
+       <!-- Tab Navigation (only for adding new) -->
+       <div *ngIf="drawerMode === 'add'" class="mb-8 p-1 bg-gray-100/50 dark:bg-gray-800/50 rounded-2xl flex">
+        <button (click)="switchTab('manual')"
+           [class]="activeTab === 'manual' ? 'bg-white dark:bg-gray-700 shadow-sm text-primary-600 dark:text-primary-400' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'"
+           class="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-200">
+          <fa-icon [icon]="faEdit"></fa-icon>
+          Manual
+        </button>
+        <button (click)="switchTab('upload')"
+           [class]="activeTab === 'upload' ? 'bg-white dark:bg-gray-700 shadow-sm text-primary-600 dark:text-primary-400' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'"
+           class="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-200">
+          <fa-icon [icon]="faUpload"></fa-icon>
+          Import JSON
         </button>
       </div>
 
-      <!-- Drawer Content -->
-      <div class="p-6 flex-1 overflow-y-auto min-h-0 pb-20">
-        <ng-container [ngSwitch]="drawerMode">
-          <!-- Add Form -->
-          <div *ngSwitchCase="'add'">
-            <!-- Tab Navigation (only show tabs when adding new) -->
-            <div class="mb-6 border-b border-gray-200 dark:border-gray-700">
-              <ul class="flex flex-wrap -mb-px text-sm font-medium text-center">
-                <li class="mr-2">
-                  <a (click)="switchTab('manual')" [class.text-primary]="activeTab === 'manual'"
-                    [class.border-primary]="activeTab === 'manual'" [class.dark:border-primary]="activeTab === 'manual'"
-                    [class.active]="activeTab === 'manual'"
-                    class="inline-block p-4 border-b-2 rounded-t-lg cursor-pointer"
-                    [class.border-transparent]="activeTab !== 'manual'">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="inline-block mr-2 h-5 w-5" fill="none"
-                      viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                    Manual Entry
-                  </a>
-                </li>
-                <li class="mr-2">
-                  <a (click)="switchTab('upload')" [class.text-primary]="activeTab === 'upload'"
-                    [class.border-primary]="activeTab === 'upload'" [class.dark:border-primary]="activeTab === 'upload'"
-                    [class.active]="activeTab === 'upload'"
-                    class="inline-block p-4 border-b-2 rounded-t-lg cursor-pointer"
-                    [class.border-transparent]="activeTab !== 'upload'">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="inline-block mr-2 h-5 w-5" fill="none"
-                      viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                    </svg>
-                    Import JSON
-                  </a>
-                </li>
-              </ul>
+       <!-- Manual Entry / Edit Form -->
+       <div *ngIf="activeTab === 'manual' || drawerMode === 'edit' || drawerMode === 'addMoney'" class="space-y-6">
+        
+        <!-- Goal Form (Add/Edit) -->
+        <ng-container *ngIf="drawerMode === 'add' || drawerMode === 'edit'">
+          <!-- Image Section -->
+          <div class="space-y-3">
+             <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Cover Image</label>
+             
+             <!-- Image Preview / Placeholder -->
+             <div class="relative group h-40 rounded-3xl overflow-hidden bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-200 dark:border-gray-800 flex items-center justify-center transition-all duration-300 hover:border-primary-500">
+               <img *ngIf="currentGoal.imageUrl" [src]="currentGoal.imageUrl" class="w-full h-full object-cover">
+               <div *ngIf="!currentGoal.imageUrl" class="text-center p-6">
+                 <div class="w-12 h-12 bg-white dark:bg-gray-700 rounded-2xl shadow-sm flex items-center justify-center mx-auto mb-3">
+                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                 </div>
+                 <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">No Image Selected</p>
+               </div>
+               
+               <!-- Loading Overlay -->
+               <div *ngIf="isUploading" class="absolute inset-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm flex items-center justify-center z-10">
+                 <fa-icon [icon]="faRefresh" class="animate-spin text-primary-500 text-2xl"></fa-icon>
+               </div>
+             </div>
+
+             <!-- Upload Controls -->
+             <div class="flex gap-2">
+               <button type="button" 
+                       (click)="triggerFileInput()"
+                       class="flex-1 rounded-xl bg-gray-100 dark:bg-gray-800 py-3 text-xs font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all active:scale-95">
+                 <fa-icon [icon]="faUpload" class="mr-2"></fa-icon>Upload Photo
+               </button>
+               <div class="relative flex-[2]">
+                 <input type="text" 
+                        [(ngModel)]="currentGoal.imageUrl" 
+                        placeholder="Or paste image URL"
+                        class="w-full rounded-xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3 text-xs text-gray-900 dark:text-white transition-all focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10">
+               </div>
+               <input type="file" id="imageUpload" class="hidden" (change)="handleImageUpload($event)" accept="image/*">
+             </div>
+          </div>
+
+          <!-- Goal Name -->
+          <div class="space-y-1.5">
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Goal Name</label>
+            <input type="text"
+                   [(ngModel)]="currentGoal.name"
+                   class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10"
+                   placeholder="e.g. New MacBook Pro">
+          </div>
+
+          <!-- Amounts Grid -->
+          <div class="grid grid-cols-2 gap-4">
+             <div class="space-y-1.5">
+               <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Target Amount</label>
+               <input type="number"
+                      [(ngModel)]="currentGoal.targetAmount"
+                      class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10"
+                      placeholder="0.00">
+             </div>
+             <div class="space-y-1.5">
+               <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Initial Savings</label>
+               <input type="number"
+                      [(ngModel)]="currentGoal.savedAmount"
+                      class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10"
+                      placeholder="0.00">
+             </div>
+          </div>
+
+          <!-- Target Date -->
+          <div class="space-y-1.5">
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Target Date</label>
+            <input type="date"
+                   [(ngModel)]="currentGoal.targetDate"
+                   class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10">
+          </div>
+
+          <div class="pt-6 flex gap-4">
+            <button type="button"
+                    (click)="closeDrawer()"
+                    class="flex-1 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 active:scale-95">
+              Cancel
+            </button>
+            <button (click)="submitForm()"
+                    [disabled]="!currentGoal.name || currentGoal.targetAmount <= 0"
+                    class="flex-[2] rounded-2xl bg-primary-500 px-6 py-4 text-sm font-bold text-black shadow-lg shadow-primary-500/20 hover:bg-primary-600 hover:shadow-primary-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95">
+              {{ drawerMode === 'add' ? 'Create Goal' : 'Save Changes' }}
+            </button>
+          </div>
+        </ng-container>
+
+        <!-- Add Money Flow -->
+        <ng-container *ngIf="drawerMode === 'addMoney'">
+          <!-- Wallet Selection -->
+          <div class="space-y-4">
+             <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Select Source Wallet</label>
+             <div class="grid grid-cols-1 gap-3">
+               <button *ngFor="let wallet of availableWallets"
+                       (click)="selectWallet(wallet.id)"
+                       [class]="selectedWalletId === wallet.id ? 'border-primary-500 bg-primary-50/10 ring-4 ring-primary-500/10' : 'border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800'"
+                       class="text-left p-4 rounded-2xl border-2 transition-all duration-200 text-gray-900 dark:text-white">
+                  <div class="flex justify-between items-center">
+                    <div>
+                      <div class="font-bold">{{wallet.name}}</div>
+                      <div class="text-xs font-bold text-gray-400 mt-0.5 uppercase tracking-wider">{{wallet.type}}</div>
+                    </div>
+                    <div class="text-right">
+                      <div class="font-bold">{{wallet.balance | appCurrency:wallet.currency}}</div>
+                      <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Available</div>
+                    </div>
+                  </div>
+               </button>
+             </div>
+          </div>
+
+          <!-- Amount Input -->
+          <div class="space-y-1.5" *ngIf="selectedWalletId">
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Contribution Amount</label>
+            <div class="relative group">
+              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 font-bold group-focus-within:text-primary-500">
+                {{currencyService.getActiveCurrency()}}
+              </div>
+              <input type="number"
+                     [(ngModel)]="addAmount"
+                     class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 pl-14 px-4 py-4 text-2xl font-bold text-gray-900 dark:text-white transition-all duration-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10"
+                     placeholder="0.00">
             </div>
-
-            <!-- Manual Entry Form -->
-            <form *ngIf="activeTab === 'manual'" #goalForm="ngForm" (ngSubmit)="goalForm.form.valid && submitForm()"
-              class="space-y-6">
-              <!-- Form content here -->
-              <!-- Product Name -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Product Name <span class="text-red-500">*</span>
-                </label>
-                <input [(ngModel)]="currentGoal.name" name="name" #name="ngModel" required minlength="3" type="text"
-                  class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                  placeholder="Enter product name">
-                <div *ngIf="name.invalid && (name.dirty || name.touched)" class="text-red-500 text-sm mt-1">
-                  <div *ngIf="name.errors?.['required']">Product name is required</div>
-                  <div *ngIf="name.errors?.['minlength']">Name must be at least 3 characters long</div>
-                </div>
-              </div>
-
-              <!-- Image Selection -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Product Image
-                </label>
-
-                <!-- Image Preview -->
-                <div *ngIf="currentGoal.imageUrl" class="mb-4 relative">
-                  <img [src]="currentGoal.imageUrl"
-                    class="w-full h-40 object-contain rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700"
-                    onerror="this.src='https://images.unsplash.com/photo-1560393464-5c69a73c5770?w=100&h=100&fit=crop'">
-                  <button type="button" (click)="currentGoal.imageUrl = ''"
-                    class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                  </button>
-                </div>
-
-                <!-- Image Input Tabs -->
-                <div class="mb-4">
-                  <div class="flex border-b border-gray-200 dark:border-gray-700">
-                    <button type="button"
-                      [ngClass]="{'border-b-2 border-primary text-gray-900 dark:text-white': imageInputTab === 'url',
-                                   'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300': imageInputTab !== 'url'}"
-                      class="flex-1 py-2 text-sm font-medium" (click)="imageInputTab = 'url'">
-                      URL Link
-                    </button>
-                    <button type="button"
-                      [ngClass]="{'border-b-2 border-primary text-gray-900 dark:text-white': imageInputTab === 'upload',
-                                   'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300': imageInputTab !== 'upload'}"
-                      class="flex-1 py-2 text-sm font-medium" (click)="imageInputTab = 'upload'">
-                      Upload Image
-                    </button>
-                  </div>
-
-                  <!-- Tab Content -->
-                  <div class="mt-3">
-                    <!-- URL Input Tab -->
-                    <div *ngIf="imageInputTab === 'url'" class="animate-fade-in">
-                      <div class="relative">
-                        <input [(ngModel)]="currentGoal.imageUrl" name="imageUrl" type="text"
-                          class="w-full rounded-lg border border-gray-300 bg-white pl-10 px-4 py-2.5 text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                          placeholder="Enter image URL">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                          class="absolute left-3 top-3 text-gray-400">
-                          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                        </svg>
-                      </div>
-                      <div class="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
-                        Enter a direct link to an image from the web
-                      </div>
-                    </div>
-
-                    <!-- Upload Tab -->
-                    <div *ngIf="imageInputTab === 'upload'" class="animate-fade-in">
-                      <div
-                        class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center">
-                        <svg *ngIf="!isUploading" xmlns="http://www.w3.org/2000/svg" width="40" height="40"
-                          viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round"
-                          stroke-linejoin="round" class="mx-auto text-gray-400 mb-3">
-                          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                          <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                          <polyline points="21 15 16 10 5 21"></polyline>
-                        </svg>
-
-                        <div *ngIf="isUploading"
-                          class="animate-spin w-10 h-10 border-b-2 border-primary rounded-full mx-auto mb-3"></div>
-
-                        <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-                          {{uploadedFile ? 'Image ready to upload' : 'Drag & drop or click to upload'}}
-                        </h3>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                          {{uploadedFile ? uploadedFile.name : 'Supported formats: JPG, PNG, GIF'}}
-                        </p>
-                        <button type="button" (click)="triggerFileInput()"
-                          class="mt-4 px-4 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
-                          {{uploadedFile ? 'Choose another file' : 'Select File'}}
-                        </button>
-                        <input type="file" id="imageUpload" accept="image/*" (change)="handleImageUpload($event)"
-                          class="hidden">
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Target Amount -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Target Amount <span class="text-red-500">*</span>
-                </label>
-                <div class="relative">
-                  <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 pointer-events-none">
-                    {{currencyService.getActiveCurrency()}}
-                  </span>
-                  <input [(ngModel)]="currentGoal.targetAmount" name="targetAmount" #targetAmount="ngModel" required
-                    min="1" type="number"
-                    class="w-full rounded-lg border border-gray-300 bg-white pl-10 pr-4 py-2.5 text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                    placeholder="0.00">
-                </div>
-                <div *ngIf="targetAmount.invalid && (targetAmount.dirty || targetAmount.touched)"
-                  class="text-red-500 text-sm mt-1">
-                  <div *ngIf="targetAmount.errors?.['required']">Target amount is required</div>
-                  <div *ngIf="targetAmount.errors?.['min']">Target amount must be greater than 0</div>
-                </div>
-              </div>
-
-              <!-- Target Date -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Target Date <span class="text-red-500">*</span>
-                </label>
-                <input [(ngModel)]="currentGoal.targetDate" name="targetDate" #targetDate="ngModel" required type="date"
-                  class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-                <div *ngIf="targetDate.invalid && (targetDate.dirty || targetDate.touched)"
-                  class="text-red-500 text-sm mt-1">
-                  <div *ngIf="targetDate.errors?.['required']">Target date is required</div>
-                </div>
-              </div>
-
-              <!-- Form Actions -->
-              <div class="flex justify-end gap-4 pt-4">
-                <button type="button" (click)="closeDrawer()"
-                  class="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors">
-                  Cancel
-                </button>
-                <button type="submit" [disabled]="goalForm.invalid"
-                  class="rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-black hover:bg-primary-dark transition-colors shadow-sm hover:shadow disabled:opacity-50 disabled:pointer-events-none">
-                  {{drawerMode === 'add' ? 'Add Goal' : 'Save Changes'}}
-                </button>
-              </div>
-            </form>
-
-            <!-- JSON Upload UI -->
-            <div *ngIf="activeTab === 'upload' && drawerMode === 'add'" class="space-y-6">
-              <div
-                class="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg mb-4 border border-gray-200 dark:border-gray-700">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Import Product Goals from JSON</h3>
-                <p class="text-gray-600 dark:text-gray-400 mb-4">
-                  Upload a JSON file containing an array of product goals. Each goal should have a name, targetAmount,
-                  and targetDate.
-                  <a href="assets/sample-goals.json" download class="text-primary hover:underline ml-1">
-                    Download sample file
-                  </a>
-                </p>
-
-                <!-- File Upload -->
-                <div class="flex items-center justify-center w-full">
-                  <label
-                    class="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700">
-                    <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 mb-3 text-gray-400" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                      </svg>
-                      <p class="mb-2 text-sm text-gray-500 dark:text-gray-400">
-                        <span class="font-semibold">Click to upload</span> or drag and drop
-                      </p>
-                      <p class="text-xs text-gray-500 dark:text-gray-400">JSON file only</p>
-                    </div>
-                    <input id="file-upload" type="file" accept=".json" class="hidden"
-                      (change)="onFileSelected($event)" />
-                  </label>
-                </div>
-              </div>
-
-              <!-- Preview & Error States -->
-              <div *ngIf="jsonError"
-                class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4 rounded-lg">
-                <h4 class="text-red-800 dark:text-red-400 font-medium mb-2">Error parsing JSON</h4>
-                <pre class="text-red-700 dark:text-red-300 text-sm whitespace-pre-wrap">{{jsonError}}</pre>
-              </div>
-
-              <div *ngIf="jsonPreview && jsonPreview.length > 0"
-                class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 p-4 rounded-lg">
-                <h4 class="text-green-800 dark:text-green-400 font-medium mb-2">Preview ({{jsonPreview.length}} goals)
-                </h4>
-                <div class="max-h-64 overflow-y-auto">
-                  <div *ngFor="let goal of jsonPreview; let i = index"
-                    class="border-b border-green-100 dark:border-green-800 py-2 last:border-b-0">
-                    <div class="flex justify-between">
-                      <span class="font-medium">{{goal.name}}</span>
-                      <span>{{goal.targetAmount | appCurrency}}</span>
-                    </div>
-                    <div class="text-sm text-gray-500 dark:text-gray-400">
-                      Target date: {{goal.targetDate | date}}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Form Actions -->
-              <div class="flex justify-end gap-4 pt-4">
-                <button type="button" (click)="closeDrawer()"
-                  class="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors">
-                  Cancel
-                </button>
-                <button type="button" [disabled]="!jsonPreview || jsonPreview.length === 0 || isLoading"
-                  (click)="importGoals()"
-                  class="rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-black hover:bg-primary-dark transition-colors shadow-sm hover:shadow disabled:opacity-50 disabled:pointer-events-none">
-                  <span *ngIf="isLoading" class="flex items-center">
-                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg"
-                      fill="none" viewBox="0 0 24 24">
-                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                      <path class="opacity-75" fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                      </path>
-                    </svg>
-                    Importing...
-                  </span>
-                  <span *ngIf="!isLoading">Import {{jsonPreview?.length || 0}} Goals</span>
-                </button>
-              </div>
+            
+            <!-- Quick Suggestions -->
+            <div class="flex gap-2 mt-3">
+               <button (click)="setAmountPercentage(25)" class="flex-1 rounded-xl bg-gray-100 dark:bg-gray-800 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all">25%</button>
+               <button (click)="setAmountPercentage(50)" class="flex-1 rounded-xl bg-gray-100 dark:bg-gray-800 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all">50%</button>
+               <button (click)="setRemainingAmount()" class="flex-[2] rounded-xl bg-gray-100 dark:bg-gray-800 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all">Entire Balance</button>
             </div>
           </div>
 
-          <!-- Edit Form -->
-          <form *ngSwitchCase="'edit'" #goalForm="ngForm" (ngSubmit)="goalForm.form.valid && submitForm()"
-            class="space-y-6">
-            <!-- Product Name -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Product Name <span class="text-red-500">*</span>
-              </label>
-              <input [(ngModel)]="currentGoal.name" name="name" #name="ngModel" required minlength="3" type="text"
-                class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                placeholder="Enter product name">
-              <div *ngIf="name.invalid && (name.dirty || name.touched)" class="text-red-500 text-sm mt-1">
-                <div *ngIf="name.errors?.['required']">Product name is required</div>
-                <div *ngIf="name.errors?.['minlength']">Name must be at least 3 characters long</div>
-              </div>
-            </div>
-
-            <!-- Image Selection -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Product Image
-              </label>
-
-              <!-- Image Preview -->
-              <div *ngIf="currentGoal.imageUrl" class="mb-4 relative">
-                <img [src]="currentGoal.imageUrl"
-                  class="w-full h-40 object-contain rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700"
-                  onerror="this.src=''">
-                <button type="button" (click)="currentGoal.imageUrl = ''"
-                  class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                  </svg>
-                </button>
-              </div>
-
-              <!-- Image Input Tabs -->
-              <div class="mb-4">
-                <div class="flex border-b border-gray-200 dark:border-gray-700">
-                  <button type="button"
-                    [ngClass]="{'border-b-2 border-primary text-gray-900 dark:text-white': imageInputTab === 'url',
-                                 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300': imageInputTab !== 'url'}"
-                    class="flex-1 py-2 text-sm font-medium" (click)="imageInputTab = 'url'">
-                    URL Link
-                  </button>
-                  <button type="button"
-                    [ngClass]="{'border-b-2 border-primary text-gray-900 dark:text-white': imageInputTab === 'upload',
-                                 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300': imageInputTab !== 'upload'}"
-                    class="flex-1 py-2 text-sm font-medium" (click)="imageInputTab = 'upload'">
-                    Upload Image
-                  </button>
-                </div>
-
-                <!-- Tab Content -->
-                <div class="mt-3">
-                  <!-- URL Input Tab -->
-                  <div *ngIf="imageInputTab === 'url'" class="animate-fade-in">
-                    <div class="relative">
-                      <input [(ngModel)]="currentGoal.imageUrl" name="imageUrl" type="text"
-                        class="w-full rounded-lg border border-gray-300 bg-white pl-10 px-4 py-2.5 text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                        placeholder="Enter image URL">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        class="absolute left-3 top-3 text-gray-400">
-                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                      </svg>
-                    </div>
-                    <div class="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
-                      Enter a direct link to an image from the web
-                    </div>
-                  </div>
-
-                  <!-- Upload Tab -->
-                  <div *ngIf="imageInputTab === 'upload'" class="animate-fade-in">
-                    <div
-                      class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center">
-                      <svg *ngIf="!isUploading" xmlns="http://www.w3.org/2000/svg" width="40" height="40"
-                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round"
-                        stroke-linejoin="round" class="mx-auto text-gray-400 mb-3">
-                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                        <polyline points="21 15 16 10 5 21"></polyline>
-                      </svg>
-
-                      <div *ngIf="isUploading"
-                        class="animate-spin w-10 h-10 border-b-2 border-primary rounded-full mx-auto mb-3"></div>
-
-                      <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-                        {{uploadedFile ? 'Image ready to upload' : 'Drag & drop or click to upload'}}
-                      </h3>
-                      <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        {{uploadedFile ? uploadedFile.name : 'Supported formats: JPG, PNG, GIF'}}
-                      </p>
-                      <button type="button" (click)="triggerFileInput()"
-                        class="mt-4 px-4 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
-                        {{uploadedFile ? 'Choose another file' : 'Select File'}}
-                      </button>
-                      <input type="file" id="imageUpload" accept="image/*" (change)="handleImageUpload($event)"
-                        class="hidden">
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Target Amount -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Target Amount <span class="text-red-500">*</span>
-              </label>
-              <div class="relative">
-                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 pointer-events-none">
-                  {{currencyService.getActiveCurrency()}}
-                </span>
-                <input [(ngModel)]="currentGoal.targetAmount" name="targetAmount" #targetAmount="ngModel" required
-                  min="1" type="number"
-                  class="w-full rounded-lg border border-gray-300 bg-white pl-10 pr-4 py-2.5 text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                  placeholder="0.00">
-              </div>
-              <div *ngIf="targetAmount.invalid && (targetAmount.dirty || targetAmount.touched)"
-                class="text-red-500 text-sm mt-1">
-                <div *ngIf="targetAmount.errors?.['required']">Target amount is required</div>
-                <div *ngIf="targetAmount.errors?.['min']">Target amount must be greater than 0</div>
-              </div>
-            </div>
-
-            <!-- Target Date -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Target Date <span class="text-red-500">*</span>
-              </label>
-              <input [(ngModel)]="currentGoal.targetDate" name="targetDate" #targetDate="ngModel" required type="date"
-                class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-              <div *ngIf="targetDate.invalid && (targetDate.dirty || targetDate.touched)"
-                class="text-red-500 text-sm mt-1">
-                <div *ngIf="targetDate.errors?.['required']">Target date is required</div>
-              </div>
-            </div>
-
-            <!-- Form Actions -->
-            <div class="flex justify-end gap-4 pt-4">
-              <button type="button" (click)="closeDrawer()"
-                class="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors">
-                Cancel
-              </button>
-              <button type="submit" [disabled]="goalForm.invalid"
-                class="rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-black hover:bg-primary-dark transition-colors shadow-sm hover:shadow disabled:opacity-50 disabled:pointer-events-none">
-                Save Changes
-              </button>
-            </div>
-          </form>
-
-          <!-- Add Money Form -->
-          <form *ngSwitchCase="'addMoney'" #moneyForm="ngForm" (ngSubmit)="moneyForm.form.valid && submitAddMoney()"
-            class="space-y-6">
-
-            <!-- Goal Info Summary -->
-            <div *ngIf="selectedGoalId"
-              class="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg mb-6 border border-gray-200 dark:border-gray-700">
-              <div class="flex items-center gap-4">
-                <div *ngIf="currentGoal.imageUrl" class="w-16 h-16">
-                  <img [src]="currentGoal.imageUrl" alt="Goal image" class="w-full h-full object-contain rounded-md"
-                    onerror="this.src='https://images.unsplash.com/photo-1560393464-5c69a73c5770?w=100&h=100&fit=crop'">
-                </div>
-                <div class="flex-1">
-                  <h3 class="font-medium text-gray-900 dark:text-white">{{currentGoal.name}}</h3>
-                  <div class="flex gap-3 mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    <span>Current: {{currentGoal.savedAmount | appCurrency}}</span>
-                    <span>Target: {{currentGoal.targetAmount | appCurrency}}</span>
-                  </div>
-                  <div class="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full mt-2">
-                    <div class="h-1.5 rounded-full" [ngStyle]="{
-                         'width': (currentGoal.savedAmount / currentGoal.targetAmount) * 100 + '%',
-                         'background-color': getProgressColor((currentGoal.savedAmount / currentGoal.targetAmount) * 100)
-                       }"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Wallet Selection -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Select Wallet <span class="text-red-500">*</span>
-              </label>
-              <div class="grid grid-cols-1 gap-3">
-                <div *ngFor="let wallet of availableWallets" [class.border-primary]="selectedWalletId === wallet.id"
-                  class="flex items-center gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50"
-                  (click)="selectedWalletId = wallet.id">
-                  <div class="flex-shrink-0">
-                    <div class="w-10 h-10 rounded-full flex items-center justify-center"
-                      [ngClass]="wallet.type === 'cash' ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'">
-                      <svg *ngIf="wallet.type === 'cash'" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
-                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <rect x="2" y="6" width="20" height="12" rx="2"></rect>
-                        <circle cx="12" cy="12" r="2"></circle>
-                        <path d="M6 12h.01M18 12h.01"></path>
-                      </svg>
-                      <svg *ngIf="wallet.type === 'bank'" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
-                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <rect x="3" y="9" width="18" height="12" rx="1"></rect>
-                        <path d="M4 4h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"></path>
-                        <line x1="12" y1="14" x2="12" y2="16"></line>
-                        <line x1="8" y1="14" x2="8" y2="16"></line>
-                        <line x1="16" y1="14" x2="16" y2="16"></line>
-                      </svg>
-                    </div>
-                  </div>
-                  <div class="flex-1">
-                    <h4 class="font-medium text-gray-900 dark:text-white">{{wallet.name}}</h4>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">
-                      Balance: {{wallet.balance | appCurrency:wallet.currency}}
-                    </p>
-                  </div>
-                  <input type="radio" [value]="wallet.id" [(ngModel)]="selectedWalletId" [name]="'wallet-' + wallet.id"
-                    class="w-5 h-5 text-primary border-gray-300 focus:ring-primary" required>
-                </div>
-              </div>
-              <div *ngIf="moneyForm.submitted && !selectedWalletId" class="text-red-500 text-sm mt-1">
-                Please select a wallet
-              </div>
-            </div>
-
-            <!-- Amount Input -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Amount <span class="text-red-500">*</span>
-                  <span class="ml-1 text-sm text-blue-500">
-                    (Remaining: {{(currentGoal.targetAmount - currentGoal.savedAmount) | appCurrency}})
-                  </span>
-              </label>
-              <div class="relative">
-                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
-                  {{currencyService.getActiveCurrency()}}
-                </span>
-                <input [(ngModel)]="addAmount" name="amount" #amount="ngModel" type="number" [max]="getMaxInputAmount()"
-                  required min="1"
-                  class="w-full rounded-lg border border-gray-300 bg-white pl-10 pr-4 py-2.5 text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                  placeholder="0.00">
-              </div>
-              <div *ngIf="amount.invalid && (amount.dirty || amount.touched || moneyForm.submitted)"
-                class="text-red-500 text-sm mt-1">
-                <div *ngIf="amount.errors?.['required']">Amount is required</div>
-                <div *ngIf="amount.errors?.['min']">Amount must be greater than 0</div>
-                <div *ngIf="amount.errors?.['max']">Amount exceeds available funds or remaining goal amount</div>
-              </div>
-
-              <!-- Quick Amount Selector -->
-              <div class="grid grid-cols-4 gap-2 mt-3">
-                <ng-container
-                  *ngIf="selectedWalletId && (availableWallets | filter:'id':selectedWalletId)[0] as wallet">
-                  <!-- % of Wallet Balance -->
-                  <button type="button" *ngFor="let percentage of [25, 50, 75, 100]"
-                    (click)="setAmountPercentage(percentage)"
-                    class="py-1 px-2 text-xs rounded border border-gray-200 hover:border-primary hover:bg-primary hover:text-black transition-colors text-center">
-                    {{percentage}}% of wallet
-                  </button>
-
-                  <!-- Remaining Amount Button -->
-                  <button type="button" *ngIf="currentGoal && currentGoal.targetAmount > currentGoal.savedAmount"
-                    (click)="setRemainingAmount()"
-                    class="py-1 px-2 text-xs rounded border border-green-500 text-green-500 hover:bg-green-500 hover:text-white transition-colors text-center col-span-4 mt-1">
-                    Fund Remaining Amount
-                  </button>
-                </ng-container>
-              </div>
-            </div>
-
-            <!-- Form Actions -->
-            <div class="flex justify-end gap-4 pt-4 border-t border-gray-100 dark:border-gray-700 mt-6">
-              <button type="button" (click)="closeDrawer()"
-                class="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors">
-                Cancel
-              </button>
-              <button type="submit"
-                [disabled]="!selectedWalletId || addAmount <= 0 || currentGoal.targetAmount <= currentGoal.savedAmount || getMaxInputAmount() <= 0"
-                class="rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-black hover:bg-primary-dark transition-colors shadow-sm hover:shadow disabled:opacity-50 disabled:pointer-events-none">
-                {{ currentGoal.targetAmount <= currentGoal.savedAmount ? 'Goal Complete' : 'Add Funds' }}
-              </button>
-            </div>
-          </form>
+          <div class="pt-6 flex gap-4">
+            <button type="button"
+                    (click)="closeDrawer()"
+                    class="flex-1 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 active:scale-95">
+              Cancel
+            </button>
+            <button (click)="submitAddMoney()"
+                    [disabled]="!selectedWalletId || addAmount <= 0"
+                    class="flex-[2] rounded-2xl bg-primary-500 px-6 py-4 text-sm font-bold text-black shadow-lg shadow-primary-500/20 hover:bg-primary-600 hover:shadow-primary-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95">
+              Confirm Deposit
+            </button>
+          </div>
         </ng-container>
       </div>
+
+      <!-- JSON Upload Form (only for add mode) -->
+      <div *ngIf="activeTab === 'upload' && drawerMode === 'add'" class="space-y-8">
+        <div class="group relative bg-gray-50/50 dark:bg-gray-800/30 rounded-3xl p-10 border-2 border-dashed border-gray-200 dark:border-gray-800 hover:border-primary-500 transition-all duration-300">
+          <div class="text-center">
+            <div class="w-16 h-16 bg-white dark:bg-gray-800 rounded-2xl shadow-sm flex items-center justify-center mx-auto mb-6 transition-transform duration-300 group-hover:-translate-y-1">
+              <fa-icon [icon]="faFileUpload" class="text-gray-400 text-2xl group-hover:text-primary-500"></fa-icon>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Import Goals</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-8 max-w-[200px] mx-auto leading-relaxed">
+              Upload your savings goals JSON file.
+            </p>
+
+            <div *ngIf="jsonError" class="mb-6 p-4 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 text-red-600 dark:text-red-400 rounded-2xl text-sm font-medium whitespace-pre-wrap">
+              {{ jsonError }}
+            </div>
+
+            <label for="json-upload-budget" class="inline-flex items-center justify-center gap-3 rounded-2xl bg-white dark:bg-gray-800 border-2 border-primary-500 px-8 py-3.5 text-sm font-bold text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/10 cursor-pointer shadow-sm transition-all duration-200 active:scale-95">
+              <fa-icon [icon]="faUpload"></fa-icon>
+              {{ selectedFile ? 'Change File' : 'Select JSON' }}
+              <input type="file" id="json-upload-budget" accept=".json" class="hidden" (change)="onFileSelected($event)">
+            </label>
+
+            <p *ngIf="selectedFile" class="mt-4 text-xs font-bold text-primary-500 bg-primary-50 dark:bg-primary-900/10 py-1.5 px-3 rounded-full inline-block">
+              {{ selectedFile.name }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Preview -->
+        <div *ngIf="jsonPreview" class="bg-white dark:bg-gray-900/30 rounded-3xl border border-gray-100 dark:border-gray-800 overflow-hidden animate-slide-up">
+          <div class="px-6 py-4 border-b border-gray-50 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/20 flex justify-between items-center">
+            <h4 class="text-sm font-bold text-gray-900 dark:text-white">Previewing {{ jsonPreview.length }} Items</h4>
+          </div>
+          <div class="max-h-60 overflow-y-auto custom-scrollbar">
+            <table class="w-full text-left text-sm">
+              <tbody class="divide-y divide-gray-50 dark:divide-gray-800">
+                <tr *ngFor="let goal of jsonPreview" class="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
+                  <td class="px-6 py-4">
+                    <div class="font-bold text-gray-900 dark:text-white">{{ goal.name }}</div>
+                  </td>
+                  <td class="px-6 py-4 text-right font-bold text-primary-500">
+                    {{ goal.targetAmount | appCurrency }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="flex gap-4">
+          <button type="button"
+                  (click)="closeDrawer()"
+                  class="flex-1 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 active:scale-95">
+            Cancel
+          </button>
+          <button type="button"
+                  [disabled]="!selectedFile || isLoading || jsonError"
+                  (click)="importGoals()"
+                  class="flex-[2] rounded-2xl bg-primary-500 px-6 py-4 text-sm font-bold text-black shadow-lg shadow-primary-500/20 hover:bg-primary-600 hover:shadow-primary-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95 flex items-center justify-center gap-2">
+            <fa-icon *ngIf="isLoading" class="animate-spin" [icon]="faRefresh"></fa-icon>
+            <fa-icon *ngIf="!isLoading" [icon]="faFileImport"></fa-icon>
+            {{isLoading ? 'Importing...' : 'Start Import'}}
+          </button>
+        </div>
+      </div>
     </div>
-  </div>
+  </app-side-drawer>
 </div>

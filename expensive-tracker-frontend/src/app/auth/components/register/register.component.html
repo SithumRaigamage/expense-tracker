@@ -1,0 +1,128 @@
+<div class="min-h-screen relative flex items-center justify-center overflow-hidden bg-gray-950 px-4 py-12 sm:px-6 lg:px-8">
+  <!-- Animated Background Elements -->
+  <div class="absolute -top-[10%] -right-[10%] h-[40%] w-[40%] rounded-full bg-brand-600/20 blur-[120px] animate-pulse"></div>
+  <div class="absolute -bottom-[10%] -left-[10%] h-[40%] w-[40%] rounded-full bg-blue-light-600/20 blur-[120px] animate-pulse" style="animation-delay: 2s"></div>
+  
+  <div class="relative w-full max-w-md">
+    <!-- Card Wrapper with Glassmorphism -->
+    <div class="group relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-2xl transition-all duration-500 hover:border-white/20">
+      
+      <!-- Top Decorative Bar -->
+      <div class="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-blue-light-500 via-brand-500 to-blue-light-500 opacity-50 group-hover:opacity-100 transition-opacity"></div>
+
+      <div class="relative space-y-8">
+        <!-- Logo & Header -->
+        <div class="text-center">
+          <div class="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-light-500 to-brand-500 p-0.5 shadow-xl shadow-blue-light-500/20">
+            <div class="flex h-full w-full items-center justify-center rounded-[0.9rem] bg-gray-950">
+              <svg class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+              </svg>
+            </div>
+          </div>
+          <h2 class="mt-6 text-3xl font-bold tracking-tight text-white">Create Account</h2>
+          <p class="mt-2 text-sm text-gray-400">
+            Join us to start your financial journey today
+          </p>
+        </div>
+
+        <!-- Registration Form -->
+        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="mt-8 space-y-6">
+          <!-- Error Alert -->
+          <div *ngIf="error" class="flex animate-shake items-center gap-3 rounded-2xl border border-red-500/20 bg-red-500/10 p-4 font-medium text-red-400">
+            <svg class="h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+            </svg>
+            <span class="text-sm">{{ error }}</span>
+          </div>
+
+          <div class="space-y-5">
+            <!-- Full Name Input -->
+            <div class="space-y-1.5">
+              <label class="ml-1 text-xs font-bold uppercase tracking-widest text-gray-400">Full Name</label>
+              <div class="relative group/input">
+                <div class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400 transition-colors group-focus-within/input:text-brand-500">
+                  <fa-icon [icon]="faUser"></fa-icon>
+                </div>
+                <input
+                  formControlName="name"
+                  type="text"
+                  placeholder="John Doe"
+                  [class]="nameErrors.required || nameErrors.minlength ? 'border-red-500/50 bg-red-500/5 focus:border-red-500 focus:ring-red-500/20' : 'border-white/10 bg-white/5 focus:border-brand-500 focus:ring-brand-500/20'"
+                  class="block w-full rounded-2xl border py-4 pl-12 pr-4 text-white outline-none transition-all placeholder:text-gray-500 focus:ring-4"
+                />
+              </div>
+              <p *ngIf="nameErrors.required" class="ml-1 text-[11px] font-bold text-red-500">Full name is required</p>
+              <p *ngIf="nameErrors.minlength" class="ml-1 text-[11px] font-bold text-red-500">Minimum 3 characters required</p>
+            </div>
+
+            <!-- Email Input -->
+            <div class="space-y-1.5">
+              <label class="ml-1 text-xs font-bold uppercase tracking-widest text-gray-400">Email Address</label>
+              <div class="relative group/input">
+                <div class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400 transition-colors group-focus-within/input:text-brand-500">
+                  <fa-icon [icon]="faEnvelope"></fa-icon>
+                </div>
+                <input
+                  formControlName="email"
+                  type="email"
+                  placeholder="name@example.com"
+                  [class]="emailErrors.required || emailErrors.email ? 'border-red-500/50 bg-red-500/5 focus:border-red-500 focus:ring-red-500/20' : 'border-white/10 bg-white/5 focus:border-brand-500 focus:ring-brand-500/20'"
+                  class="block w-full rounded-2xl border py-4 pl-12 pr-4 text-white outline-none transition-all placeholder:text-gray-500 focus:ring-4"
+                />
+              </div>
+              <p *ngIf="emailErrors.required" class="ml-1 text-[11px] font-bold text-red-500">Email is required</p>
+              <p *ngIf="emailErrors.email" class="ml-1 text-[11px] font-bold text-red-500">Please enter a valid email</p>
+            </div>
+
+            <!-- Password Input -->
+            <div class="space-y-1.5">
+              <label class="ml-1 text-xs font-bold uppercase tracking-widest text-gray-400">Password</label>
+              <div class="relative group/input">
+                <div class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400 transition-colors group-focus-within/input:text-brand-500">
+                  <fa-icon [icon]="faLock"></fa-icon>
+                </div>
+                <input
+                  formControlName="password"
+                  [type]="showPassword ? 'text' : 'password'"
+                  placeholder="••••••••"
+                  [class]="passwordErrors.required || passwordErrors.minlength ? 'border-red-500/50 bg-red-500/5 focus:border-red-500 focus:ring-red-500/20' : 'border-white/10 bg-white/5 focus:border-brand-500 focus:ring-brand-500/20'"
+                  class="block w-full rounded-2xl border py-4 pl-12 pr-12 text-white outline-none transition-all placeholder:text-gray-500 focus:ring-4"
+                />
+                <button
+                  type="button"
+                  (click)="togglePasswordVisibility()"
+                  class="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 transition-colors hover:text-white"
+                >
+                  <fa-icon [icon]="showPassword ? faEyeSlash : faEye"></fa-icon>
+                </button>
+              </div>
+              <p *ngIf="passwordErrors.required" class="ml-1 text-[11px] font-bold text-red-500">Password is required</p>
+              <p *ngIf="passwordErrors.minlength" class="ml-1 text-[11px] font-bold text-red-500">At least 6 characters required</p>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <button
+            type="submit"
+            [disabled]="loading"
+            class="relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-r from-blue-light-500 to-brand-500 px-8 py-4 text-sm font-bold text-black transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-blue-light-500/40 active:scale-95 disabled:opacity-50"
+          >
+            <fa-icon *ngIf="loading" [icon]="faSpinner" class="animate-spin text-lg"></fa-icon>
+            <span *ngIf="!loading">Create My Account</span>
+            <fa-icon *ngIf="!loading" [icon]="faArrowRight"></fa-icon>
+            
+            <!-- Shimmer Effect -->
+            <div class="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-1000 group-hover:translate-x-full"></div>
+          </button>
+
+          <!-- Footer -->
+          <p class="text-center text-sm font-medium text-gray-500">
+            Already a member?
+            <a routerLink="/login" class="font-bold text-white transition-colors hover:text-brand-400">Sign in here</a>
+          </p>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

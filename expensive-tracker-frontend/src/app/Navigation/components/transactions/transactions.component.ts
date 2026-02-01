@@ -14,6 +14,7 @@ import { Transaction } from '../../../core/models/Transaction';
 import { CurrencyService } from '../../../core/services/currency.service';
 import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
 import { ExcelExportService } from '../../../services/excel-export.service';
+import { SideDrawerComponent } from '../../../shared/components/side-drawer/side-drawer.component';
 
 interface Category {
   _id: string;
@@ -24,7 +25,7 @@ interface Category {
 @Component({
   selector: 'app-transactions',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FontAwesomeModule, AppCurrencyPipe],
+  imports: [CommonModule, ReactiveFormsModule, FontAwesomeModule, AppCurrencyPipe, SideDrawerComponent],
   templateUrl: './transactions.component.html',
 })
 export class TransactionsComponent implements OnInit {

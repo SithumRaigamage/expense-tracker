@@ -1,0 +1,38 @@
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(4px);
+  }
+}
+
+.animate-shake {
+  animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+:host {
+  display: block;
+}
+
+/* Custom shadow for premium feel */
+.shadow-2xl {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+/* Glassmorphism helpers if needed (mostly handled by Tailwind) */
+.backdrop-blur-2xl {
+  backdrop-filter: blur(40px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .group {
+    border-radius: 1.5rem;
+    padding: 1.5rem;
+  }
+}

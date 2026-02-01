@@ -32,11 +32,11 @@ export const routes: Routes = [
   // Auth routes (without layout)
   {
     path: 'login',
-    loadComponent: () => import('./core/auth/login/login.component').then(m => m.LoginComponent)
+    loadComponent: () => import('./auth/components/login/login.component').then(m => m.LoginComponent)
   },
   {
     path: 'register',
-    loadComponent: () => import('./core/auth/register/register.component').then(m => m.RegisterComponent)
+    loadComponent: () => import('./auth/components/register/register.component').then(m => m.RegisterComponent)
   },
   // Protected routes (with main layout)
   {

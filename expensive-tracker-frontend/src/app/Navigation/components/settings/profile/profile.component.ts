@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faEye, faEyeSlash, faCheckCircle, faExclamationCircle } from '@fortawesome/free-solid-svg-icons';
+import { faEye, faEyeSlash, faCheckCircle, faExclamationCircle, faUser, faEdit, faPlus, faShieldAlt, faCamera, faSave, faRefresh } from '@fortawesome/free-solid-svg-icons';
+import { SideDrawerComponent } from '../../../../shared/components/side-drawer/side-drawer.component';
 import { User } from '../../../../core/models/User';
 import { SettingsService } from '../../../../services/settings.service';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
@@ -17,7 +18,8 @@ import { finalize } from 'rxjs/operators';
     FormsModule,
     ReactiveFormsModule,
     RouterModule,
-    FontAwesomeModule
+    FontAwesomeModule,
+    SideDrawerComponent
   ],
   templateUrl: './profile.component.html',
 })
@@ -47,6 +49,13 @@ export class ProfileComponent implements OnInit {
   faEyeSlash = faEyeSlash;
   faCheckCircle = faCheckCircle;
   faExclamationCircle = faExclamationCircle;
+  faUser = faUser;
+  faEdit = faEdit;
+  faPlus = faPlus;
+  faShieldAlt = faShieldAlt;
+  faCamera = faCamera;
+  faSave = faSave;
+  faRefresh = faRefresh;
 
   readonly MASKED_PASSWORD = '●●●●●●●●●●';
 

@@ -18,6 +18,7 @@ import { TransferDialogComponent } from './transfer-dialog/transfer-dialog.compo
 import { Router } from '@angular/router';
 import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
 import { ExcelExportService } from '../../../services/excel-export.service';
+import { SideDrawerComponent } from '../../../shared/components/side-drawer/side-drawer.component';
 
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -29,7 +30,7 @@ import { MatDialogModule } from '@angular/material/dialog';
   selector: 'app-wallets',
   templateUrl: './wallets.component.html',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FontAwesomeModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatButtonModule, AppCurrencyPipe]
+  imports: [CommonModule, ReactiveFormsModule, FontAwesomeModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatButtonModule, AppCurrencyPipe, SideDrawerComponent]
 })
 export class WalletsComponent implements OnInit, OnDestroy {
   faWallet = faWallet;

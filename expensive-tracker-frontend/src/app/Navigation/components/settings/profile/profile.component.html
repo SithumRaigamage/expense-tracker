@@ -209,108 +209,108 @@
   </div>
 </div>
 
-<!-- Profile Modal -->
-<div *ngIf="isOpen"
-  class="fixed inset-0 z-[60000] flex items-center justify-center backdrop-blur-sm bg-white/30 dark:bg-black/30">
-  <div class="max-w-[700px] m-4">
-    <div class="relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-11">
-      <div class="px-2 pr-14">
-        <h4 class="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
-          Edit Personal Information
-        </h4>
-        <p class="mb-6 text-sm text-gray-500 dark:text-gray-400 lg:mb-7">
-          Update your details to keep your profile up-to-date.
-        </p>
-      </div>
+<!-- Profile Drawer -->
+<app-side-drawer
+  [isOpen]="isOpen"
+  title="Edit Profile"
+  [icon]="faUser"
+  (close)="onClose()">
 
-      <div class="flex justify-center mb-8">
-        <div class="relative">
-          <div class="w-24 h-24 overflow-hidden border-2 border-gray-200 rounded-full dark:border-gray-700">
-            <img [src]="previewImage || user?.profileImage || user?.avatar || getDefaultAvatarUrl()" [alt]="user?.name || 'Profile'"
-              [attr.crossorigin]="(user?.profileImage?.includes('localhost') || user?.avatar?.includes('localhost')) ? 'anonymous' : null"
-              class="w-full h-full object-cover" width="96" height="96"
-              (error)="handleImageError($event)" (load)="onImageLoaded($event)">
-          </div>
-          <label for="profile-image-upload"
-            class="absolute bottom-0 right-0 p-2 rounded-full text-white cursor-pointer"
-            style="background-color: #6366f1; z-index: 10;">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
-            </svg>
-            <input type="file" id="profile-image-upload" name="profileImage" accept="image/png,image/jpeg,image/jpg" class="hidden"
-              (change)="onFileSelected($event)">
+  <div class="h-full flex flex-col">
+    <!-- Header Summary -->
+    <div class="mb-8 flex flex-col items-center">
+      <div class="relative group">
+        <div class="w-32 h-32 rounded-3xl overflow-hidden border-4 border-white dark:border-gray-800 shadow-xl relative bg-gray-100 dark:bg-gray-800">
+          <img [src]="previewImage || user?.profileImage || user?.avatar || getDefaultAvatarUrl()" 
+               [alt]="user?.name || 'Profile'"
+               [attr.crossorigin]="(user?.profileImage?.includes('localhost') || user?.avatar?.includes('localhost')) ? 'anonymous' : null"
+               class="w-full h-full object-cover"
+               (error)="handleImageError($event)" 
+               (load)="onImageLoaded($event)">
+          
+          <!-- Upload Overlay -->
+          <label for="profile-image-upload" 
+                 class="absolute inset-0 bg-black/40 backdrop-blur-sm flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer text-white">
+            <fa-icon [icon]="faCamera" class="text-2xl mb-1"></fa-icon>
+            <span class="text-[10px] font-bold uppercase tracking-widest">Change</span>
+            <input type="file" id="profile-image-upload" name="profileImage" accept="image/png,image/jpeg,image/jpg" class="hidden" (change)="onFileSelected($event)">
           </label>
         </div>
+        
+        <!-- Role Badge -->
+        <div class="absolute -bottom-2 -right-2 bg-primary-500 text-black text-[10px] font-bold px-3 py-1.5 rounded-xl shadow-lg uppercase tracking-wider">
+          {{user?.role || 'Member'}}
+        </div>
       </div>
+      <h3 class="mt-6 text-xl font-bold text-gray-900 dark:text-white">{{user?.name}}</h3>
+      <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">{{user?.email}}</p>
+    </div>
 
-      <form class="flex flex-col" (ngSubmit)="onSave()" #profileForm="ngForm">
-        <div class="custom-scrollbar h-[450px] overflow-y-auto px-2 pb-3">
-          <div class="mt-7">
-            <h5 class="mb-5 text-lg font-medium text-gray-800 dark:text-white/90 lg:mb-6">
-              Personal Information
-            </h5>
-            <div class="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
-              <div class="col-span-2 lg:col-span-1">
-                <label class="mb-2.5 block text-black dark:text-white">First Name</label>
-                <input type="text" [(ngModel)]="formData.firstName" name="firstName"
-                  class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700">
-              </div>
-
-              <div class="col-span-2 lg:col-span-1">
-                <label class="mb-2.5 block text-black dark:text-white">Last Name</label>
-                <input type="text" [(ngModel)]="formData.lastName" name="lastName"
-                  class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700">
-              </div>
-
-              <div class="col-span-2 lg:col-span-1">
-                <label class="mb-2.5 block text-black dark:text-white">Email Address</label>
-                <input type="email" [(ngModel)]="formData.email" name="email"
-                  class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700">
-              </div>
-
-              <div class="col-span-2 lg:col-span-1">
-                <label class="mb-2.5 block text-black dark:text-white">Phone</label>
-                <input type="tel" [(ngModel)]="formData.phone" name="phone"
-                  class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700">
-              </div>
-
-              <div class="col-span-2 lg:col-span-1">
-                <label class="mb-2.5 block text-black dark:text-white">Location</label>
-                <input type="text" [(ngModel)]="formData.location" name="location"
-                  class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700">
-              </div>
-
-              <div class="col-span-2 lg:col-span-1">
-                <label class="mb-2.5 block text-black dark:text-white">Role</label>
-                <input type="text" [(ngModel)]="formData.role" name="role"
-                  class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700"
-                  placeholder="e.g. Developer, Manager, etc.">
-              </div>
-
-              <div class="col-span-2">
-                <label class="mb-2.5 block text-black dark:text-white">Bio</label>
-                <textarea [(ngModel)]="formData.bio" name="bio" rows="4"
-                  class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700 resize-none"
-                  placeholder="Write something about yourself..."></textarea>
-              </div>
-            </div>
+    <!-- Edit Form -->
+    <form class="space-y-6" (ngSubmit)="onSave()" #profileForm="ngForm">
+      
+      <!-- Section: Basics -->
+      <div class="space-y-4">
+        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1">Basic Information</label>
+        
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-1.5">
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">First Name</label>
+            <input type="text" [(ngModel)]="formData.firstName" name="firstName"
+                   class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10"
+                   placeholder="John">
+          </div>
+          <div class="space-y-1.5">
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Last Name</label>
+            <input type="text" [(ngModel)]="formData.lastName" name="lastName"
+                   class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10"
+                   placeholder="Doe">
           </div>
         </div>
 
-        <div class="flex items-center gap-3 px-2 mt-6 lg:justify-end">
-          <button type="button" (click)="onClose()" [disabled]="isSaving"
-            class="rounded-lg border border-gray-300 bg-transparent px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800">
-            Close
-          </button>
-          <button type="submit"
-            class="rounded-lg px-4 py-2 text-sm font-medium text-white flex items-center"
-            style="background-color: #6366f1;"
-            [disabled]="isSaving">
-            <div *ngIf="isSaving" class="w-4 h-4 border-2 border-t-transparent border-white rounded-full animate-spin mr-2"></div>
-            {{ isSaving ? 'Saving...' : 'Save Changes' }}
-          </button>
+        <div class="space-y-1.5">
+          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Location</label>
+          <div class="relative group">
+            <input type="text" [(ngModel)]="formData.location" name="location"
+                   class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10"
+                   placeholder="e.g. San Francisco, CA">
+          </div>
         </div>
-      </form>
-    </div>
+
+        <div class="space-y-1.5">
+          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Role/Occupation</label>
+          <input type="text" [(ngModel)]="formData.role" name="role"
+                 class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10"
+                 placeholder="e.g. Software Engineer">
+        </div>
+      </div>
+
+      <!-- Section: Bio -->
+      <div class="space-y-4">
+        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1">About Me</label>
+        <div class="space-y-1.5">
+          <textarea [(ngModel)]="formData.bio" name="bio" rows="4"
+                    class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 resize-none"
+                    placeholder="Tell us a bit about yourself..."></textarea>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="pt-6 flex gap-4">
+        <button type="button"
+                (click)="onClose()"
+                [disabled]="isSaving"
+                class="flex-1 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 active:scale-95">
+          Cancel
+        </button>
+        <button type="submit"
+                [disabled]="isSaving"
+                class="flex-[2] rounded-2xl bg-primary-500 px-6 py-4 text-sm font-bold text-black shadow-lg shadow-primary-500/20 hover:bg-primary-600 hover:shadow-primary-500/30 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2">
+          <fa-icon *ngIf="isSaving" [icon]="faRefresh" class="animate-spin"></fa-icon>
+          <fa-icon *ngIf="!isSaving" [icon]="faSave"></fa-icon>
+          {{ isSaving ? 'Saving...' : 'Save Profile' }}
+        </button>
+      </div>
+    </form>
   </div>
-</div>
+</app-side-drawer>

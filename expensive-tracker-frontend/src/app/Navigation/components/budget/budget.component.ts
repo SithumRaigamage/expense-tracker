@@ -5,25 +5,32 @@ import { ProductBudgetService } from '../../../services/product-budget.service';
 import { ProductBudget } from '../../../core/models/ProductBudget';
 import { WalletService } from '../../../services/wallet.service';
 import { Wallet } from '../../../core/models/Wallet';
-import { FilterPipe } from './filter.pipe';
 import { CurrencyService } from '../../../core/services/currency.service';
 import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
 import { ExcelExportService } from '../../../services/excel-export.service';
-import { faDownload } from '@fortawesome/free-solid-svg-icons';
+import { faDownload, faEdit, faPlus, faPlusCircle, faUpload, faRefresh, faFileUpload, faFileImport } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { SideDrawerComponent } from '../../../shared/components/side-drawer/side-drawer.component';
 
 type DrawerMode = 'add' | 'edit' | 'addMoney' | null;
 
 @Component({
   selector: 'app-budget',
   standalone: true,
-  imports: [CommonModule, FormsModule, FilterPipe, AppCurrencyPipe, FontAwesomeModule],
+  imports: [CommonModule, FormsModule, AppCurrencyPipe, FontAwesomeModule, SideDrawerComponent],
   templateUrl: './budget.component.html',
 })
 export class BudgetComponent implements OnInit {
   goals: ProductBudget[] = [];
   filteredGoals: ProductBudget[] = [];
   faDownload = faDownload;
+  faEdit = faEdit;
+  faPlus = faPlus;
+  faPlusCircle = faPlusCircle;
+  faUpload = faUpload;
+  faRefresh = faRefresh;
+  faFileUpload = faFileUpload;
+  faFileImport = faFileImport;
   isDrawerOpen = false;
   drawerMode: DrawerMode = null;
   currentGoal: Omit<ProductBudget, 'id'> = this.getEmptyGoal();
