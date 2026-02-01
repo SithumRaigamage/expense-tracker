@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   ApexAxisChartSeries,
@@ -16,6 +16,7 @@ import {
   ApexTheme
 } from 'ng-apexcharts';
 import { Transaction } from '../../../core/models/Transaction';
+import { CurrencyService } from '../../../core/services/currency.service';
 
 export type ChartOptions = {
   series: ApexAxisChartSeries;
@@ -47,7 +48,7 @@ export type ChartOptions = {
   imports: [CommonModule, NgApexchartsModule],
   templateUrl: './chart.component.html',
 })
-export class ChartComponent implements OnChanges {
+export class ChartComponent implements OnChanges, OnInit {
   @Input() chartType: 'income' | 'expense' | 'all' = 'all';
   @Input() transactions: Transaction[] = [];
 
@@ -60,8 +61,14 @@ export class ChartComponent implements OnChanges {
     grid: '#E2E8F0', // Grid color
   };
 
-  constructor() {
+  constructor(private currencyService: CurrencyService) {
     this.initializeChart();
+  }
+
+  ngOnInit() {
+    this.currencyService.activeCurrency$.subscribe(() => {
+        this.updateChartData();
+    });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -184,7 +191,7 @@ export class ChartComponent implements OnChanges {
 
     this.transactions.forEach(transaction => {
       if (transaction.type === type) {
-        const month = transaction.date.getMonth();
+        const month = new Date(transaction.date).getMonth();
         monthlyTotals[month] += transaction.amount;
       }
     });
@@ -193,29 +200,32 @@ export class ChartComponent implements OnChanges {
   }
 
   private getSeriesData() {
+    const currency = this.currencyService.getActiveCurrency();
+    const convert = (data: number[]) => data.map(v => this.currencyService.convert(v, 'LKR', currency));
+
     switch (this.chartType) {
       case 'income':
         return [{
           name: 'Income',
-          data: this.getMonthlyData('income'),
+          data: convert(this.getMonthlyData('income')),
           color: this.COLORS.income
         }];
       case 'expense':
         return [{
           name: 'Expenses',
-          data: this.getMonthlyData('expense'),
+          data: convert(this.getMonthlyData('expense')),
           color: this.COLORS.expense
         }];
       default:
         return [
           {
             name: 'Income',
-            data: this.getMonthlyData('income'),
+            data: convert(this.getMonthlyData('income')),
             color: this.COLORS.income
           },
           {
             name: 'Expenses',
-            data: this.getMonthlyData('expense'),
+            data: convert(this.getMonthlyData('expense')),
             color: this.COLORS.expense
           }
         ];
@@ -236,8 +246,37 @@ export class ChartComponent implements OnChanges {
   private updateChartData(): void {
     if (this.chartOptions) {
       const newSeriesData = this.getSeriesData();
-      this.chartOptions.series = newSeriesData;
-      this.chartOptions.colors = newSeriesData.map(series => series.color as string);
+      const currency = this.currencyService.getActiveCurrency();
+
+      this.chartOptions = {
+        ...this.chartOptions,
+        series: newSeriesData,
+        colors: newSeriesData.map(series => series.color as string),
+        yaxis: {
+          ...this.chartOptions.yaxis,
+          labels: {
+            ...this.chartOptions.yaxis?.labels,
+            style: {
+               colors: [this.COLORS.textMuted],
+               fontSize: '12px',
+               fontWeight: '500',
+               fontFamily: 'Inter, sans-serif'
+            },
+            formatter: (value) => `${currency} ${(value/1000).toFixed(0)}K`
+          }
+        } as ApexYAxis,
+        tooltip: {
+          ...this.chartOptions.tooltip,
+           theme: 'dark',
+           style: {
+             fontSize: '12px',
+             fontFamily: 'Inter, sans-serif',
+           },
+           y: {
+             formatter: (val) => `${currency} ${val.toLocaleString()}`
+           }
+        } as ApexTooltip
+      };
     }
   }
 }

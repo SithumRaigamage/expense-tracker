@@ -56,7 +56,7 @@
                onerror="this.src='https://images.unsplash.com/photo-1560393464-5c69a73c5770?w=100&h=100&fit=crop'">
           <div>
             <h4 class="font-medium text-gray-900 dark:text-white">{{goal.name}}</h4>
-            <p class="text-sm text-gray-500 dark:text-gray-400">Target: {{formatCurrency(goal.targetAmount)}}</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Target: {{goal.targetAmount | appCurrency}}</p>
           </div>
         </div>
 
@@ -80,11 +80,11 @@
             <div class="flex gap-6 min-w-[300px]">
               <div class="flex flex-col">
                 <span class="text-sm text-gray-500 dark:text-gray-400">Saved</span>
-                <span class="font-medium text-gray-900 dark:text-white">{{formatCurrency(goal.savedAmount)}}</span>
+                <span class="font-medium text-gray-900 dark:text-white">{{goal.savedAmount | appCurrency}}</span>
               </div>
               <div class="flex flex-col">
                 <span class="text-sm text-gray-500 dark:text-gray-400">Remaining</span>
-                <span class="font-medium text-gray-900 dark:text-white">{{formatCurrency(goal.targetAmount - goal.savedAmount)}}</span>
+                <span class="font-medium text-gray-900 dark:text-white">{{(goal.targetAmount - goal.savedAmount) | appCurrency}}</span>
               </div>
               <div class="flex flex-col">
                 <span class="text-sm text-gray-500 dark:text-gray-400">Target Date</span>

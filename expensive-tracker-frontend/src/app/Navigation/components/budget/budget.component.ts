@@ -6,13 +6,15 @@ import { ProductBudget } from '../../../core/models/ProductBudget';
 import { WalletService } from '../../../services/wallet.service';
 import { Wallet } from '../../../core/models/Wallet';
 import { FilterPipe } from './filter.pipe';
+import { CurrencyService } from '../../../core/services/currency.service';
+import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
 
 type DrawerMode = 'add' | 'edit' | 'addMoney' | null;
 
 @Component({
   selector: 'app-budget',
   standalone: true,
-  imports: [CommonModule, FormsModule,FilterPipe],
+  imports: [CommonModule, FormsModule,FilterPipe, AppCurrencyPipe],
   templateUrl: './budget.component.html',
 })
 export class BudgetComponent implements OnInit {
@@ -43,7 +45,8 @@ export class BudgetComponent implements OnInit {
 
   constructor(
     private productBudgetService: ProductBudgetService,
-    private walletService: WalletService
+    private walletService: WalletService,
+    public currencyService: CurrencyService
   ) {}
 
   ngOnInit(): void {
@@ -406,7 +409,7 @@ export class BudgetComponent implements OnInit {
                   this.showSuccessMessage(`Congratulations! "${updatedGoal.name}" is now fully funded!`);
                 } else {
                   // Show regular success message
-                  this.showSuccessMessage(`Successfully added ${amountToAdd.toLocaleString('en-LK', { style: 'currency', currency: 'LKR' })} to "${updatedGoal.name}"`);
+                  this.showSuccessMessage(`Successfully added ${this.currencyService.getActiveCurrency()} ${amountToAdd.toLocaleString()} to "${updatedGoal.name}"`);
                 }
 
                 this.closeDrawer();

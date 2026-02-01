@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { Currency, SettingsService } from '../../../../services/settings.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { CurrencyService } from '../../../../core/services/currency.service';
 
 @Component({
   selector: 'app-currency',
@@ -13,11 +14,15 @@ export class CurrencyComponent {
   selectedCurrency: string = 'LKR'; // Default currency
   currencies: Currency[] = [];
 
+  constructor(
+    private settingsService: SettingsService,
+    private currencyService: CurrencyService
+  ) {}
+
   ngOnInit(): void {
     this.loadCurrencies();
+    this.selectedCurrency = this.currencyService.getActiveCurrency();
   }
-
-  constructor(private settingsService: SettingsService) {}
 
 
 
@@ -34,16 +39,10 @@ export class CurrencyComponent {
 
   onCurrencyChange(event: Event): void {
     const select = event.target as HTMLSelectElement;
-    this.settingsService.updateCurrency(select.value).subscribe({
-      next: () => {
-        this.selectedCurrency = select.value;
-        alert('Currency updated successfully');
-      },
-      error: (error) => {
-        console.error('Error updating currency:', error);
-        alert('Failed to update currency');
-      }
-    });
+    const newCurrency = select.value;
+    this.currencyService.setCurrency(newCurrency);
+    this.selectedCurrency = newCurrency;
+    alert('Currency updated successfully');
   }
 
 }

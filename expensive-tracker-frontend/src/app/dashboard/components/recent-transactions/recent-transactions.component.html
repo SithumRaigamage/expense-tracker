@@ -53,7 +53,7 @@
           </td>
           <td class="py-3 px-4 text-gray-500 text-theme-sm dark:text-gray-400">{{transaction.category}}</td>
           <td class="py-3 px-4 text-gray-500 text-theme-sm dark:text-gray-400">{{formatDate(transaction.date)}}</td>
-          <td class="py-3 px-4 text-gray-500 text-theme-sm dark:text-gray-400">{{formatCurrency(transaction.amount)}}</td>
+          <td class="py-3 px-4 text-gray-500 text-theme-sm dark:text-gray-400">{{ transaction.amount | appCurrency : 'LKR' }}</td>
           <td class="py-3 px-4">
             <app-badge
               [color]="getBadgeColor(transaction.type)"

@@ -2,6 +2,7 @@ import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/co
 import { SidebarService } from '../../../services/sidebar-service.service';
 import { CommonModule } from '@angular/common';
 import { UserDropdownComponent } from "./user-dropdown/user-dropdown.component";
+import { CurrencySwitcherComponent } from '../../../shared/components/currency-switcher/currency-switcher.component';
 import { RouterModule } from '@angular/router';
 
 @Component({
@@ -10,7 +11,8 @@ import { RouterModule } from '@angular/router';
   imports: [
     CommonModule,
     RouterModule,
-    UserDropdownComponent
+    UserDropdownComponent,
+    CurrencySwitcherComponent
   ],
   standalone: true
 })

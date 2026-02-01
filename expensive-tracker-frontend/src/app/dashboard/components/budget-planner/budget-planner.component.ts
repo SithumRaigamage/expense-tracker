@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
 import { ProductBudgetService } from '../../../services/product-budget.service';
 import { ProductBudget } from '../../../core/models/ProductBudget';
 import { WalletService } from '../../../services/wallet.service';
@@ -11,7 +12,7 @@ import { Wallet } from '../../../core/models/Wallet';
   selector: 'app-budget-planner',
   templateUrl: './budget-planner.component.html',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule]
+  imports: [CommonModule, FormsModule, RouterModule, AppCurrencyPipe]
 })
 export class BudgetPlannerComponent implements OnInit {
   productgoals: ProductBudget[] = [];
@@ -62,9 +63,7 @@ export class BudgetPlannerComponent implements OnInit {
     return 'bg-green-500 dark:bg-green-600';
   }
 
-  formatCurrency(amount: number): string {
-    return `LKR ${amount.toLocaleString()}`;
-  }
+
 
   formatDate(date: Date | string): string {
     const dateObj = date instanceof Date ? date : new Date(date);

@@ -11,10 +11,12 @@ import {
 import { Subscription } from 'rxjs';
 import { Wallet } from '../../../core/models/Wallet';
 import { WalletService } from '../../../services/wallet.service';
+import { CurrencyService } from '../../../core/services/currency.service';
 import { DialogService } from '../../../shared/services/dialog.service';
 import { MatDialog } from '@angular/material/dialog';
 import { TransferDialogComponent } from './transfer-dialog/transfer-dialog.component';
 import { Router } from '@angular/router';
+import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
 
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -26,7 +28,7 @@ import { MatDialogModule } from '@angular/material/dialog';
   selector: 'app-wallets',
   templateUrl: './wallets.component.html',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FontAwesomeModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatButtonModule]
+  imports: [CommonModule, ReactiveFormsModule, FontAwesomeModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatButtonModule, AppCurrencyPipe]
 })
 export class WalletsComponent implements OnInit, OnDestroy {
   faWallet = faWallet;
@@ -70,10 +72,11 @@ export class WalletsComponent implements OnInit, OnDestroy {
 
   constructor(
     private fb: FormBuilder,
-    private walletService: WalletService,
+    public walletService: WalletService,
     private dialogService: DialogService,
     private dialog: MatDialog,
-    private router: Router
+    private router: Router,
+    public currencyService: CurrencyService
   ) {
     this.subscription = new Subscription();
     this.initForm();

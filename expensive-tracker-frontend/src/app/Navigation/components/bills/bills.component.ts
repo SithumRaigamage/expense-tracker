@@ -5,11 +5,13 @@ import { BillsService } from '../../../services/bill.service';
 import { WalletService } from '../../../services/wallet.service';
 import { Bill, BillTransaction } from '../../../core/models/Bill';
 import { Wallet } from '../../../core/models/Wallet';
+import { CurrencyService } from '../../../core/services/currency.service';
+import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
 
 @Component({
   selector: 'app-bills',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, AppCurrencyPipe],
   templateUrl: './bills.component.html',
 })
 export class BillsComponent implements OnInit {
@@ -23,7 +25,8 @@ export class BillsComponent implements OnInit {
 
   constructor(
     private billsService: BillsService,
-    private walletService: WalletService
+    private walletService: WalletService,
+    public currencyService: CurrencyService
   ) {}
 
   ngOnInit(): void {
@@ -98,13 +101,6 @@ export class BillsComponent implements OnInit {
       this.currentBill.dueDate &&
       this.currentBill.provider
     );
-  }
-
-  formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'LKR'
-    }).format(amount);
   }
 
   formatDate(date: Date): string {

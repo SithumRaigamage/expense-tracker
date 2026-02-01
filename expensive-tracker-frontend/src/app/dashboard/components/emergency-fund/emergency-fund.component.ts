@@ -18,6 +18,8 @@ import { TransactionService } from '../../../services/transaction.service';
 import { WalletService } from '../../../services/wallet.service';
 import { Subscription, combineLatest } from 'rxjs';
 import { Router } from '@angular/router';
+import { CurrencyService } from '../../../core/services/currency.service';
+import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
 
 interface EmergencyTransaction {
   date: Date;
@@ -47,7 +49,7 @@ export type EmergencyChartOptions = {
   selector: 'app-emergency-fund',
   templateUrl: './emergency-fund.component.html',
   standalone: true,
-  imports: [CommonModule, NgApexchartsModule]
+  imports: [CommonModule, NgApexchartsModule, AppCurrencyPipe]
 })
 export class EmergencyFundComponent implements OnInit, OnDestroy {
   public chartOptions!: Partial<EmergencyChartOptions>;
@@ -73,11 +75,17 @@ export class EmergencyFundComponent implements OnInit, OnDestroy {
   constructor(
     private transactionService: TransactionService,
     private walletService: WalletService,
-    private router: Router
+    private router: Router,
+    private currencyService: CurrencyService
   ) {}
 
   ngOnInit(): void {
     this.loadTransactions();
+    this.subscription.add(
+      this.currencyService.activeCurrency$.subscribe(() => {
+        this.initializeChart();
+      })
+    );
   }
 
   ngOnDestroy(): void {
@@ -137,7 +145,10 @@ export class EmergencyFundComponent implements OnInit, OnDestroy {
             fontWeight: '500',
             fontFamily: 'Inter, sans-serif'
           },
-          formatter: (value) => `LKR ${(value/1000).toFixed(0)}K`
+          formatter: (value) => {
+            const currency = this.currencyService.getActiveCurrency();
+            return `${currency} ${(value/1000).toFixed(0)}K`;
+          }
         }
       },
       grid: {
@@ -168,7 +179,10 @@ export class EmergencyFundComponent implements OnInit, OnDestroy {
           fontFamily: 'Inter, sans-serif',
         },
         y: {
-          formatter: (val) => `LKR ${val.toLocaleString()}`
+          formatter: (val) => {
+            const currency = this.currencyService.getActiveCurrency();
+            return `${currency} ${val.toLocaleString()}`;
+          }
         }
       },
       fill: {
@@ -286,12 +300,5 @@ export class EmergencyFundComponent implements OnInit, OnDestroy {
     }).format(date);
   }
 
-  formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'LKR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
-  }
+
 }

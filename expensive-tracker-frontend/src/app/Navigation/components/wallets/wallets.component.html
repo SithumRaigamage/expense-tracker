@@ -60,9 +60,9 @@
   <div *ngIf="hasWallets && !isLoading && !hasError" class="bg-primary-50 dark:bg-primary-900/10 rounded-xl p-6 mb-8 border border-primary-100 dark:border-primary-800/30">
     <div class="flex items-center justify-between">
       <div>
-        <h3 class="text-sm font-medium text-primary-800 dark:text-primary-300 mb-1">Total Assets ({{primaryCurrency}})</h3>
+        <h3 class="text-sm font-medium text-primary-800 dark:text-primary-300 mb-1">Total Assets ({{currencyService.getActiveCurrency()}})</h3>
         <p class="text-3xl font-bold text-gray-900 dark:text-white">
-          {{ formatCurrency(wallets[0].convertedBalance || 0, primaryCurrency) }}
+          {{ ((walletService.getTotalAssets() | async) || 0) | appCurrency }}
         </p>
       </div>
       <div class="hidden md:block">
@@ -104,8 +104,8 @@
           <span class="text-gray-500 dark:text-gray-400 text-sm">Balance</span>
           <div class="text-right">
             <span class="font-semibold text-lg text-gray-900 dark:text-white block">{{formatCurrency(wallet.balance, wallet.currency)}}</span>
-            <span *ngIf="wallet.currency !== primaryCurrency" class="text-xs text-primary-600 dark:text-primary-400 font-medium">
-              ≈ {{formatCurrency(wallet.convertedBalance || 0, primaryCurrency)}}
+            <span *ngIf="wallet.currency !== (currencyService.activeCurrency$ | async)" class="text-xs text-primary-600 dark:text-primary-400 font-medium">
+              ≈ {{ wallet.balance | appCurrency : wallet.currency }}
             </span>
           </div>
         </div>
@@ -319,7 +319,7 @@
                       <tr *ngFor="let wallet of jsonPreview">
                         <td class="px-4 py-2">{{ wallet.name }}</td>
                         <td class="px-4 py-2 capitalize">{{ wallet.type }}</td>
-                        <td class="px-4 py-2">{{ formatCurrency(wallet.balance) }}</td>
+                        <td class="px-4 py-2">{{ wallet.balance | appCurrency:wallet.currency }}</td>
                       </tr>
                     </tbody>
                   </table>
