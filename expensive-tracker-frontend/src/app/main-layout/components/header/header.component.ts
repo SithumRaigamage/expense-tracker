@@ -12,7 +12,6 @@ import { RouterModule } from '@angular/router';
     RouterModule,
     UserDropdownComponent
   ],
-  styleUrls: ['./header.component.css'],
   standalone: true
 })
 export class HeaderComponent implements OnInit, OnDestroy {

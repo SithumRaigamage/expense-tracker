@@ -23,7 +23,6 @@ interface Developer {
   standalone: true,
   imports: [CommonModule],
   templateUrl: './about-support.component.html',
-  styleUrl: './about-support.component.css'
 })
 export class AboutSupportComponent {
   appName = 'ExpenseTracker';

@@ -25,7 +25,6 @@ interface Notification {
   standalone: true,
   imports: [CommonModule, RouterModule],
   templateUrl: './notification-dropdown.component.html',
-  styleUrls: ['./notification-dropdown.component.css']
 })
 export class NotificationDropdownComponent {
   isOpen = false;

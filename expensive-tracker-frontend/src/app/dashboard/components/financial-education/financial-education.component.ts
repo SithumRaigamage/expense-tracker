@@ -8,7 +8,6 @@ import { FormsModule } from '@angular/forms';
   standalone: true,
   imports: [CommonModule,FormsModule],
   templateUrl: './financial-education.component.html',
-  styleUrls: ['./financial-education.component.css']
 })
 export class FinancialEducationComponent {
   selectedCategory: string = 'all';

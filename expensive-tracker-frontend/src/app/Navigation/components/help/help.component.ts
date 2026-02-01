@@ -5,7 +5,6 @@ import { RouterModule } from '@angular/router';
   selector: 'app-help',
   imports: [RouterModule],
   templateUrl: './help.component.html',
-  styleUrl: './help.component.css'
 })
 export class HelpComponent {
 

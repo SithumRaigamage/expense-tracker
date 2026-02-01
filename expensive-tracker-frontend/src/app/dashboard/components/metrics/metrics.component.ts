@@ -12,7 +12,6 @@ import { Subscription } from 'rxjs';
   selector: 'app-metrics',
   imports: [CommonModule, BadgeComponent, FontAwesomeModule, MatCardModule],
   templateUrl: './metrics.component.html',
-  styleUrls: ['./metrics.component.css'],
   standalone: true
 })
 export class MetricsComponent implements OnInit, OnDestroy {

@@ -11,7 +11,6 @@ import { Wallet } from '../../../core/models/Wallet';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './bills.component.html',
-  styleUrl: './bills.component.css'
 })
 export class BillsComponent implements OnInit {
   bills: Bill[] = [];

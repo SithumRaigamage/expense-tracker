@@ -8,7 +8,6 @@ type TabOption = 'monthly' | 'quarterly' | 'annually' | 'trends';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './chart-tab.component.html',
-  styleUrl: './chart-tab.component.css'
 })
 export class ChartTabComponent {
   @Output() periodChanged = new EventEmitter<TabOption>();

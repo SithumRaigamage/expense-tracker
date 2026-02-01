@@ -14,7 +14,6 @@ type DrawerMode = 'add' | 'edit' | 'addMoney' | null;
   standalone: true,
   imports: [CommonModule, FormsModule,FilterPipe],
   templateUrl: './budget.component.html',
-  styleUrl: './budget.component.css'
 })
 export class BudgetComponent implements OnInit {
   goals: ProductBudget[] = [];

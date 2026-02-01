@@ -10,7 +10,6 @@ type BadgeColor = 'primary' | 'success' | 'error' | 'warning' | 'info' | 'light'
   standalone: true,
   imports: [CommonModule],
   templateUrl: './badge.component.html',
-  styleUrls: ['./badge.component.css']
 })
 export class BadgeComponent {
 

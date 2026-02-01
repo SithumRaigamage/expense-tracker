@@ -46,7 +46,6 @@ export type ChartOptions = {
   standalone: true,
   imports: [CommonModule, NgApexchartsModule],
   templateUrl: './chart.component.html',
-  styleUrls: ['./chart.component.css']
 })
 export class ChartComponent implements OnChanges {
   @Input() chartType: 'income' | 'expense' | 'all' = 'all';

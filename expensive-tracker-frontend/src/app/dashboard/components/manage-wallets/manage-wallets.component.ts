@@ -8,7 +8,6 @@ import { RouterModule } from '@angular/router';
   selector: 'app-manage-wallets',
   imports: [CommonModule,RouterModule],
   templateUrl: './manage-wallets.component.html',
-  styleUrl: './manage-wallets.component.css'
 })
 export class ManageWalletsComponent implements OnInit {
   wallets: Wallet[] = [];

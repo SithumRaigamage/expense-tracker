@@ -19,7 +19,6 @@ import { materialImports } from '../../../../shared/material.module';
     ...materialImports
   ],
   templateUrl: './transfer-dialog.component.html',
-  styleUrl: './transfer-dialog.component.css'
 })
 export class TransferDialogComponent implements OnInit {
   faExchangeAlt = faExchangeAlt;

@@ -35,7 +35,6 @@ import { WalletService } from '../services/wallet.service';
     ExpenseBreakdownComponent
   ],
   templateUrl: './dashboard.component.html',
-  styleUrl: './dashboard.component.css'
 })
 export class DashboardComponent implements OnInit {
   faGear = faGear;
