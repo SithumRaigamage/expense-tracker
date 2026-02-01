@@ -23,7 +23,6 @@ interface Category {
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, FontAwesomeModule],
   templateUrl: './transactions.component.html',
-  styleUrl: './transactions.component.css'
 })
 export class TransactionsComponent implements OnInit {
   faPlus = faPlus;

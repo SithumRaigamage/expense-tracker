@@ -23,7 +23,6 @@ interface Source {
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './chat.component.html',
-  styleUrl: './chat.component.css'
 })
 export class ChatComponent {
   messages: ChatMessage[] = [

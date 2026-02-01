@@ -10,7 +10,6 @@ import { RouterModule } from '@angular/router';
     RouterModule
   ],
   templateUrl: './settings.component.html',
-  styleUrl: './settings.component.css'
 })
 export class SettingsComponent  {
 

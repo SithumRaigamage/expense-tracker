@@ -17,7 +17,6 @@ import { finalize } from 'rxjs/operators';
     RouterModule
   ],
   templateUrl: './profile.component.html',
-  styleUrl: './profile.component.css'
 })
 export class ProfileComponent implements OnInit {
   user: User | null = null;

@@ -6,7 +6,10 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faExchangeAlt, faWallet, faMoneyBillWave, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import { Wallet } from '../../../../core/models/Wallet';
 import { WalletService } from '../../../../services/wallet.service';
-import { materialImports } from '../../../../shared/material.module';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-transfer-dialog',
@@ -16,10 +19,12 @@ import { materialImports } from '../../../../shared/material.module';
     ReactiveFormsModule, 
     FontAwesomeModule, 
     MatDialogModule,
-    ...materialImports
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatButtonModule
   ],
   templateUrl: './transfer-dialog.component.html',
-  styleUrl: './transfer-dialog.component.css'
 })
 export class TransferDialogComponent implements OnInit {
   faExchangeAlt = faExchangeAlt;

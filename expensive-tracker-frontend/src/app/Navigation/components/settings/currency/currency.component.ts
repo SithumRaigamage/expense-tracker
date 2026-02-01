@@ -7,7 +7,6 @@ import { FormsModule } from '@angular/forms';
   selector: 'app-currency',
   imports: [CommonModule, FormsModule],
   templateUrl: './currency.component.html',
-  styleUrl: './currency.component.css'
 })
 export class CurrencyComponent {
 

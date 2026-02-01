@@ -37,7 +37,6 @@ export type ChartOptions = {
   standalone: true,
   imports: [ChartTabComponent, NgApexchartsModule],
   templateUrl: './statchart.component.html',
-  styleUrl: './statchart.component.css'
 })
 export class StatchartComponent implements OnInit {
   @ViewChild("chart") chart!: ChartComponent;

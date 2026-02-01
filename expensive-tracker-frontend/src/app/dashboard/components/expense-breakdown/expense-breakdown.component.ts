@@ -11,7 +11,6 @@ import { WalletService } from '../../../services/wallet.service';
   standalone: true,
   imports: [CommonModule, FontAwesomeModule, NgxEchartsModule],
   templateUrl: './expense-breakdown.component.html',
-  styleUrls: ['./expense-breakdown.component.css']
 })
 export class ExpenseBreakdownComponent implements OnInit {
   faChartPie = faChartPie;

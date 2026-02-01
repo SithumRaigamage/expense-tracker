@@ -25,7 +25,6 @@ type SortableField = keyof Pick<EducationalContent, 'title' | 'dateAdded' | 'dur
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './education.component.html',
-  styleUrl: './education.component.css'
 })
 export class EducationComponent implements OnInit {
   // Content Data

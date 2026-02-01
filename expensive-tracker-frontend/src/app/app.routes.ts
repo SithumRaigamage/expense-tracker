@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { TransactionsComponent } from './Navigation/components/transactions/transactions.component';
 import { BudgetComponent } from './Navigation/components/budget/budget.component';
-import { EmergencyFundComponent } from './Navigation/components/emergency-fund/emergency-fund.component';
+
 import { WalletsComponent } from './Navigation/components/wallets/wallets.component';
 import { ProfileComponent } from './Navigation/components/settings/profile/profile.component';
 import { HelpComponent } from './Navigation/components/help/help.component';
@@ -69,11 +69,7 @@ export const routes: Routes = [
         component: BudgetComponent,
         title: 'Budget Planner'
       },
-      {
-        path: 'emergency-fund',
-        component: EmergencyFundComponent,
-        title: 'Emergency Fund'
-      },
+
       {
         path: 'bills',
         component: BillsComponent,

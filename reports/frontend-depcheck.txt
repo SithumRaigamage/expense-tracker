@@ -1,0 +1,10 @@
+npm warn exec The following package was not found and will be installed: depcheck@1.4.7
+Unused dependencies
+* @angular/compiler
+* @angular/platform-browser-dynamic
+* @fortawesome/fontawesome-free
+* @tailwindcss/postcss
+* postcss
+* tslib
+Unused devDependencies
+* baseline-browser-mapping
