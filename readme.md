@@ -1,218 +1,129 @@
 # 💰 Expense Tracker Application
 
 <p align="center">
-  <img src="" alt="Expense Tracker Logo" width="200"/>
+  <img src="https://raw.githubusercontent.com/SithumRaigamage/expense-tracker/main/expensive-tracker-frontend/src/favicon.png" alt="Expense Tracker Logo" width="120"/>
 </p>
 
-[![Angular](https://img.shields.io/badge/Angular-16+-DD0031?logo=angular)](https://angular.io/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-4.9+-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+<p align="center">
+  <strong>A premium, modern personal finance management system.</strong>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Angular-19.1.0-DD0031?style=for-the-badge&logo=angular&logoColor=white" alt="Angular"/>
+  <img src="https://img.shields.io/badge/Tailwind_CSS-4.0.14-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="TailwindCSS"/>
+  <img src="https://img.shields.io/badge/Node.js-18.x-339933?style=for-the-badge&logo=node.js&logoColor=white" alt="Node.js"/>
+  <img src="https://img.shields.io/badge/MongoDB-4.4+-47A248?style=for-the-badge&logo=mongodb&logoColor=white" alt="MongoDB"/>
+</p>
+
+---
 
 ## 📋 Overview
 
-A modern expense tracking application built with Angular, designed to help users manage their personal finances effectively. Track expenses, manage payment methods, and maintain user profiles with ease.
+The **Expense Tracker** is a full-stack, state-of-the-art financial management tool. It features a highly polished, glassmorphic UI, robust security with JWT, and comprehensive expense analytics. Designed with a mobile-first approach, it provides a seamless experience for tracking spending habits, managing complex multi-wallet flows, and monitoring financial goals through a dedicated product budgeting system.
 
 ## 🛠️ Tech Stack
 
 ### Frontend
-- ![Angular](https://img.shields.io/badge/Angular-DD0031?style=for-the-badge&logo=angular&logoColor=white) Angular 16+
-- ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white) TypeScript
-- ![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white) Tailwind CSS
+- **Framework:** Angular 19 (Standalone Components)
+- **Styling:** Tailwind CSS 4 (Theme-driven, CSS-first optimization)
+- **Icons:** FontAwesome 6+
+- **Charts:** ApexCharts & ECharts for rich visual analytics (Flow, Gauge, and Trend charts)
 
-### Testing & Quality
-- ![Jest](https://img.shields.io/badge/Jest-C21325?style=for-the-badge&logo=jest&logoColor=white) Karma & Jasmine
-- ![ESLint](https://img.shields.io/badge/ESLint-4B32C3?style=for-the-badge&logo=eslint&logoColor=white) ESLint
+### Backend
+- **Runtime:** Node.js 18+
+- **Framework:** Express.js
+- **Database:** MongoDB (Mongoose ODM)
+- **Security:** JWT Authentication, Bcryptjs, Helmet, Express-Validator
+- **External Integration:** Real-time Exchange Rate API for multi-currency support
 
-### CI/CD
-- ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white) GitHub Actions
+### CI/CD & Quality
+- **Analysis:** SonarQube & SonarLint
+- **Scanning:** Trivy Container Vulnerability Scanning
+- **Testing:** Karma & Jasmine (Frontend), Jest (Backend)
 
 ## ✨ Features
 
-### 👤 User Management
-- Profile management with image upload
-- Secure authentication (JWT)
-- Password & email management
-- Dark/Light theme preferences
-
-### 💳 Payment Methods
-- Multiple card support (Visa/Mastercard)
-- Secure card management
-- Default payment settings
-
-### 📝 Release Notes Management
-
-- Role-based access control (Admin/User)
-- Version tracking with semantic versioning
-- Detailed changelog including features, bug fixes, and improvements
-- Admin dashboard for managing release information
-
-### 🎨 UI/UX Features
-
-- 📱 Responsive design
-- 🌓 Dark/Light themes
-- ✅ Form validation
-- 🔄 Loading states
-- ⚡ Modern interface
+- 👤 **Advanced Authentication:** Secure Login/Register with reactive validation and password visibility toggles.
+- 🎨 **Premium UI/UX:** Glassmorphic card designs, smooth micro-animations, and a harmonized brand identity.
+- 💳 **Wallet & Account Management:** Manage multiple wallets with native currency support and atomic fund transfers.
+- 🌊 **Financial Flow Analysis:** Sophisticated Sankey-style data visualization of money flow from wallets to expense categories.
+- 🎯 **Product Budgets (Savings Goals):** Dedicated system to track progress towards specific purchase goals with target vs. saved amount monitoring.
+- 🌍 **Automated Multi-Currency:** Real-time exchange rate fetching and automatic currency conversion (USD/LKR/EUR/etc.) for global finance tracking.
+- 📊 **Dynamic Analytics:** Monthly spending statistics, wallet flow insights, and visual progress gauges for your savings.
+- 📝 **Release Repository:** Admin-controlled release notes and changelog tracking via a managed central repository.
 
 ## 🗂️ Project Structure
 
-```
+```bash
 expense-tracker/
-├── 📱 expensive-tracker-frontend/
+├── 📂 expensive-tracker-frontend/ # Angular 19 SPA
+│   ├── 📂 src/app/
+│   │   ├── 📂 auth/               # Auth module (Login/Register)
+│   │   ├── 📂 main-layout/        # Dashboard & Navigation
+│   │   ├── 📂 shared/             # Reusable UI components
+│   │   └── 📂 services/           # API integration
+├── 📂 expensive-tracker-backend/  # Node.js API
 │   ├── 📂 src/
-│   │   ├── 🧩 components/
-│   │   ├── ⚙️ services/
-│   │   ├── 📋 models/
-│   │   └── 🔧 shared/
-│   ├── 📦 package.json
-│   └── ⚡ karma.conf.js
-└── 📋 README.md
+│   │   ├── 📂 controllers/        # Business logic controllers
+│   │   ├── 📂 models/             # Mongoose schemas (Wallet, Expense, ProductBudget, etc.)
+│   │   ├── 📂 routes/             # API entry points
+│   │   └── 📂 services/           # Core service layer (Sankey Flow, Currency, Wallet services)
+└── 📝 README.md
 ```
 
 ## 🚀 Getting Started
 
 ### Prerequisites
+- Node.js (v18.x or higher)
+- MongoDB running locally or on Atlas
 
-- ![Node.js](https://img.shields.io/badge/Node.js-16.x_|_18.x-339933?style=for-the-badge&logo=node.js&logoColor=white)
-- ![npm](https://img.shields.io/badge/npm-CB3837?style=for-the-badge&logo=npm&logoColor=white)
-- ![Angular CLI](https://img.shields.io/badge/Angular_CLI-DD0031?style=for-the-badge&logo=angular&logoColor=white)
+### Quick Start
 
-### Installation
+1. **Clone & Setup:**
+   ```bash
+   git clone https://github.com/SithumRaigamage/expense-tracker.git
+   cd expense-tracker
+   ```
 
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/expense-tracker.git
+2. **Backend Setup:**
+   ```bash
+   cd expensive-tracker-backend
+   npm install
+   npm run dev  # Starts server and seeds initial data (User, Release Notes, etc.)
+   ```
 
-# Navigate to frontend directory
-cd expense-tracker/expensive-tracker-frontend
+3. **Frontend Setup:**
+   ```bash
+   cd ../expensive-tracker-frontend
+   npm install
+   npm run start # Launches dev server at http://localhost:4200
+   ```
 
-# Install dependencies
-npm install
+## 🐳 Containerization & Security
 
-# Start development server
-ng serve
-
-# Seed the database with sample release notes (optional)
-cd ../expensive-tracker-backend
-node scripts/seedReleaseNotes.js
-```
-
-
-## Database 
-```
-mongod-start
-
-mongod-stop
-```
-
-## 🐳 Containerization
-
-### Frontend Container
+The application is fully containerized for production deployment.
 
 ```bash
-# Build frontend Docker image
+# Build and Scan Frontend
 cd expensive-tracker-frontend
-docker build -t expense-tracker:1.0.3 .
-
-# Run frontend container
-docker run -d -p 4200:80 --name expense-tracker-frontend expense-tracker:1.0.3
+docker build -t expense-tracker:2.0.0 .
+trivy image expense-tracker:2.0.0
 ```
 
-### Security Scanning
+## 📈 Roadmap
 
-We use Trivy for container security scanning:
-
-```bash
-# Scan Docker image for vulnerabilities
-trivy image expense-tracker:1.0.3
-
-# Export scan results
-trivy image expense-tracker:1.0.3 -f json -o ./docs/trivy-reports/vulnerabilities.json
-```
-
-##  Project Documentation
-
-- [Release Notes API](./expensive-tracker-backend/docs/release-notes-api.md)
-- [Wallet API](./expensive-tracker-backend/docs/wallet-api.md)
-- [Product Budget API](./expensive-tracker-backend/docs/product-budget-api.md)
-- [Frontend Documentation](./expensive-tracker-frontend/docs/docs.md)
-- [Docker Setup](./expensive-tracker-frontend/README.md#docker)
-```
-
-## 🧪 Testing
-
-```bash
-# Run unit tests
-npm run test
-
-# Generate coverage report
-npm run test:coverage
-
-# Run linting
-npm run lint
-```
-
-## SonarQube Setup
-
-1. Copy configuration templates:
-   ```bash
-   cp sonar-project.properties.template sonar-project.properties
-   ```
-
-2. Set your SonarQube token:
-   ```bash
-   export SONAR_TOKEN=your_token_here
-   ```
-
-3. Update `sonar-project.properties` with your specific configuration
-
-4. Install VS Code SonarLint extension
-
-## 📚 Documentation
-
-- [Release Notes API](./expensive-tracker-backend/docs/release-notes-api.md)
-- [Wallet API](./expensive-tracker-backend/docs/wallet-api.md)
-- [Product Budget API](./expensive-tracker-backend/docs/product-budget-api.md)
-
-## 📚 Learning Outcomes
-
-- ⚡ Angular component architecture
-- 🔄 Reactive programming patterns
-- 🎨 Modern CSS with Tailwind
-- 🔒 Security best practices
-- 📱 Responsive design techniques
-- 🧪 Testing methodologies
-
-## 🤝 Contributing
-
-1. Fork it (https://github.com/yourusername/expense-tracker/fork)
-2. Create your feature branch (`git checkout -b feature/amazing`)
-3. Commit changes (`git commit -am 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing`)
-5. Create a Pull Request
-
-## 📅 Roadmap
-
-- [x] User authentication
-- [x] Payment method management
-- [x] Dark/Light theme
-- [x] Release notes management
-- [ ] Expense categories
-- [ ] Budget tracking
-- [ ] Financial reports
-- [ ] Multi-currency support
-
-## 📫 Contact
-
-<p align="center">
-  <a href="https://twitter.com/yourusername">
-    <img src="https://img.shields.io/badge/Twitter-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white" alt="Twitter"/>
-  </a>
-  <a href="https://linkedin.com/in/yourusername">
-    <img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn"/>
-  </a>
-</p>
-
-
+- [x] Angular 19 Upgrade
+- [x] Tailwind CSS 4 Integration
+- [x] Refactored Auth UI/UX
+- [x] Multi-Currency Support (Automated)
+- [x] Product Budgeting & Savings Tracking
+- [x] Real-time Financial Flow Visualization
+- [/] AI-driven spending insights & predictions
+- [ ] Automated financial report generation (PDF/Excel)
+- [ ] Push notifications for budget thresholds
 
 ---
-<p align="center">Made with ❤️ by Sithum Raigamage</p>
+<p align="center">
+  Developed by <strong>Sithum Raigamage</strong><br>
+  <a href="https://github.com/SithumRaigamage">GitHub</a> • <a href="https://linkedin.com/in/sithum-raigamage">LinkedIn</a>
+</p>
