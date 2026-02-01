@@ -16,13 +16,17 @@ import { MatDialog } from '@angular/material/dialog';
 import { TransferDialogComponent } from './transfer-dialog/transfer-dialog.component';
 import { Router } from '@angular/router';
 
-import { materialImports } from '../../../shared/material.module';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
+import { MatDialogModule } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-wallets',
   templateUrl: './wallets.component.html',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FontAwesomeModule, ...materialImports]
+  imports: [CommonModule, ReactiveFormsModule, FontAwesomeModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatButtonModule]
 })
 export class WalletsComponent implements OnInit, OnDestroy {
   faWallet = faWallet;
