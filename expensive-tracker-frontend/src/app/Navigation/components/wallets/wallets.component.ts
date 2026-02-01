@@ -6,7 +6,7 @@ import {
   faWallet, faPlus, faPencil, faTrash, faMoneyBillWave, faBuildingColumns,
   faCreditCard, faPiggyBank, faBitcoinSign, faChartLine, faHandHoldingDollar,
   faRefresh, faExclamationTriangle, faEdit, faArrowRight, faUpload,
-  faFileUpload, faFileImport, faExchangeAlt
+  faFileUpload, faFileImport, faExchangeAlt, faDownload
 } from '@fortawesome/free-solid-svg-icons';
 import { Subscription } from 'rxjs';
 import { Wallet } from '../../../core/models/Wallet';
@@ -17,6 +17,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { TransferDialogComponent } from './transfer-dialog/transfer-dialog.component';
 import { Router } from '@angular/router';
 import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
+import { ExcelExportService } from '../../../services/excel-export.service';
 
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -50,6 +51,7 @@ export class WalletsComponent implements OnInit, OnDestroy {
   faFileUpload = faFileUpload;
   faFileImport = faFileImport;
   faExchangeAlt = faExchangeAlt;
+  faDownload = faDownload;
 
   walletForm!: FormGroup;
   isDrawerOpen = false;
@@ -76,7 +78,8 @@ export class WalletsComponent implements OnInit, OnDestroy {
     private dialogService: DialogService,
     private dialog: MatDialog,
     private router: Router,
-    public currencyService: CurrencyService
+    public currencyService: CurrencyService,
+    private excelExportService: ExcelExportService
   ) {
     this.subscription = new Subscription();
     this.initForm();
@@ -380,6 +383,13 @@ export class WalletsComponent implements OnInit, OnDestroy {
   refreshWallets() {
     this.walletService.clearError();
     this.walletService.refreshWallets();
+  }
+
+  exportWallets() {
+    if (this.wallets.length === 0) return;
+    
+    const exportData = this.excelExportService.formatDataForExport(this.wallets);
+    this.excelExportService.exportToExcel(exportData, 'MyWallets', 'Wallets');
   }
 
   goToLogin() {

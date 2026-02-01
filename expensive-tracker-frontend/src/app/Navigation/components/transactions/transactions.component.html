@@ -2,11 +2,19 @@
   <!-- Header -->
   <div class="flex justify-between items-center mb-6">
     <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Transactions</h1>
-    <button (click)="openDrawer()"
-            class="inline-flex items-center gap-2 rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium">
-      <fa-icon [icon]="faPlus"></fa-icon>
-      Add Transaction
-    </button>
+    <div class="flex items-center gap-3">
+      <button (click)="exportTransactions()"
+              class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm"
+              [disabled]="allTransactions.length === 0">
+        <fa-icon [icon]="faDownload"></fa-icon>
+        Export
+      </button>
+      <button (click)="openDrawer()"
+              class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium hover:bg-primary-dark transition-colors">
+        <fa-icon [icon]="faPlus"></fa-icon>
+        Add Transaction
+      </button>
+    </div>
   </div>
 
   <!-- Error Message -->

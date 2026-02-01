@@ -7,11 +7,14 @@ import { Bill, BillTransaction } from '../../../core/models/Bill';
 import { Wallet } from '../../../core/models/Wallet';
 import { CurrencyService } from '../../../core/services/currency.service';
 import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
+import { ExcelExportService } from '../../../services/excel-export.service';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faDownload } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-bills',
   standalone: true,
-  imports: [CommonModule, FormsModule, AppCurrencyPipe],
+  imports: [CommonModule, FormsModule, AppCurrencyPipe, FontAwesomeModule],
   templateUrl: './bills.component.html',
 })
 export class BillsComponent implements OnInit {
@@ -22,11 +25,13 @@ export class BillsComponent implements OnInit {
   drawerMode: 'add' | 'edit' = 'add';
   currentBill: Partial<Bill> = this.getEmptyBill();
   categories = ['Utilities', 'Subscription', 'Entertainment', 'Internet', 'Insurance'];
+  faDownload = faDownload;
 
   constructor(
     private billsService: BillsService,
     private walletService: WalletService,
-    public currencyService: CurrencyService
+    public currencyService: CurrencyService,
+    private excelExportService: ExcelExportService
   ) {}
 
   ngOnInit(): void {
@@ -109,5 +114,12 @@ export class BillsComponent implements OnInit {
       day: 'numeric',
       year: 'numeric'
     }).format(date);
+  }
+
+  exportBills(): void {
+    if (this.bills.length === 0) return;
+    
+    const exportData = this.excelExportService.formatDataForExport(this.bills);
+    this.excelExportService.exportToExcel(exportData, 'MyBills', 'Bills');
   }
 }
