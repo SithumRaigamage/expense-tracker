@@ -6,6 +6,8 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faExchangeAlt, faWallet, faMoneyBillWave, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import { Wallet } from '../../../../core/models/Wallet';
 import { WalletService } from '../../../../services/wallet.service';
+import { CurrencyService } from '../../../../core/services/currency.service';
+import { AppCurrencyPipe } from '../../../../shared/pipes/app-currency.pipe';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -22,7 +24,8 @@ import { MatButtonModule } from '@angular/material/button';
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
-    MatButtonModule
+    MatButtonModule,
+    AppCurrencyPipe
   ],
   templateUrl: './transfer-dialog.component.html',
 })
@@ -41,6 +44,7 @@ export class TransferDialogComponent implements OnInit {
     private fb: FormBuilder,
     private walletService: WalletService,
     public dialogRef: MatDialogRef<TransferDialogComponent>,
+    public currencyService: CurrencyService,
     @Inject(MAT_DIALOG_DATA) public data: { fromWallet?: Wallet }
   ) {
     this.transferForm = this.fb.group({
@@ -88,13 +92,5 @@ export class TransferDialogComponent implements OnInit {
 
   getWalletIcon(type: string) {
     return this.walletService.getWalletTypeIcon(type);
-  }
-
-  formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-LK', {
-      style: 'currency',
-      currency: 'LKR',
-      minimumFractionDigits: 2
-    }).format(amount);
   }
 }

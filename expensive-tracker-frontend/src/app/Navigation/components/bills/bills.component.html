@@ -42,7 +42,7 @@
           </div>
           <div class="flex flex-col">
             <span class="text-sm text-gray-500 dark:text-gray-400">Amount</span>
-            <span class="font-medium text-gray-900 dark:text-white">{{formatCurrency(bill.amount)}}</span>
+            <span class="font-medium text-gray-900 dark:text-white">{{bill.amount | appCurrency}}</span>
           </div>
         </div>
 
@@ -125,10 +125,15 @@
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Amount
             </label>
-            <input [(ngModel)]="currentBill.amount"
-                   name="amount"
-                   type="number"
-                   class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-primary focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500 text-sm">
+                {{currencyService.getActiveCurrency()}}
+              </span>
+              <input [(ngModel)]="currentBill.amount"
+                     name="amount"
+                     type="number"
+                     class="w-full rounded-lg border border-gray-300 bg-white pl-12 px-4 py-2 text-gray-900 focus:border-primary focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+            </div>
           </div>
 
           <div>
@@ -170,7 +175,7 @@
                     class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-primary focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white">
               <option value="">Select a wallet</option>
               <option *ngFor="let wallet of availableWallets" [value]="wallet.id">
-                {{wallet.name}} (Balance: {{wallet.balance | currency:'LKR '}})
+                {{wallet.name}} (Balance: {{wallet.balance | appCurrency:wallet.currency}})
               </option>
             </select>
           </div>
@@ -203,9 +208,9 @@
             <p class="text-sm text-gray-500 dark:text-gray-400">{{transaction.provider}}</p>
           </div>
           <div class="text-right">
-            <p class="font-medium text-gray-900 dark:text-white">
-              {{formatCurrency(transaction.amount)}}
-            </p>
+              <p class="font-medium text-gray-900 dark:text-white">
+                {{transaction.amount | appCurrency}}
+              </p>
             <p class="text-sm text-gray-500 dark:text-gray-400">
               {{formatDate(transaction.paidDate)}}
             </p>

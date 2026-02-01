@@ -150,7 +150,7 @@
           <td class="px-6 py-4" [ngClass]="{
             'text-green-500': transaction.type === 'income',
             'text-red-500': transaction.type === 'expense'
-          }">{{transaction.amount | currency:'LKR'}}</td>
+          }">{{transaction.amount | appCurrency}}</td>
           <td class="px-6 py-4">{{transaction.type}}</td>
           <td class="px-6 py-4">
             <div class="flex gap-2">
@@ -316,7 +316,7 @@
               <option value="">Select a wallet</option>
               <option *ngFor="let wallet of wallets"
                       [value]="wallet.id">
-                {{wallet.name}} ({{wallet.balance | currency:wallet.currency}})
+                {{wallet.name}} ({{wallet.balance | appCurrency:wallet.currency}})
               </option>
             </select>
           </div>
@@ -371,7 +371,7 @@
                         <td class="px-4 py-2" [ngClass]="{
                           'text-green-500': transaction.type === 'income',
                           'text-red-500': transaction.type === 'expense'
-                        }">{{ transaction.amount | currency:'LKR' }}</td>
+                        }">{{ transaction.amount | appCurrency }}</td>
                       </tr>
                     </tbody>
                   </table>

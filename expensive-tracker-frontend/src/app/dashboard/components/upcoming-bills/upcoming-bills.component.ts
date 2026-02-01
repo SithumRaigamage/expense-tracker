@@ -2,13 +2,14 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BillsService } from '../../../services/bill.service';
 import { Bill } from '../../../core/models/Bill';
+import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
 
 
 @Component({
   selector: 'app-upcoming-bills',
   templateUrl: './upcoming-bills.component.html',
   standalone: true,
-  imports: [CommonModule]
+  imports: [CommonModule, AppCurrencyPipe]
 })
 export class UpcomingBillsComponent implements OnInit {
   upcomingBills: Bill[] = [];
@@ -62,12 +63,7 @@ export class UpcomingBillsComponent implements OnInit {
     }
   }
 
-  formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'LKR'
-    }).format(amount);
-  }
+
 
   formatDate(date: Date): string {
     return new Intl.DateTimeFormat('en-US', {

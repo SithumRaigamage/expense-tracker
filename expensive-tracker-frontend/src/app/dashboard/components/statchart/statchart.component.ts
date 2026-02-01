@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { ChartTabComponent } from "../../../shared/components/chart-tab/chart-tab.component";
 import { TransactionService } from '../../../services/transaction.service';
+import { CurrencyService } from '../../../core/services/currency.service';
 import {
   ApexChart,
   ApexAxisChartSeries,
@@ -53,12 +54,15 @@ export class StatchartComponent implements OnInit {
     textMuted: '#6B7280' // Gray for labels
   };
 
-  constructor(private transactionService: TransactionService) {
+  constructor(private transactionService: TransactionService, private currencyService: CurrencyService) {
     this.initializeChart('monthly');
   }
 
   ngOnInit() {
     this.loadTransactionData();
+    this.currencyService.activeCurrency$.subscribe(() => {
+      this.loadTransactionData();
+    });
   }
 
   private loadTransactionData() {
@@ -166,19 +170,25 @@ export class StatchartComponent implements OnInit {
     let series: any[] = [];
     let colors: string[] = [];
     
+    const currentCurrency = this.currencyService.getActiveCurrency();
+    const convert = (val: number) => this.currencyService.convert(val, 'LKR', currentCurrency);
+
     if (period === 'trends') {
-      series = data;
+      series = data.map((s: any) => ({
+        ...s,
+        data: s.data.map(convert)
+      }));
       // Generate some distinct colors for different years
       const palette = ['#EF4444', '#F97316', '#F59E0B', '#10B981', '#3B82F6', '#6366F1', '#8B5CF6'];
       colors = series.map((_, i) => palette[i % palette.length]);
     } else {
       series = [{
         name: "Income",
-        data: data.income
+        data: data.income.map(convert)
       },
       {
         name: "Expenses",
-        data: data.expenses
+        data: data.expenses.map(convert)
       }];
       colors = [this.COLORS.income, this.COLORS.expense];
     }
@@ -244,14 +254,14 @@ export class StatchartComponent implements OnInit {
             colors: [this.COLORS.textMuted],
             fontSize: '12px'
           },
-          formatter: (value) => `LKR ${(value/1000).toFixed(0)}K`
+          formatter: (value) => `${currentCurrency} ${(value/1000).toFixed(0)}K`
         }
       },
       tooltip: {
         enabled: true,
         theme: 'light',
         y: {
-          formatter: (val) => `LKR ${val.toLocaleString()}`
+          formatter: (val) => `${currentCurrency} ${val.toLocaleString()}`
         }
       },
       legend: {

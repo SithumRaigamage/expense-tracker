@@ -3,10 +3,11 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { WalletService } from '../../../services/wallet.service';
 import { RouterModule } from '@angular/router';
+import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
 
 @Component({
   selector: 'app-manage-wallets',
-  imports: [CommonModule,RouterModule],
+  imports: [CommonModule,RouterModule, AppCurrencyPipe],
   templateUrl: './manage-wallets.component.html',
 })
 export class ManageWalletsComponent implements OnInit {
@@ -34,10 +35,5 @@ export class ManageWalletsComponent implements OnInit {
     return `${baseClasses} ${typeClasses[type] || typeClasses['default']}`;
   }
 
-  formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'LKR'
-    }).format(amount);
-  }
+
 }

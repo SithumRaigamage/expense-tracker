@@ -4,6 +4,7 @@ import { BehaviorSubject, Observable, map, tap, catchError, throwError, of } fro
 import { Wallet } from '../core/models/Wallet';
 import { Metric } from '../core/models/Metric';
 import { AuthService } from './auth.service';
+import { CurrencyService } from '../core/services/currency.service';
 import {
   faMoneyBillWave,
   faBuildingColumns,
@@ -45,6 +46,7 @@ export class WalletService {
   loading$ = this.loading.asObservable();
 
   private authService = inject(AuthService);
+  private currencyService = inject(CurrencyService);
 
   constructor(private http: HttpClient) {
     // Subscribe to the current user to get the user ID
@@ -462,6 +464,16 @@ export class WalletService {
     return this.wallets$;
   }
 
+  getTotalAssets(): Observable<number> {
+    return this.wallets$.pipe(
+      map(wallets => wallets.reduce((acc, w) => {
+        // Always sum up in LKR to provide a consistent base for the appCurrency pipe
+        const balanceInLKR = this.currencyService.convert(w.balance, w.currency, 'LKR');
+        return acc + balanceInLKR;
+      }, 0))
+    );
+  }
+
   getMetrics(): Observable<Metric[]> {
     return this.wallets$.pipe(
       map(wallets => {
@@ -473,7 +485,7 @@ export class WalletService {
         return types.map(type => {
           const totalBalance = wallets
             .filter(w => w.type === type)
-            .reduce((acc, w) => acc + (w.convertedBalance || w.balance), 0);
+            .reduce((acc, w) => acc + this.currencyService.convert(w.balance, w.currency, 'LKR'), 0);
 
           return {
             icon: this.getWalletTypeIcon(type),
@@ -481,7 +493,7 @@ export class WalletService {
             value: totalBalance,
             percentage: 0,
             trend: totalBalance < 0 ? 'down' : 'up',
-            currency: primaryCurrency
+            currency: 'LKR'
           };
         });
       })

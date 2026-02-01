@@ -11,6 +11,8 @@ import {
   faEdit, faRefresh, faFilter, faSearch, faChevronLeft, faChevronRight
 } from '@fortawesome/free-solid-svg-icons';
 import { Transaction } from '../../../core/models/Transaction';
+import { CurrencyService } from '../../../core/services/currency.service';
+import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
 
 interface Category {
   _id: string;
@@ -21,7 +23,7 @@ interface Category {
 @Component({
   selector: 'app-transactions',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FontAwesomeModule],
+  imports: [CommonModule, ReactiveFormsModule, FontAwesomeModule, AppCurrencyPipe],
   templateUrl: './transactions.component.html',
 })
 export class TransactionsComponent implements OnInit {
@@ -68,7 +70,8 @@ export class TransactionsComponent implements OnInit {
     private fb: FormBuilder,
     private transactionService: TransactionService,
     private walletService: WalletService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    public currencyService: CurrencyService
   ) {
     this.transactionForm = this.createForm();
     this.filterForm = this.createFilterForm();

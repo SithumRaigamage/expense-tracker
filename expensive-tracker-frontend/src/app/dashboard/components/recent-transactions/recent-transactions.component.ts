@@ -1,13 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
+import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
 import { TransactionService } from '../../../services/transaction.service';
 import { Transaction } from '../../../core/models/Transaction';
 
 @Component({
   selector: 'app-recent-transactions',
   standalone: true,
-  imports: [CommonModule, BadgeComponent],
+  imports: [CommonModule, BadgeComponent, AppCurrencyPipe],
   templateUrl: './recent-transactions.component.html'
 })
 export class RecentTransactionsComponent implements OnInit {
@@ -57,9 +58,7 @@ export class RecentTransactionsComponent implements OnInit {
     return type === 'income' ? 'success' : 'error';
   }
 
-  formatCurrency(amount: number): string {
-    return `LKR ${amount.toLocaleString()}`;
-  }
+
 
   formatDate(date: Date | string): string {
     const dateObj = date instanceof Date ? date : new Date(date);
