@@ -108,6 +108,6 @@ export class ExpenseBreakdownComponent implements OnInit {
   }
 
   get breakdownSubtitle(): string {
-    return this.breakdownTab === 'sankey' ? 'Wallets → Categories' : 'Categories share';
+    return this.breakdownTab === 'sankey' ? 'Income → Wallets → Categories' : 'Categories share';
   }
 }

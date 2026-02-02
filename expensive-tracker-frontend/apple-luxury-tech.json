@@ -1,0 +1,44 @@
+[
+  {
+    "name": "Apple iPhone 17",
+    "imageUrl": "https://luxuryx.lk/storage/product/2025-09/3761757473193.webp",
+    "targetAmount": 295000,
+    "savedAmount": 0,
+    "targetDate": "2026-08-01"
+  },
+  {
+    "name": "MacBook Pro 14-inch M5 Chip",
+    "imageUrl": "https://luxuryx.lk/storage/product/2025-10/4641761542404.webp",
+    "targetAmount": 499000,
+    "savedAmount": 0,
+    "targetDate": "2026-10-15"
+  },
+  {
+    "name": "Mac Mini M4 Chip",
+    "imageUrl": "https://luxuryx.lk/storage/product/95.webp",
+    "targetAmount": 185000,
+    "savedAmount": 0,
+    "targetDate": "2026-06-01"
+  },
+  {
+    "name": "iPad mini 7",
+    "imageUrl": "https://luxuryx.lk/storage/product/67.webp",
+    "targetAmount": 150000,
+    "savedAmount": 0,
+    "targetDate": "2026-05-20"
+  },
+  {
+    "name": "Apple Watch SE 3 (40mm)",
+    "imageUrl": "https://luxuryx.lk/storage/product/381.webp",
+    "targetAmount": 81000,
+    "savedAmount": 0,
+    "targetDate": "2026-04-10"
+  },
+  {
+    "name": "Apple Airpods Max",
+    "imageUrl": "https://luxuryx.lk/storage/product/80.webp",
+    "targetAmount": 155000,
+    "savedAmount": 0,
+    "targetDate": "2026-07-25"
+  }
+]

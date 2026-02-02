@@ -150,7 +150,7 @@ export class SidebarComponent implements OnInit {
 
   constructor(
     private router: Router,
-    private sidebarService: SidebarService,
+    public sidebarService: SidebarService,
     library: FaIconLibrary
   ) {
     // Add icons to the library
@@ -218,6 +218,9 @@ export class SidebarComponent implements OnInit {
   ngOnInit(): void {
     this.sidebarService.isOpen$.subscribe(
       state => this.isExpanded = state
+    );
+    this.sidebarService.isMobileOpen$.subscribe(
+      state => this.isMobileOpen = state
     );
   }
 

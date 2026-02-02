@@ -8,7 +8,7 @@ import { Wallet } from '../../../core/models/Wallet';
 import { CurrencyService } from '../../../core/services/currency.service';
 import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
 import { ExcelExportService } from '../../../services/excel-export.service';
-import { faDownload, faEdit, faPlus, faPlusCircle, faUpload, faRefresh, faFileUpload, faFileImport } from '@fortawesome/free-solid-svg-icons';
+import { faDownload, faEdit, faPlus, faPlusCircle, faUpload, faRefresh, faFileUpload, faFileImport, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { SideDrawerComponent } from '../../../shared/components/side-drawer/side-drawer.component';
 
@@ -31,6 +31,7 @@ export class BudgetComponent implements OnInit {
   faRefresh = faRefresh;
   faFileUpload = faFileUpload;
   faFileImport = faFileImport;
+  faTrash = faTrash;
   isDrawerOpen = false;
   drawerMode: DrawerMode = null;
   currentGoal: Omit<ProductBudget, 'id'> = this.getEmptyGoal();
@@ -42,6 +43,10 @@ export class BudgetComponent implements OnInit {
   searchQuery = '';
   sortOption = 'progress';
   filterOption = 'all';
+
+  // Custom Dropdown States
+  isSortOpen = false;
+  isFilterOpen = false;
 
   // Image upload properties
   imageInputTab: 'url' | 'upload' = 'url';
@@ -655,6 +660,28 @@ export class BudgetComponent implements OnInit {
    * Show a success message to the user
    * @param message The success message to display
    */
+  toggleSortDropdown() {
+    this.isSortOpen = !this.isSortOpen;
+    if (this.isSortOpen) this.isFilterOpen = false;
+  }
+
+  toggleFilterDropdown() { // Renamed from toggleFilter
+    this.isFilterOpen = !this.isFilterOpen;
+    if (this.isFilterOpen) this.isSortOpen = false;
+  }
+
+  selectSort(option: string) {
+    this.sortOption = option;
+    this.applyFilters();
+    this.isSortOpen = false;
+  }
+
+  selectFilter(option: string) {
+    this.filterOption = option;
+    this.applyFilters();
+    this.isFilterOpen = false;
+  }
+
   private showSuccessMessage(message: string): void {
     // For now, use an alert, but this could be replaced with a nicer toast or notification
     alert(message);

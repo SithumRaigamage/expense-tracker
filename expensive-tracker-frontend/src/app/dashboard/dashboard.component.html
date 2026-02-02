@@ -72,7 +72,7 @@
   </div>
 
   <!-- Full-width Statistics Chart -->
-  <div *ngIf="isVisible('statChart')" class="col-span-12 xl:col-span-5 pr-6">
+  <div *ngIf="isVisible('statChart')" class="col-span-12 xl:col-span-5 xl:pr-6">
     <app-statchart></app-statchart>
   </div>
 
@@ -82,7 +82,7 @@
   </div> -->
 
   <!-- Expense Breakdown (Tabbed: Sankey / Sunburst) -->
-  <div *ngIf="isVisible('expenseBreakdown')" class="col-span-12 pr-6">
+  <div *ngIf="isVisible('expenseBreakdown')" class="col-span-12 xl:pr-6">
     <app-expense-breakdown></app-expense-breakdown>
   </div>
 
@@ -92,27 +92,27 @@
   </div>
 
   <!-- Recent Transactions List -->
-  <div *ngIf="isVisible('recentTransactions')" class="col-span-12 xl:col-span-7 pr-6">
+  <div *ngIf="isVisible('recentTransactions')" class="col-span-12 xl:col-span-7 xl:pr-6">
     <app-recent-transactions></app-recent-transactions>
   </div>
 
   <!-- Budget Planning Widget -->
-  <div *ngIf="isVisible('budgetPlanner')" class="col-span-12 pr-6">
+  <div *ngIf="isVisible('budgetPlanner')" class="col-span-12 xl:pr-6">
     <app-budget-planner></app-budget-planner>
   </div>
 
   <!-- Upcoming Bills Calendar -->
-  <div *ngIf="isVisible('upcomingBills')" class="col-span-12 pr-6">
+  <div *ngIf="isVisible('upcomingBills')" class="col-span-12 xl:pr-6">
     <app-upcoming-bills></app-upcoming-bills>
   </div>
 
   <!-- Emergency Fund Section -->
-  <div *ngIf="isVisible('emergencyFund')" class="col-span-12 pr-6">
+  <div *ngIf="isVisible('emergencyFund')" class="col-span-12 xl:pr-6">
     <app-emergency-fund></app-emergency-fund>
   </div>
 
   <!-- Financial Education Section -->
-  <div *ngIf="isVisible('financialEducation')" class="col-span-12 pr-6">
+  <div *ngIf="isVisible('financialEducation')" class="col-span-12 xl:pr-6">
     <app-financial-education></app-financial-education>
   </div>
 </div>

@@ -424,15 +424,69 @@ class WalletService {
   }
 
   /**
-   * Get expense breakdown flow (wallets to categories)
+   * Get exhaustive financial flow (Inflow -> Wallets -> Outflow)
    * @param {string} userId - User ID
-   * @returns {Promise<Object>} Flow data
+   * @returns {Promise<Object>} Flow data for Sankey/Sunburst
    */
   static async getExpenseFlow(userId) {
     const Expense = mongoose.model('Expense');
     
-    // Aggregate expenses by wallet and category (only for expenses, not transfers)
-    const flows = await Expense.aggregate([
+    // 1. Inflow: Income Category -> Wallet
+    const inflows = await Expense.aggregate([
+      { 
+        $match: { 
+          user: new mongoose.Types.ObjectId(userId)
+        } 
+      },
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'categoryInfo'
+        }
+      },
+      { $unwind: '$categoryInfo' },
+      { $match: { 'categoryInfo.type': 'income' } }, // Only income flows
+      {
+        $group: {
+          _id: { wallet: '$wallet', category: '$category' },
+          amount: { $sum: '$amount' }
+        }
+      },
+      {
+        $lookup: {
+          from: 'wallets',
+          localField: '_id.wallet',
+          foreignField: '_id',
+          as: 'walletInfo'
+        }
+      },
+      {
+        $lookup: {
+          from: 'categories',
+          localField: '_id.category',
+          foreignField: '_id',
+          as: 'categoryInfo'
+        }
+      },
+      { $unwind: '$walletInfo' },
+      { $unwind: '$categoryInfo' },
+      {
+        $project: {
+          _id: 0,
+          source: '$categoryInfo.name',
+          sourceId: '$_id.category',
+          target: '$walletInfo.name',
+          targetId: '$_id.wallet',
+          value: '$amount',
+          color: '$categoryInfo.color'
+        }
+      }
+    ]);
+
+    // 2. Outflow: Wallet -> Expense Category
+    const outflows = await Expense.aggregate([
       { 
         $match: { 
           user: new mongoose.Types.ObjectId(userId)
@@ -486,13 +540,15 @@ class WalletService {
     ]);
 
     const wallets = await Wallet.find({ user: userId, isActive: true });
-    const categories = await Category.find({ user: userId, isActive: true, type: 'expense' });
+    const expenseCategories = await Category.find({ user: userId, isActive: true, type: 'expense' });
+    const incomeCategories = await Category.find({ user: userId, isActive: true, type: 'income' });
 
     return {
-      links: flows,
+      links: [...inflows, ...outflows],
       nodes: [
+        ...incomeCategories.map(c => ({ id: c._id.toString(), name: c.name, type: 'income_category', color: c.color })),
         ...wallets.map(w => ({ id: w._id.toString(), name: w.name, type: 'wallet', color: '#6366f1' })),
-        ...categories.map(c => ({ id: c._id.toString(), name: c.name, type: 'category', color: c.color }))
+        ...expenseCategories.map(c => ({ id: c._id.toString(), name: c.name, type: 'expense_category', color: c.color }))
       ]
     };
   }

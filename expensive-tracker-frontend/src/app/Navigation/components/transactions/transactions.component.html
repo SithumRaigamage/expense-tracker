@@ -1,16 +1,17 @@
 <div class="p-6">
   <!-- Header -->
-  <div class="flex justify-between items-center mb-6">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
     <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Transactions</h1>
-    <div class="flex items-center gap-3">
+    <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
       <button (click)="exportTransactions()"
-              class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm"
+              class="flex-1 sm:flex-none inline-flex justify-center items-center gap-2 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm"
               [disabled]="allTransactions.length === 0">
         <fa-icon [icon]="faDownload"></fa-icon>
         Export
       </button>
       <button (click)="openDrawer()"
-              class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium hover:bg-primary-dark transition-colors">
+              class="flex-1 sm:flex-none inline-flex justify-center items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium hover:bg-primary-dark transition-colors shadow-sm">
         <fa-icon [icon]="faPlus"></fa-icon>
         Add Transaction
       </button>
@@ -68,14 +69,28 @@
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Type
         </label>
-        <select
-          formControlName="type"
-          class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-        >
-          <option value="">All Types</option>
-          <option value="income">Income</option>
-          <option value="expense">Expense</option>
-        </select>
+        <div class="relative">
+          <button type="button" (click)="toggleTypeDropdown()"
+                  class="w-full flex items-center justify-between text-left rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white bg-white dark:bg-gray-700">
+            <span class="block truncate">
+              {{ filterForm.get('type')?.value ? (filterForm.get('type')?.value | titlecase) : 'All Types' }}
+            </span>
+            <svg class="w-4 h-4 text-gray-500 transition-transform duration-200" [class.rotate-180]="isTypeOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+          </button>
+          
+          <div *ngIf="isTypeOpen" class="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
+            <button type="button" (click)="selectType('')" class="text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left cursor-pointer select-none relative py-2 pl-3 pr-9">
+              <span [class.font-semibold]="!filterForm.get('type')?.value" class="block truncate">All Types</span>
+            </button>
+            <button type="button" (click)="selectType('income')" class="text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left cursor-pointer select-none relative py-2 pl-3 pr-9">
+              <span [class.font-semibold]="filterForm.get('type')?.value === 'income'" class="block truncate">Income</span>
+            </button>
+             <button type="button" (click)="selectType('expense')" class="text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left cursor-pointer select-none relative py-2 pl-3 pr-9">
+              <span [class.font-semibold]="filterForm.get('type')?.value === 'expense'" class="block truncate">Expense</span>
+            </button>
+          </div>
+          <div *ngIf="isTypeOpen" (click)="isTypeOpen = false" class="fixed inset-0 z-40 bg-transparent"></div>
+        </div>
       </div>
 
       <!-- Category -->
@@ -83,15 +98,25 @@
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Category
         </label>
-        <select
-          formControlName="category"
-          class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-        >
-          <option value="">All Categories</option>
-          <option *ngFor="let category of categories" [value]="category.name">
-            {{category.name}}
-          </option>
-        </select>
+        <div class="relative">
+          <button type="button" (click)="toggleCategoryDropdown()"
+                  class="w-full flex items-center justify-between text-left rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white bg-white dark:bg-gray-700">
+            <span class="block truncate">
+              {{ filterForm.get('category')?.value || 'All Categories' }}
+            </span>
+            <svg class="w-4 h-4 text-gray-500 transition-transform duration-200" [class.rotate-180]="isCategoryOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+          </button>
+          
+          <div *ngIf="isCategoryOpen" class="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
+            <button type="button" (click)="selectCategory('')" class="text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left cursor-pointer select-none relative py-2 pl-3 pr-9">
+              <span [class.font-semibold]="!filterForm.get('category')?.value" class="block truncate">All Categories</span>
+            </button>
+            <button *ngFor="let category of categories" type="button" (click)="selectCategory(category.name)" class="text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left cursor-pointer select-none relative py-2 pl-3 pr-9">
+              <span [class.font-semibold]="filterForm.get('category')?.value === category.name" class="block truncate">{{category.name}}</span>
+            </button>
+          </div>
+          <div *ngIf="isCategoryOpen" (click)="isCategoryOpen = false" class="fixed inset-0 z-40 bg-transparent"></div>
+        </div>
       </div>
 
       <!-- Wallet -->
@@ -99,15 +124,25 @@
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Wallet
         </label>
-        <select
-          formControlName="wallet"
-          class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-        >
-          <option value="">All Wallets</option>
-          <option *ngFor="let wallet of wallets" [value]="wallet.id">
-            {{wallet.name}}
-          </option>
-        </select>
+        <div class="relative">
+          <button type="button" (click)="toggleWalletDropdown()"
+                  class="w-full flex items-center justify-between text-left rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white bg-white dark:bg-gray-700">
+            <span class="block truncate">
+              {{ getWalletName(filterForm.get('wallet')?.value) }}
+            </span>
+            <svg class="w-4 h-4 text-gray-500 transition-transform duration-200" [class.rotate-180]="isWalletOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+          </button>
+          
+          <div *ngIf="isWalletOpen" class="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
+            <button type="button" (click)="selectWallet('')" class="text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left cursor-pointer select-none relative py-2 pl-3 pr-9">
+              <span [class.font-semibold]="!filterForm.get('wallet')?.value" class="block truncate">All Wallets</span>
+            </button>
+            <button *ngFor="let wallet of wallets" type="button" (click)="selectWallet(wallet.id)" class="text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left cursor-pointer select-none relative py-2 pl-3 pr-9">
+              <span [class.font-semibold]="filterForm.get('wallet')?.value === wallet.id" class="block truncate">{{wallet.name}}</span>
+            </button>
+          </div>
+          <div *ngIf="isWalletOpen" (click)="isWalletOpen = false" class="fixed inset-0 z-40 bg-transparent"></div>
+        </div>
       </div>
 
       <!-- Search -->
@@ -130,8 +165,8 @@
     </form>
   </div>
 
-  <!-- Transactions Table -->
-  <div class="overflow-x-auto">
+  <!-- Transactions List: Desktop (Table) -->
+  <div class="hidden md:block overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
     <table class="w-full text-left text-sm text-gray-500 dark:text-gray-400">
       <thead class="bg-gray-50 text-xs uppercase text-gray-700 dark:bg-gray-700 dark:text-gray-400">
         <tr>
@@ -144,30 +179,34 @@
           <th scope="col" class="px-6 py-3">Actions</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
         <tr *ngFor="let transaction of transactions"
-            class="border-b bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-          <td class="px-6 py-4">{{transaction.date | date}}</td>
-          <td class="px-6 py-4">{{transaction.description}}</td>
-          <td class="px-6 py-4">{{transaction.category}}</td>
+            class="bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700">
+          <td class="px-6 py-4 whitespace-nowrap">{{transaction.date | date}}</td>
+          <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">{{transaction.description}}</td>
           <td class="px-6 py-4">
-            <span class="px-2 py-1 rounded text-xs bg-gray-100 dark:bg-gray-700">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+              {{transaction.category}}
+            </span>
+          </td>
+          <td class="px-6 py-4">
+            <span class="text-gray-500 dark:text-gray-400">
               {{transaction.wallet?.name || 'Default'}}
             </span>
           </td>
-          <td class="px-6 py-4" [ngClass]="{
-            'text-green-500': transaction.type === 'income',
-            'text-red-500': transaction.type === 'expense'
+          <td class="px-6 py-4 font-semibold" [ngClass]="{
+            'text-green-600 dark:text-green-400': transaction.type === 'income',
+            'text-red-600 dark:text-red-400': transaction.type === 'expense'
           }">{{transaction.amount | appCurrency}}</td>
-          <td class="px-6 py-4">{{transaction.type}}</td>
+          <td class="px-6 py-4 capitalize">{{transaction.type}}</td>
           <td class="px-6 py-4">
-            <div class="flex gap-2">
+            <div class="flex gap-3">
               <button (click)="openDrawer(transaction)"
-                      class="text-blue-500 hover:text-blue-700">
+                      class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
                 <fa-icon [icon]="faPencil"></fa-icon>
               </button>
               <button (click)="deleteTransaction(transaction.id)"
-                      class="text-red-500 hover:text-red-700">
+                      class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors">
                 <fa-icon [icon]="faTrash"></fa-icon>
               </button>
             </div>
@@ -175,6 +214,45 @@
         </tr>
       </tbody>
     </table>
+  </div>
+
+  <!-- Transactions List: Mobile (Cards) -->
+  <div class="md:hidden space-y-4">
+    <div *ngFor="let transaction of transactions" 
+         class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700">
+      <div class="flex justify-between items-start mb-3">
+        <div>
+          <h3 class="font-semibold text-gray-900 dark:text-white line-clamp-1">{{transaction.description}}</h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{transaction.date | date:'mediumDate'}}</p>
+        </div>
+        <span class="font-bold whitespace-nowrap" [ngClass]="{
+          'text-green-600 dark:text-green-400': transaction.type === 'income',
+          'text-red-600 dark:text-red-400': transaction.type === 'expense'
+        }">{{transaction.amount | appCurrency}}</span>
+      </div>
+      
+      <div class="flex items-center gap-2 mb-4">
+        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+          {{transaction.category}}
+        </span>
+        <span class="text-xs text-gray-400">•</span>
+        <span class="text-xs text-gray-500 dark:text-gray-400">{{transaction.wallet?.name || 'Default Wallet'}}</span>
+      </div>
+
+      <div class="flex items-center justify-between border-t border-gray-100 dark:border-gray-700 pt-3 mt-3">
+        <span class="text-xs font-medium uppercase tracking-wider text-gray-400">{{transaction.type}}</span>
+        <div class="flex gap-4">
+          <button (click)="openDrawer(transaction)"
+                  class="flex items-center gap-1 text-sm font-medium text-blue-600 dark:text-blue-400">
+            <fa-icon [icon]="faPencil" class="text-xs"></fa-icon> Edit
+          </button>
+          <button (click)="deleteTransaction(transaction.id)"
+                  class="flex items-center gap-1 text-sm font-medium text-red-600 dark:text-red-400">
+            <fa-icon [icon]="faTrash" class="text-xs"></fa-icon> Delete
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Pagination -->
