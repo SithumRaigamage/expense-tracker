@@ -11,4 +11,6 @@ export interface Wallet {
   isActive?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
+  targetGoal?: number;
+  monthlySaveGoal?: number;
 }

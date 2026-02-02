@@ -85,7 +85,7 @@ const seedRealisticUser = async () => {
     const sithumUser = await User.create({
       name: 'Sithum Raigamage',
       email: 'sraig2002@gmail.com',
-      password: 'sithum123',
+      password: 'sithum2002',
       currency: 'LKR',
       role: 'admin',
       isActive: true
@@ -101,7 +101,7 @@ const seedRealisticUser = async () => {
     console.log('');
     console.log('🔑 You can now login with:');
     console.log('   Email: sraig2002@gmail.com');
-    console.log('   Password: sithum123');
+    console.log('   Password: sithum2002');
     console.log('   Role: admin');
 
   } catch (error) {

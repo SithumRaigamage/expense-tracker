@@ -1,4 +1,22 @@
 <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
+  <!-- Empty State -->
+  <div *ngIf="metrics.length === 0" class="col-span-full">
+    <div class="card p-12">
+      <div class="flex flex-col items-center justify-center text-center">
+        <div class="mb-4 rounded-full bg-gray-100 p-6 dark:bg-gray-800">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+          </svg>
+        </div>
+        <h3 class="mb-2 text-lg font-semibold text-gray-900 dark:text-white">No Wallets Found</h3>
+        <p class="max-w-md text-sm text-gray-500 dark:text-gray-400">
+          Create your first wallet to start tracking your finances across different accounts.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Metrics Cards -->
   <div *ngFor="let metric of metrics"
        class="card p-6">
     <div class="flex items-center justify-between">

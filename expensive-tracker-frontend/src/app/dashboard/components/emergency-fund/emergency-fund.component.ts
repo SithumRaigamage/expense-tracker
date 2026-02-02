@@ -63,9 +63,10 @@ export class EmergencyFundComponent implements OnInit, OnDestroy {
 
   private subscription: Subscription = new Subscription();
   transactions: EmergencyTransaction[] = [];
-  currentBalance: number = 35000;
-  targetGoal: number = 100000;
-  monthlySaveGoal: number = 5000;
+  currentBalance: number = 0;
+  targetGoal: number = 0;
+  monthlySaveGoal: number = 0;
+  hasEmergencyWallet: boolean = false;
 
   // Pagination
   currentPage: number = 1;
@@ -210,13 +211,19 @@ export class EmergencyFundComponent implements OnInit, OnDestroy {
       ]).subscribe(([wallets, allTransactions]: [any[], any[]]) => {
         const emergencyWallet = wallets.find((w: any) => w.type === 'emergencyfund');
         if (!emergencyWallet) {
+          this.hasEmergencyWallet = false;
           this.currentBalance = 0;
+          this.targetGoal = 0;
+          this.monthlySaveGoal = 0;
           this.transactions = [];
           this.initializeChart();
           return;
         }
 
+        this.hasEmergencyWallet = true;
         this.currentBalance = emergencyWallet.balance;
+        this.targetGoal = emergencyWallet.targetGoal || 0;
+        this.monthlySaveGoal = emergencyWallet.monthlySaveGoal || 0;
         
         if (allTransactions) {
           const walletTransactions = allTransactions.filter((t: any) => t.walletId === emergencyWallet.id);
@@ -247,6 +254,39 @@ export class EmergencyFundComponent implements OnInit, OnDestroy {
 
           this.initializeChart();
           this.updatePagination();
+        }
+      })
+    );
+  }
+
+  updateGoals(): void {
+    this.subscription.add(
+      this.walletService.getAllWallets().subscribe(wallets => {
+        const emergencyWallet = wallets.find((w: any) => w.type === 'emergencyfund');
+
+        if (!emergencyWallet) {
+          alert('No emergency fund wallet found. Please create one first.');
+          return;
+        }
+
+        const newTarget = prompt('Enter new target goal:', this.targetGoal.toString());
+        if (newTarget !== null && !isNaN(Number(newTarget)) && Number(newTarget) >= 0) {
+          const newMonthly = prompt('Enter new monthly savings goal:', this.monthlySaveGoal.toString());
+          if (newMonthly !== null && !isNaN(Number(newMonthly)) && Number(newMonthly) >= 0) {
+            this.walletService.updateWallet(emergencyWallet.id, {
+              targetGoal: Number(newTarget),
+              monthlySaveGoal: Number(newMonthly)
+            }).subscribe({
+              next: () => {
+                this.targetGoal = Number(newTarget);
+                this.monthlySaveGoal = Number(newMonthly);
+              },
+              error: (err) => {
+                console.error('Error updating goals:', err);
+                alert('Failed to update goals. Please try again.');
+              }
+            });
+          }
         }
       })
     );
@@ -290,7 +330,7 @@ export class EmergencyFundComponent implements OnInit, OnDestroy {
   }
 
   navToAddFunds(): void {
-    this.router.navigate(['/transactions'], { queryParams: { walletType: 'emergencyfund', action: 'add' } });
+    this.router.navigate(['/wallets'], { queryParams: { walletType: 'emergencyfund', action: 'add' } });
   }
 
   formatDate(date: Date): string {
