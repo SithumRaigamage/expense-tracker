@@ -165,8 +165,26 @@
     </form>
   </div>
 
+  <!-- Empty State -->
+  <div *ngIf="allTransactions.length === 0 && !isLoading" class="flex flex-col items-center justify-center py-16 text-center">
+    <div class="mb-4 rounded-full bg-gray-100 p-6 dark:bg-gray-800">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+      </svg>
+    </div>
+    <h3 class="mb-2 text-lg font-semibold text-gray-900 dark:text-white">No Transactions Found</h3>
+    <p class="mb-6 max-w-md text-sm text-gray-500 dark:text-gray-400">
+      Start tracking your finances by adding your first transaction or importing data from a JSON file.
+    </p>
+    <button (click)="openDrawer()"
+            class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-6 py-3 text-sm font-semibold text-black shadow-sm hover:bg-primary-700 transition-colors">
+      <fa-icon [icon]="faPlus"></fa-icon>
+      <span>Add Your First Transaction</span>
+    </button>
+  </div>
+
   <!-- Transactions List: Desktop (Table) -->
-  <div class="hidden md:block overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+  <div *ngIf="allTransactions.length > 0" class="hidden md:block overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
     <table class="w-full text-left text-sm text-gray-500 dark:text-gray-400">
       <thead class="bg-gray-50 text-xs uppercase text-gray-700 dark:bg-gray-700 dark:text-gray-400">
         <tr>
@@ -217,7 +235,7 @@
   </div>
 
   <!-- Transactions List: Mobile (Cards) -->
-  <div class="md:hidden space-y-4">
+  <div *ngIf="allTransactions.length > 0" class="md:hidden space-y-4">
     <div *ngFor="let transaction of transactions" 
          class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700">
       <div class="flex justify-between items-start mb-3">
@@ -256,7 +274,7 @@
   </div>
 
   <!-- Pagination -->
-  <div class="flex items-center justify-between py-4">
+  <div *ngIf="allTransactions.length > 0" class="flex items-center justify-between py-4">
     <div class="text-sm text-gray-700 dark:text-gray-300">
       Showing <span class="font-medium">{{transactions.length}}</span> of <span class="font-medium">{{filteredTransactions.length}}</span> transactions
     </div>

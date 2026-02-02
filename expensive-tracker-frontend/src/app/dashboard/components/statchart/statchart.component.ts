@@ -1,4 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { ChartTabComponent } from "../../../shared/components/chart-tab/chart-tab.component";
 import { TransactionService } from '../../../services/transaction.service';
 import { CurrencyService } from '../../../core/services/currency.service';
@@ -36,7 +37,7 @@ export type ChartOptions = {
 @Component({
   selector: 'app-statchart',
   standalone: true,
-  imports: [ChartTabComponent, NgApexchartsModule],
+  imports: [ChartTabComponent, NgApexchartsModule, CommonModule],
   templateUrl: './statchart.component.html',
 })
 export class StatchartComponent implements OnInit {
@@ -54,6 +55,8 @@ export class StatchartComponent implements OnInit {
     textMuted: '#6B7280' // Gray for labels
   };
 
+  hasTransactions = false;
+
   constructor(private transactionService: TransactionService, private currencyService: CurrencyService) {
     this.initializeChart('monthly');
   }
@@ -67,6 +70,7 @@ export class StatchartComponent implements OnInit {
 
   private loadTransactionData() {
     this.transactionService.getTransactions().subscribe(transactions => {
+      this.hasTransactions = transactions && transactions.length > 0;
       const monthlyData = this.aggregateMonthlyData(transactions);
       const quarterlyData = this.aggregateQuarterlyData(monthlyData);
       const annualData = this.aggregateAnnualData(monthlyData);

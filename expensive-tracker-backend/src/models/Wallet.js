@@ -38,6 +38,16 @@ const walletSchema = new mongoose.Schema({
   isActive: {
     type: Boolean,
     default: true
+  },
+  targetGoal: {
+    type: Number,
+    default: 0,
+    min: [0, 'Target goal cannot be negative']
+  },
+  monthlySaveGoal: {
+    type: Number,
+    default: 0,
+    min: [0, 'Monthly savings goal cannot be negative']
   }
 }, {
   timestamps: true

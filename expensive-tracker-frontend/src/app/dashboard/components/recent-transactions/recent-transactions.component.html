@@ -21,8 +21,21 @@
     </div>
   </div>
 
+  <!-- Empty State -->
+  <div *ngIf="transactions.length === 0" class="flex flex-col items-center justify-center py-12 text-center">
+    <div class="mb-4 rounded-full bg-gray-100 p-6 dark:bg-gray-800">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+      </svg>
+    </div>
+    <h3 class="mb-2 text-lg font-semibold text-gray-900 dark:text-white">No Transactions Yet</h3>
+    <p class="max-w-md text-sm text-gray-500 dark:text-gray-400">
+      Start tracking your finances by adding your first transaction.
+    </p>
+  </div>
+
   <!-- Table view for desktop -->
-  <div class="hidden md:block max-w-full overflow-x-auto">
+  <div *ngIf="transactions.length > 0" class="hidden md:block max-w-full overflow-x-auto">
     <table class="w-full">
       <thead>
         <tr class="border-y border-gray-100 dark:border-gray-800">
@@ -62,7 +75,7 @@
   </div>
 
   <!-- Card view for mobile -->
-  <div class="md:hidden space-y-4">
+  <div *ngIf="transactions.length > 0" class="md:hidden space-y-4">
     <div *ngFor="let transaction of displayedTransactions" 
          class="p-4 rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-white/5">
       <div class="flex justify-between items-start mb-2">

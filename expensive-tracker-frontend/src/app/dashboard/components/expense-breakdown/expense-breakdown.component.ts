@@ -20,6 +20,7 @@ export class ExpenseBreakdownComponent implements OnInit {
   sankeyOptions: EChartsOption = {};
   sunburstOptions: EChartsOption = {};
   rawData: any;
+  hasData = false;
 
   constructor(private walletService: WalletService, private currencyService: CurrencyService) {}
 
@@ -42,6 +43,9 @@ export class ExpenseBreakdownComponent implements OnInit {
     const currency = this.currencyService.getActiveCurrency();
     const convert = (val: number) => this.currencyService.convert(val, 'LKR', currency);
 
+    // Check if we have data
+    this.hasData = data && data.links && data.links.length > 0;
+
     // Sankey options
     const nodes = data.nodes.map((n: any) => ({ name: n.name, itemStyle: { color: n.color } }));
     const links = data.links.map((l: any) => ({
@@ -55,11 +59,13 @@ export class ExpenseBreakdownComponent implements OnInit {
       tooltip: {
         trigger: 'item',
         triggerOn: 'mousemove',
+        confine: true,
+        appendToBody: false,
         formatter: (params: any) => {
           if (params.dataType === 'edge') {
             return `${params.data.source} → ${params.data.target}: ${currency} ${Number(params.data.value).toLocaleString()}`;
           }
-          return `${params.name}`;
+          return ''; // Don't show tooltip for nodes
         }
       },
       series: [{
@@ -69,7 +75,9 @@ export class ExpenseBreakdownComponent implements OnInit {
         emphasis: { focus: 'adjacency' },
         nodeGap: 12,
         nodeWidth: 12,
-        label: { fontSize: 11, color: '#374151' },
+        label: { 
+          show: false  // Hide labels to prevent text overlay
+        },
         lineStyle: { curveness: 0.5 }
       }]
     } as EChartsOption;

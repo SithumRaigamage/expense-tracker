@@ -112,8 +112,29 @@
 
   <!-- Goals Grid -->
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    <!-- No Results Message -->
-    <div *ngIf="filteredGoals.length === 0" class="col-span-full text-center py-12">
+    <!-- Empty State - No Goals At All -->
+    <div *ngIf="goals.length === 0" class="col-span-full flex flex-col items-center justify-center py-16 text-center">
+      <div class="mb-4 rounded-full bg-gray-100 p-6 dark:bg-gray-800">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+        </svg>
+      </div>
+      <h3 class="mb-2 text-lg font-semibold text-gray-900 dark:text-white">No Budget Goals Yet</h3>
+      <p class="mb-6 max-w-md text-sm text-gray-500 dark:text-gray-400">
+        Start saving for your dreams! Create your first budget goal to track your progress towards that special purchase.
+      </p>
+      <button (click)="openDrawer('add')"
+              class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-6 py-3 text-sm font-semibold text-black shadow-sm hover:bg-primary-700 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y12="12"></line>
+        </svg>
+        <span>Create Your First Goal</span>
+      </button>
+    </div>
+
+    <!-- No Filtered Results Message -->
+    <div *ngIf="goals.length > 0 && filteredGoals.length === 0" class="col-span-full text-center py-12">
       <div class="text-gray-500 dark:text-gray-400">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto mb-4 opacity-50" fill="none"
           viewBox="0 0 24 24" stroke="currentColor">
