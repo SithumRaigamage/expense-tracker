@@ -49,9 +49,9 @@
   <div *ngIf="!isLoading && !error" class="space-y-4">
     <!-- Goal Card -->
     <div *ngFor="let goal of productgoals" class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/50">
-      <div class="flex items-center gap-6">
+      <div class="flex flex-col gap-6 lg:flex-row lg:items-center">
         <!-- Left: Image and Basic Info -->
-        <div class="flex items-center gap-4 min-w-[240px]">
+        <div class="flex items-center gap-4 lg:min-w-[240px]">
           <img [src]="goal.imageUrl" alt="Product image" class="h-16 w-16 rounded-lg object-cover shadow-sm"
                onerror="this.src='https://images.unsplash.com/photo-1560393464-5c69a73c5770?w=100&h=100&fit=crop'">
           <div>
@@ -61,8 +61,8 @@
         </div>
 
         <!-- Middle: Progress Bar and Details -->
-        <div class="flex-1">
-          <div class="flex items-center gap-4">
+        <div class="flex-1 w-full">
+          <div class="flex flex-col gap-4 md:flex-row md:items-center">
             <!-- Progress Bar -->
             <div class="flex-1">
               <div class="flex justify-between text-sm mb-1">
@@ -77,7 +77,7 @@
             </div>
 
             <!-- Amount Details -->
-            <div class="flex gap-6 min-w-[300px]">
+            <div class="grid grid-cols-2 gap-4 sm:flex sm:gap-6 md:min-w-[300px]">
               <div class="flex flex-col">
                 <span class="text-sm text-gray-500 dark:text-gray-400">Saved</span>
                 <span class="font-medium text-gray-900 dark:text-white">{{goal.savedAmount | appCurrency}}</span>
@@ -86,7 +86,7 @@
                 <span class="text-sm text-gray-500 dark:text-gray-400">Remaining</span>
                 <span class="font-medium text-gray-900 dark:text-white">{{(goal.targetAmount - goal.savedAmount) | appCurrency}}</span>
               </div>
-              <div class="flex flex-col">
+              <div class="flex flex-col col-span-2 sm:col-span-1">
                 <span class="text-sm text-gray-500 dark:text-gray-400">Target Date</span>
                 <span class="font-medium text-gray-900 dark:text-white">{{formatDate(goal.targetDate)}}</span>
               </div>
@@ -95,7 +95,7 @@
         </div>
 
         <!-- Right: Actions -->
-        <div class="flex items-center gap-3 min-w-[200px]">
+        <div class="flex items-center gap-3 lg:min-w-[200px]">
           <a [routerLink]="['/budget']" class="flex-1 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-black hover:bg-primary-dark transition-colors text-center">
             Manage
           </a>

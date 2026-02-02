@@ -4,6 +4,8 @@ import { CommonModule } from '@angular/common';
 import { UserDropdownComponent } from "./user-dropdown/user-dropdown.component";
 import { CurrencySwitcherComponent } from '../../../shared/components/currency-switcher/currency-switcher.component';
 import { RouterModule } from '@angular/router';
+import { FontAwesomeModule, FaIconLibrary } from '@fortawesome/angular-fontawesome';
+import { faMoneyCheckDollar } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-header',
@@ -12,20 +14,29 @@ import { RouterModule } from '@angular/router';
     CommonModule,
     RouterModule,
     UserDropdownComponent,
-    CurrencySwitcherComponent
+    CurrencySwitcherComponent,
+    FontAwesomeModule
   ],
   standalone: true
 })
 export class HeaderComponent implements OnInit, OnDestroy {
   isApplicationMenuOpen = false;
   isMobileOpen = false;
+  moneyIcon = faMoneyCheckDollar;
 
   @ViewChild('inputRef') inputRef!: ElementRef<HTMLInputElement>;
 
-  constructor(private sidebarService: SidebarService) {}
+  constructor(
+    private sidebarService: SidebarService,
+    library: FaIconLibrary
+  ) {
+    library.addIcons(faMoneyCheckDollar);
+  }
 
   ngOnInit(): void {
-    this.isMobileOpen = this.sidebarService.isMobileOpen;
+    this.sidebarService.isMobileOpen$.subscribe(state => {
+      this.isMobileOpen = state;
+    });
     document.addEventListener('keydown', this.handleKeyDown.bind(this));
   }
 
@@ -34,8 +45,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   handleToggle(): void {
-    this.sidebarService.toggleSidebar();
-    this.isMobileOpen = !this.isMobileOpen;
+    if (window.innerWidth < 1024) {
+      this.sidebarService.toggleMobile();
+    } else {
+      this.sidebarService.toggleSidebar();
+    }
   }
 
   toggleApplicationMenu(): void {

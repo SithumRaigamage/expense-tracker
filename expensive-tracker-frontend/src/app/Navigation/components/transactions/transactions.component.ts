@@ -59,6 +59,11 @@ export class TransactionsComponent implements OnInit {
   activeTab: 'manual' | 'upload' = 'manual';
   wallets: Wallet[] = [];
 
+  // Custom Dropdown States
+  isTypeOpen = false;
+  isCategoryOpen = false;
+  isWalletOpen = false;
+
   // Pagination
   currentPage = 1;
   pageSize = 10;
@@ -638,5 +643,51 @@ export class TransactionsComponent implements OnInit {
         this.isLoading = false;
       }
     });
+  }
+
+  // --- Custom Dropdown Methods ---
+
+  toggleTypeDropdown() {
+    this.isTypeOpen = !this.isTypeOpen;
+    if (this.isTypeOpen) {
+      this.isCategoryOpen = false;
+      this.isWalletOpen = false;
+    }
+  }
+
+  toggleCategoryDropdown() {
+    this.isCategoryOpen = !this.isCategoryOpen;
+    if (this.isCategoryOpen) {
+      this.isTypeOpen = false;
+      this.isWalletOpen = false;
+    }
+  }
+
+  toggleWalletDropdown() {
+    this.isWalletOpen = !this.isWalletOpen;
+    if (this.isWalletOpen) {
+      this.isTypeOpen = false;
+      this.isCategoryOpen = false;
+    }
+  }
+
+  selectType(type: string) {
+    this.filterForm.patchValue({ type });
+    this.isTypeOpen = false;
+  }
+
+  selectCategory(categoryName: string) {
+    this.filterForm.patchValue({ category: categoryName });
+    this.isCategoryOpen = false;
+  }
+
+  selectWallet(walletId: string) {
+    this.filterForm.patchValue({ wallet: walletId });
+    this.isWalletOpen = false;
+  }
+
+  getWalletName(id: string): string {
+    const w = this.wallets.find(wallet => wallet.id === id);
+    return w ? w.name : 'All Wallets';
   }
 }

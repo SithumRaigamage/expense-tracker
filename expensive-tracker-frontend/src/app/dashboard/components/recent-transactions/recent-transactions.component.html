@@ -21,7 +21,8 @@
     </div>
   </div>
 
-  <div class="max-w-full overflow-x-auto">
+  <!-- Table view for desktop -->
+  <div class="hidden md:block max-w-full overflow-x-auto">
     <table class="w-full">
       <thead>
         <tr class="border-y border-gray-100 dark:border-gray-800">
@@ -58,5 +59,29 @@
         </tr>
       </tbody>
     </table>
+  </div>
+
+  <!-- Card view for mobile -->
+  <div class="md:hidden space-y-4">
+    <div *ngFor="let transaction of displayedTransactions" 
+         class="p-4 rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-white/5">
+      <div class="flex justify-between items-start mb-2">
+        <div>
+          <p class="font-medium text-gray-900 dark:text-white">{{transaction.description}}</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400">{{formatDate(transaction.date)}}</p>
+        </div>
+        <app-badge
+          [color]="getBadgeColor(transaction.type)"
+          variant="light"
+          size="sm"
+        >
+          {{transaction.type | titlecase}}
+        </app-badge>
+      </div>
+      <div class="flex justify-between items-center mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+        <span class="text-sm text-gray-500 dark:text-gray-400">{{transaction.category}}</span>
+        <span class="font-bold text-gray-900 dark:text-white">{{ transaction.amount | appCurrency : 'LKR' }}</span>
+      </div>
+    </div>
   </div>
 </div>

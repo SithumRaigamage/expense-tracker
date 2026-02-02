@@ -6,21 +6,21 @@
         <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Product Budget Goals</h2>
         <p class="text-gray-500 dark:text-gray-400 mt-1">Track and manage your savings for future purchases</p>
       </div>
-      <div class="flex items-center gap-3">
+      <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
         <button (click)="exportBudget()"
-                class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700 px-5 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm"
+                class="flex-1 sm:flex-none inline-flex justify-center items-center gap-2 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700 px-5 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm"
                 [disabled]="goals.length === 0">
           <fa-icon [icon]="faDownload"></fa-icon>
           Export
         </button>
         <button (click)="openDrawer('add')"
-          class="px-5 py-2.5 bg-primary text-black rounded-lg hover:bg-primary-dark transition-colors shadow-sm hover:shadow flex items-center gap-2">
+          class="flex-1 sm:flex-none inline-flex justify-center items-center gap-2 px-5 py-2.5 bg-primary text-black rounded-lg hover:bg-primary-dark transition-colors shadow-sm hover:shadow">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="12" y1="5" x2="12" y2="19"></line>
             <line x1="5" y1="12" x2="19" y2="12"></line>
           </svg>
-          Add New Product Goal
+          Add Goal
         </button>
       </div>
     </div>
@@ -40,23 +40,72 @@
       </div>
 
       <!-- Sort and Filter Options -->
-      <div class="flex items-center gap-4 w-full sm:w-auto">
-        <!-- Sort -->
-        <select [(ngModel)]="sortOption" (change)="applyFilters()" name="sortOption"
-          class="px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300">
-          <option value="progress">Sort by Progress</option>
-          <option value="amount">Sort by Amount</option>
-          <option value="date">Sort by Date</option>
-          <option value="name">Sort by Name</option>
-        </select>
+      <div class="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+        
+        <!-- Sort Dropdown -->
+        <div class="relative w-full sm:w-auto">
+          <button (click)="toggleSortDropdown()" 
+                  class="w-full sm:w-auto flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all shadow-sm">
+            <span class="text-sm font-medium">
+              {{ sortOption === 'progress' ? 'Sort by Progress' : 
+                 sortOption === 'amount' ? 'Sort by Amount' : 
+                 sortOption === 'date' ? 'Sort by Date' : 'Sort by Name' }}
+            </span>
+            <svg class="w-4 h-4 text-gray-500 transition-transform duration-200" [class.rotate-180]="isSortOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+          </button>
+          
+          <!-- Dropdown Menu -->
+          <div *ngIf="isSortOpen" class="absolute right-0 top-full mt-2 w-full sm:w-48 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-100">
+            <div class="py-1">
+              <button (click)="selectSort('progress')" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2">
+                <span [class.opacity-0]="sortOption !== 'progress'" class="text-primary-500">✓</span> Progress
+              </button>
+              <button (click)="selectSort('amount')" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2">
+                <span [class.opacity-0]="sortOption !== 'amount'" class="text-primary-500">✓</span> Amount
+              </button>
+              <button (click)="selectSort('date')" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2">
+                <span [class.opacity-0]="sortOption !== 'date'" class="text-primary-500">✓</span> Date
+              </button>
+              <button (click)="selectSort('name')" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2">
+                <span [class.opacity-0]="sortOption !== 'name'" class="text-primary-500">✓</span> Name
+              </button>
+            </div>
+          </div>
+          
+          <!-- Backdrop for closing -->
+          <div *ngIf="isSortOpen" (click)="isSortOpen = false" class="fixed inset-0 z-40 bg-transparent cursor-default"></div>
+        </div>
 
-        <!-- Filter -->
-        <select [(ngModel)]="filterOption" (change)="applyFilters()" name="filterOption"
-          class="px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300">
-          <option value="all">All Goals</option>
-          <option value="ongoing">Ongoing (< 100%)</option>
-          <option value="completed">Completed (100%)</option>
-        </select>
+        <!-- Filter Dropdown -->
+        <div class="relative w-full sm:w-auto">
+          <button (click)="toggleFilterDropdown()" 
+                  class="w-full sm:w-auto flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all shadow-sm">
+            <span class="text-sm font-medium">
+              {{ filterOption === 'all' ? 'All Goals' : 
+                 filterOption === 'ongoing' ? 'Ongoing (< 100%)' : 'Completed (100%)' }}
+            </span>
+            <svg class="w-4 h-4 text-gray-500 transition-transform duration-200" [class.rotate-180]="isFilterOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+          </button>
+          
+          <!-- Dropdown Menu -->
+          <div *ngIf="isFilterOpen" class="absolute right-0 top-full mt-2 w-full sm:w-48 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-100">
+            <div class="py-1">
+              <button (click)="selectFilter('all')" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2">
+                <span [class.opacity-0]="filterOption !== 'all'" class="text-primary-500">✓</span> All Goals
+              </button>
+              <button (click)="selectFilter('ongoing')" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2">
+                <span [class.opacity-0]="filterOption !== 'ongoing'" class="text-primary-500">✓</span> Ongoing
+              </button>
+              <button (click)="selectFilter('completed')" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2">
+                <span [class.opacity-0]="filterOption !== 'completed'" class="text-primary-500">✓</span> Completed
+              </button>
+            </div>
+          </div>
+          
+          <!-- Backdrop for closing -->
+          <div *ngIf="isFilterOpen" (click)="isFilterOpen = false" class="fixed inset-0 z-40 bg-transparent cursor-default"></div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -131,15 +180,15 @@
         <div class="flex justify-between gap-2 pt-2 border-t border-gray-100 dark:border-gray-700">
           <button (click)="openDrawer('edit', goal)"
             class="flex-1 px-3 py-2 text-sm bg-transparent border border-blue-500 text-blue-500 rounded-lg hover:bg-blue-500 hover:text-white transition-colors">
-            <i class="fas fa-edit mr-1"></i> Edit
+            <fa-icon [icon]="faEdit" class="mr-1"></fa-icon> Edit
           </button>
           <button (click)="openDrawer('addMoney', goal)"
             class="flex-1 px-3 py-2 text-sm bg-transparent border border-green-500 text-green-500 rounded-lg hover:bg-green-500 hover:text-white transition-colors">
-            <i class="fas fa-plus-circle mr-1"></i> Fund
+            <fa-icon [icon]="faPlusCircle" class="mr-1"></fa-icon> Fund
           </button>
           <button (click)="deleteGoal(goal.id)"
             class="w-10 h-10 flex items-center justify-center rounded-lg text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
-            <i class="fas fa-trash"></i>
+            <fa-icon [icon]="faTrash"></fa-icon>
           </button>
         </div>
       </div>
