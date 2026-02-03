@@ -77,6 +77,9 @@ pipeline {
             }
             steps {
                 dir('expensive-tracker-frontend') {
+                    // Ensure up-to-date baseline-browser-mapping for JS/TS analysis
+                    sh 'npm i baseline-browser-mapping@latest -D || true'
+
                     // 'SonarServer' is the name of the SonarQube server configured in Jenkins
                     withSonarQubeEnv('SonarServer') { 
                         sh '''
@@ -84,9 +87,10 @@ pipeline {
                             -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
                             -Dsonar.projectName="${SONAR_PROJECT_NAME}" \
                             -Dsonar.host.url=${SONAR_SERVER_URL} \
-                            -Dsonar.login=${SONAR_AUTH_TOKEN} \
+                            -Dsonar.token=${SONAR_AUTH_TOKEN} \
                             -Dsonar.sources=. \
-                            -Dsonar.exclusions=node_modules/**
+                            -Dsonar.exclusions=node_modules/**,dist/**,**/*.spec.ts \
+                            -Dsonar.javascript.node.maxspace=1048
                         '''
                     }
                 }
