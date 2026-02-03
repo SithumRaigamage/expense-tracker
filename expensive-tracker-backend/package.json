@@ -11,7 +11,8 @@
     "test:coverage": "jest --coverage",
     "seed:dummy": "node dummy-data/seedDummyData.js",
     "lint": "eslint src/",
-    "lint:fix": "eslint src/ --fix"
+    "lint:fix": "eslint src/ --fix",
+    "sonar": "sonar-scanner"
   },
   "keywords": [
     "expense-tracker",
@@ -46,7 +47,8 @@
     "eslint": "^8.55.0",
     "jest": "^29.7.0",
     "nodemon": "^3.0.2",
-    "supertest": "^6.3.3"
+    "supertest": "^6.3.3",
+    "sonar-scanner": "^3.1.0"
   },
   "engines": {
     "node": ">=16.0.0"
