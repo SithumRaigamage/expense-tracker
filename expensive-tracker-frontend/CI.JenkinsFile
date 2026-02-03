@@ -90,7 +90,7 @@ pipeline {
                             -Dsonar.token=${SONAR_AUTH_TOKEN} \
                             -Dsonar.sources=. \
                             -Dsonar.exclusions=node_modules/**,dist/**,**/*.spec.ts \
-                            -Dsonar.javascript.node.maxspace=1048
+                            -Dsonar.javascript.node.maxspace=768
                         '''
                     }
                 }
