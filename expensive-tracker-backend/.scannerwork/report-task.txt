@@ -1,0 +1,6 @@
+projectKey=expense-tracker-backend
+serverUrl=http://localhost:9000
+serverVersion=26.1.0.118079
+dashboardUrl=http://localhost:9000/dashboard?id=expense-tracker-backend
+ceTaskId=39e048e1-c357-4ac5-b1b7-8a2ef7c36890
+ceTaskUrl=http://localhost:9000/api/ce/task?id=39e048e1-c357-4ac5-b1b7-8a2ef7c36890
