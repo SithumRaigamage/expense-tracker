@@ -9,10 +9,7 @@
     "test": "ng test expensive-tracker-frontend",
     "test:coverage": "ng test expensive-tracker-frontend --code-coverage",
     "lint": "ng lint expensive-tracker-frontend",
-    "sonar": "sonar-scanner",
-    "test:sonar": "npm run test:coverage && npm run sonar",
-    "sonar:quick": "sonar-scanner -Dsonar.qualitygate.wait=false",
-    "sonar:analyze": "npm run test:coverage && sonar-scanner"
+    "sonar": "sonar-scanner"
   },
   "private": true,
   "dependencies": {
