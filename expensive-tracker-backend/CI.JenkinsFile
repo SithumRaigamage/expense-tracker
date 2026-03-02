@@ -151,20 +151,21 @@ pipeline {
     post {
         always {
             script {
+                def reportPath = "expensive-tracker-backend/${env.TRIVY_REPORT_NAME}"
                 // Only archive and publish if the report was actually generated
-                if (fileExists(env.TRIVY_REPORT_NAME)) {
-                    archiveArtifacts artifacts: "${env.TRIVY_REPORT_NAME}", allowEmptyArchive: true
+                if (fileExists(reportPath)) {
+                    archiveArtifacts artifacts: "${reportPath}", allowEmptyArchive: true
                     
                     publishHTML (target: [
                         allowMissing: true,
                         alwaysLinkToLastBuild: true,
                         keepAll: true,
-                        reportDir: '.',
+                        reportDir: 'expensive-tracker-backend',
                         reportFiles: "${env.TRIVY_REPORT_NAME}",
                         reportName: 'Trivy Security Report'
                     ])
                 } else {
-                    echo "SKIPPING ARTIFACTS: ${env.TRIVY_REPORT_NAME} was not generated."
+                    echo "SKIPPING ARTIFACTS: ${reportPath} was not generated."
                 }
             }
         }
