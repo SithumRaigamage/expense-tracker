@@ -8,8 +8,7 @@
     "watch": "ng build expensive-tracker-frontend --watch --configuration development",
     "test": "ng test expensive-tracker-frontend",
     "test:coverage": "ng test expensive-tracker-frontend --code-coverage",
-    "lint": "ng lint expensive-tracker-frontend",
-    "sonar": "sonar-scanner"
+    "lint": "ng lint expensive-tracker-frontend"
   },
   "private": true,
   "dependencies": {
@@ -51,7 +50,6 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
-    "sonar-scanner": "^3.1.0",
     "typescript": "~5.7.2"
   }
 }
