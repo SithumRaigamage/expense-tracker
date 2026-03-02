@@ -11,7 +11,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 
 # Install dependencies using npm ci for deterministic builds
-RUN npm ci --quiet
+RUN npm Install --force
 
 # Copy the rest of the application source code
 COPY . .
