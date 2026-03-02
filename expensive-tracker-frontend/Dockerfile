@@ -10,8 +10,8 @@ WORKDIR /app
 # Copy dependency files only to leverage Docker layer caching
 COPY package.json package-lock.json ./
 
-# Install dependencies using npm ci for deterministic builds
-RUN npm Install --force
+# Install dependencies using npm install for deterministic builds
+RUN npm install --force
 
 # Copy the rest of the application source code
 COPY . .
