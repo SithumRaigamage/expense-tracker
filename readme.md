@@ -79,6 +79,19 @@ expense-tracker/
 
 ### Quick Start
 
+> **⚡ One command:** From the repo root, run `./start.sh` to launch the backend
+> and frontend together. It installs dependencies if needed, ensures MongoDB is
+> running (auto-starting a Docker container when available), and streams both
+> logs. Press `Ctrl+C` to stop everything.
+>
+> ```bash
+> ./start.sh            # start both services
+> ./start.sh --dev      # backend with data seeding + nodemon
+> ./start.sh --help     # all options
+> ```
+
+Prefer to run each service manually? Follow the steps below.
+
 1. **Clone & Setup:**
    ```bash
    git clone https://github.com/SithumRaigamage/expense-tracker.git
