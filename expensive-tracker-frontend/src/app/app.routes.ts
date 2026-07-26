@@ -65,6 +65,11 @@ export const routes: Routes = [
         title: 'Transactions'
       },
       {
+        path: 'import',
+        loadComponent: () => import('./Navigation/components/import-scan/import-scan.component').then(m => m.ImportScanComponent),
+        title: 'Import & Scan'
+      },
+      {
         path: 'budget',
         component: BudgetComponent,
         title: 'Budget Planner'

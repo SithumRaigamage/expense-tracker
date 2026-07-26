@@ -1,0 +1,205 @@
+<div class="max-w-5xl mx-auto p-4 sm:p-6">
+  <!-- Header -->
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-800 flex items-center gap-3">
+      <fa-icon [icon]="faFileImport" class="text-indigo-600"></fa-icon>
+      Import &amp; Scan
+    </h1>
+    <p class="text-gray-500 mt-1">Add expenses automatically — snap a receipt or import a bank statement / SMS alerts.</p>
+  </div>
+
+  <!-- Main tabs -->
+  <div class="flex gap-2 mb-6 border-b border-gray-200">
+    <button (click)="setTab('receipt')"
+      [class]="activeTab === 'receipt' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
+      class="px-4 py-2 -mb-px border-b-2 font-medium flex items-center gap-2">
+      <fa-icon [icon]="faReceipt"></fa-icon> Receipt scan
+    </button>
+    <button (click)="setTab('import')"
+      [class]="activeTab === 'import' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
+      class="px-4 py-2 -mb-px border-b-2 font-medium flex items-center gap-2">
+      <fa-icon [icon]="faFileCsv"></fa-icon> Bank / SMS import
+    </button>
+  </div>
+
+  <!-- Shared: wallet + default category -->
+  <div class="grid sm:grid-cols-2 gap-4 mb-6">
+    <div>
+      <label class="block text-sm font-medium text-gray-600 mb-1">Wallet</label>
+      <select [(ngModel)]="selectedWalletId" class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+        <option value="">Select a wallet…</option>
+        <option *ngFor="let w of wallets" [value]="w.id">{{ w.name }} ({{ w.type }})</option>
+      </select>
+    </div>
+    <div *ngIf="activeTab === 'import'">
+      <label class="block text-sm font-medium text-gray-600 mb-1">Default category <span class="text-gray-400">(optional, for unmatched)</span></label>
+      <select [(ngModel)]="defaultCategoryId" class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+        <option value="">None — skip unmatched</option>
+        <option *ngFor="let c of categories" [value]="c._id">{{ c.name }}</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- ================= RECEIPT ================= -->
+  <div *ngIf="activeTab === 'receipt'" class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+    <div class="grid md:grid-cols-2 gap-6">
+      <!-- Upload -->
+      <div>
+        <label class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-6 cursor-pointer hover:border-indigo-400 transition">
+          <fa-icon [icon]="faCamera" class="text-3xl text-indigo-500 mb-2"></fa-icon>
+          <span class="text-sm text-gray-600">Click to choose a receipt photo</span>
+          <input type="file" accept="image/*" class="hidden" (change)="onReceiptSelected($event)" />
+        </label>
+
+        <img *ngIf="receiptPreviewUrl" [src]="receiptPreviewUrl" alt="Receipt preview"
+          class="mt-4 rounded-lg max-h-64 mx-auto object-contain border border-gray-100" />
+
+        <button (click)="scanReceipt()" [disabled]="!receiptFile || scanning"
+          class="mt-4 w-full bg-indigo-600 text-white rounded-lg py-2.5 font-medium disabled:opacity-50 flex items-center justify-center gap-2">
+          <fa-icon [icon]="scanning ? faSpinner : faReceipt" [class.fa-spin]="scanning"></fa-icon>
+          {{ scanning ? 'Scanning…' : 'Scan receipt' }}
+        </button>
+        <p *ngIf="receiptError" class="mt-2 text-sm text-red-600">{{ receiptError }}</p>
+      </div>
+
+      <!-- Suggestion / editable form -->
+      <div *ngIf="scanResult" class="space-y-3">
+        <div *ngIf="!scanResult.ocrConfigured"
+          class="flex items-start gap-2 text-sm bg-amber-50 text-amber-700 rounded-lg p-3">
+          <fa-icon [icon]="faCircleQuestion"></fa-icon>
+          <span>OCR isn't configured on the server (set <code>OCR_API_KEY</code>). The receipt was stored — fill the fields in manually.</span>
+        </div>
+
+        <h3 class="font-semibold text-gray-800">Review &amp; save</h3>
+
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">Title</label>
+          <input [(ngModel)]="scanResult.suggestion.title" type="text"
+            class="w-full rounded-lg border border-gray-300 px-3 py-2" placeholder="e.g. Grocery shopping" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Amount</label>
+            <input [(ngModel)]="scanResult.suggestion.amount" type="number" min="0" step="0.01"
+              class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Date</label>
+            <input [ngModel]="scanResult.suggestion.date | date:'yyyy-MM-dd'"
+              (ngModelChange)="scanResult.suggestion.date = $event" type="date"
+              class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">Category</label>
+          <select [(ngModel)]="scanResult.suggestion.category" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+            <option [ngValue]="null">Select a category…</option>
+            <option *ngFor="let c of categories" [value]="c._id">{{ c.name }}</option>
+          </select>
+          <p *ngIf="scanResult.suggestion.categoryName" class="text-xs text-gray-400 mt-1">
+            Auto-suggested: {{ scanResult.suggestion.categoryName }}
+          </p>
+        </div>
+
+        <button *ngIf="!expenseCreated" (click)="createFromReceipt()" [disabled]="creatingExpense"
+          class="w-full bg-green-600 text-white rounded-lg py-2.5 font-medium disabled:opacity-50 flex items-center justify-center gap-2">
+          <fa-icon [icon]="creatingExpense ? faSpinner : faPlus" [class.fa-spin]="creatingExpense"></fa-icon>
+          {{ creatingExpense ? 'Saving…' : 'Create expense' }}
+        </button>
+        <div *ngIf="expenseCreated" class="flex items-center gap-2 text-green-700 bg-green-50 rounded-lg p-3 text-sm">
+          <fa-icon [icon]="faCheck"></fa-icon> Expense created and added to your transactions.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= IMPORT ================= -->
+  <div *ngIf="activeTab === 'import'" class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+    <!-- Mode switch -->
+    <div class="inline-flex rounded-lg bg-gray-100 p-1 mb-5">
+      <button (click)="setImportMode('file')" [class]="importMode === 'file' ? 'bg-white shadow text-indigo-600' : 'text-gray-500'" class="px-3 py-1.5 rounded-md text-sm font-medium flex items-center gap-2">
+        <fa-icon [icon]="faFileCsv"></fa-icon> CSV file
+      </button>
+      <button (click)="setImportMode('text')" [class]="importMode === 'text' ? 'bg-white shadow text-indigo-600' : 'text-gray-500'" class="px-3 py-1.5 rounded-md text-sm font-medium">
+        Paste CSV
+      </button>
+      <button (click)="setImportMode('sms')" [class]="importMode === 'sms' ? 'bg-white shadow text-indigo-600' : 'text-gray-500'" class="px-3 py-1.5 rounded-md text-sm font-medium flex items-center gap-2">
+        <fa-icon [icon]="faCommentSms"></fa-icon> SMS
+      </button>
+    </div>
+
+    <!-- Inputs -->
+    <div [ngSwitch]="importMode">
+      <label *ngSwitchCase="'file'" class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-6 cursor-pointer hover:border-indigo-400 transition">
+        <fa-icon [icon]="faFileCsv" class="text-3xl text-indigo-500 mb-2"></fa-icon>
+        <span class="text-sm text-gray-600">{{ csvFile ? csvFile.name : 'Click to choose a .csv statement' }}</span>
+        <input type="file" accept=".csv,text/csv" class="hidden" (change)="onCsvSelected($event)" />
+      </label>
+
+      <textarea *ngSwitchCase="'text'" [(ngModel)]="csvText" rows="6"
+        class="w-full rounded-lg border border-gray-300 px-3 py-2 font-mono text-sm"
+        placeholder="Date,Description,Amount&#10;12/01/2026,UBER RIDE,-1500.00&#10;25/01/2026,SALARY,150000.00"></textarea>
+
+      <textarea *ngSwitchCase="'sms'" [(ngModel)]="smsText" rows="6"
+        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+        placeholder="One SMS per line, e.g.&#10;Your a/c is debited with LKR 1,500.00 at KEELLS on 12/01/2026"></textarea>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex gap-3 mt-4">
+      <button (click)="runImport(true)" [disabled]="importing"
+        class="flex-1 border border-indigo-600 text-indigo-600 rounded-lg py-2.5 font-medium disabled:opacity-50 flex items-center justify-center gap-2">
+        <fa-icon *ngIf="importing && lastRunWasPreview" [icon]="faSpinner" class="fa-spin"></fa-icon> Preview (dry run)
+      </button>
+      <button (click)="runImport(false)" [disabled]="importing"
+        class="flex-1 bg-indigo-600 text-white rounded-lg py-2.5 font-medium disabled:opacity-50 flex items-center justify-center gap-2">
+        <fa-icon *ngIf="importing && !lastRunWasPreview" [icon]="faSpinner" class="fa-spin"></fa-icon> Import
+      </button>
+    </div>
+    <p *ngIf="importError" class="mt-2 text-sm text-red-600 flex items-center gap-2">
+      <fa-icon [icon]="faTriangleExclamation"></fa-icon> {{ importError }}
+    </p>
+
+    <!-- Summary -->
+    <div *ngIf="summary" class="mt-6">
+      <div class="flex flex-wrap gap-3 mb-3 text-sm">
+        <span class="px-3 py-1 rounded-full bg-gray-100 text-gray-700">Total: {{ summary.total }}</span>
+        <span class="px-3 py-1 rounded-full" [class]="statusClass(summary.dryRun ? 'preview' : 'created')">
+          {{ summary.dryRun ? 'Would import' : 'Created' }}: {{ summary.dryRun ? (summary.total - summary.unmatched - summary.duplicates) : summary.created }}
+        </span>
+        <span class="px-3 py-1 rounded-full" [class]="statusClass('duplicate')">Duplicates: {{ summary.duplicates }}</span>
+        <span class="px-3 py-1 rounded-full" [class]="statusClass('unmatched')">Unmatched: {{ summary.unmatched }}</span>
+      </div>
+      <div *ngIf="summary.dryRun" class="text-xs text-gray-500 mb-2">
+        This was a preview — nothing was saved. Click <strong>Import</strong> to commit.
+      </div>
+
+      <div class="overflow-x-auto border border-gray-100 rounded-lg">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50 text-gray-500 text-left">
+            <tr>
+              <th class="px-3 py-2">Description</th>
+              <th class="px-3 py-2">Date</th>
+              <th class="px-3 py-2 text-right">Amount</th>
+              <th class="px-3 py-2">Category</th>
+              <th class="px-3 py-2">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let r of summary.results" class="border-t border-gray-100">
+              <td class="px-3 py-2 max-w-xs truncate">{{ r.description }}</td>
+              <td class="px-3 py-2 text-gray-500">{{ r.date ? (r.date | date:'mediumDate') : '—' }}</td>
+              <td class="px-3 py-2 text-right" [class]="r.direction === 'credit' ? 'text-green-600' : 'text-gray-800'">
+                {{ r.direction === 'credit' ? '+' : '-' }}{{ r.amount | number:'1.2-2' }}
+              </td>
+              <td class="px-3 py-2">{{ r.category || '—' }}</td>
+              <td class="px-3 py-2">
+                <span class="px-2 py-0.5 rounded-full text-xs font-medium" [class]="statusClass(r.status)">{{ r.status }}</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

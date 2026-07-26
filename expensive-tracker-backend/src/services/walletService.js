@@ -190,17 +190,27 @@ class WalletService {
    * @returns {Promise<Object>} Restored wallet
    */
   static async restoreWallet(walletId, userId) {
-    const wallet = await Wallet.findOneAndUpdate(
-      { _id: walletId, user: userId, isActive: false },
-      { isActive: true },
-      { new: true }
-    );
+    const target = await Wallet.findOne({ _id: walletId, user: userId, isActive: false });
 
-    if (!wallet) {
+    if (!target) {
       throw new NotFoundError('Wallet not found or already active');
     }
 
-    return wallet;
+    // Don't restore into a name that an active wallet already uses.
+    const nameClash = await Wallet.findOne({
+      user: userId,
+      isActive: true,
+      name: target.name
+    });
+
+    if (nameClash) {
+      throw new ConflictError('An active wallet with this name already exists');
+    }
+
+    target.isActive = true;
+    await target.save();
+
+    return target;
   }
 
   /**
