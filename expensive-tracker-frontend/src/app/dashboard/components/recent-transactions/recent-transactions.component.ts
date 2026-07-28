@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { faReceipt } from '@fortawesome/free-solid-svg-icons';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
+import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
 import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
 import { TransactionService } from '../../../services/transaction.service';
 import { Transaction } from '../../../core/models/Transaction';
@@ -11,12 +12,13 @@ import { Transaction } from '../../../core/models/Transaction';
 @Component({
   selector: 'app-recent-transactions',
   standalone: true,
-  imports: [CommonModule, RouterModule, BadgeComponent, EmptyStateComponent, AppCurrencyPipe],
+  imports: [CommonModule, RouterModule, BadgeComponent, EmptyStateComponent, SkeletonComponent, AppCurrencyPipe],
   templateUrl: './recent-transactions.component.html'
 })
 export class RecentTransactionsComponent implements OnInit {
   faReceipt = faReceipt;
   transactions: Transaction[] = [];
+  isLoading = true;
   displayedTransactions: Transaction[] = [];
   showAll: boolean = false;
   private readonly INITIAL_DISPLAY_COUNT = 5; // Changed to show fewer items initially
@@ -28,6 +30,7 @@ export class RecentTransactionsComponent implements OnInit {
   }
 
   private loadRecentTransactions(): void {
+    this.isLoading = true;
     // Get all recent transactions regardless of month
     this.transactionService.getRecentTransactions(20).subscribe({
       next: (transactions) => {
@@ -36,11 +39,11 @@ export class RecentTransactionsComponent implements OnInit {
           new Date(b.date).getTime() - new Date(a.date).getTime()
         );
         this.updateDisplayedTransactions();
-        console.log('Loaded transactions:', this.transactions);
-        console.log('Loaded transactions length:', this.transactions.length);
+        this.isLoading = false;
       },
       error: (error) => {
         console.error('Error loading transactions:', error);
+        this.isLoading = false;
       }
     });
   }

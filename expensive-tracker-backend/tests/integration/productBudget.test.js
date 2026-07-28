@@ -10,7 +10,6 @@ const connectDB = require('../../src/config/database');
 describe('Product Budget API', () => {
   let token;
   let user;
-  let productBudgetId;
 
   beforeAll(async () => {
     await connectDB();
@@ -63,7 +62,6 @@ describe('Product Budget API', () => {
       expect(res.body.data.name).toBe('New Laptop');
       expect(res.body.data.user.toString()).toBe(user._id.toString());
 
-      productBudgetId = res.body.data._id;
     });
 
     it('should not create product budget with invalid data', async () => {

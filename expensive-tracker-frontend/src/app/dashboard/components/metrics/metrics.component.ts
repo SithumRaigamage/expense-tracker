@@ -6,6 +6,7 @@ import { RouterModule } from '@angular/router';
 import { faArrowUp, faArrowDown, faWallet } from '@fortawesome/free-solid-svg-icons';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
+import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
 import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
 import { Metric } from '../../../core/models/Metric';
 import { WalletService } from '../../../services/wallet.service';
@@ -13,7 +14,7 @@ import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-metrics',
-  imports: [CommonModule, RouterModule, BadgeComponent, EmptyStateComponent, FontAwesomeModule, MatCardModule, AppCurrencyPipe],
+  imports: [CommonModule, RouterModule, BadgeComponent, EmptyStateComponent, SkeletonComponent, FontAwesomeModule, MatCardModule, AppCurrencyPipe],
   templateUrl: './metrics.component.html',
   standalone: true
 })
@@ -22,6 +23,8 @@ export class MetricsComponent implements OnInit, OnDestroy {
   faArrowDown = faArrowDown;
   faWallet = faWallet;
   metrics: Metric[] = [];
+  /** Distinguishes "still loading" from "loaded and genuinely empty" — different UI. */
+  isLoading = true;
   private subscription: Subscription = new Subscription();
 
   constructor(private walletService: WalletService) {}
@@ -31,6 +34,7 @@ export class MetricsComponent implements OnInit, OnDestroy {
       this.walletService.getMetrics().subscribe(
         metrics => {
           this.metrics = metrics;
+          this.isLoading = false;
           //console.log(this.metrics);
         }
       )

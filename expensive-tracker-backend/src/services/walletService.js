@@ -339,11 +339,11 @@ class WalletService {
       // Standalone MongoDB will throw "Transaction numbers are only allowed on a replica set..." 
       // when we attempt the first command with a transaction
       await mongoose.connection.db.command({ ping: 1 }, { session });
-    } catch (error) {
+    } catch {
       if (session) {
         try {
           await session.abortTransaction();
-        } catch (e) {
+        } catch {
           // Ignore abort errors
         }
         await session.endSession();
@@ -431,7 +431,7 @@ class WalletService {
       if (session) {
         try {
           await session.abortTransaction();
-        } catch (e) {
+        } catch {
           // Ignore abort errors
         }
         session.endSession();

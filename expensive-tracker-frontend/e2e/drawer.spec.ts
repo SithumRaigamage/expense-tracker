@@ -7,29 +7,9 @@ import { test, expect, Page } from '@playwright/test';
  * still reaching the page underneath, and the drawer still opening.
  */
 
-const API = process.env.E2E_API_URL || 'http://localhost:3001/api/v1';
-const CREDENTIALS = {
-  email: process.env.E2E_EMAIL || 'sraig2002@gmail.com',
-  password: process.env.E2E_PASSWORD || 'sithum123'
-};
-
-async function signIn(page: Page) {
-  const response = await page.request.post(`${API}/users/login`, { data: CREDENTIALS });
-  expect(response.ok()).toBeTruthy();
-  const { data } = await response.json();
-  await page.addInitScript(
-    ([token, user]) => {
-      localStorage.setItem('token', token as string);
-      localStorage.setItem('user', JSON.stringify(user));
-    },
-    [data.token, data.user] as const
-  );
-}
-
 test.describe('dashboard customise drawer', () => {
   test.beforeEach(async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
-    await signIn(page);
     await page.goto('/dashboard', { waitUntil: 'networkidle' });
   });
 

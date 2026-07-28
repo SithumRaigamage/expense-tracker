@@ -2,7 +2,12 @@ const rateLimit = require('express-rate-limit');
 const logger = require('../utils/logger');
 
 const WINDOW_MINUTES = parseInt(process.env.RATE_LIMIT_WINDOW, 10) || 15;
-const MAX_REQUESTS = parseInt(process.env.RATE_LIMIT_MAX, 10) || 100;
+
+// A single dashboard load fans out to roughly ten endpoints (metrics, wallets,
+// transactions, flow, budgets, bills…), so a per-IP budget of 100 would cut off
+// an ordinary session after about ten page views — and cut off everyone behind
+// one office NAT far sooner. This ceiling still stops scripted abuse.
+const MAX_REQUESTS = parseInt(process.env.RATE_LIMIT_MAX, 10) || 1000;
 
 // Tests fire many requests in a row; limiting them turns real assertions into
 // 429s. Keyed off its own flag rather than NODE_ENV so the suite covering this

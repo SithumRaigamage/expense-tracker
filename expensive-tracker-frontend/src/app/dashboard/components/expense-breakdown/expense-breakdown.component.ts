@@ -8,11 +8,12 @@ import type { EChartsOption } from 'echarts';
 import { WalletService } from '../../../services/wallet.service';
 import { CurrencyService } from '../../../core/services/currency.service';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
+import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
 
 @Component({
   selector: 'app-expense-breakdown',
   standalone: true,
-  imports: [CommonModule, RouterModule, FontAwesomeModule, NgxEchartsModule, EmptyStateComponent],
+  imports: [CommonModule, RouterModule, FontAwesomeModule, NgxEchartsModule, EmptyStateComponent, SkeletonComponent],
   templateUrl: './expense-breakdown.component.html',
 })
 export class ExpenseBreakdownComponent implements OnInit {

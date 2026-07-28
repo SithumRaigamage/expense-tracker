@@ -13,15 +13,26 @@
     </div>
   </div>
 
+  <!-- Loading: chart-shaped placeholder, so the panel keeps its height -->
+  <div *ngIf="isLoading" class="space-y-3">
+    <app-skeleton width="100%" height="280px" rounded="xl"></app-skeleton>
+    <div class="flex justify-between gap-2">
+      <app-skeleton width="18%" height="0.75rem"></app-skeleton>
+      <app-skeleton width="18%" height="0.75rem"></app-skeleton>
+      <app-skeleton width="18%" height="0.75rem"></app-skeleton>
+      <app-skeleton width="18%" height="0.75rem"></app-skeleton>
+    </div>
+  </div>
+
   <app-empty-state
-    *ngIf="!hasTransactions"
+    *ngIf="!isLoading && !hasTransactions"
     [icon]="faChartLine"
     title="No data available"
     message="This comparison fills in as soon as you log your first income or expense."
     size="lg"
   ></app-empty-state>
 
-  <div *ngIf="hasTransactions" class="max-w-full overflow-x-auto custom-scrollbar">
+  <div *ngIf="!isLoading && hasTransactions" class="max-w-full overflow-x-auto custom-scrollbar">
     <div class="w-full">
       <apx-chart
         #chart

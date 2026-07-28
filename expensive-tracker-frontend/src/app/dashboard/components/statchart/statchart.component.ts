@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { faChartLine } from '@fortawesome/free-solid-svg-icons';
 import { ChartTabComponent } from "../../../shared/components/chart-tab/chart-tab.component";
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
+import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
 import { TransactionService } from '../../../services/transaction.service';
 import { CurrencyService } from '../../../core/services/currency.service';
 import {
@@ -39,7 +40,7 @@ export type ChartOptions = {
 @Component({
   selector: 'app-statchart',
   standalone: true,
-  imports: [CommonModule, ChartTabComponent, EmptyStateComponent, NgApexchartsModule],
+  imports: [CommonModule, ChartTabComponent, EmptyStateComponent, SkeletonComponent, NgApexchartsModule],
   templateUrl: './statchart.component.html',
 })
 export class StatchartComponent implements OnInit {
@@ -47,6 +48,7 @@ export class StatchartComponent implements OnInit {
   public chartOptions!: ChartOptions;
   faChartLine = faChartLine;
   hasTransactions = true;
+  isLoading = true;
 
   private monthlyData = {
     income: Array(12).fill(0),
@@ -71,11 +73,13 @@ export class StatchartComponent implements OnInit {
   }
 
   private loadTransactionData() {
-    this.transactionService.getTransactions().subscribe(transactions => {
-      this.hasTransactions = transactions.length > 0;
-      const monthlyData = this.aggregateMonthlyData(transactions);
-
-      this.updateChartData('monthly', monthlyData);
+    this.transactionService.getTransactions().subscribe({
+      next: transactions => {
+        this.hasTransactions = transactions.length > 0;
+        this.updateChartData('monthly', this.aggregateMonthlyData(transactions));
+        this.isLoading = false;
+      },
+      error: () => { this.isLoading = false; }
     });
   }
 

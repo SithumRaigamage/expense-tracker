@@ -68,3 +68,4 @@ report-task.txt
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+e2e/.auth/

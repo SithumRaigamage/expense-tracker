@@ -26,27 +26,6 @@ const PAGES = [
   { name: 'settings', path: '/settings/profile' }
 ];
 
-const API = process.env.E2E_API_URL || 'http://localhost:3001/api/v1';
-const CREDENTIALS = {
-  email: process.env.E2E_EMAIL || 'sraig2002@gmail.com',
-  password: process.env.E2E_PASSWORD || 'sithum123'
-};
-
-/** Log in through the API and seed the session the app expects, so the guard lets us in. */
-async function signIn(page: Page) {
-  const response = await page.request.post(`${API}/users/login`, { data: CREDENTIALS });
-  expect(response.ok(), `login failed: ${response.status()} — is the backend seeded?`).toBeTruthy();
-
-  const { data } = await response.json();
-  await page.addInitScript(
-    ([token, user]) => {
-      localStorage.setItem('token', token as string);
-      localStorage.setItem('user', JSON.stringify(user));
-    },
-    [data.token, data.user] as const
-  );
-}
-
 /** How far the page can be scrolled sideways, in CSS pixels. */
 const horizontalOverflow = (page: Page) =>
   page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
@@ -87,7 +66,6 @@ for (const viewport of VIEWPORTS) {
     for (const target of PAGES) {
       test(`${target.name} does not scroll sideways`, async ({ page }) => {
         await page.setViewportSize({ width: viewport.width, height: viewport.height });
-        await signIn(page);
 
         await page.goto(target.path, { waitUntil: 'networkidle' });
         await expect(page).toHaveURL(new RegExp(target.path.split('/')[1]));
