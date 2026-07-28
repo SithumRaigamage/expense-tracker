@@ -69,3 +69,6 @@ report-task.txt
 /blob-report/
 /playwright/.cache/
 e2e/.auth/
+
+# Playwright screenshots (regenerate with: npx playwright test e2e/screenshots.spec.ts)
+/e2e/screens/

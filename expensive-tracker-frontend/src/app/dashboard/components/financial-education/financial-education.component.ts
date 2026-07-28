@@ -50,4 +50,12 @@ export class FinancialEducationComponent {
       category: 'investing'
     }
   ];
+
+  /**
+   * Thumbnails reference assets that are not in the repo. Hide the broken image
+   * so the tinted panel behind it shows through, rather than a broken-image icon.
+   */
+  onThumbnailError(event: Event): void {
+    (event.target as HTMLImageElement).style.display = 'none';
+  }
 }
