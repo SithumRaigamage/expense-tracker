@@ -415,7 +415,6 @@ export class WalletService {
       map(wallets => {
         if (!wallets.length) return [];
         
-        const primaryCurrency = wallets[0].primaryCurrency || 'LKR';
         const types = [...new Set(wallets.map(w => w.type))];
         
         return types.map(type => {

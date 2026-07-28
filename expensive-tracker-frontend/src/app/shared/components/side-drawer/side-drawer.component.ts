@@ -79,10 +79,10 @@ export class SideDrawerComponent {
   @Input() isOpen = false;
   @Input() title = '';
   @Input() icon: any;
-  @Output() close = new EventEmitter<void>();
+  @Output() closed = new EventEmitter<void>();
 
   onClose() {
-    this.close.emit();
+    this.closed.emit();
   }
 
   // The backdrop closes the drawer on click; Escape is its keyboard equivalent.

@@ -31,8 +31,6 @@ export class DashboardService {
   private widgetsSubject = new BehaviorSubject<WidgetConfig[]>(this.loadConfig());
   widgets$ = this.widgetsSubject.asObservable();
 
-  constructor() {}
-
   private loadConfig(): WidgetConfig[] {
     const saved = localStorage.getItem(this.STORAGE_KEY);
     if (saved) {

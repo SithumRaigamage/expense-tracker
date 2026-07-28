@@ -177,8 +177,8 @@ export class StatchartComponent implements OnInit {
   private updateChartData(period: 'monthly' | 'quarterly' | 'annually' | 'trends', data: any): void {
     const chartType = period === 'annually' ? 'bar' : 'area';
     
-    let series: any[] = [];
-    let colors: string[] = [];
+    let series: any[];
+    let colors: string[];
     
     const currentCurrency = this.currencyService.getActiveCurrency();
     const convert = (val: number) => this.currencyService.convert(val, 'LKR', currentCurrency);

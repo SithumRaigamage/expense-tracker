@@ -207,7 +207,7 @@
     [isOpen]="isDrawerOpen"
     [title]="getDrawerTitle()"
     [icon]="drawerMode === 'add' ? faPlus : (drawerMode === 'edit' ? faEdit : faPlusCircle)"
-    (close)="closeDrawer()">
+    (closed)="closeDrawer()">
 
     <div class="h-full flex flex-col">
       <!-- Tab Navigation (only for adding new) -->

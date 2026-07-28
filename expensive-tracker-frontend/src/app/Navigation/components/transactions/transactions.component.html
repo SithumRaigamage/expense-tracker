@@ -327,7 +327,7 @@
     [isOpen]="isDrawerOpen"
     [title]="selectedTransaction ? 'Edit Transaction' : 'New Transaction'"
     [icon]="selectedTransaction ? faEdit : faPlus"
-    (close)="closeDrawer()">
+    (closed)="closeDrawer()">
 
     <div class="h-full flex flex-col">
       <!-- Tab Navigation (only for adding new) -->

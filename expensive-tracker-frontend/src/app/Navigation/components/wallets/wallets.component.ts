@@ -58,7 +58,6 @@ export class WalletsComponent implements OnInit, OnDestroy {
   isDrawerOpen = false;
   selectedWallet: Wallet | null = null;
   wallets: Wallet[] = [];
-  primaryCurrency = 'LKR';
   error: string | null = null;
   isLoading = false;
   isAuthError = false;
@@ -104,9 +103,6 @@ export class WalletsComponent implements OnInit, OnDestroy {
     this.subscription.add(
       this.walletService.wallets$.subscribe(wallets => {
         this.wallets = wallets;
-        if (wallets.length > 0 && wallets[0].primaryCurrency) {
-          this.primaryCurrency = wallets[0].primaryCurrency;
-        }
       })
     );
 

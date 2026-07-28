@@ -80,7 +80,7 @@
     [isOpen]="isDrawerOpen"
     [title]="drawerMode === 'add' ? 'Add New Bill' : 'Edit Bill'"
     [icon]="drawerMode === 'add' ? faPlus : faEdit"
-    (close)="closeDrawer()">
+    (closed)="closeDrawer()">
 
     <form (ngSubmit)="submitForm()" class="space-y-6">
       <!-- Bill Name -->

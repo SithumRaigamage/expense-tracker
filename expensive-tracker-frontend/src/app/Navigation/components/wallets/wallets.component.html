@@ -149,7 +149,7 @@
     [isOpen]="isDrawerOpen"
     [title]="selectedWallet ? 'Edit Wallet' : 'Add New Wallet'"
     [icon]="selectedWallet ? faEdit : faPlus"
-    (close)="closeDrawer()">
+    (closed)="closeDrawer()">
 
     <div class="h-full flex flex-col">
       <!-- Tab Navigation (only for adding new) -->

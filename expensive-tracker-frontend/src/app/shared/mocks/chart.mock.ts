@@ -1,6 +1,9 @@
 import { Component, Input } from '@angular/core';
 
 @Component({
+  // Must match ng-apexcharts' own selector so this stands in for the real
+  // chart in tests; an "app-" prefix would stop it substituting.
+  // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'apx-chart',
   standalone: true,
   template: '<div>Mock Chart</div>'
