@@ -41,12 +41,13 @@
           <div class="space-y-5">
             <!-- Full Name Input -->
             <div class="space-y-1.5">
-              <label class="ml-1 text-xs font-bold uppercase tracking-widest text-gray-400">Full Name</label>
+              <label for="register-name" class="ml-1 text-xs font-bold uppercase tracking-widest text-gray-400">Full Name</label>
               <div class="relative group/input">
                 <div class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400 transition-colors group-focus-within/input:text-brand-500">
                   <fa-icon [icon]="faUser"></fa-icon>
                 </div>
                 <input
+                  id="register-name"
                   formControlName="name"
                   type="text"
                   placeholder="John Doe"
@@ -64,12 +65,13 @@
 
             <!-- Email Input -->
             <div class="space-y-1.5">
-              <label class="ml-1 text-xs font-bold uppercase tracking-widest text-gray-400">Email Address</label>
+              <label for="register-email" class="ml-1 text-xs font-bold uppercase tracking-widest text-gray-400">Email Address</label>
               <div class="relative group/input">
                 <div class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400 transition-colors group-focus-within/input:text-brand-500">
                   <fa-icon [icon]="faEnvelope"></fa-icon>
                 </div>
                 <input
+                  id="register-email"
                   formControlName="email"
                   type="email"
                   placeholder="name@example.com"
@@ -87,12 +89,13 @@
 
             <!-- Password Input -->
             <div class="space-y-1.5">
-              <label class="ml-1 text-xs font-bold uppercase tracking-widest text-gray-400">Password</label>
+              <label for="register-password" class="ml-1 text-xs font-bold uppercase tracking-widest text-gray-400">Password</label>
               <div class="relative group/input">
                 <div class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400 transition-colors group-focus-within/input:text-brand-500">
                   <fa-icon [icon]="faLock"></fa-icon>
                 </div>
                 <input
+                  id="register-password"
                   formControlName="password"
                   [type]="showPassword ? 'text' : 'password'"
                   placeholder="••••••••"
