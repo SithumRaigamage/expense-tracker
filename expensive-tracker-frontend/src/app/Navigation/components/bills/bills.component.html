@@ -28,10 +28,14 @@
         <div class="grid grid-cols-1 gap-4 md:grid-cols-12 md:gap-6 md:items-center">
           <!-- Left: Bill Info -->
           <div class="col-span-12 md:col-span-3 flex items-center gap-4 min-w-0">
-            <div class="h-10 w-10 flex-shrink-0 rounded-lg overflow-hidden">
-              <img [src]="bill.iconUrl"
-                [alt]="bill.provider + ' logo'"
-                class="h-full w-full object-cover">
+            <div class="h-10 w-10 flex-shrink-0 rounded-lg overflow-hidden bg-brand-50 dark:bg-brand-500/10 flex items-center justify-center">
+              @if (bill.iconUrl) {
+                <img [src]="bill.iconUrl" [alt]="bill.provider + ' logo'"
+                  class="h-full w-full object-cover" (error)="onIconError($event)">
+              } @else {
+                <span class="text-sm font-bold text-brand-600 dark:text-brand-400"
+                  aria-hidden="true">{{ bill.provider.charAt(0).toUpperCase() }}</span>
+              }
             </div>
             <div class="min-w-0">
               <h4 class="truncate font-medium text-gray-900 dark:text-white">{{bill.name}}</h4>
@@ -51,19 +55,30 @@
             <div class="flex flex-col">
               <span class="text-sm text-gray-500 dark:text-gray-400">Amount</span>
               <span class="font-medium text-gray-900 dark:text-white">{{bill.amount | appCurrency}}</span>
+              <span class="mt-1 inline-flex w-fit items-center rounded-full px-2 py-0.5 text-xs font-semibold"
+                [class]="getStatusClass(bill.status)">{{ bill.status }}</span>
             </div>
           </div>
           <!-- Right: Actions -->
           <div class="col-span-12 md:col-span-3 flex items-center justify-start md:justify-end gap-2 border-t md:border-t-0 border-gray-100 pt-4 dark:border-gray-800 md:pt-0">
-            <button (click)="openDrawer('edit', bill)"
-              class="rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700">
+            @if (bill.status !== 'Paid') {
+              <button type="button" (click)="payBill(bill)"
+                class="rounded-lg bg-brand-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-brand-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
+                [attr.aria-label]="'Pay ' + bill.name">
+                Pay
+              </button>
+            }
+            <button type="button" (click)="openDrawer('edit', bill)"
+              [attr.aria-label]="'Edit ' + bill.name"
+              class="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:text-gray-400 dark:hover:bg-gray-700">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
               </svg>
             </button>
-            <button (click)="deleteBill(bill.id)"
-              class="rounded-lg p-2 text-red-500 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20">
+            <button type="button" (click)="deleteBill(bill.id)"
+              [attr.aria-label]="'Delete ' + bill.name"
+              class="rounded-lg p-2 text-red-500 transition hover:bg-red-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500 dark:text-red-400 dark:hover:bg-red-900/20">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="3 6 5 6 21 6"></polyline>
                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>

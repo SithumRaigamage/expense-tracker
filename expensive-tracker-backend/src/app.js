@@ -23,6 +23,7 @@ const walletRoutes = require('./routes/walletRoutes');
 const productBudgetRoutes = require('./routes/productBudgetRoutes');
 const releaseNoteRoutes = require('./routes/releaseNoteRoutes');
 const currencyRoutes = require('./routes/currencyRoutes');
+const billRoutes = require('./routes/billRoutes');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -112,6 +113,7 @@ app.use('/api/v1/wallets', walletRoutes);
 app.use('/api/v1/productbudgets', productBudgetRoutes);
 app.use('/api/v1/release-notes', releaseNoteRoutes);
 app.use('/api/v1/currency', currencyRoutes);
+app.use('/api/v1/bills', billRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

@@ -21,6 +21,9 @@ const PAYMENT_METHODS = [
 // Category types
 const CATEGORY_TYPES = ['income', 'expense'];
 
+// Bill categories
+const BILL_CATEGORIES = ['Utilities', 'Subscription', 'Entertainment', 'Internet', 'Insurance', 'Other'];
+
 // Recurring frequencies
 const RECURRING_FREQUENCIES = ['daily', 'weekly', 'monthly', 'yearly'];
 
@@ -51,6 +54,7 @@ module.exports = {
   CURRENCIES,
   PAYMENT_METHODS,
   CATEGORY_TYPES,
+  BILL_CATEGORIES,
   RECURRING_FREQUENCIES,
   FILE_UPLOAD,
   PAGINATION,

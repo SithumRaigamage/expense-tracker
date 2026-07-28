@@ -32,7 +32,14 @@ module.exports = [
       }
     },
     rules: {
-      'no-unused-vars': ['warn', { argsIgnorePattern: '^_|^next$' }],
+      // ignoreRestSiblings covers the omit-a-field-by-destructuring idiom
+      // (`const { user: _user, ...rest } = input`), which is how services strip
+      // caller-controlled fields before a write.
+      'no-unused-vars': ['warn', {
+        argsIgnorePattern: '^_|^next$',
+        varsIgnorePattern: '^_',
+        ignoreRestSiblings: true
+      }],
       'no-console': 'warn',
       eqeqeq: ['warn', 'smart'],
       'no-var': 'error',

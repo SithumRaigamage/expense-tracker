@@ -89,17 +89,37 @@ export class BillsComponent implements OnInit {
   }
 
   submitForm(): void {
-    if (this.validateBill()) {
-      if (this.drawerMode === 'add') {
-        this.billsService.addBill(this.currentBill as Omit<Bill, 'id' | 'status'>);
-      } else {
-        this.billsService.updateBill(
-          this.currentBill.id!,
-          this.currentBill as Partial<Bill>
-        );
-      }
-      this.closeDrawer();
+    if (!this.validateBill()) {
+      this.notifications.error('Fill in every field before saving.');
+      return;
     }
+
+    const request$ = this.drawerMode === 'add'
+      ? this.billsService.addBill(this.currentBill)
+      : this.billsService.updateBill(this.currentBill.id!, this.currentBill);
+
+    request$.subscribe({
+      next: () => {
+        this.notifications.success(this.drawerMode === 'add' ? 'Bill added.' : 'Bill updated.');
+        this.closeDrawer();
+      },
+      error: (error) => this.notifications.error(error?.message || 'Could not save that bill.')
+    });
+  }
+
+  /** Pays the bill from a wallet; the server moves the money and logs it. */
+  payBill(bill: Bill): void {
+    const walletId = bill.selectedWalletId || this.availableWallets[0]?.id;
+
+    if (!walletId) {
+      this.notifications.error('Add a funded cash or bank wallet first.');
+      return;
+    }
+
+    this.billsService.payBill(bill.id, walletId).subscribe({
+      next: () => this.notifications.success(`Paid ${bill.name}.`),
+      error: (error) => this.notifications.error(error?.message || 'Could not pay that bill.')
+    });
   }
 
   deleteBill(id: string): void {
@@ -119,6 +139,21 @@ export class BillsComponent implements OnInit {
       this.currentBill.dueDate &&
       this.currentBill.provider
     );
+  }
+
+  /** Same palette the dashboard widget uses, so a status reads the same everywhere. */
+  getStatusClass(status: Bill['status']): string {
+    const classes: Record<string, string> = {
+      'Upcoming': 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
+      'Due Today': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
+      'Overdue': 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+      'Paid': 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+    };
+    return classes[status] || '';
+  }
+
+  onIconError(event: Event): void {
+    (event.target as HTMLImageElement).style.display = 'none';
   }
 
   formatDate(date: Date): string {
