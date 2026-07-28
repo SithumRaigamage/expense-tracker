@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -57,6 +57,12 @@ export interface EmergencyChartOptions {
   imports: [CommonModule, FormsModule, NgApexchartsModule, AppCurrencyPipe]
 })
 export class EmergencyFundComponent implements OnInit, OnDestroy {
+  private transactionService = inject(TransactionService);
+  private walletService = inject(WalletService);
+  private router = inject(Router);
+  private currencyService = inject(CurrencyService);
+  private readonly notifications = inject(NotificationService);
+
   public chartOptions!: Partial<EmergencyChartOptions>;
   protected Math = Math;
 
@@ -85,14 +91,6 @@ export class EmergencyFundComponent implements OnInit, OnDestroy {
   currentPage = 1;
   pageSize = 10;
   totalPages = 1;
-
-  constructor(
-    private transactionService: TransactionService,
-    private walletService: WalletService,
-    private router: Router,
-    private currencyService: CurrencyService,
-    private readonly notifications: NotificationService
-  ) {}
 
   ngOnInit(): void {
     this.loadTransactions();
@@ -230,8 +228,8 @@ export class EmergencyFundComponent implements OnInit, OnDestroy {
       combineLatest([
         this.walletService.getAllWallets(),
         this.transactionService.getTransactions()
-      ]).subscribe(([wallets, allTransactions]: [any[], any[]]) => {
-        const emergencyWallet = wallets.find((w: any) => w.type === 'emergencyfund');
+      ]).subscribe(([wallets, allTransactions]) => {
+        const emergencyWallet = wallets.find(w => w.type === 'emergencyfund');
         if (!emergencyWallet) {
           this.currentBalance = 0;
           this.emergencyWalletId = null;
@@ -246,7 +244,7 @@ export class EmergencyFundComponent implements OnInit, OnDestroy {
         this.monthlySaveGoal = emergencyWallet.monthlyTarget || DEFAULT_MONTHLY_TARGET;
         
         if (allTransactions) {
-          const walletTransactions = allTransactions.filter((t: any) => t.walletId === emergencyWallet.id);
+          const walletTransactions = allTransactions.filter(t => t.walletId === emergencyWallet.id);
           
           // Sort by date ascending for the chart
           const sortedTransactions = [...walletTransactions].sort((a, b) => 
@@ -310,6 +308,68 @@ export class EmergencyFundComponent implements OnInit, OnDestroy {
     if (page >= 1 && page <= this.totalPages) {
       this.currentPage = page;
     }
+  }
+
+  /**
+   * The three badges beside these figures used to read "+25% MTD", "6 months"
+   * and "On Track" — string literals sitting next to real balances, so they
+   * claimed things about the user's money that nothing had calculated. Each one
+   * below is derived, and returns null when the underlying number does not
+   * exist yet so the template can leave the badge out rather than invent one.
+   */
+
+  /** Net deposits minus withdrawals since the first of the current month. */
+  get monthToDateChange(): number {
+    const monthStart = new Date();
+    monthStart.setDate(1);
+    monthStart.setHours(0, 0, 0, 0);
+
+    return this.transactions
+      .filter(t => t.date >= monthStart)
+      .reduce((total, t) => total + (t.type === 'deposit' ? t.amount : -t.amount), 0);
+  }
+
+  /**
+   * Month-to-date change as a share of what the fund held on the first. Null
+   * when nothing moved this month, or when the fund opened the month empty —
+   * a percentage of zero is not a number anyone can act on, and the template
+   * falls back to showing the amount itself.
+   */
+  get monthToDatePercent(): number | null {
+    const change = this.monthToDateChange;
+    if (change === 0) return null;
+
+    const openingBalance = this.currentBalance - change;
+    if (openingBalance <= 0) return null;
+
+    return (change / openingBalance) * 100;
+  }
+
+  /**
+   * Whole months of contributions still needed to reach the target at the
+   * current monthly goal. Null when the target is already met, or when no
+   * monthly goal is set to divide by.
+   */
+  get monthsToTarget(): number | null {
+    const remaining = this.targetGoal - this.currentBalance;
+    if (remaining <= 0 || this.monthlySaveGoal <= 0) return null;
+
+    return Math.ceil(remaining / this.monthlySaveGoal);
+  }
+
+  get hasReachedTarget(): boolean {
+    return this.targetGoal > 0 && this.currentBalance >= this.targetGoal;
+  }
+
+  /** How far this month's net saving is short of the monthly goal; 0 once met. */
+  get monthlyGoalShortfall(): number {
+    return Math.max(0, this.monthlySaveGoal - this.monthToDateChange);
+  }
+
+  /** Share of the target saved so far, clamped and guarded against a zero target. */
+  get progressPercent(): number {
+    if (this.targetGoal <= 0) return 0;
+    return Math.min(100, Math.max(0, (this.currentBalance / this.targetGoal) * 100));
   }
 
   navToAllTransactions(): void {
