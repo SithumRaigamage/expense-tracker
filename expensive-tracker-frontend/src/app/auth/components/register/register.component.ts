@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -14,6 +14,10 @@ import { faEye, faEyeSlash, faSpinner, faArrowRight, faLock, faEnvelope, faUser 
   styleUrl: './register.component.css'
 })
 export class RegisterComponent {
+  private fb = inject(FormBuilder);
+  private authService = inject(AuthService);
+  private router = inject(Router);
+
   registerForm: FormGroup;
   loading = false;
   error = '';
@@ -28,11 +32,7 @@ export class RegisterComponent {
   faEnvelope = faEnvelope;
   faUser = faUser;
 
-  constructor(
-    private fb: FormBuilder,
-    private authService: AuthService,
-    private router: Router
-  ) {
+  constructor() {
     this.registerForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],
@@ -68,8 +68,8 @@ export class RegisterComponent {
     Object.values(formGroup.controls).forEach(control => {
       control.markAsTouched();
 
-      if ((control as any).controls) {
-        this.markFormGroupTouched(control as any);
+      if (control instanceof FormGroup) {
+        this.markFormGroupTouched(control);
       }
     });
   }

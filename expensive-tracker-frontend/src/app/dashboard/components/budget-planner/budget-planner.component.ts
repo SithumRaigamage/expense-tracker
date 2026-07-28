@@ -15,16 +15,14 @@ import { WalletService } from '../../../services/wallet.service';
   imports: [CommonModule, FormsModule, RouterModule, AppCurrencyPipe]
 })
 export class BudgetPlannerComponent implements OnInit {
+  private productBudgetService = inject(ProductBudgetService);
+  private walletService = inject(WalletService);
+
   private readonly destroyRef = inject(DestroyRef);
 
   productgoals: ProductBudget[] = [];
   isLoading = true;
   error: string | null = null;
-
-  constructor(
-    private productBudgetService: ProductBudgetService,
-    private walletService: WalletService
-  ) {}
 
   ngOnInit(): void {
     this.loadGoals();

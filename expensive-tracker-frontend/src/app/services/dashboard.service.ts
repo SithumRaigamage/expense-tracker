@@ -35,11 +35,15 @@ export class DashboardService {
     const saved = localStorage.getItem(this.STORAGE_KEY);
     if (saved) {
       try {
-        const parsed = JSON.parse(saved);
+        const parsed = JSON.parse(saved) as Partial<WidgetConfig>[];
         // Merge with default to ensure new widgets are added if app updates
         return this.defaultWidgets.map(def => {
-          const found = parsed.find((p: any) => p.id === def.id);
-          return found ? { ...def, isVisible: found.isVisible, order: found.order } : def;
+          const found = parsed.find(p => p.id === def.id);
+          // A stored entry may predate a field, so fall back to the default rather
+          // than writing undefined into a required one.
+          return found
+            ? { ...def, isVisible: found.isVisible ?? def.isVisible, order: found.order ?? def.order }
+            : def;
         });
       } catch (e) {
         console.error('Error parsing dashboard config', e);

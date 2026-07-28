@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { Currency, SettingsService } from '../../../../services/settings.service';
 
 import { FormsModule } from '@angular/forms';
@@ -11,15 +11,13 @@ import { NotificationService } from '../../../../shared/services/notification.se
   templateUrl: './currency.component.html',
 })
 export class CurrencyComponent implements OnInit {
+  private settingsService = inject(SettingsService);
+  private currencyService = inject(CurrencyService);
+  private readonly notifications = inject(NotificationService);
+
 
   selectedCurrency = 'LKR'; // Default currency
   currencies: Currency[] = [];
-
-  constructor(
-    private settingsService: SettingsService,
-    private currencyService: CurrencyService,
-    private readonly notifications: NotificationService
-  ) {}
 
   ngOnInit(): void {
     this.loadCurrencies();

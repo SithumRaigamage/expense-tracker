@@ -17,6 +17,8 @@ import { Transaction } from '../../../core/models/Transaction';
   templateUrl: './recent-transactions.component.html'
 })
 export class RecentTransactionsComponent implements OnInit {
+  private transactionService = inject(TransactionService);
+
   private readonly destroyRef = inject(DestroyRef);
 
   faReceipt = faReceipt;
@@ -24,9 +26,7 @@ export class RecentTransactionsComponent implements OnInit {
   isLoading = true;
   displayedTransactions: Transaction[] = [];
   showAll = false;
-  private readonly INITIAL_DISPLAY_COUNT = 5; // Changed to show fewer items initially
-
-  constructor(private transactionService: TransactionService) {}
+  private readonly INITIAL_DISPLAY_COUNT = 5;
 
   ngOnInit() {
     this.loadRecentTransactions();

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 
 import { RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
@@ -24,6 +24,11 @@ import { NotificationService } from '../../../../shared/services/notification.se
   templateUrl: './profile.component.html',
 })
 export class ProfileComponent implements OnInit {
+  private settingsService = inject(SettingsService);
+  private sanitizer = inject(DomSanitizer);
+  private fb = inject(FormBuilder);
+  private readonly notifications = inject(NotificationService);
+
   user: User | null = null;
   isOpen = false;
   formData: Partial<User> = {};
@@ -59,12 +64,7 @@ export class ProfileComponent implements OnInit {
 
   readonly MASKED_PASSWORD = '●●●●●●●●●●';
 
-  constructor(
-    private settingsService: SettingsService,
-    private sanitizer: DomSanitizer,
-    private fb: FormBuilder,
-    private readonly notifications: NotificationService
-  ) {
+  constructor() {
     // Initialize password form
     this.passwordForm = this.fb.group({
       currentPassword: ['', [Validators.required]],
@@ -233,8 +233,9 @@ export class ProfileComponent implements OnInit {
 
   private createImagePreview(file: File): void {
     const reader = new FileReader();
-    reader.onload = (e: any) => {
-      this.previewImage = this.sanitizer.bypassSecurityTrustUrl(e.target.result);
+    reader.onload = (e: ProgressEvent<FileReader>) => {
+      const dataUrl = typeof e.target?.result === 'string' ? e.target.result : '';
+      this.previewImage = this.sanitizer.bypassSecurityTrustUrl(dataUrl);
     };
     reader.onerror = (e) => {
       console.error('Error creating image preview:', e);
@@ -375,10 +376,12 @@ export class ProfileComponent implements OnInit {
       formData.append('profileImage', this.selectedImage!);
 
       // Add other form data fields to the formData
-      Object.keys(this.formData).forEach(key => {
-        if ((this.formData as any)[key] !== undefined && (this.formData as any)[key] !== null) {
+      // Object.entries carries the value along, so the field does not need to be
+      // read back through an index signature Partial<User> does not have.
+      Object.entries(this.formData).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
           // Convert any object values to strings for FormData
-          formData.append(key, String((this.formData as any)[key]));
+          formData.append(key, String(value));
         }
       });
 

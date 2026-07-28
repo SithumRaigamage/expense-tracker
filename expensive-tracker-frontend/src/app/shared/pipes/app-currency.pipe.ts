@@ -1,4 +1,4 @@
-import { Pipe, PipeTransform } from '@angular/core';
+import { Pipe, PipeTransform, inject } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
 import { CurrencyService } from '../../core/services/currency.service';
 
@@ -8,16 +8,16 @@ import { CurrencyService } from '../../core/services/currency.service';
   pure: false // Impure to detect service state changes
 })
 export class AppCurrencyPipe implements PipeTransform {
+  private currencyService = inject(CurrencyService);
+
   private currencyPipe = new CurrencyPipe('en-US');
   
   // Memoization cache
   private lastValue: number | undefined;
   private lastSource: string | undefined;
   private lastTarget: string | undefined;
-  private lastRates: any;
+  private lastRates: Record<string, number> | null = null;
   private lastOutput: string | null = null;
-
-  constructor(private currencyService: CurrencyService) {}
 
   transform(value: number, sourceCurrency = 'LKR'): string | null {
     if (value === null || value === undefined) return null;

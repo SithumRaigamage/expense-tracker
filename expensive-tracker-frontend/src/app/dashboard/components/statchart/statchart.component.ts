@@ -6,6 +6,7 @@ import { ChartTabComponent } from "../../../shared/components/chart-tab/chart-ta
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
 import { TransactionService } from '../../../services/transaction.service';
+import { Transaction } from '../../../core/models/Transaction';
 import { CurrencyService } from '../../../core/services/currency.service';
 import {
   ApexChart,
@@ -38,6 +39,18 @@ export interface ChartOptions {
   legend: ApexLegend;
 }
 
+/** Income and expense totals for whichever buckets the period asks for. */
+interface PeriodTotals {
+  income: number[];
+  expenses: number[];
+}
+
+/** One named line on the trends chart — a year of monthly expense totals. */
+interface TrendSeries {
+  name: string;
+  data: number[];
+}
+
 @Component({
   selector: 'app-statchart',
   standalone: true,
@@ -45,6 +58,9 @@ export interface ChartOptions {
   templateUrl: './statchart.component.html',
 })
 export class StatchartComponent implements OnInit {
+  private transactionService = inject(TransactionService);
+  private currencyService = inject(CurrencyService);
+
   private readonly destroyRef = inject(DestroyRef);
 
   @ViewChild("chart") chart!: ChartComponent;
@@ -64,7 +80,7 @@ export class StatchartComponent implements OnInit {
     textMuted: '#6B7280' // Gray for labels
   };
 
-  constructor(private transactionService: TransactionService, private currencyService: CurrencyService) {
+  constructor() {
     this.initializeChart('monthly');
   }
 
@@ -86,7 +102,7 @@ export class StatchartComponent implements OnInit {
     });
   }
 
-  private aggregateMonthlyData(transactions: any[]) {
+  private aggregateMonthlyData(transactions: Transaction[]): PeriodTotals {
     const data = {
       income: Array(12).fill(0),
       expenses: Array(12).fill(0)
@@ -104,7 +120,7 @@ export class StatchartComponent implements OnInit {
     return data;
   }
 
-  private aggregateQuarterlyData(monthlyData: any) {
+  private aggregateQuarterlyData(monthlyData: PeriodTotals): PeriodTotals {
     const data = {
       income: Array(4).fill(0),
       expenses: Array(4).fill(0)
@@ -119,16 +135,16 @@ export class StatchartComponent implements OnInit {
     return data;
   }
 
-  private aggregateAnnualData(monthlyData: any) {
+  private aggregateAnnualData(monthlyData: PeriodTotals): PeriodTotals {
     return {
       income: [monthlyData.income.reduce((a: number, b: number) => a + b, 0)],
       expenses: [monthlyData.expenses.reduce((a: number, b: number) => a + b, 0)]
     };
   }
 
-  private aggregateTrendData(transactions: any[]): any {
+  private aggregateTrendData(transactions: Transaction[]): TrendSeries[] {
     const years = [...new Set(transactions.map(t => new Date(t.date).getFullYear()))].sort();
-    const series: any[] = [];
+    const series: TrendSeries[] = [];
     
     years.forEach(year => {
       const yearData = Array(12).fill(0);
@@ -177,17 +193,20 @@ export class StatchartComponent implements OnInit {
     }
   }
 
-  private updateChartData(period: 'monthly' | 'quarterly' | 'annually' | 'trends', data: any): void {
+  private updateChartData(
+    period: 'monthly' | 'quarterly' | 'annually' | 'trends',
+    data: PeriodTotals | TrendSeries[]
+  ): void {
     const chartType = period === 'annually' ? 'bar' : 'area';
-    
-    let series: any[];
+
+    let series: TrendSeries[];
     let colors: string[];
     
     const currentCurrency = this.currencyService.getActiveCurrency();
     const convert = (val: number) => this.currencyService.convert(val, 'LKR', currentCurrency);
 
     if (period === 'trends') {
-      series = data.map((s: any) => ({
+      series = (data as TrendSeries[]).map(s => ({
         ...s,
         data: s.data.map(convert)
       }));
@@ -195,13 +214,14 @@ export class StatchartComponent implements OnInit {
       const palette = ['#EF4444', '#F97316', '#F59E0B', '#10B981', '#3B82F6', '#6366F1', '#8B5CF6'];
       colors = series.map((_, i) => palette[i % palette.length]);
     } else {
+      const totals = data as PeriodTotals;
       series = [{
         name: "Income",
-        data: data.income.map(convert)
+        data: totals.income.map(convert)
       },
       {
         name: "Expenses",
-        data: data.expenses.map(convert)
+        data: totals.expenses.map(convert)
       }];
       colors = [this.COLORS.income, this.COLORS.expense];
     }

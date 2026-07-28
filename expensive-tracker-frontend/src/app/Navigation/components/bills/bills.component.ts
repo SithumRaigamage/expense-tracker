@@ -22,6 +22,13 @@ import { DialogService } from '../../../shared/services/dialog.service';
   templateUrl: './bills.component.html',
 })
 export class BillsComponent implements OnInit {
+  private billsService = inject(BillsService);
+  private walletService = inject(WalletService);
+  currencyService = inject(CurrencyService);
+  private excelExportService = inject(ExcelExportService);
+  private readonly notifications = inject(NotificationService);
+  private readonly dialogs = inject(DialogService);
+
   private readonly destroyRef = inject(DestroyRef);
 
   bills: Bill[] = [];
@@ -34,15 +41,6 @@ export class BillsComponent implements OnInit {
   faDownload = faDownload;
   faEdit = faEdit;
   faPlus = faPlus;
-
-  constructor(
-    private billsService: BillsService,
-    private walletService: WalletService,
-    public currencyService: CurrencyService,
-    private excelExportService: ExcelExportService,
-    private readonly notifications: NotificationService,
-    private readonly dialogs: DialogService
-  ) {}
 
   ngOnInit(): void {
     this.loadData();

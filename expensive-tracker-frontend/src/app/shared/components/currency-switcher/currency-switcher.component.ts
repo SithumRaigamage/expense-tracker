@@ -1,4 +1,4 @@
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Observable } from 'rxjs';
 import { CurrencyService } from '../../../core/services/currency.service';
@@ -44,12 +44,14 @@ import { faGlobe } from '@fortawesome/free-solid-svg-icons';
     `
 })
 export class CurrencySwitcherComponent {
+  private currencyService = inject(CurrencyService);
+
   isOpen = false;
   activeCurrency$: Observable<string>;
   supportedCurrencies: string[];
   faGlobe = faGlobe;
 
-  constructor(private currencyService: CurrencyService) {
+  constructor() {
     this.activeCurrency$ = this.currencyService.activeCurrency$;
     this.supportedCurrencies = this.currencyService.supportedCurrencies;
   }

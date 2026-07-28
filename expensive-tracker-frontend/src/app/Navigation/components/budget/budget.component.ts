@@ -24,6 +24,13 @@ type DrawerMode = 'add' | 'edit' | 'addMoney' | null;
   templateUrl: './budget.component.html',
 })
 export class BudgetComponent implements OnInit {
+  private readonly notifications = inject(NotificationService);
+  private readonly dialogs = inject(DialogService);
+  private productBudgetService = inject(ProductBudgetService);
+  private walletService = inject(WalletService);
+  currencyService = inject(CurrencyService);
+  private excelExportService = inject(ExcelExportService);
+
   private readonly destroyRef = inject(DestroyRef);
 
   goals: ProductBudget[] = [];
@@ -63,15 +70,6 @@ export class BudgetComponent implements OnInit {
   selectedFile: File | null = null;
   jsonPreview: Omit<ProductBudget, 'id'>[] | null = null;
   jsonError: string | null = null;
-
-  constructor(
-    private readonly notifications: NotificationService,
-    private readonly dialogs: DialogService,
-    private productBudgetService: ProductBudgetService,
-    private walletService: WalletService,
-    public currencyService: CurrencyService,
-    private excelExportService: ExcelExportService
-  ) {}
 
   ngOnInit(): void {
     this.loadGoals();
@@ -123,9 +121,10 @@ export class BudgetComponent implements OnInit {
 
       // Convert to base64 string for preview and storage
       const reader = new FileReader();
-      reader.onload = (e: any) => {
-        // Set the image URL to the base64 string
-        this.currentGoal.imageUrl = e.target.result;
+      reader.onload = (e: ProgressEvent<FileReader>) => {
+        // readAsDataURL always yields a string; the guard is for the type, and
+        // a non-string result falls through to the same empty preview as no file.
+        this.currentGoal.imageUrl = typeof e.target?.result === 'string' ? e.target.result : '';
         // Hide loading indicator
         this.isUploading = false;
       };

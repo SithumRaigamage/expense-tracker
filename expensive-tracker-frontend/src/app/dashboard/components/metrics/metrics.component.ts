@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { MatCardModule } from '@angular/material/card';
@@ -19,6 +19,8 @@ import { Subscription } from 'rxjs';
   standalone: true
 })
 export class MetricsComponent implements OnInit, OnDestroy {
+  private walletService = inject(WalletService);
+
   faArrowUp = faArrowUp;
   faArrowDown = faArrowDown;
   faWallet = faWallet;
@@ -26,8 +28,6 @@ export class MetricsComponent implements OnInit, OnDestroy {
   /** Distinguishes "still loading" from "loaded and genuinely empty" — different UI. */
   isLoading = true;
   private subscription: Subscription = new Subscription();
-
-  constructor(private walletService: WalletService) {}
 
   ngOnInit() {
     this.subscription.add(

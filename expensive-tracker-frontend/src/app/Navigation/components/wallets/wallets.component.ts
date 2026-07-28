@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -34,6 +34,15 @@ import { NotificationService } from '../../../shared/services/notification.servi
   imports: [CommonModule, ReactiveFormsModule, FontAwesomeModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatButtonModule, AppCurrencyPipe, SideDrawerComponent]
 })
 export class WalletsComponent implements OnInit, OnDestroy {
+  private fb = inject(FormBuilder);
+  walletService = inject(WalletService);
+  private dialogService = inject(DialogService);
+  private dialog = inject(MatDialog);
+  private router = inject(Router);
+  currencyService = inject(CurrencyService);
+  private excelExportService = inject(ExcelExportService);
+  private readonly notifications = inject(NotificationService);
+
   faWallet = faWallet;
   faPlus = faPlus;
   faPencil = faPencil;
@@ -73,16 +82,7 @@ export class WalletsComponent implements OnInit, OnDestroy {
 
   private subscription: Subscription;
 
-  constructor(
-    private fb: FormBuilder,
-    public walletService: WalletService,
-    private dialogService: DialogService,
-    private dialog: MatDialog,
-    private router: Router,
-    public currencyService: CurrencyService,
-    private excelExportService: ExcelExportService,
-    private readonly notifications: NotificationService
-  ) {
+  constructor() {
     this.subscription = new Subscription();
     this.initForm();
   }
@@ -253,9 +253,11 @@ export class WalletsComponent implements OnInit, OnDestroy {
     }
 
     const reader = new FileReader();
-    reader.onload = (e: any) => {
+    reader.onload = (e: ProgressEvent<FileReader>) => {
       try {
-        const json = JSON.parse(e.target.result);
+        // A null result parses to a SyntaxError, which the catch below already
+        // reports as an invalid file.
+        const json = JSON.parse(String(e.target?.result ?? ''));
         this.processJsonData(json);
       } catch (error) {
         console.error('Error parsing JSON:', error);
@@ -270,7 +272,9 @@ export class WalletsComponent implements OnInit, OnDestroy {
     reader.readAsText(file);
   }
 
-  processJsonData(data: any) {
+  // The argument comes straight from a user-supplied file, so it is unknown
+  // until these checks have run over it.
+  processJsonData(data: unknown) {
     // Validate the JSON structure
     if (!Array.isArray(data)) {
       this.jsonError = 'Invalid JSON format. Expected an array of wallets.';
@@ -279,28 +283,34 @@ export class WalletsComponent implements OnInit, OnDestroy {
 
     const validWallets: Wallet[] = [];
     const errors: string[] = [];
+    const walletTypes = ['cash', 'bank', 'credit', 'savings', 'crypto', 'investment', 'loan', 'emergencyfund'];
 
-    data.forEach((item: any, index: number) => {
-      if (!item.name) {
+    data.forEach((entry: unknown, index: number) => {
+      const item = (entry ?? {}) as Record<string, unknown>;
+      const name = typeof item['name'] === 'string' ? item['name'] : '';
+      const type = item['type'];
+      const label = name || index;
+
+      if (!name) {
         errors.push(`Wallet at index ${index} is missing a name`);
       }
 
-      if (!item.type || !['cash', 'bank', 'credit', 'savings', 'crypto', 'investment', 'loan', 'emergencyfund'].includes(item.type)) {
-        errors.push(`Wallet "${item.name || index}" has an invalid type`);
+      if (typeof type !== 'string' || !walletTypes.includes(type)) {
+        errors.push(`Wallet "${label}" has an invalid type`);
       }
 
-      if (item.balance === undefined || isNaN(Number(item.balance))) {
-        errors.push(`Wallet "${item.name || index}" has an invalid balance`);
+      if (item['balance'] === undefined || isNaN(Number(item['balance']))) {
+        errors.push(`Wallet "${label}" has an invalid balance`);
       }
 
       if (!errors.length) {
         validWallets.push({
           id: '', // Will be assigned by server
-          name: item.name,
-          type: item.type,
-          balance: Number(item.balance),
-          currency: item.currency || 'LKR',
-          paymentMethod: item.paymentMethod || '',
+          name,
+          type: type as Wallet['type'],
+          balance: Number(item['balance']),
+          currency: String(item['currency'] || 'LKR'),
+          paymentMethod: String(item['paymentMethod'] || ''),
           user: '' // Will be assigned by server
         });
       }

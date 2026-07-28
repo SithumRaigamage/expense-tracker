@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
 
 import { DropdownComponent } from '../../../../shared/components/dropdown/dropdown.component';
@@ -31,6 +31,8 @@ interface User {
   templateUrl: './user-dropdown.component.html'
 })
 export class UserDropdownComponent implements OnInit, OnDestroy {
+  private authService = inject(AuthService);
+
   isOpen = false;
   currentUser: User | null = null;
   private userSubscription: Subscription = new Subscription();
@@ -41,8 +43,6 @@ export class UserDropdownComponent implements OnInit, OnDestroy {
       route: '/settings'
     }
   ];
-
-  constructor(private authService: AuthService) { }
 
   ngOnInit(): void {
     // Subscribe to current user changes

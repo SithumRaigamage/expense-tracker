@@ -13,11 +13,11 @@ import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
   imports: [CommonModule, AppCurrencyPipe]
 })
 export class UpcomingBillsComponent implements OnInit {
+  private billsService = inject(BillsService);
+
   private readonly destroyRef = inject(DestroyRef);
 
   upcomingBills: Bill[] = [];
-
-  constructor(private billsService: BillsService) {}
 
   ngOnInit(): void {
     this.billsService.getBills().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(bills => {

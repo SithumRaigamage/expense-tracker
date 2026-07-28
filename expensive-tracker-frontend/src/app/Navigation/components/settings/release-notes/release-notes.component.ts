@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {
@@ -25,6 +25,12 @@ import { DialogService } from '../../../../shared/services/dialog.service';
   templateUrl: './release-notes.component.html'
 })
 export class ReleaseNotesComponent implements OnInit {
+  private releaseNoteService = inject(ReleaseNoteService);
+  private fb = inject(FormBuilder);
+  private authService = inject(AuthService);
+  private readonly notifications = inject(NotificationService);
+  private readonly dialogs = inject(DialogService);
+
   searchTerm = '';
   rocketIcon = faRocket;
   bugIcon = faBug;
@@ -44,13 +50,7 @@ export class ReleaseNotesComponent implements OnInit {
   editMode = false;
   currentReleaseId: string | null = null;
 
-  constructor(
-    private releaseNoteService: ReleaseNoteService,
-    private fb: FormBuilder,
-    private authService: AuthService,
-    private readonly notifications: NotificationService,
-    private readonly dialogs: DialogService
-  ) {
+  constructor() {
     this.releaseForm = this.fb.group({
       version: ['', [Validators.required, Validators.pattern(/^\d+\.\d+\.\d+(-\w+)?$/)]],
       date: [new Date().toISOString().split('T')[0], Validators.required],

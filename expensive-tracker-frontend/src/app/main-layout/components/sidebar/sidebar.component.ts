@@ -54,6 +54,9 @@ interface NavItem {
   imports: [RouterModule, FontAwesomeModule]
 })
 export class SidebarComponent implements OnInit {
+  private router = inject(Router);
+  sidebarService = inject(SidebarService);
+
   private readonly destroyRef = inject(DestroyRef);
 
   isExpanded = true;
@@ -150,11 +153,9 @@ export class SidebarComponent implements OnInit {
     }
   ];
 
-  constructor(
-    private router: Router,
-    public sidebarService: SidebarService,
-    library: FaIconLibrary
-  ) {
+  constructor() {
+    const library = inject(FaIconLibrary);
+
     // Add icons to the library
     library.addIcons(
       faMoneyCheckDollar,

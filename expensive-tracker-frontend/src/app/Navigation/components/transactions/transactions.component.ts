@@ -32,6 +32,15 @@ interface Category {
   templateUrl: './transactions.component.html',
 })
 export class TransactionsComponent implements OnInit {
+  private fb = inject(FormBuilder);
+  private transactionService = inject(TransactionService);
+  private walletService = inject(WalletService);
+  private route = inject(ActivatedRoute);
+  currencyService = inject(CurrencyService);
+  private excelExportService = inject(ExcelExportService);
+  private readonly notifications = inject(NotificationService);
+  private readonly dialogs = inject(DialogService);
+
   private readonly destroyRef = inject(DestroyRef);
 
   faPlus = faPlus;
@@ -79,16 +88,7 @@ export class TransactionsComponent implements OnInit {
   jsonPreview: Transaction[] | null = null;
   jsonError: string | null = null;
 
-  constructor(
-    private fb: FormBuilder,
-    private transactionService: TransactionService,
-    private walletService: WalletService,
-    private route: ActivatedRoute,
-    public currencyService: CurrencyService,
-    private excelExportService: ExcelExportService,
-    private readonly notifications: NotificationService,
-    private readonly dialogs: DialogService
-  ) {
+  constructor() {
     this.transactionForm = this.createForm();
     this.filterForm = this.createFilterForm();
   }
@@ -316,9 +316,11 @@ export class TransactionsComponent implements OnInit {
     }
 
     const reader = new FileReader();
-    reader.onload = (e: any) => {
+    reader.onload = (e: ProgressEvent<FileReader>) => {
       try {
-        const json = JSON.parse(e.target.result);
+        // A null result parses to a SyntaxError, which the catch below already
+        // reports as an invalid file.
+        const json = JSON.parse(String(e.target?.result ?? ''));
         this.processJsonData(json);
       } catch (error) {
         console.error('Error parsing JSON:', error);
@@ -333,7 +335,9 @@ export class TransactionsComponent implements OnInit {
     reader.readAsText(file);
   }
 
-  processJsonData(data: any) {
+  // The argument comes straight from a user-supplied file, so it is unknown
+  // until these checks have run over it.
+  processJsonData(data: unknown) {
     // Validate the JSON structure
     if (!Array.isArray(data)) {
       this.jsonError = 'Invalid JSON format. Expected an array of transactions.';
@@ -343,35 +347,40 @@ export class TransactionsComponent implements OnInit {
     const validTransactions: Transaction[] = [];
     const errors: string[] = [];
 
-    data.forEach((item: any, index: number) => {
-      if (!item.description) {
+    data.forEach((entry: unknown, index: number) => {
+      const item = (entry ?? {}) as Record<string, unknown>;
+      const description = typeof item['description'] === 'string' ? item['description'] : '';
+      const type = item['type'];
+      const label = description || index;
+
+      if (!description) {
         errors.push(`Transaction at index ${index} is missing a description`);
       }
 
-      if (!item.type || !['income', 'expense'].includes(item.type)) {
-        errors.push(`Transaction "${item.description || index}" has an invalid type`);
+      if (typeof type !== 'string' || !['income', 'expense'].includes(type)) {
+        errors.push(`Transaction "${label}" has an invalid type`);
       }
 
-      if (item.amount === undefined || isNaN(Number(item.amount))) {
-        errors.push(`Transaction "${item.description || index}" has an invalid amount`);
+      if (item['amount'] === undefined || isNaN(Number(item['amount']))) {
+        errors.push(`Transaction "${label}" has an invalid amount`);
       }
 
-      if (!item.category) {
-        errors.push(`Transaction "${item.description || index}" is missing a category`);
+      if (!item['category']) {
+        errors.push(`Transaction "${label}" is missing a category`);
       }
 
-      if (!item.date) {
-        errors.push(`Transaction "${item.description || index}" is missing a date`);
+      if (!item['date']) {
+        errors.push(`Transaction "${label}" is missing a date`);
       }
 
       if (!errors.length) {
         validTransactions.push({
           id: '', // Will be assigned by server
-          description: item.description,
-          type: item.type,
-          amount: Number(item.amount),
-          category: item.category,
-          date: new Date(item.date),
+          description,
+          type: type as Transaction['type'],
+          amount: Number(item['amount']),
+          category: String(item['category']),
+          date: new Date(item['date'] as string | number),
           walletId: '' // Will be determined by server during bulk import
         });
       }

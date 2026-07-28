@@ -16,6 +16,13 @@ import type { Workbook, Worksheet } from 'exceljs';
  * The library is ~900 kB, so it is imported dynamically: pages that merely offer
  * an export button no longer pay for it, only the click does.
  */
+/**
+ * A prepared row, keyed by the pretty column header. Callers pass their own
+ * domain objects (Wallet, Transaction, …); prepareDataForExport turns each one
+ * into this shape.
+ */
+export type ExportRow = Record<string, unknown>;
+
 @Injectable({
   providedIn: 'root'
 })
@@ -27,7 +34,7 @@ export class ExcelExportService {
   /**
    * Export a single data array to an Excel file with one sheet
    */
-  async exportToExcel(data: any[], fileName: string, sheetName = 'Sheet1'): Promise<void> {
+  async exportToExcel(data: object[], fileName: string, sheetName = 'Sheet1'): Promise<void> {
     if (!data || data.length === 0) return;
 
     const workbook = await this.newWorkbook();
@@ -39,7 +46,7 @@ export class ExcelExportService {
   /**
    * Export multiple data arrays to an Excel file with multiple sheets
    */
-  async exportAllToExcel(sheetsData: Record<string, any[]>, fileName: string): Promise<void> {
+  async exportAllToExcel(sheetsData: Record<string, object[]>, fileName: string): Promise<void> {
     const workbook = await this.newWorkbook();
 
     Object.keys(sheetsData).forEach(sheetName => {
@@ -54,7 +61,7 @@ export class ExcelExportService {
     await this.download(workbook, fileName);
   }
 
-  formatDataForExport(data: any[]): any[] {
+  formatDataForExport(data: object[]): object[] {
     return data; // Keeping it for compatibility with previous calls, logic moved to prepareDataForExport
   }
 
@@ -64,7 +71,7 @@ export class ExcelExportService {
     return new ExcelJS.Workbook();
   }
 
-  private addSheet(workbook: Workbook, sheetName: string, data: any[]): void {
+  private addSheet(workbook: Workbook, sheetName: string, data: object[]): void {
     const rows = this.prepareDataForExport(data);
     const headers = Object.keys(rows[0] ?? {});
     if (headers.length === 0) return;
@@ -107,23 +114,22 @@ export class ExcelExportService {
     URL.revokeObjectURL(url);
   }
 
-  private prepareDataForExport(data: any[]): any[] {
+  private prepareDataForExport(data: object[]): ExportRow[] {
+    // Object.entries rather than for-in: it reads own enumerable keys off any
+    // object, so callers can pass plain interfaces with no index signature.
     return data.map(item => {
-      const formatted: any = {};
-      for (const key in item) {
-        if (Object.prototype.hasOwnProperty.call(item, key) && !key.startsWith('_') && key !== 'id') {
-          let value = item[key];
+      const formatted: ExportRow = {};
+      for (const [key, raw] of Object.entries(item)) {
+        if (key.startsWith('_') || key === 'id') continue;
 
-          // Format based on type
-          if (value instanceof Date) {
-            value = value.toISOString().split('T')[0];
-          } else if (value !== null && typeof value === 'object') {
-            value = JSON.stringify(value);
-          }
-
-          const prettyHeader = this.formatHeader(key);
-          formatted[prettyHeader] = value;
+        let value: unknown = raw;
+        if (value instanceof Date) {
+          value = value.toISOString().split('T')[0];
+        } else if (value !== null && typeof value === 'object') {
+          value = JSON.stringify(value);
         }
+
+        formatted[this.formatHeader(key)] = value;
       }
       return formatted;
     });
@@ -136,7 +142,7 @@ export class ExcelExportService {
       .join(' ');
   }
 
-  private columnWidth(header: string, rows: any[]): number {
+  private columnWidth(header: string, rows: ExportRow[]): number {
     let widest = header.length;
 
     rows.forEach(row => {

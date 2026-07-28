@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { CanActivate, Router } from '@angular/router';
 import { Observable, of, catchError, map } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
@@ -8,11 +8,10 @@ import { TokenService } from '../services/token.service';
   providedIn: 'root'
 })
 export class AuthGuard implements CanActivate {
-  constructor(
-    private authService: AuthService,
-    private tokenService: TokenService,
-    private router: Router
-  ) {}
+  private authService = inject(AuthService);
+  private tokenService = inject(TokenService);
+  private router = inject(Router);
+
 
   canActivate(): Observable<boolean> | boolean {
     // If no token exists, redirect to login immediately

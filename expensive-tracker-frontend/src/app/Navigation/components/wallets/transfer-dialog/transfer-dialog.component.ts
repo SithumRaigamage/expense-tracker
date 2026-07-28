@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, DestroyRef, inject } from '@angular/core';
+import { Component, OnInit, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -30,6 +30,14 @@ import { MatButtonModule } from '@angular/material/button';
   templateUrl: './transfer-dialog.component.html',
 })
 export class TransferDialogComponent implements OnInit {
+  private fb = inject(FormBuilder);
+  private walletService = inject(WalletService);
+  dialogRef = inject<MatDialogRef<TransferDialogComponent>>(MatDialogRef);
+  currencyService = inject(CurrencyService);
+  data = inject<{
+    fromWallet?: Wallet;
+}>(MAT_DIALOG_DATA);
+
   private readonly destroyRef = inject(DestroyRef);
 
   faExchangeAlt = faExchangeAlt;
@@ -42,13 +50,9 @@ export class TransferDialogComponent implements OnInit {
   isLoading = false;
   error: string | null = null;
 
-  constructor(
-    private fb: FormBuilder,
-    private walletService: WalletService,
-    public dialogRef: MatDialogRef<TransferDialogComponent>,
-    public currencyService: CurrencyService,
-    @Inject(MAT_DIALOG_DATA) public data: { fromWallet?: Wallet }
-  ) {
+  constructor() {
+    const data = this.data;
+
     this.transferForm = this.fb.group({
       fromWalletId: [data.fromWallet?.id || '', Validators.required],
       toWalletId: ['', Validators.required],

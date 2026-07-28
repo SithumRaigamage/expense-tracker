@@ -15,6 +15,11 @@ import { faEye, faEyeSlash, faSpinner, faArrowRight, faLock, faEnvelope } from '
   styleUrl: './login.component.css'
 })
 export class LoginComponent implements OnInit {
+  private fb = inject(FormBuilder);
+  private authService = inject(AuthService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+
   private readonly destroyRef = inject(DestroyRef);
 
   loginForm: FormGroup;
@@ -33,12 +38,7 @@ export class LoginComponent implements OnInit {
   /** Where to send the user after login — set when a guard/interceptor bounced them here. */
   private returnUrl = '/dashboard';
 
-  constructor(
-    private fb: FormBuilder,
-    private authService: AuthService,
-    private router: Router,
-    private route: ActivatedRoute
-  ) {
+  constructor() {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]]
@@ -83,8 +83,8 @@ export class LoginComponent implements OnInit {
     Object.values(formGroup.controls).forEach(control => {
       control.markAsTouched();
 
-      if ((control as any).controls) {
-        this.markFormGroupTouched(control as any);
+      if (control instanceof FormGroup) {
+        this.markFormGroupTouched(control);
       }
     });
   }

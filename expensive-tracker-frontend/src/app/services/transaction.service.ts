@@ -1,7 +1,8 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { BehaviorSubject, Observable, map, tap, catchError, throwError, of } from 'rxjs';
 import { Transaction } from '../core/models/Transaction';
+import { ExpenseFlow } from './wallet.service';
 import { AuthService } from './auth.service';
 import { environment } from '../../environments/environment';
 
@@ -30,11 +31,26 @@ interface ExpenseResponse {
   amount: number;
   description: string;
   category: Category;
-  wallet: any;
+  wallet: string | { _id: string; name: string; type: string };
   date: string;
   user: string;
   createdAt: string;
   updatedAt: string;
+}
+
+/** Nested category totals returned by /expenses/hierarchy. */
+export interface HierarchyNode {
+  name: string;
+  value?: number;
+  children?: HierarchyNode[];
+}
+
+/** One row of /expenses/breakdown. */
+export interface CategoryBreakdown {
+  category: string;
+  total: number;
+  count: number;
+  percentage?: number;
 }
 
 interface MonthlyStats {
@@ -48,11 +64,14 @@ interface MonthlyStats {
   providedIn: 'root'
 })
 export class TransactionService {
+  private http = inject(HttpClient);
+  private authService = inject(AuthService);
+
   private apiUrl = environment.apiUrl;
   private transactions = new BehaviorSubject<Transaction[]>([]);
   private categories = new BehaviorSubject<Category[]>([]);
 
-  constructor(private http: HttpClient, private authService: AuthService) {
+  constructor() {
     // Load data immediately if already authenticated
     if (this.authService.isAuthenticated()) {
       this.loadCategories();
@@ -184,6 +203,21 @@ export class TransactionService {
       });
   }
 
+  /**
+   * The expenses endpoint sends `wallet` populated on some routes and as a bare
+   * id on others. Both shapes have always been handled here; this just names the
+   * two cases so the compiler can check them.
+   */
+  private static walletFields(wallet: ExpenseResponse['wallet']): Pick<Transaction, 'walletId' | 'wallet'> {
+    if (typeof wallet === 'string') {
+      return { walletId: wallet, wallet: undefined };
+    }
+    if (!wallet) {
+      return { walletId: '', wallet: undefined };
+    }
+    return { walletId: wallet._id, wallet: { name: wallet.name, type: wallet.type } };
+  }
+
   private mapExpensesToTransactions(expenses: ExpenseResponse[]): Transaction[] {
     return expenses.map(expense => ({
       id: expense._id,
@@ -192,11 +226,7 @@ export class TransactionService {
       category: expense.category.name,
       type: expense.category.type,
       date: new Date(expense.date),
-      walletId: expense.wallet?._id || expense.wallet || '',
-      wallet: expense.wallet ? {
-        name: expense.wallet.name,
-        type: expense.wallet.type
-      } : undefined
+      ...TransactionService.walletFields(expense.wallet)
     }));
   }
 
@@ -300,7 +330,7 @@ export class TransactionService {
       amount: transaction.amount,
       description: transaction.description,
       category: category._id,
-      wallet: (transaction as any).walletId,
+      wallet: transaction.walletId,
       date: transaction.date
     };
 
@@ -314,11 +344,7 @@ export class TransactionService {
           category: expense.category.name,
           type: expense.category.type,
           date: new Date(expense.date),
-          walletId: expense.wallet?._id || expense.wallet || '',
-          wallet: expense.wallet ? {
-            name: expense.wallet.name,
-            type: expense.wallet.type
-          } : undefined
+          ...TransactionService.walletFields(expense.wallet)
         })),
         tap(newTransaction => {
           const current = this.transactions.getValue();
@@ -359,11 +385,7 @@ export class TransactionService {
           category: expense.category.name,
           type: expense.category.type,
           date: new Date(expense.date),
-          walletId: expense.wallet?._id || expense.wallet || '',
-          wallet: expense.wallet ? {
-            name: expense.wallet.name,
-            type: expense.wallet.type
-          } : undefined
+          ...TransactionService.walletFields(expense.wallet)
         })),
         tap(updatedTransaction => {
           const current = this.transactions.getValue();
@@ -382,7 +404,7 @@ export class TransactionService {
       return throwError(() => new Error('User not authenticated'));
     }
 
-    return this.http.delete<ApiResponse<any>>(`${this.apiUrl}/expenses/${id}`)
+    return this.http.delete<ApiResponse<unknown>>(`${this.apiUrl}/expenses/${id}`)
       .pipe(
         tap(() => {
           const current = this.transactions.getValue();
@@ -508,39 +530,39 @@ export class TransactionService {
   }
 
   // Expense Breakdown Methods
-  getExpenseFlow(dateFilter: { startDate: string; endDate: string }): Observable<any> {
+  getExpenseFlow(dateFilter: { startDate: string; endDate: string }): Observable<ExpenseFlow> {
     const params = {
       startDate: dateFilter.startDate,
       endDate: dateFilter.endDate
     };
 
-    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/expenses/flow`, { params })
+    return this.http.get<ApiResponse<ExpenseFlow>>(`${this.apiUrl}/expenses/flow`, { params })
       .pipe(
         map(response => response.data),
         catchError(this.handleError)
       );
   }
 
-  getExpenseHierarchy(dateFilter: { startDate: string; endDate: string }): Observable<any> {
+  getExpenseHierarchy(dateFilter: { startDate: string; endDate: string }): Observable<HierarchyNode> {
     const params = {
       startDate: dateFilter.startDate,
       endDate: dateFilter.endDate
     };
 
-    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/expenses/hierarchy`, { params })
+    return this.http.get<ApiResponse<HierarchyNode>>(`${this.apiUrl}/expenses/hierarchy`, { params })
       .pipe(
         map(response => response.data),
         catchError(this.handleError)
       );
   }
 
-  getDetailedBreakdown(dateFilter: { startDate: string; endDate: string }): Observable<any> {
+  getDetailedBreakdown(dateFilter: { startDate: string; endDate: string }): Observable<CategoryBreakdown[]> {
     const params = {
       startDate: dateFilter.startDate,
       endDate: dateFilter.endDate
     };
 
-    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/expenses/breakdown`, { params })
+    return this.http.get<ApiResponse<CategoryBreakdown[]>>(`${this.apiUrl}/expenses/breakdown`, { params })
       .pipe(
         map(response => response.data),
         catchError(this.handleError)

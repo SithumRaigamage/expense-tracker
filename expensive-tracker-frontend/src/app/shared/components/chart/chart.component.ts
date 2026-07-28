@@ -50,6 +50,8 @@ export interface ChartOptions {
   templateUrl: './chart.component.html',
 })
 export class ChartComponent implements OnChanges, OnInit {
+  private currencyService = inject(CurrencyService);
+
   private readonly destroyRef = inject(DestroyRef);
 
   @Input() chartType: 'income' | 'expense' | 'all' = 'all';
@@ -64,7 +66,7 @@ export class ChartComponent implements OnChanges, OnInit {
     grid: '#E2E8F0', // Grid color
   };
 
-  constructor(private currencyService: CurrencyService) {
+  constructor() {
     this.initializeChart();
   }
 

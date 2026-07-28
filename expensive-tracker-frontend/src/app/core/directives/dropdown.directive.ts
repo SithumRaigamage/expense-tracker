@@ -1,15 +1,15 @@
-import { Directive, ElementRef, EventEmitter, HostListener, Output, Input, OnDestroy } from '@angular/core';
+import { Directive, ElementRef, EventEmitter, HostListener, Output, Input, OnDestroy, inject } from '@angular/core';
 
 @Directive({
   selector: '[appDropdown]',
   standalone: true
 })
 export class DropdownDirective implements OnDestroy {
+  private elementRef = inject(ElementRef);
+
   @Input() appDropdown = false;
   @Output() closeDropdown = new EventEmitter<void>();
   private isDestroyed = false;
-
-  constructor(private elementRef: ElementRef) {}
 
   @HostListener('document:mousedown', ['$event'])
   onClickOutside(event: MouseEvent) {

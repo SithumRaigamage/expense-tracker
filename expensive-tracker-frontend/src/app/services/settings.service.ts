@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
 import { map, catchError, tap } from 'rxjs/operators';
@@ -45,16 +45,46 @@ export interface FAQ {
   isOpen?: boolean;
 }
 
+/** Standard backend envelope. Declared locally, as in the other services. */
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+}
+
+/** What /users/profile returns: a User, plus the avatar alias the app maps over. */
+type ApiUser = Partial<User> & { avatar?: string };
+
 @Injectable({
   providedIn: 'root'
 })
 export class SettingsService {
+  private http = inject(HttpClient);
+
   private apiUrl = environment.apiUrl;
   private user: User | null = null;
 
+  /**
+   * Fill in the fields the backend leaves out. The API sends the avatar under
+   * either `profileImage` or `avatar`, and may send only a combined `name` —
+   * both profile endpoints normalised this the same way, so it lives here now.
+   */
+  private static toUser(source: ApiUser, imageOverride?: string): User {
+    const name = source.name || '';
+    const parts = name.split(' ');
+
+    return {
+      ...source,
+      name,
+      email: source.email || '',
+      profileImage: imageOverride || source.profileImage || source.avatar || '',
+      firstName: source.firstName || parts[0] || '',
+      lastName: source.lastName || (parts.length > 1 ? parts.slice(1).join(' ') : '')
+    };
+  }
+
   // Method to check if the server is reachable
-  checkServerConnection(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/health`).pipe(
+  checkServerConnection(): Observable<{ status?: string }> {
+    return this.http.get<{ status?: string }>(`${this.apiUrl}/health`).pipe(
       tap(response => console.log('Backend server is reachable:', response)),
       catchError(error => {
         console.error('Backend connection check failed:', error);
@@ -113,8 +143,6 @@ export class SettingsService {
     }
   ];
 
-  constructor(private http: HttpClient) {}
-
   // Credentials ride on the session cookie, attached by the interceptor.
   private getHeaders(): HttpHeaders {
     return new HttpHeaders({ 'Content-Type': 'application/json' });
@@ -133,19 +161,7 @@ export class SettingsService {
       .pipe(
         map(response => {
           // Map backend user format to expensive-tracker-frontend User model
-          const userData = response.data;
-          const user: User = {
-            ...userData,
-            // Ensure required fields have default values
-            name: userData.name || '',
-            email: userData.email || '',
-            // Use profileImage if available, fall back to avatar
-            profileImage: userData.profileImage || userData.avatar || '',
-            // If firstName/lastName not provided, try to extract from name
-            firstName: userData.firstName || userData.name?.split(' ')[0] || '',
-            lastName: userData.lastName || (userData.name?.split(' ').length > 1 ?
-              userData.name.split(' ').slice(1).join(' ') : '')
-          };
+          const user = SettingsService.toUser(response.data);
 
           this.user = user;
           return user;
@@ -160,23 +176,11 @@ export class SettingsService {
   updateUserProfile(userData: User): Observable<User> {
     const headers = this.getHeaders();
 
-    return this.http.put<{success: boolean, data: any}>(`${this.apiUrl}/users/profile`, userData, { headers })
+    return this.http.put<ApiResponse<ApiUser>>(`${this.apiUrl}/users/profile`, userData, { headers })
       .pipe(
         map(response => {
           // Map backend response to User model
-          const userData = response.data;
-          const user: User = {
-            ...userData,
-            // Ensure required fields have default values
-            name: userData.name || '',
-            email: userData.email || '',
-            // Use profileImage if available, fall back to avatar
-            profileImage: userData.profileImage || userData.avatar || '',
-            // If firstName/lastName not provided, try to extract from name
-            firstName: userData.firstName || userData.name?.split(' ')[0] || '',
-            lastName: userData.lastName || (userData.name?.split(' ').length > 1 ?
-              userData.name.split(' ').slice(1).join(' ') : '')
-          };
+          const user = SettingsService.toUser(response.data);
 
           this.user = user;
           return user;
@@ -191,7 +195,7 @@ export class SettingsService {
   updateUserProfileWithImage(formData: FormData): Observable<User> {
     // No Content-Type here on purpose: the browser has to set the multipart
     // boundary itself, and naming the type would strip it.
-    return this.http.post<{success: boolean, data: any}>(
+    return this.http.post<ApiResponse<{ user: ApiUser; profileImage?: string }>>(
       `${this.apiUrl}/users/profile/image`,
       formData
     ).pipe(
@@ -203,18 +207,7 @@ export class SettingsService {
         //console.log('Profile image URL from response:', profileImage);
         //console.log('User data profileImage:', userData.profileImage);
 
-        const user: User = {
-          ...userData,
-          // Ensure required fields
-          name: userData.name || '',
-          email: userData.email || '',
-          // Use the new profile image URL and ensure it's properly set
-          profileImage: profileImage || userData.profileImage || userData.avatar || '',
-          // If firstName/lastName not provided, extract from name
-          firstName: userData.firstName || userData.name?.split(' ')[0] || '',
-          lastName: userData.lastName || (userData.name?.split(' ').length > 1 ?
-            userData.name.split(' ').slice(1).join(' ') : '')
-        };
+        const user = SettingsService.toUser(userData, profileImage);
 
 
         this.user = user;
@@ -277,7 +270,7 @@ export class SettingsService {
   deletePaymentMethod(id: string): Observable<void> {
     const headers = this.getHeaders();
 
-    return this.http.delete<{success: boolean, data: any}>(
+    return this.http.delete<ApiResponse<unknown>>(
       `${this.apiUrl}/users/payment-methods/${id}`,
       { headers }
     ).pipe(
@@ -300,7 +293,7 @@ export class SettingsService {
   changePassword(currentPassword: string, newPassword: string): Observable<void> {
     const headers = this.getHeaders();
 
-    return this.http.put<{success: boolean, data: any}>(
+    return this.http.put<ApiResponse<unknown>>(
       `${this.apiUrl}/users/change-password`,
       { currentPassword, newPassword },
       { headers }
@@ -318,7 +311,7 @@ export class SettingsService {
   changeEmail(newEmail: string, password: string): Observable<void> {
     const headers = this.getHeaders();
 
-    return this.http.put<{success: boolean, data: any}>(
+    return this.http.put<ApiResponse<unknown>>(
       `${this.apiUrl}/users/change-email`,
       { newEmail, password },
       { headers }
@@ -351,7 +344,7 @@ export class SettingsService {
   updateCurrency(currencyCode: string): Observable<void> {
     const headers = this.getHeaders();
 
-    return this.http.put<{success: boolean, data: any}>(
+    return this.http.put<ApiResponse<unknown>>(
       `${this.apiUrl}/users/profile`,
       { currency: currencyCode },
       { headers }

@@ -29,19 +29,17 @@ interface Developer {
   templateUrl: './about-support.component.html',
 })
 export class AboutSupportComponent {
+  private walletService = inject(WalletService);
+  private transactionService = inject(TransactionService);
+  private budgetService = inject(ProductBudgetService);
+  private billsService = inject(BillsService);
+  private excelExportService = inject(ExcelExportService);
+  private readonly notifications = inject(NotificationService);
+
   private readonly destroyRef = inject(DestroyRef);
 
   isExporting = false;
   faDownload = faDownload;
-
-  constructor(
-    private walletService: WalletService,
-    private transactionService: TransactionService,
-    private budgetService: ProductBudgetService,
-    private billsService: BillsService,
-    private excelExportService: ExcelExportService,
-    private readonly notifications: NotificationService
-  ) {}
   appName = 'ExpenseTracker';
   appVersion = '1.0.0';
   releaseNotes = [

@@ -12,11 +12,11 @@ import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
   templateUrl: './manage-wallets.component.html',
 })
 export class ManageWalletsComponent implements OnInit {
+  private wallet = inject(WalletService);
+
   private readonly destroyRef = inject(DestroyRef);
 
   wallets: Wallet[] = [];
-
-  constructor(private wallet : WalletService) {}
 
   ngOnInit(): void {
     this.wallet.getAllWallets().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(wallets => {

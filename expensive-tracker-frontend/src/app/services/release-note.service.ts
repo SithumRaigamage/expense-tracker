@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -18,9 +18,9 @@ export interface ReleaseNote {
   providedIn: 'root'
 })
 export class ReleaseNoteService {
-  private apiUrl = `${environment.apiUrl}/release-notes`;
+  private http = inject(HttpClient);
 
-  constructor(private http: HttpClient) { }
+  private apiUrl = `${environment.apiUrl}/release-notes`;
 
   /**
    * Get all release notes

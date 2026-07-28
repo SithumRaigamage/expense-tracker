@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, tap, catchError, throwError, map } from 'rxjs';
 import { TokenService } from '../core/services/token.service';
@@ -32,15 +32,15 @@ interface AuthResponse {
   providedIn: 'root'
 })
 export class AuthService {
+  private http = inject(HttpClient);
+  private router = inject(Router);
+  private tokenService = inject(TokenService);
+
   private apiUrl = `${environment.apiUrl}/users`;
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
-  constructor(
-    private http: HttpClient,
-    private router: Router,
-    private tokenService: TokenService
-  ) {
+  constructor() {
     this.checkToken();
   }
 
@@ -167,10 +167,10 @@ export class AuthService {
     return !!(currentUser && currentUser.role === 'admin');
   }
 
-  private handleError(error: any): Observable<never> {
+  private handleError(error: HttpErrorResponse | Error): Observable<never> {
     let errorMessage = 'An error occurred';
 
-    if (error.error?.error) {
+    if (error instanceof HttpErrorResponse && error.error?.error) {
       errorMessage = error.error.error;
     } else if (error.message) {
       errorMessage = error.message;

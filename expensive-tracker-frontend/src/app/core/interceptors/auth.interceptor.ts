@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, throwError } from 'rxjs';
@@ -19,12 +19,11 @@ const CREDENTIAL_ENDPOINTS = [
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
-  constructor(
-    private tokenService: TokenService,
-    private router: Router
-  ) {}
+  private tokenService = inject(TokenService);
+  private router = inject(Router);
 
-  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+
+  intercept(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     // The session token is an httpOnly cookie: there is nothing to attach by
     // hand, the browser just needs permission to send it.
     const authReq = req.clone({ withCredentials: true });

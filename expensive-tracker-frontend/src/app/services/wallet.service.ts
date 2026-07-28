@@ -33,10 +33,50 @@ interface ApiResponse<T> {
   count?: number;
 }
 
+/**
+ * What the API actually sends back. Mongo documents carry `_id`; the app's
+ * Wallet model uses `id`, and every read here normalises between the two.
+ */
+type ApiWallet = Omit<Wallet, 'id'> & { id?: string; _id?: string };
+
+/** Aggregates returned by /wallets/stats. */
+export interface WalletStats {
+  totalBalance: number;
+  walletCount: number;
+  byType?: Record<string, number>;
+}
+
+/** Sankey-style flow returned by /wallets/flow. */
+export interface ExpenseFlowNode {
+  name: string;
+  color?: string;
+}
+
+export interface ExpenseFlowLink {
+  source: string;
+  target: string;
+  value: number;
+  color?: string;
+}
+
+export interface ExpenseFlow {
+  nodes: ExpenseFlowNode[];
+  links: ExpenseFlowLink[];
+}
+
+/** Shape of the transfer endpoint's payload. */
+export interface TransferResult {
+  fromWallet: Wallet;
+  toWallet: Wallet;
+  amount: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class WalletService {
+  private http = inject(HttpClient);
+
   private apiUrl = `${environment.apiUrl}/wallets`;
   private wallets = new BehaviorSubject<Wallet[]>([]);
   private error = new BehaviorSubject<string | null>(null);
@@ -50,7 +90,7 @@ export class WalletService {
   private authService = inject(AuthService);
   private currencyService = inject(CurrencyService);
 
-  constructor(private http: HttpClient) {
+  constructor() {
     // Subscribe to the current user to get the user ID
     this.authService.currentUser$.subscribe(user => {
       this.currentUserId = user?.id || null;
@@ -81,11 +121,10 @@ export class WalletService {
     this.loading.next(true);
     this.error.next(null);
 
-    this.http.get<ApiResponse<Wallet[]>>(this.apiUrl, this.getHttpOptions())
+    this.http.get<ApiResponse<ApiWallet[]>>(this.apiUrl, this.getHttpOptions())
       .pipe(
         map(response => response.data.map(wallet => ({
-          ...wallet,
-          id: wallet.id || (wallet as any)._id, // Handle both _id and id
+          ...this.normaliseWallet(wallet),
           user: wallet.user || this.currentUserId || '' // Ensure user ID is present as string
         }))),
         catchError(error => {
@@ -154,12 +193,9 @@ export class WalletService {
       user: this.currentUserId
     };
 
-    return this.http.post<ApiResponse<Wallet>>(this.apiUrl, walletWithUser, this.getHttpOptions())
+    return this.http.post<ApiResponse<ApiWallet>>(this.apiUrl, walletWithUser, this.getHttpOptions())
       .pipe(
-        map(response => ({
-          ...response.data,
-          id: response.data.id || (response.data as any)._id
-        })),
+        map(response => this.normaliseWallet(response.data)),
         tap(wallet => {
           const currentWallets = this.wallets.value;
           this.wallets.next([...currentWallets, wallet]);
@@ -180,12 +216,9 @@ export class WalletService {
     // design — destructuring it is what keeps it out of dataToUpdate.
     const { user: _user, ...dataToUpdate } = walletData;
 
-    return this.http.put<ApiResponse<Wallet>>(`${this.apiUrl}/${id}`, dataToUpdate, this.getHttpOptions())
+    return this.http.put<ApiResponse<ApiWallet>>(`${this.apiUrl}/${id}`, dataToUpdate, this.getHttpOptions())
       .pipe(
-        map(response => ({
-          ...response.data,
-          id: response.data.id || (response.data as any)._id
-        })),
+        map(response => this.normaliseWallet(response.data)),
         tap(updatedWallet => {
           const currentWallets = this.wallets.value;
           const updatedWallets = currentWallets.map(w =>
@@ -205,7 +238,7 @@ export class WalletService {
       return throwError(() => new Error('Not authenticated. Please log in.'));
     }
 
-    return this.http.delete<ApiResponse<any>>(`${this.apiUrl}/${id}`, this.getHttpOptions())
+    return this.http.delete<ApiResponse<unknown>>(`${this.apiUrl}/${id}`, this.getHttpOptions())
       .pipe(
         map(() => void 0),
         tap(() => {
@@ -248,11 +281,10 @@ export class WalletService {
       return throwError(() => new Error('Not authenticated. Please log in.'));
     }
 
-    return this.http.patch<ApiResponse<Wallet>>(`${this.apiUrl}/${id}/restore`, { userId: this.currentUserId }, this.getHttpOptions())
+    return this.http.patch<ApiResponse<ApiWallet>>(`${this.apiUrl}/${id}/restore`, { userId: this.currentUserId }, this.getHttpOptions())
       .pipe(
         map(response => ({
-          ...response.data,
-          id: response.data.id || (response.data as any)._id,
+          ...this.normaliseWallet(response.data),
           user: response.data.user || this.currentUserId || ''
         })),
         tap(restoredWallet => {
@@ -347,14 +379,14 @@ export class WalletService {
    * @param description Optional description
    * @returns Observable with transfer result
    */
-  transferFunds(fromWalletId: string, toWalletId: string, amount: number, description?: string): Observable<any> {
+  transferFunds(fromWalletId: string, toWalletId: string, amount: number, description?: string): Observable<ApiResponse<TransferResult>> {
     if (!this.currentUserId) {
       return throwError(() => new Error('Not authenticated. Please log in.'));
     }
 
     const transferData = { fromWalletId, toWalletId, amount, description };
 
-    return this.http.post<ApiResponse<any>>(`${this.apiUrl}/transfer`, transferData, this.getHttpOptions())
+    return this.http.post<ApiResponse<TransferResult>>(`${this.apiUrl}/transfer`, transferData, this.getHttpOptions())
       .pipe(
         tap(() => this.refreshWallets()),
         catchError(error => {
@@ -365,12 +397,21 @@ export class WalletService {
       );
   }
 
-  getWalletStats(): Observable<any> {
+  /**
+   * Collapse the API's `_id`/`id` split into the model's `id`. A record with
+   * neither is already unusable — nothing can be edited or deleted without an
+   * id — so it falls through as an empty string rather than throwing mid-stream.
+   */
+  private normaliseWallet(wallet: ApiWallet): Wallet {
+    return { ...wallet, id: wallet.id || wallet._id || '' };
+  }
+
+  getWalletStats(): Observable<WalletStats> {
     if (!this.currentUserId) {
       return throwError(() => new Error('Not authenticated. Please log in.'));
     }
 
-    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/stats`, this.getHttpOptions())
+    return this.http.get<ApiResponse<WalletStats>>(`${this.apiUrl}/stats`, this.getHttpOptions())
       .pipe(
         map(response => response.data),
         catchError(error => {
@@ -380,12 +421,12 @@ export class WalletService {
       );
   }
 
-  getExpenseFlow(): Observable<any> {
+  getExpenseFlow(): Observable<ExpenseFlow> {
     if (!this.currentUserId) {
       return throwError(() => new Error('Not authenticated. Please log in.'));
     }
 
-    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/flow`, this.getHttpOptions())
+    return this.http.get<ApiResponse<ExpenseFlow>>(`${this.apiUrl}/flow`, this.getHttpOptions())
       .pipe(
         map(response => response.data),
         catchError(error => {

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -13,10 +13,11 @@ import {
 import { faStar as faStarRegular } from '@fortawesome/free-regular-svg-icons';
 import { FeedbackService } from '../../../services/feedback.service';
 import { NotificationService } from '../../../shared/services/notification.service';
+import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 
 interface FeedbackCategory {
   id: string;
-  icon: any;
+  icon: IconDefinition;
   title: string;
   description: string;
 }
@@ -34,6 +35,10 @@ interface SentimentOption {
   templateUrl: './feedback.component.html'
 })
 export class FeedbackComponent {
+  private fb = inject(FormBuilder);
+  private readonly feedbackService = inject(FeedbackService);
+  private readonly notifications = inject(NotificationService);
+
   feedbackForm!: FormGroup;
   rating = 0;
   starSolid = faStarSolid;
@@ -77,11 +82,7 @@ export class FeedbackComponent {
 
   isSubmitting = false;
 
-  constructor(
-    private fb: FormBuilder,
-    private readonly feedbackService: FeedbackService,
-    private readonly notifications: NotificationService
-  ) {
+  constructor() {
     this.initForm();
   }
 

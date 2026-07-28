@@ -15,6 +15,8 @@ import { Transaction } from '../../../core/models/Transaction';
   templateUrl: './monthly-stat.component.html'
 })
 export class MonthlyStatComponent implements OnInit {
+  private transactionService = inject(TransactionService);
+
   private readonly destroyRef = inject(DestroyRef);
 
   faChartColumn = faChartColumn;
@@ -27,8 +29,6 @@ export class MonthlyStatComponent implements OnInit {
   transactions: Transaction[] = [];
   isLoading = true;
   errorMessage = '';
-
-  constructor(private transactionService: TransactionService) {}
 
   ngOnInit() {
     this.loadData();
