@@ -56,4 +56,20 @@ const authLimiter = rateLimit({
   handler
 });
 
-module.exports = { apiLimiter, authLimiter };
+/**
+ * Every assistant message is a paid model call, so this is budgeted per user
+ * rather than left to the general API limit. Keyed by account, not IP, so one
+ * user on a shared network can't exhaust everyone else's allowance.
+ */
+const chatLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => req.user?.id || req.ip,
+  message: 'You are sending messages too quickly. Please wait a moment.',
+  skip,
+  handler
+});
+
+module.exports = { apiLimiter, authLimiter, chatLimiter };

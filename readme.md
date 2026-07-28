@@ -179,7 +179,7 @@ Static curated cards (article/video, difficulty, duration) with a category filte
 - **Payment History** list of settled bill transactions.
 - **Export** to `MyBills.xlsx`.
 
-> Bills are served from an in-memory demo dataset (Mobitel, Spotify, Dialog subscriptions), not from MongoDB — there is no bills endpoint yet.
+Each card shows a live status pill (Upcoming / Due Today / Overdue / Paid) derived server-side from the due date, and a **Pay** action that debits the chosen wallet and writes a matching expense in one transaction. Subscriptions roll forward a month on payment rather than being marked paid.
 
 ## 🎓 Financial Education (`/financial-education`)
 
@@ -187,11 +187,13 @@ Search box, difficulty / type / category filters (beginner–advanced; article, 
 
 ## 💬 Chat (`/chat`)
 
-A chat surface with an assistant/user message thread, timestamps, expandable source citations, a loading bubble, and controls for **clear chat**, **copy message**, **regenerate response**, plus temperature and max-token settings. Responses are simulated on a timer — no model is wired up yet.
+A real assistant, answering from **your own financial data**. The server builds the context on every request — wallet balances, three months of spending grouped by category, savings-goal progress, and recent transactions — so answers are about your money rather than personal finance in general.
+
+Replies stream in token by token over SSE, with a **Stop** control to cut a long answer short, copy-to-clipboard on each reply, suggested opening questions on an empty thread, and a standing caveat that the assistant can be wrong. The API key never leaves the server; the endpoint is rate-limited per account because every message is a paid call. Where no key is configured, the composer says so instead of failing.
 
 ## 📝 Feedback (`/feedback`)
 
-Four category tiles (Feature Request, Bug Report, UI/UX Feedback, Performance), a five-emoji sentiment strip (😢 → 😄), a 1–5 star rating, title, description (min 20 chars), file attachments, and an auto-populated device-info field (user agent, platform, screen and window size). Submission currently logs to the console and resets the form.
+Four category tiles (Feature Request, Bug Report, UI/UX Feedback, Performance), a five-emoji sentiment strip (😢 → 😄), a 1–5 star rating, title, description (min 20 chars), and an auto-populated device-info field (user agent, platform, screen and window size). Submissions persist to the API; admins can read the queue via `GET /feedback/all`.
 
 ## ⚙️ Settings (`/settings`)
 
@@ -276,6 +278,12 @@ All routes are mounted under `/api/v1` and, unless noted, require a bearer token
 | `GET` | `/release-notes` · `/release-notes/:version` | Public changelog. |
 | `POST` `PUT` `DELETE` | `/release-notes[/:id]` | Manage changelog entries. **Admin only.** |
 | `GET` | `/currency/rates` · `/currency/supported` | Live exchange rates and the supported list. *Public.* |
+| `POST` | `/feedback` · `GET` `/feedback` | Submit feedback / list your own. `GET /feedback/all` is **admin only**. |
+| `GET` `POST` | `/bills` | List / create bills. |
+| `GET` `PUT` `DELETE` | `/bills/:id` | Single-bill operations. |
+| `POST` | `/bills/:id/pay` | Pay a bill from a wallet in one transaction. |
+| `GET` | `/chat/status` | Whether the assistant is configured on this server. |
+| `POST` | `/chat` | Stream an assistant reply (SSE), grounded in your own data. |
 | `GET` | `/health` | Liveness probe. |
 
 ### Domain constants
@@ -297,6 +305,8 @@ All routes are mounted under `/api/v1` and, unless noted, require a bearer token
 | **Category** | name (unique per user), description, icon, colour (hex), type, user, isActive |
 | **ProductBudget** | name, imageUrl, targetAmount, savedAmount, targetDate, user, isActive, plus virtual `progress` and `remainingAmount` |
 | **ReleaseNote** | version (unique), date, features[], bugfixes[], improvements[], isPublished |
+| **Bill** | name, provider, category, amount, dueDate, iconUrl, isSubscription, reminderSet, wallet → Wallet, paidAt, lastPaidDate, user, isActive, plus virtual `status` |
+| **Feedback** | category, title, description, sentiment (1–5), rating, deviceInfo, status, user |
 
 ---
 
@@ -358,6 +368,7 @@ The API refuses to boot without these (see `src/config/validateEnv.js`):
 | `NODE_ENV` | no | `development` enables the Docker MongoDB bootstrap and verbose logging. |
 | `FRONTEND_URL` | production | Comma-separated allowed origins for CORS. Ignored outside production, where CORS is open. |
 | `JWT_EXPIRE` | no | Token lifetime, default 30d. |
+| `ANTHROPIC_API_KEY` | no | Enables the Chat assistant. Without it `/chat/status` reports unavailable and the UI explains why instead of failing. |
 
 The frontend reads its API base URL from `src/environments/environment.ts`
 (development) and `environment.prod.ts` (production, `/api/v1` relative to the
