@@ -13,6 +13,7 @@ const request = require('supertest');
 const mongoose = require('mongoose');
 const app = require('../../src/app');
 const User = require('../../src/models/User');
+const { tokenFromResponse } = require('../helpers/auth');
 
 const validUser = {
   name: 'Auth Test User',
@@ -42,7 +43,9 @@ describe('Authentication API', () => {
         .expect(201);
 
       expect(res.body.success).toBe(true);
-      expect(res.body.data.token).toEqual(expect.any(String));
+      // The token is issued as an httpOnly cookie, never in the body.
+      expect(res.body.data.token).toBeUndefined();
+      expect(tokenFromResponse(res)).toEqual(expect.any(String));
       expect(res.body.data.user.email).toBe(validUser.email);
     });
 
@@ -96,7 +99,9 @@ describe('Authentication API', () => {
         .send({ email: validUser.email, password: validUser.password })
         .expect(200);
 
-      expect(res.body.data.token).toEqual(expect.any(String));
+      // The token is issued as an httpOnly cookie, never in the body.
+      expect(res.body.data.token).toBeUndefined();
+      expect(tokenFromResponse(res)).toEqual(expect.any(String));
     });
 
     it('rejects a wrong password without revealing which field was wrong', async () => {

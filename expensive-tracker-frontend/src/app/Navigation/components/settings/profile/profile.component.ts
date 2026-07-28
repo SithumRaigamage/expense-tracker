@@ -246,14 +246,6 @@ export class ProfileComponent implements OnInit {
   onSave(): void {
     this.isSaving = true;
 
-    // Verify we have a valid token
-    const token = localStorage.getItem('token');
-    if (!token) {
-      this.showNotification('You must be logged in. Please log in and try again.', 'error');
-      this.isSaving = false;
-      return;
-    }
-
     // Check if backend is reachable before attempting to save
     this.checkBackendConnection();
   }

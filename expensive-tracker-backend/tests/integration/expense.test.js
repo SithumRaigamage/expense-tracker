@@ -10,6 +10,7 @@ const User = require('../../src/models/User');
 const Wallet = require('../../src/models/Wallet');
 const Category = require('../../src/models/Category');
 const Expense = require('../../src/models/Expense');
+const { tokenFromResponse } = require('../helpers/auth');
 
 const STARTING_BALANCE = 1000;
 
@@ -47,7 +48,7 @@ describe('Expense API', () => {
       .post('/api/v1/users/register')
       .send({ name: 'Expense Tester', email: 'expense@example.com', password: 'password123' });
 
-    token = registration.body.data.token;
+    token = tokenFromResponse(registration);
     const userId = registration.body.data.user.id;
 
     const wallet = await Wallet.create({

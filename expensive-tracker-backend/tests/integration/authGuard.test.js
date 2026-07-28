@@ -11,6 +11,7 @@ const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const app = require('../../src/app');
 const User = require('../../src/models/User');
+const { cookieFromResponse } = require('../helpers/auth');
 
 const tokenFor = (id) =>
   jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE || '1h' });
@@ -22,6 +23,60 @@ const createUser = (overrides = {}) =>
     password: 'password123',
     ...overrides
   });
+
+describe('session cookie', () => {
+  beforeAll(async () => {
+    if (mongoose.connection.readyState === 0) {
+      await mongoose.connect(process.env.MONGODB_URI);
+    }
+  });
+
+  const register = () =>
+    request(app).post('/api/v1/users/register').send({
+      name: 'Cookie User',
+      email: `cookie-${Date.now()}-${Math.random().toString(36).slice(2)}@example.com`,
+      password: 'password123'
+    });
+
+  // httpOnly is the whole reason for the move off localStorage: an injected
+  // script must not be able to read the session token.
+  it('issues the token as an httpOnly, SameSite=Strict cookie', async () => {
+    const res = await register().expect(201);
+    const raw = (res.headers['set-cookie'] || []).find(c => c.startsWith('token='));
+
+    expect(raw).toBeDefined();
+    expect(raw).toMatch(/HttpOnly/i);
+    expect(raw).toMatch(/SameSite=Strict/i);
+  });
+
+  it('keeps the token out of the response body', async () => {
+    const res = await register().expect(201);
+
+    expect(res.body.data.token).toBeUndefined();
+    expect(JSON.stringify(res.body)).not.toContain('eyJ');
+  });
+
+  it('authenticates a request carrying only the cookie', async () => {
+    const res = await register().expect(201);
+
+    await request(app)
+      .get('/api/v1/users/profile')
+      .set('Cookie', cookieFromResponse(res))
+      .expect(200);
+  });
+
+  it('clears the cookie on logout', async () => {
+    const res = await register().expect(201);
+
+    const out = await request(app)
+      .post('/api/v1/users/logout')
+      .set('Cookie', cookieFromResponse(res))
+      .expect(200);
+
+    const cleared = (out.headers['set-cookie'] || []).find(c => c.startsWith('token='));
+    expect(cleared).toMatch(/token=;/);
+  });
+});
 
 describe('protect middleware', () => {
   beforeAll(async () => {

@@ -6,6 +6,7 @@ const User = require('../../src/models/User');
 // database.js exports the function directly; destructuring it yielded undefined
 // and every test in this file failed before it began.
 const connectDB = require('../../src/config/database');
+const { tokenFromResponse } = require('../helpers/auth');
 
 describe('Product Budget API', () => {
   let token;
@@ -30,7 +31,7 @@ describe('Product Budget API', () => {
         password: 'Password123!'
       });
 
-    token = res.body.data.token;
+    token = tokenFromResponse(res);
   });
 
   afterAll(async () => {

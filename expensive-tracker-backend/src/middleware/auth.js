@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { COOKIE_NAME } = require('../utils/authCookie');
 
 const UNAUTHORIZED = {
   success: false,
@@ -17,9 +18,12 @@ const UNAUTHORIZED = {
  * flag did nothing until the token expired. Both are unauthenticated requests.
  */
 const protect = async (req, res, next) => {
-  let token;
+  // The cookie is how the browser authenticates now. The bearer header is kept
+  // for non-browser callers — the test suite and any scripted API use — which
+  // have no cookie jar and no CSRF exposure to speak of.
+  let token = req.cookies?.[COOKIE_NAME];
 
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+  if (!token && req.headers.authorization?.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1];
   }
 

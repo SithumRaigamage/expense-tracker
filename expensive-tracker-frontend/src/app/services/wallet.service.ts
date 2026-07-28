@@ -63,13 +63,11 @@ export class WalletService {
     });
   }
 
+  // The interceptor handles credentials for every request; this only carries
+  // the content type now.
   private getHttpOptions() {
-    const token = this.authService.getToken();
     return {
-      headers: new HttpHeaders({
-        'Content-Type': 'application/json',
-        'Authorization': token ? `Bearer ${token}` : ''
-      })
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' })
     };
   }
 

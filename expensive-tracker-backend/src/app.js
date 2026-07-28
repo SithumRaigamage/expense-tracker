@@ -3,6 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const mongoSanitize = require('express-mongo-sanitize');
+const cookieParser = require('cookie-parser');
 const dotenv = require('dotenv');
 const fs = require('fs');
 const logger = require('./utils/logger');
@@ -55,6 +56,9 @@ if (process.env.NODE_ENV === 'development') {
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// The session token arrives as an httpOnly cookie; protect reads it from here.
+app.use(cookieParser());
 
 // Strip Mongo operators ($gt, $ne, dotted paths) from user input. Without this a
 // request body like {"email": {"$gt": ""}} reaches the query layer as an operator.

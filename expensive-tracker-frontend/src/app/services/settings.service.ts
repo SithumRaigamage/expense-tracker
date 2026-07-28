@@ -115,13 +115,9 @@ export class SettingsService {
 
   constructor(private http: HttpClient) {}
 
-  // Helper method to get auth headers
+  // Credentials ride on the session cookie, attached by the interceptor.
   private getHeaders(): HttpHeaders {
-    const token = localStorage.getItem('token');
-    return new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    });
+    return new HttpHeaders({ 'Content-Type': 'application/json' });
   }
 
   getUserProfile(): Observable<User> {
@@ -193,16 +189,11 @@ export class SettingsService {
   }
 
   updateUserProfileWithImage(formData: FormData): Observable<User> {
-    const token = localStorage.getItem('token');
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${token}`
-    });
-
-    // Upload the image to API
+    // No Content-Type here on purpose: the browser has to set the multipart
+    // boundary itself, and naming the type would strip it.
     return this.http.post<{success: boolean, data: any}>(
       `${this.apiUrl}/users/profile/image`,
-      formData,
-      { headers }
+      formData
     ).pipe(
       map(response => {
         // Extract user data and image URL from response

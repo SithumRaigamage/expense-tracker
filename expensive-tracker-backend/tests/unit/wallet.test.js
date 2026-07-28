@@ -3,6 +3,7 @@ const app = require('../../src/app');
 const User = require('../../src/models/User');
 const Wallet = require('../../src/models/Wallet');
 const mongoose = require('mongoose');
+const { tokenFromResponse } = require('../helpers/auth');
 
 // Mock data
 const userData = {
@@ -39,7 +40,7 @@ describe('Wallet CRUD Operations', () => {
       .post('/api/v1/users/register')
       .send(userData);
 
-    authToken = userResponse.body.data.token;
+    authToken = tokenFromResponse(userResponse);
     userId = userResponse.body.data.user.id;
   });
 

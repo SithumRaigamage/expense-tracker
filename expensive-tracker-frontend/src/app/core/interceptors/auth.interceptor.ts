@@ -25,10 +25,9 @@ export class AuthInterceptor implements HttpInterceptor {
   ) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    const token = this.tokenService.getToken();
-    const authReq = token
-      ? req.clone({ headers: req.headers.set('Authorization', `Bearer ${token}`) })
-      : req;
+    // The session token is an httpOnly cookie: there is nothing to attach by
+    // hand, the browser just needs permission to send it.
+    const authReq = req.clone({ withCredentials: true });
 
     return next.handle(authReq).pipe(
       catchError((error: HttpErrorResponse) => {
@@ -48,8 +47,9 @@ export class AuthInterceptor implements HttpInterceptor {
   }
 
   private endSession(): void {
-    // Same keys AuthService.logout() clears.
-    this.tokenService.removeToken();
+    // Same keys AuthService clears. The cookie is the server's to delete; a
+    // rejected one is already useless, so dropping the local state is enough.
+    this.tokenService.markSignedOut();
     localStorage.removeItem('user');
 
     // Already heading to login (e.g. several widgets 401 at once) — don't stack

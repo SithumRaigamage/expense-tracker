@@ -16,7 +16,7 @@ export class AuthGuard implements CanActivate {
 
   canActivate(): Observable<boolean> | boolean {
     // If no token exists, redirect to login immediately
-    if (!this.tokenService.getToken()) {
+    if (!this.tokenService.hasSession()) {
       this.router.navigate(['/login']);
       return false;
     }
