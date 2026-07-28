@@ -75,7 +75,7 @@ otherwise let the page scroll sideways into empty space. -->
   <!-- Top left section: Metrics and Monthly Statistics -->
   @if (isVisible('metrics') || isVisible('monthlyStat')) {
     <div
-      class="col-span-12 space-y-6 xl:col-span-7">
+      class="col-span-12 min-w-0 space-y-6 xl:col-span-6">
       @if (isVisible('metrics')) {
         <app-metrics></app-metrics>
       }
@@ -87,7 +87,7 @@ otherwise let the page scroll sideways into empty space. -->
 
   <!-- Full-width Statistics Chart -->
   @if (isVisible('statChart')) {
-    <div class="col-span-12 xl:col-span-5 xl:pr-6">
+    <div class="col-span-12 min-w-0 xl:col-span-6 xl:pr-6">
       <app-statchart></app-statchart>
     </div>
   }

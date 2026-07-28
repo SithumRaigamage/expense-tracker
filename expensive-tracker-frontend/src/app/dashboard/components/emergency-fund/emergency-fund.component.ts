@@ -122,9 +122,17 @@ export class EmergencyFundComponent implements OnInit, OnDestroy {
       },
       xaxis: {
         categories: this.transactions.map(t => this.formatDate(t.date)),
+        // One label per transaction turned the axis into an unreadable smear
+        // once real history existed. Show a handful of evenly spaced dates and
+        // let ApexCharts drop any that would still collide.
+        tickAmount: 6,
         labels: {
+          rotate: -45,
+          rotateAlways: false,
+          hideOverlappingLabels: true,
+          trim: true,
           style: {
-            colors: Array(12).fill(this.COLORS.textMuted),
+            colors: this.COLORS.textMuted,
             fontSize: '12px',
             fontWeight: '500',
             fontFamily: 'Inter, sans-serif'
