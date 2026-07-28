@@ -146,11 +146,28 @@
           <div
             class="border border-gray-100 rounded-lg">
             <!-- Release Header -->
-            <div class="flex items-center justify-between p-4 hover:bg-gray-50" (click)="toggleRelease(release)">
-              <div class="flex items-center gap-4 flex-1 cursor-pointer">
+            <div class="flex items-center justify-between p-4 hover:bg-gray-50">
+              <button type="button"
+                (click)="toggleRelease(release)"
+                [attr.aria-expanded]="release.isExpanded"
+                class="flex items-center gap-4 flex-1 cursor-pointer text-left">
                 <span class="font-medium text-gray-800">Version {{ release.version }}</span>
                 <span class="text-sm text-gray-500">{{ release.date | date:'mediumDate' }}</span>
-              </div>
+                <!-- Non-Admin chevron sits inside the toggle so the whole row
+                     stays clickable; admins get theirs beside the action buttons. -->
+                @if (!isAdmin) {
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
+                    [class.rotate-180]="release.isExpanded"
+                    class="w-5 h-5 transition-transform ml-auto"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                  </svg>
+                }
+              </button>
               <!-- Admin Actions -->
               @if (isAdmin) {
                 <div class="flex items-center gap-2">
@@ -172,18 +189,7 @@
                   </svg>
                 </div>
               }
-              <!-- Non-Admin View -->
-              @if (!isAdmin) {
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  [class.rotate-180]="release.isExpanded"
-                  class="w-5 h-5 transition-transform"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                </svg>
-              }
+              <!-- Non-Admin View: chevron now lives inside the toggle button above -->
             </div>        <!-- Release Details -->
             @if (release.isExpanded) {
               <div class="p-4 border-t border-gray-100 space-y-4">

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Observable } from 'rxjs';
 import { CurrencyService } from '../../../core/services/currency.service';
@@ -38,7 +38,7 @@ import { faGlobe } from '@fortawesome/free-solid-svg-icons';
     
       <!-- Overlay to close -->
       @if (isOpen) {
-        <div (click)="isOpen = false" class="fixed inset-0 z-40 bg-transparent cursor-default"></div>
+~~        <div aria-hidden="true" (click)="isOpen = false" class="fixed inset-0 z-40 bg-transparent cursor-default"></div>
       }
     </div>
     `
@@ -60,6 +60,12 @@ export class CurrencySwitcherComponent {
 
   selectCurrency(currency: string) {
     this.currencyService.setCurrency(currency);
+    this.isOpen = false;
+  }
+
+  // The overlay closes the dropdown on click; Escape is its keyboard equivalent.
+  @HostListener('document:keydown.escape')
+  onEscape() {
     this.isOpen = false;
   }
 }

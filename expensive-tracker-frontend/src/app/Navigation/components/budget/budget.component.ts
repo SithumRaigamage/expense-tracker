@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProductBudgetService } from '../../../services/product-budget.service';
@@ -668,6 +668,14 @@ export class BudgetComponent implements OnInit {
   toggleFilterDropdown() { // Renamed from toggleFilter
     this.isFilterOpen = !this.isFilterOpen;
     if (this.isFilterOpen) this.isSortOpen = false;
+  }
+
+  // Both dropdowns have a transparent backdrop that closes them on click;
+  // Escape is the keyboard equivalent.
+  @HostListener('document:keydown.escape')
+  onEscape() {
+    this.isSortOpen = false;
+    this.isFilterOpen = false;
   }
 
   selectSort(option: string) {

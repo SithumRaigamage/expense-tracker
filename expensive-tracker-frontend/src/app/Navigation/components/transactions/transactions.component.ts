@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -646,6 +646,15 @@ export class TransactionsComponent implements OnInit {
   }
 
   // --- Custom Dropdown Methods ---
+
+  // Each dropdown has a transparent backdrop that closes it on click; Escape is
+  // the keyboard equivalent.
+  @HostListener('document:keydown.escape')
+  onEscape() {
+    this.isTypeOpen = false;
+    this.isCategoryOpen = false;
+    this.isWalletOpen = false;
+  }
 
   toggleTypeDropdown() {
     this.isTypeOpen = !this.isTypeOpen;

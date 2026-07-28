@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 
 import { Router, RouterModule } from '@angular/router';
 import { FontAwesomeModule, FaIconLibrary } from '@fortawesome/angular-fontawesome';
@@ -226,6 +226,15 @@ export class SidebarComponent implements OnInit {
 
   isActive(path: string): boolean {
     return this.router.url === path;
+  }
+
+  // The mobile backdrop closes the sidebar on click; Escape is its keyboard
+  // equivalent.
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (this.isMobileOpen) {
+      this.sidebarService.toggleMobile();
+    }
   }
 
   toggleSubNav(item: NavItem, event: Event): void {

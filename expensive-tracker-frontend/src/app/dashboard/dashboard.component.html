@@ -10,6 +10,7 @@
 <!-- Customization Drawer -->
 @if (isCustomizing) {
   <div
+    aria-hidden="true"
     class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] transition-opacity"
     (click)="toggleDrawer()">
   </div>
@@ -38,9 +39,10 @@ otherwise let the page scroll sideways into empty space. -->
         </p>
 
         @for (widget of widgets; track widget) {
-          <div
+          <button type="button"
             (click)="toggleWidget(widget.id)"
-            class="flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-all"
+            [attr.aria-pressed]="widget.isVisible"
+            class="w-full text-left flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-all"
            [ngClass]="{
              'bg-brand-50 border-brand-200 dark:bg-brand-900/10 dark:border-brand-800/30': widget.isVisible,
              'bg-white border-gray-200': !widget.isVisible
@@ -55,7 +57,7 @@ otherwise let the page scroll sideways into empty space. -->
             <fa-icon [icon]="widget.isVisible ? faEye : faEyeSlash"
               [class.text-brand-600]="widget.isVisible"
             [class.text-gray-400]="!widget.isVisible"></fa-icon>
-          </div>
+          </button>
         }
       </div>
 

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faGear, faEye, faEyeSlash, faTimes, faArrowsRotate, faChartPie } from '@fortawesome/free-solid-svg-icons';
@@ -60,6 +60,15 @@ export class DashboardComponent implements OnInit {
 
   toggleDrawer() {
     this.isCustomizing = !this.isCustomizing;
+  }
+
+  // The backdrop closes the customization drawer on click; Escape is its
+  // keyboard equivalent.
+  @HostListener('document:keydown.escape')
+  onEscape() {
+    if (this.isCustomizing) {
+      this.isCustomizing = false;
+    }
   }
 
   toggleWidget(id: string) {

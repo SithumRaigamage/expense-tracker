@@ -2,6 +2,7 @@
   <!-- Mobile Backdrop -->
   @if (isMobileOpen) {
     <div
+      aria-hidden="true"
       class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-30 lg:hidden transition-opacity duration-300"
     (click)="sidebarService.toggleMobile()"></div>
   }

@@ -50,10 +50,10 @@
       <!-- Notification List -->
       <ul class="flex flex-col h-auto overflow-y-auto custom-scrollbar">
         @for (notification of notifications; track notification) {
-          <li
-            (click)="markAsRead(notification)"
-            class="border-b border-gray-100 last:border-0">
-            <div class="flex items-start gap-3 p-4 hover:bg-gray-50 transition-colors rounded-lg"
+          <li class="border-b border-gray-100 last:border-0">
+            <button type="button"
+              (click)="markAsRead(notification)"
+              class="w-full text-left flex items-start gap-3 p-4 hover:bg-gray-50 transition-colors rounded-lg"
               [class.bg-blue-50]="!notification.isRead">
               <!-- User Avatar -->
               <div class="relative">
@@ -76,7 +76,7 @@
               </div>
               <!-- Priority Indicator -->
               <span [class]="'w-2 h-2 rounded-full mt-2 ' + getPriorityStyles(notification.priority)"></span>
-            </div>
+            </button>
           </li>
         }
       </ul>

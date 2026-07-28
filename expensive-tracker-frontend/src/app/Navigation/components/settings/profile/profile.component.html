@@ -31,12 +31,14 @@
             [alt]="user?.name || 'user'"
             (error)="handleImageError($event)"
             (load)="onImageLoaded($event)" />
-          <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded-full"
+          <button type="button"
+            aria-label="Change profile photo"
+            class="absolute inset-0 w-full bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity cursor-pointer rounded-full"
             (click)="openModal()">
-            <svg class="fill-white" width="24" height="24" viewBox="0 0 24 24">
+            <svg aria-hidden="true" class="fill-white" width="24" height="24" viewBox="0 0 24 24">
               <path d="M18 16v2H6v-2h12zm0-8v6H6V8h12zm0-6v4H6V2h12z"></path>
             </svg>
-          </div>
+          </button>
         </div>
         <div class="order-3 xl:order-2 flex-grow">
           <h4 class="mb-2 text-lg font-semibold text-center text-gray-800 dark:text-white/90 xl:text-left">

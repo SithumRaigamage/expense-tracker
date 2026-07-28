@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, HostListener } from '@angular/core';
 
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
@@ -10,6 +10,7 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
     <!-- Backdrop -->
     @if (isOpen) {
       <div
+        aria-hidden="true"
         class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[60000] transition-opacity duration-300"
         (click)="onClose()">
       </div>
@@ -82,5 +83,13 @@ export class SideDrawerComponent {
 
   onClose() {
     this.close.emit();
+  }
+
+  // The backdrop closes the drawer on click; Escape is its keyboard equivalent.
+  @HostListener('document:keydown.escape')
+  onEscape() {
+    if (this.isOpen) {
+      this.onClose();
+    }
   }
 }

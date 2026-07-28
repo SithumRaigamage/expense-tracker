@@ -76,7 +76,7 @@
 
           <!-- Backdrop for closing -->
           @if (isSortOpen) {
-            <div (click)="isSortOpen = false" class="fixed inset-0 z-40 bg-transparent cursor-default"></div>
+            <div aria-hidden="true" (click)="isSortOpen = false" class="fixed inset-0 z-40 bg-transparent cursor-default"></div>
           }
         </div>
 
@@ -110,7 +110,7 @@
 
           <!-- Backdrop for closing -->
           @if (isFilterOpen) {
-            <div (click)="isFilterOpen = false" class="fixed inset-0 z-40 bg-transparent cursor-default"></div>
+            <div aria-hidden="true" (click)="isFilterOpen = false" class="fixed inset-0 z-40 bg-transparent cursor-default"></div>
           }
         </div>
 
@@ -239,7 +239,7 @@
               <!-- Image Preview / Placeholder -->
               <div class="relative group h-40 rounded-3xl overflow-hidden bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-200 dark:border-gray-800 flex items-center justify-center transition-all duration-300 hover:border-brand-500">
                 @if (currentGoal.imageUrl) {
-                  <img [src]="currentGoal.imageUrl" class="w-full h-full object-cover">
+                  <img [src]="currentGoal.imageUrl" alt="Selected cover for this goal" class="w-full h-full object-cover">
                 }
                 @if (!currentGoal.imageUrl) {
                   <div class="text-center p-6">
