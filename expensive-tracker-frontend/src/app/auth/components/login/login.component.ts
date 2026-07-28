@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faEye, faEyeSlash, faSpinner, faArrowRight, faLock, faEnvelope } from '@fortawesome/free-solid-svg-icons';
@@ -27,10 +27,14 @@ export class LoginComponent implements OnInit {
   faLock = faLock;
   faEnvelope = faEnvelope;
 
+  /** Where to send the user after login — set when a guard/interceptor bounced them here. */
+  private returnUrl = '/dashboard';
+
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -38,7 +42,15 @@ export class LoginComponent implements OnInit {
     });
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    const params = this.route.snapshot.queryParams;
+    this.returnUrl = params['returnUrl'] || '/dashboard';
+
+    // Explain the bounce, rather than dropping the user on a blank login form.
+    if (params['sessionExpired']) {
+      this.error = 'Your session has expired. Please sign in again.';
+    }
+  }
 
   togglePasswordVisibility(): void {
     this.showPassword = !this.showPassword;
@@ -52,7 +64,7 @@ export class LoginComponent implements OnInit {
       this.authService.login(this.loginForm.value).subscribe({
         next: () => {
           this.loading = false;
-          this.router.navigate(['/dashboard']);
+          this.router.navigateByUrl(this.returnUrl);
         },
         error: (error) => {
           this.loading = false;
