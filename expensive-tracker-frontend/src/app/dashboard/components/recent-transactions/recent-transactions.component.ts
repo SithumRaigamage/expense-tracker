@@ -1,6 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import { faReceipt } from '@fortawesome/free-solid-svg-icons';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
 import { TransactionService } from '../../../services/transaction.service';
 import { Transaction } from '../../../core/models/Transaction';
@@ -8,10 +11,11 @@ import { Transaction } from '../../../core/models/Transaction';
 @Component({
   selector: 'app-recent-transactions',
   standalone: true,
-  imports: [CommonModule, BadgeComponent, AppCurrencyPipe],
+  imports: [CommonModule, RouterModule, BadgeComponent, EmptyStateComponent, AppCurrencyPipe],
   templateUrl: './recent-transactions.component.html'
 })
 export class RecentTransactionsComponent implements OnInit {
+  faReceipt = faReceipt;
   transactions: Transaction[] = [];
   displayedTransactions: Transaction[] = [];
   showAll: boolean = false;

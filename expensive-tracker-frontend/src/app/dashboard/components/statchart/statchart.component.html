@@ -13,7 +13,15 @@
     </div>
   </div>
 
-  <div class="max-w-full overflow-x-auto custom-scrollbar">
+  <app-empty-state
+    *ngIf="!hasTransactions"
+    [icon]="faChartLine"
+    title="No data available"
+    message="This comparison fills in as soon as you log your first income or expense."
+    size="lg"
+  ></app-empty-state>
+
+  <div *ngIf="hasTransactions" class="max-w-full overflow-x-auto custom-scrollbar">
     <div class="w-full">
       <apx-chart
         #chart

@@ -1,7 +1,7 @@
 <!-- Customization Toggle Button -->
 <div class="fixed bottom-8 right-8 z-50">
   <button (click)="toggleDrawer()" 
-          class="flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-black px-4 py-3 rounded-full shadow-lg transition-all hover:scale-105 group">
+          class="flex items-center gap-2 bg-brand-500 hover:bg-brand-600 text-white px-4 py-3 rounded-full shadow-lg transition-all hover:scale-105 group">
     <fa-icon [icon]="faGear" [class.animate-spin-slow]="isCustomizing"></fa-icon>
     <span class="font-medium">Customize Dashboard</span>
   </button>
@@ -19,7 +19,7 @@
   <div class="flex flex-col h-full">
     <div class="p-6 border-b border-gray-200 flex justify-between items-center bg-gray-50 dark:bg-gray-800/50">
       <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
-        <fa-icon [icon]="faGear" class="text-primary-500"></fa-icon>
+        <fa-icon [icon]="faGear" class="text-brand-500"></fa-icon>
         Customize
       </h2>
       <button (click)="toggleDrawer()" class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors">
@@ -36,18 +36,18 @@
            (click)="toggleWidget(widget.id)"
            class="flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-all"
            [ngClass]="{
-             'bg-primary-50 border-primary-200 dark:bg-primary-900/10 dark:border-primary-800/30': widget.isVisible,
+             'bg-brand-50 border-brand-200 dark:bg-brand-900/10 dark:border-brand-800/30': widget.isVisible,
              'bg-white border-gray-200': !widget.isVisible
            }">
         <span class="font-medium" 
               [ngClass]="{
-                'text-primary-800 ': widget.isVisible,
+                'text-brand-800 ': widget.isVisible,
                 'text-gray-700 ': !widget.isVisible
               }">
           {{widget.label}}
         </span>
         <fa-icon [icon]="widget.isVisible ? faEye : faEyeSlash" 
-                 [class.text-primary-600]="widget.isVisible"
+                 [class.text-brand-600]="widget.isVisible"
                  [class.text-gray-400]="!widget.isVisible"></fa-icon>
       </div>
     </div>

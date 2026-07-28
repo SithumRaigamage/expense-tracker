@@ -14,15 +14,31 @@
         </svg>
         Refresh
       </button>
-      <button (click)="toggleViewAll()"
+      <button *ngIf="transactions.length > 0" (click)="toggleViewAll()"
               class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
         {{ showAll ? 'Show Less' : 'View All' }} ({{ transactions.length }})
       </button>
     </div>
   </div>
 
+  <!-- Empty State -->
+  <app-empty-state
+    *ngIf="transactions.length === 0"
+    [icon]="faReceipt"
+    title="No transactions yet"
+    message="Income and expenses you record will show up here, newest first."
+    class="block mb-4"
+  >
+    <a
+      routerLink="/transactions"
+      class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-600"
+    >
+      Add your first transaction
+    </a>
+  </app-empty-state>
+
   <!-- Table view for desktop -->
-  <div class="hidden md:block max-w-full overflow-x-auto">
+  <div *ngIf="transactions.length > 0" class="hidden md:block max-w-full overflow-x-auto">
     <table class="w-full">
       <thead>
         <tr class="border-y border-gray-100 dark:border-gray-800">
@@ -62,7 +78,7 @@
   </div>
 
   <!-- Card view for mobile -->
-  <div class="md:hidden space-y-4">
+  <div *ngIf="transactions.length > 0" class="md:hidden space-y-4">
     <div *ngFor="let transaction of displayedTransactions" 
          class="p-4 rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-white/5">
       <div class="flex justify-between items-start mb-2">

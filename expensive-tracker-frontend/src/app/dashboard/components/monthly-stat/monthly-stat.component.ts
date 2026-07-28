@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { faChartColumn } from '@fortawesome/free-solid-svg-icons';
 import { ChartComponent } from '../../../shared/components/chart/chart.component';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { MonthlyTransactionTabComponent } from '../../../shared/components/monthly-transaction-tab/monthly-transaction-tab.component';
 import { TransactionService } from '../../../services/transaction.service';
 import { Transaction } from '../../../core/models/Transaction';
@@ -8,10 +10,11 @@ import { Transaction } from '../../../core/models/Transaction';
 @Component({
   selector: 'app-monthly-stat',
   standalone: true,
-  imports: [CommonModule, ChartComponent, MonthlyTransactionTabComponent],
+  imports: [CommonModule, ChartComponent, EmptyStateComponent, MonthlyTransactionTabComponent],
   templateUrl: './monthly-stat.component.html'
 })
 export class MonthlyStatComponent implements OnInit {
+  faChartColumn = faChartColumn;
   currentChartType: 'income' | 'expense' | 'all' = 'all';
   currentMonthStats = {
     income: 0,

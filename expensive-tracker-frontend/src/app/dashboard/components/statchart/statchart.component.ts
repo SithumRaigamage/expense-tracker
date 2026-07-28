@@ -1,5 +1,8 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { faChartLine } from '@fortawesome/free-solid-svg-icons';
 import { ChartTabComponent } from "../../../shared/components/chart-tab/chart-tab.component";
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { TransactionService } from '../../../services/transaction.service';
 import { CurrencyService } from '../../../core/services/currency.service';
 import {
@@ -36,12 +39,14 @@ export type ChartOptions = {
 @Component({
   selector: 'app-statchart',
   standalone: true,
-  imports: [ChartTabComponent, NgApexchartsModule],
+  imports: [CommonModule, ChartTabComponent, EmptyStateComponent, NgApexchartsModule],
   templateUrl: './statchart.component.html',
 })
 export class StatchartComponent implements OnInit {
   @ViewChild("chart") chart!: ChartComponent;
   public chartOptions!: ChartOptions;
+  faChartLine = faChartLine;
+  hasTransactions = true;
 
   private monthlyData = {
     income: Array(12).fill(0),
@@ -67,9 +72,8 @@ export class StatchartComponent implements OnInit {
 
   private loadTransactionData() {
     this.transactionService.getTransactions().subscribe(transactions => {
+      this.hasTransactions = transactions.length > 0;
       const monthlyData = this.aggregateMonthlyData(transactions);
-      const quarterlyData = this.aggregateQuarterlyData(monthlyData);
-      const annualData = this.aggregateAnnualData(monthlyData);
 
       this.updateChartData('monthly', monthlyData);
     });
@@ -137,6 +141,8 @@ export class StatchartComponent implements OnInit {
 
   onPeriodChanged(period: 'monthly' | 'quarterly' | 'annually' | 'trends'): void {
     this.transactionService.getTransactions().subscribe(transactions => {
+      this.hasTransactions = transactions.length > 0;
+
       if (period === 'trends') {
         const trendData = this.aggregateTrendData(transactions);
         this.updateChartData(period, trendData);

@@ -1,16 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faChartPie } from '@fortawesome/free-solid-svg-icons';
 import { NgxEchartsModule } from 'ngx-echarts';
 import type { EChartsOption } from 'echarts';
 import { WalletService } from '../../../services/wallet.service';
 import { CurrencyService } from '../../../core/services/currency.service';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 
 @Component({
   selector: 'app-expense-breakdown',
   standalone: true,
-  imports: [CommonModule, FontAwesomeModule, NgxEchartsModule],
+  imports: [CommonModule, RouterModule, FontAwesomeModule, NgxEchartsModule, EmptyStateComponent],
   templateUrl: './expense-breakdown.component.html',
 })
 export class ExpenseBreakdownComponent implements OnInit {
@@ -20,6 +22,7 @@ export class ExpenseBreakdownComponent implements OnInit {
   sankeyOptions: EChartsOption = {};
   sunburstOptions: EChartsOption = {};
   rawData: any;
+  hasFlowData = false;
 
   constructor(private walletService: WalletService, private currencyService: CurrencyService) {}
 
@@ -39,6 +42,18 @@ export class ExpenseBreakdownComponent implements OnInit {
 
   updateCharts() {
     const data = this.rawData;
+
+    // The API still returns every category as a node before any money moves. Rendering a
+    // sankey with nodes but no links stacks all labels on top of each other, so treat
+    // "no links" as no data and show the placeholder instead.
+    this.hasFlowData = !!data?.links?.length;
+    if (!this.hasFlowData) {
+      this.sankeyOptions = {};
+      this.sunburstOptions = {};
+      this.isBreakdownLoading = false;
+      return;
+    }
+
     const currency = this.currencyService.getActiveCurrency();
     const convert = (val: number) => this.currencyService.convert(val, 'LKR', currency);
 

@@ -7,15 +7,15 @@
       <p class="text-sm text-gray-500 mt-1">{{ breakdownSubtitle }}</p>
     </div>
     <div class="flex items-center gap-3">
-      <div class="bg-primary-50 p-2 rounded-lg">
-        <fa-icon [icon]="faChartPie" class="text-primary-600"></fa-icon>
+      <div class="bg-brand-50 p-2 rounded-lg">
+        <fa-icon [icon]="faChartPie" class="text-brand-600"></fa-icon>
       </div>
       <div class="flex items-center gap-2">
         <button
           (click)="setBreakdownTab('sankey')"
           class="px-3 py-1 text-sm rounded-md border"
           [ngClass]="{
-            'bg-primary-50 border-primary-200 text-primary-700 dark:bg-primary-900/10 dark:border-primary-800/30 dark:text-primary-300':
+            'bg-brand-50 border-brand-200 text-brand-700 dark:bg-brand-900/10 dark:border-brand-800/30 dark:text-brand-300':
               breakdownTab === 'sankey',
             'bg-white border-gray-200 text-gray-700': breakdownTab !== 'sankey',
           }"
@@ -26,7 +26,7 @@
           (click)="setBreakdownTab('sunburst')"
           class="px-3 py-1 text-sm rounded-md border"
           [ngClass]="{
-            'bg-primary-50 border-primary-200 text-primary-700 dark:bg-primary-900/10 dark:border-primary-800/30 dark:text-primary-300':
+            'bg-brand-50 border-brand-200 text-brand-700 dark:bg-brand-900/10 dark:border-brand-800/30 dark:text-brand-300':
               breakdownTab === 'sunburst',
             'bg-white border-gray-200 text-gray-700':
               breakdownTab !== 'sunburst',
@@ -45,15 +45,30 @@
     >
       <div class="relative w-12 h-12">
         <div
-          class="absolute inset-0 border-4 border-primary-500/20 rounded-full"
+          class="absolute inset-0 border-4 border-brand-500/20 rounded-full"
         ></div>
         <div
-          class="absolute inset-0 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"
+          class="absolute inset-0 border-4 border-brand-500 border-t-transparent rounded-full animate-spin"
         ></div>
       </div>
     </div>
+    <app-empty-state
+      *ngIf="!isBreakdownLoading && !hasFlowData"
+      [icon]="faChartPie"
+      title="No data available"
+      message="Once you record income and expenses across your wallets, your money flow will be charted here."
+      size="lg"
+    >
+      <a
+        routerLink="/transactions"
+        class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-600"
+      >
+        Add a transaction
+      </a>
+    </app-empty-state>
+
     <div
-      *ngIf="!isBreakdownLoading"
+      *ngIf="!isBreakdownLoading && hasFlowData"
       echarts
       [options]="breakdownTab === 'sankey' ? sankeyOptions : sunburstOptions"
       class="w-full h-[420px]"

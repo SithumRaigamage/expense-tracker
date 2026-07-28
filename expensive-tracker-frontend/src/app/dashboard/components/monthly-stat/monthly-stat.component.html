@@ -12,7 +12,16 @@
 
   <div class="max-w-full">
     <div class="w-full">
+      <app-empty-state
+        *ngIf="!isLoading && transactions.length === 0"
+        [icon]="faChartColumn"
+        title="No data available"
+        message="Record a few transactions and this month's income and spending will be plotted here."
+        size="lg"
+      ></app-empty-state>
+
       <app-chart
+        *ngIf="transactions.length > 0"
         [chartType]="currentChartType"
         [transactions]="transactions"
       ></app-chart>
