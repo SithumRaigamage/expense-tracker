@@ -55,6 +55,10 @@ if (!/-test(-w\d+)?$/.test(dbName)) {
   );
 }
 
+// Suites fire many requests back to back; rate limiting would turn real
+// assertions into 429s. The suite that covers the limiter opts back in.
+process.env.RATE_LIMIT_DISABLED = 'true';
+
 // Tests must not depend on the developer's real signing key.
 process.env.JWT_SECRET = process.env.JWT_SECRET_TEST || 'test-only-jwt-secret-not-used-outside-of-tests';
 process.env.JWT_EXPIRE = process.env.JWT_EXPIRE || '1h';

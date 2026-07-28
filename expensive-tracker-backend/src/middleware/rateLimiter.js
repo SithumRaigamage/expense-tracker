@@ -4,8 +4,10 @@ const logger = require('../utils/logger');
 const WINDOW_MINUTES = parseInt(process.env.RATE_LIMIT_WINDOW, 10) || 15;
 const MAX_REQUESTS = parseInt(process.env.RATE_LIMIT_MAX, 10) || 100;
 
-// Tests fire many requests in a row; limiting them turns real assertions into 429s.
-const skip = () => process.env.NODE_ENV === 'test';
+// Tests fire many requests in a row; limiting them turns real assertions into
+// 429s. Keyed off its own flag rather than NODE_ENV so the suite covering this
+// middleware can switch it back on (see tests/integration/auth.test.js).
+const skip = () => process.env.RATE_LIMIT_DISABLED === 'true';
 
 const handler = (req, res, next, options) => {
   logger.warn('Rate limit exceeded', {
