@@ -2,7 +2,6 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   NgApexchartsModule,
-  ChartComponent,
   ApexAxisChartSeries,
   ApexChart,
   ApexXAxis,

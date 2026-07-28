@@ -177,8 +177,9 @@ export class WalletService {
       return throwError(() => new Error('Not authenticated. Please log in.'));
     }
 
-    // Remove user field to prevent changing ownership
-    const { user, ...dataToUpdate } = walletData;
+    // Remove user field to prevent changing ownership. The binding is unused by
+    // design — destructuring it is what keeps it out of dataToUpdate.
+    const { user: _user, ...dataToUpdate } = walletData;
 
     return this.http.put<ApiResponse<Wallet>>(`${this.apiUrl}/${id}`, dataToUpdate, this.getHttpOptions())
       .pipe(

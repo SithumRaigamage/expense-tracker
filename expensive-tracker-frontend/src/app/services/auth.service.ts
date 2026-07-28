@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Observable, tap, catchError, throwError, map, of } from 'rxjs';
+import { BehaviorSubject, Observable, tap, catchError, throwError, map } from 'rxjs';
 import { TokenService } from '../core/services/token.service';
 
 interface ApiResponse<T> {
@@ -145,7 +145,7 @@ export class AuthService {
     if (userData) {
       try {
         return JSON.parse(userData);
-      } catch (e) {
+      } catch {
         return null;
       }
     }

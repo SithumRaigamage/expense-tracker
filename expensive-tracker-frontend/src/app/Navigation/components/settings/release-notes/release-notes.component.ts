@@ -63,8 +63,6 @@ export class ReleaseNotesComponent implements OnInit {
   }
 
   checkUserRole(): void {
-    const currentUser = this.authService.getCurrentUser();
-
     // Set isAdmin to true if user has admin role
     this.isAdmin = this.authService.isAdmin();
   }

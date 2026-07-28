@@ -132,7 +132,7 @@ export class TransactionService {
       const createdCategories: Category[] = [];
       let completedRequests = 0;
 
-      defaultCategories.forEach((category, index) => {
+      defaultCategories.forEach(category => {
         this.http.post<ApiResponse<Category>>(`${this.apiUrl}/categories`, category)
           .pipe(
             map(response => response.data),

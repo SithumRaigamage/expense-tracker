@@ -9,9 +9,8 @@ import {
   faCode
 } from '@fortawesome/free-solid-svg-icons';
 
-// Define severity levels as const to ensure type safety
-const SEVERITY_LEVELS = ['low', 'medium', 'high'] as const;
-type Severity = typeof SEVERITY_LEVELS[number];
+// Severity levels, as a union to ensure type safety
+type Severity = 'low' | 'medium' | 'high';
 
 // Define color mapping interface
 interface SeverityColors {

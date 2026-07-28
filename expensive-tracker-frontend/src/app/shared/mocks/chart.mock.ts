@@ -22,11 +22,11 @@ export class MockChartComponent {
   @Input() theme: any;
   
   // Method expected by some components using @ViewChild
-  public updateOptions(options: any, redrawPaths?: boolean, animate?: boolean, updateSyncedCharts?: boolean): Promise<void> {
+  public updateOptions(_options: any, _redrawPaths?: boolean, _animate?: boolean, _updateSyncedCharts?: boolean): Promise<void> {
     return Promise.resolve();
   }
 
-  public updateSeries(newSeries: any, animate?: boolean): Promise<void> {
+  public updateSeries(_newSeries: any, _animate?: boolean): Promise<void> {
     return Promise.resolve();
   }
 }

@@ -6,7 +6,6 @@ import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
 import { ProductBudgetService } from '../../../services/product-budget.service';
 import { ProductBudget } from '../../../core/models/ProductBudget';
 import { WalletService } from '../../../services/wallet.service';
-import { Wallet } from '../../../core/models/Wallet';
 
 @Component({
   selector: 'app-budget-planner',

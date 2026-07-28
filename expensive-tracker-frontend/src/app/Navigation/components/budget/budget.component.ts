@@ -259,7 +259,7 @@ export class BudgetComponent implements OnInit {
           if (item.targetDate) {
             try {
               item.targetDate = new Date(item.targetDate);
-            } catch (e) {
+            } catch {
               errors.push(`Goal ${index + 1}: Invalid date format`);
             }
           }

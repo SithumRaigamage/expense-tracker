@@ -1,19 +1,13 @@
 import { Component } from '@angular/core';
 
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faDownload, faFileExport, faDatabase } from '@fortawesome/free-solid-svg-icons';
+import { faDownload } from '@fortawesome/free-solid-svg-icons';
 import { WalletService } from '../../../../services/wallet.service';
 import { TransactionService } from '../../../../services/transaction.service';
 import { ProductBudgetService } from '../../../../services/product-budget.service';
 import { BillsService } from '../../../../services/bill.service';
 import { ExcelExportService } from '../../../../services/excel-export.service';
 import { forkJoin, take, finalize } from 'rxjs';
-
-interface TeamMember {
-  name: string;
-  role: string;
-  avatar: string;
-}
 
 interface LegalLink {
   title: string;

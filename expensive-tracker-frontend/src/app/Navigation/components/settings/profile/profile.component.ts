@@ -361,7 +361,7 @@ export class ProfileComponent implements OnInit {
   }
 
   // Simple notification method - in a real app, you'd use a notification service
-  private showNotification(message: string, type: 'success' | 'error'): void {
+  private showNotification(message: string, _type: 'success' | 'error'): void {
     alert(message);
   }
 

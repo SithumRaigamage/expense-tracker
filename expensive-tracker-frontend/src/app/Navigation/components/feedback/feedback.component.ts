@@ -4,10 +4,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {
   faStar as faStarSolid,
-  faThumbsUp,
-  faThumbsDown,
   faPaperclip,
-  faComment,
   faBug,
   faLightbulb,
   faGaugeHigh,

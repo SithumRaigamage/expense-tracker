@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { NO_ERRORS_SCHEMA } from '@angular/core';
 
 import { EmergencyFundComponent } from './emergency-fund.component';
 import { provideRouter } from '@angular/router';

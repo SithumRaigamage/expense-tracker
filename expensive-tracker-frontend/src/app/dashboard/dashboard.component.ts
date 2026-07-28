@@ -14,7 +14,6 @@ import { UpcomingBillsComponent } from './components/upcoming-bills/upcoming-bil
 import { EmergencyFundComponent } from './components/emergency-fund/emergency-fund.component';
 import { FinancialEducationComponent } from './components/financial-education/financial-education.component';
 import { ExpenseBreakdownComponent } from './components/expense-breakdown/expense-breakdown.component';
-import { WalletService } from '../services/wallet.service';
 
 @Component({
   selector: 'app-dashboard',
