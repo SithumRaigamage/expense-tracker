@@ -84,14 +84,19 @@ pipeline {
                 withSonarQubeEnv('{{SONAR_SERVER_NAME}}') { 
                     sh '''
                         ${SCANNER_HOME}/bin/sonar-scanner \
+                        -Dproject.settings=/dev/null \
                         -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
                         -Dsonar.projectName="${SONAR_PROJECT_NAME}" \
                         -Dsonar.host.url=${SONAR_SERVER_URL} \
                         -Dsonar.login=${SONAR_AUTH_TOKEN} \
-                        -Dsonar.sources=. \
+                        -Dsonar.sources=src \
                         -Dsonar.exclusions=node_modules/**
                     '''
                 }
+                echo "\n============================================================"
+                echo "SonarQube Analysis Complete!"
+                echo "View results: http://localhost:9000/dashboard?id=${SONAR_PROJECT_KEY}"
+                echo "============================================================\n"
             }
         }
 

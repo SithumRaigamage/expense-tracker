@@ -9,8 +9,9 @@ import { Wallet } from '../../../core/models/Wallet';
 import { CurrencyService } from '../../../core/services/currency.service';
 import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
 import { ExcelExportService } from '../../../services/excel-export.service';
-import { faDownload, faEdit, faPlus, faPlusCircle, faUpload, faRefresh, faFileUpload, faFileImport, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faDownload, faEdit, faPlus, faPlusCircle, faUpload, faRefresh, faFileUpload, faFileImport, faTrash, faBullseye } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { SideDrawerComponent } from '../../../shared/components/side-drawer/side-drawer.component';
 import { NotificationService } from '../../../shared/services/notification.service';
 import { DialogService } from '../../../shared/services/dialog.service';
@@ -20,7 +21,7 @@ type DrawerMode = 'add' | 'edit' | 'addMoney' | null;
 @Component({
   selector: 'app-budget',
   standalone: true,
-  imports: [CommonModule, FormsModule, AppCurrencyPipe, FontAwesomeModule, SideDrawerComponent],
+  imports: [CommonModule, FormsModule, AppCurrencyPipe, FontAwesomeModule, SideDrawerComponent, EmptyStateComponent],
   templateUrl: './budget.component.html',
 })
 export class BudgetComponent implements OnInit {
@@ -44,6 +45,7 @@ export class BudgetComponent implements OnInit {
   faFileUpload = faFileUpload;
   faFileImport = faFileImport;
   faTrash = faTrash;
+  faBullseye = faBullseye;
   isDrawerOpen = false;
   drawerMode: DrawerMode = null;
   currentGoal: Omit<ProductBudget, 'id'> = this.getEmptyGoal();

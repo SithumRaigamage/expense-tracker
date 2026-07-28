@@ -318,11 +318,15 @@ export class TransactionService {
       return throwError(() => new Error('User not authenticated'));
     }
 
-    // Find the category ID based on the category name
+    // Find the category ID based on the category name or ID
     const categories = this.categories.getValue();
-    const category = categories.find(cat => cat.name === transaction.category);
+    const category = categories.find(cat => 
+      cat.name === transaction.category || cat._id === transaction.category
+    );
 
     if (!category) {
+      console.error('Category not found. Available categories:', categories);
+      console.error('Looking for category:', transaction.category);
       return throwError(() => new Error('Category not found'));
     }
 
@@ -359,11 +363,15 @@ export class TransactionService {
       return throwError(() => new Error('User not authenticated'));
     }
 
-    // Find the category ID based on the category name
+    // Find the category ID based on the category name or ID
     const categories = this.categories.getValue();
-    const category = categories.find(cat => cat.name === transaction.category);
+    const category = categories.find(cat => 
+      cat.name === transaction.category || cat._id === transaction.category
+    );
 
     if (!category) {
+      console.error('Category not found. Available categories:', categories);
+      console.error('Looking for category:', transaction.category);
       return throwError(() => new Error('Category not found'));
     }
 

@@ -21,6 +21,14 @@ connectDB();
 // Display banner
 displayBanner();
 
+// Opt-in: auto-generate recurring expenses on a schedule while the server runs.
+// Enable with ENABLE_RECURRING_SCHEDULER=true (see scripts/processRecurring.js
+// for the external-cron alternative).
+if (process.env.ENABLE_RECURRING_SCHEDULER === 'true') {
+  const { startRecurringScheduler } = require('./services/recurringScheduler');
+  startRecurringScheduler();
+}
+
 // Start server
 const server = app.listen(PORT, () => {
   logger.info(`Server is running on port ${PORT}`);

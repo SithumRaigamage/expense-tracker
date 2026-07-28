@@ -26,6 +26,7 @@ const currencyRoutes = require('./routes/currencyRoutes');
 const billRoutes = require('./routes/billRoutes');
 const feedbackRoutes = require('./routes/feedbackRoutes');
 const chatRoutes = require('./routes/chatRoutes');
+const importRoutes = require('./routes/importRoutes');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -118,6 +119,7 @@ app.use('/api/v1/currency', currencyRoutes);
 app.use('/api/v1/bills', billRoutes);
 app.use('/api/v1/feedback', feedbackRoutes);
 app.use('/api/v1/chat', chatRoutes);
+app.use('/api/v1/imports', importRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

@@ -200,60 +200,82 @@
     </form>
   </div>
 
+  <!-- Empty State -->
+  @if (allTransactions.length === 0 && !isLoading) {
+    <div class="flex flex-col items-center justify-center py-16 text-center">
+      <div class="mb-4 rounded-full bg-gray-100 p-6 dark:bg-gray-800">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+        </svg>
+      </div>
+      <h3 class="mb-2 text-lg font-semibold text-gray-900 dark:text-white">No Transactions Found</h3>
+      <p class="mb-6 max-w-md text-sm text-gray-500 dark:text-gray-400">
+        Start tracking your finances by adding your first transaction or importing data from a JSON file.
+      </p>
+      <button (click)="openDrawer()"
+        class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-6 py-3 text-sm font-semibold text-black shadow-sm hover:bg-primary-700 transition-colors">
+        <fa-icon [icon]="faPlus"></fa-icon>
+        <span>Add Your First Transaction</span>
+      </button>
+    </div>
+  }
+
   <!-- Transactions List: Desktop (Table) -->
-  <div class="hidden md:block overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-    <table class="w-full text-left text-sm text-gray-500 dark:text-gray-400">
-      <thead class="bg-gray-50 text-xs uppercase text-gray-700 dark:bg-gray-700 dark:text-gray-400">
-        <tr>
-          <th scope="col" class="px-6 py-3">Date</th>
-          <th scope="col" class="px-6 py-3">Description</th>
-          <th scope="col" class="px-6 py-3">Category</th>
-          <th scope="col" class="px-6 py-3">Wallet</th>
-          <th scope="col" class="px-6 py-3">Amount</th>
-          <th scope="col" class="px-6 py-3">Type</th>
-          <th scope="col" class="px-6 py-3">Actions</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-        @for (transaction of transactions; track transaction) {
-          <tr
-            class="bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700">
-            <td class="px-6 py-4 whitespace-nowrap">{{transaction.date | date}}</td>
-            <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">{{transaction.description}}</td>
-            <td class="px-6 py-4">
-              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
-                {{transaction.category}}
-              </span>
-            </td>
-            <td class="px-6 py-4">
-              <span class="text-gray-500 dark:text-gray-400">
-                {{transaction.wallet?.name || 'Default'}}
-              </span>
-            </td>
+  @if (allTransactions.length > 0) {
+    <div class="hidden md:block overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+      <table class="w-full text-left text-sm text-gray-500 dark:text-gray-400">
+        <thead class="bg-gray-50 text-xs uppercase text-gray-700 dark:bg-gray-700 dark:text-gray-400">
+          <tr>
+            <th scope="col" class="px-6 py-3">Date</th>
+            <th scope="col" class="px-6 py-3">Description</th>
+            <th scope="col" class="px-6 py-3">Category</th>
+            <th scope="col" class="px-6 py-3">Wallet</th>
+            <th scope="col" class="px-6 py-3">Amount</th>
+            <th scope="col" class="px-6 py-3">Type</th>
+            <th scope="col" class="px-6 py-3">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+          @for (transaction of transactions; track transaction) {
+            <tr
+              class="bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700">
+              <td class="px-6 py-4 whitespace-nowrap">{{transaction.date | date}}</td>
+              <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">{{transaction.description}}</td>
+              <td class="px-6 py-4">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                  {{transaction.category}}
+                </span>
+              </td>
+              <td class="px-6 py-4">
+                <span class="text-gray-500 dark:text-gray-400">
+                  {{transaction.wallet?.name || 'Default'}}
+                </span>
+              </td>
           <td class="px-6 py-4 font-semibold" [ngClass]="{
             'text-green-600 dark:text-green-400': transaction.type === 'income',
             'text-red-600 dark:text-red-400': transaction.type === 'expense'
           }">{{transaction.amount | appCurrency}}</td>
-            <td class="px-6 py-4 capitalize">{{transaction.type}}</td>
-            <td class="px-6 py-4">
-              <div class="flex gap-3">
-                <button (click)="openDrawer(transaction)"
-                  [attr.aria-label]="'Edit transaction: ' + transaction.description"
-                  class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
-                  <fa-icon [icon]="faPencil"></fa-icon>
-                </button>
-                <button (click)="deleteTransaction(transaction.id)"
-                  [attr.aria-label]="'Delete transaction: ' + transaction.description"
-                  class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors">
-                  <fa-icon [icon]="faTrash"></fa-icon>
-                </button>
-              </div>
-            </td>
-          </tr>
-        }
-      </tbody>
-    </table>
-  </div>
+              <td class="px-6 py-4 capitalize">{{transaction.type}}</td>
+              <td class="px-6 py-4">
+                <div class="flex gap-3">
+                  <button (click)="openDrawer(transaction)"
+                    [attr.aria-label]="'Edit transaction: ' + transaction.description"
+                    class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
+                    <fa-icon [icon]="faPencil"></fa-icon>
+                  </button>
+                  <button (click)="deleteTransaction(transaction.id)"
+                    [attr.aria-label]="'Delete transaction: ' + transaction.description"
+                    class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors">
+                    <fa-icon [icon]="faTrash"></fa-icon>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
 
   <!-- Transactions List: Mobile (Cards) -->
   <div class="md:hidden space-y-4">
@@ -295,36 +317,36 @@
   </div>
 
   <!-- Pagination -->
-  <div class="flex items-center justify-between py-4">
-    <div class="text-sm text-gray-700 dark:text-gray-300">
-      Showing <span class="font-medium">{{transactions.length}}</span> of <span class="font-medium">{{filteredTransactions.length}}</span> transactions
+  @if (allTransactions.length > 0) {
+    <div class="flex items-center justify-between py-4">
+      <div class="text-sm text-gray-700 dark:text-gray-300">
+        Showing <span class="font-medium">{{transactions.length}}</span> of <span class="font-medium">{{filteredTransactions.length}}</span> transactions
+      </div>
+      <div class="flex items-center space-x-2">
+        <button
+          (click)="goToPage(currentPage - 1)"
+          [disabled]="currentPage === 1"
+          aria-label="Previous page"
+          class="inline-flex items-center justify-center rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
+          [class.opacity-50]="currentPage === 1"
+          >
+          <fa-icon [icon]="faChevronLeft"></fa-icon>
+        </button>
+        <span class="text-sm text-gray-700 dark:text-gray-300">
+          Page {{currentPage}} of {{totalPages}}
+        </span>
+        <button
+          (click)="goToPage(currentPage + 1)"
+          [disabled]="currentPage === totalPages"
+          aria-label="Next page"
+          class="inline-flex items-center justify-center rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
+          [class.opacity-50]="currentPage === totalPages"
+          >
+          <fa-icon [icon]="faChevronRight"></fa-icon>
+        </button>
+      </div>
     </div>
-    <div class="flex items-center space-x-2">
-      <button
-        (click)="goToPage(currentPage - 1)"
-        [disabled]="currentPage === 1"
-        aria-label="Previous page"
-        class="inline-flex items-center justify-center rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
-        [class.opacity-50]="currentPage === 1"
-        >
-        <fa-icon [icon]="faChevronLeft"></fa-icon>
-      </button>
-
-      <span class="text-sm text-gray-700 dark:text-gray-300">
-        Page {{currentPage}} of {{totalPages}}
-      </span>
-
-      <button
-        (click)="goToPage(currentPage + 1)"
-        [disabled]="currentPage === totalPages"
-        aria-label="Next page"
-        class="inline-flex items-center justify-center rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
-        [class.opacity-50]="currentPage === totalPages"
-        >
-        <fa-icon [icon]="faChevronRight"></fa-icon>
-      </button>
-    </div>
-  </div>
+  }
 
   <!-- Side Drawer -->
   <app-side-drawer

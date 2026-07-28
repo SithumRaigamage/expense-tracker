@@ -228,16 +228,25 @@ export class TransactionsComponent implements OnInit {
   openDrawer(transaction?: Transaction) {
     this.selectedTransaction = transaction || null;
     if (transaction) {
+      // Find the category ID based on the category name
+      const category = this.categories.find(cat => cat.name === transaction.category);
+      const categoryId = category?._id || '';
+      
       this.transactionForm.patchValue({
         date: this.formatDateForInput(transaction.date),
         amount: transaction.amount,
         description: transaction.description,
-        category: transaction.category,
+        category: categoryId,
         type: transaction.type,
         walletId: transaction.walletId
       });
     } else {
-      this.transactionForm.reset({ type: 'expense' });
+      // Set today's date as default for new transactions
+      const today = new Date();
+      this.transactionForm.reset({ 
+        type: 'expense',
+        date: this.formatDateForInput(today)
+      });
     }
     this.isDrawerOpen = true;
     this.activeTab = 'manual'; // Default to manual entry when opening drawer

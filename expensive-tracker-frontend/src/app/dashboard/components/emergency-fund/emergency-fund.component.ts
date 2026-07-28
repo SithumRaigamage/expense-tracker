@@ -21,10 +21,8 @@ import { Router } from '@angular/router';
 import { CurrencyService } from '../../../core/services/currency.service';
 import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
 import { NotificationService } from '../../../shared/services/notification.service';
-
-/** Used until the user sets their own; three months of a modest income. */
-const DEFAULT_TARGET = 100000;
-const DEFAULT_MONTHLY_TARGET = 5000;
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
+import { faShieldHalved } from '@fortawesome/free-solid-svg-icons';
 
 interface EmergencyTransaction {
   date: Date;
@@ -54,7 +52,7 @@ export interface EmergencyChartOptions {
   selector: 'app-emergency-fund',
   templateUrl: './emergency-fund.component.html',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgApexchartsModule, AppCurrencyPipe]
+  imports: [CommonModule, FormsModule, NgApexchartsModule, AppCurrencyPipe, EmptyStateComponent]
 })
 export class EmergencyFundComponent implements OnInit, OnDestroy {
   private transactionService = inject(TransactionService);
@@ -64,6 +62,7 @@ export class EmergencyFundComponent implements OnInit, OnDestroy {
   private readonly notifications = inject(NotificationService);
 
   public chartOptions!: Partial<EmergencyChartOptions>;
+  readonly faShieldHalved = faShieldHalved;
   protected Math = Math;
 
   private readonly COLORS = {
@@ -77,15 +76,21 @@ export class EmergencyFundComponent implements OnInit, OnDestroy {
   currentBalance = 0;
   /**
    * Read from the wallet, not baked in. These were literals (100000 and 5000)
-   * so every user saw the same goal and had no way to change it; the defaults
-   * below only apply until someone sets a real one.
+   * so every user saw the same goal and had no way to change it. They now sit
+   * at zero until the user sets one, and the template says "No target goal set"
+   * rather than showing a figure nobody chose.
    */
-  targetGoal = DEFAULT_TARGET;
-  monthlySaveGoal = DEFAULT_MONTHLY_TARGET;
+  targetGoal = 0;
+  monthlySaveGoal = 0;
   emergencyWalletId: string | null = null;
   isEditingTargets = false;
-  targetDraft = DEFAULT_TARGET;
-  monthlyDraft = DEFAULT_MONTHLY_TARGET;
+  targetDraft = 0;
+  monthlyDraft = 0;
+
+  /** One source of truth: the widget has a fund exactly when it has its id. */
+  get hasEmergencyWallet(): boolean {
+    return this.emergencyWalletId !== null;
+  }
 
   // Pagination
   currentPage = 1;
@@ -233,6 +238,8 @@ export class EmergencyFundComponent implements OnInit, OnDestroy {
         if (!emergencyWallet) {
           this.currentBalance = 0;
           this.emergencyWalletId = null;
+          this.targetGoal = 0;
+          this.monthlySaveGoal = 0;
           this.transactions = [];
           this.initializeChart();
           return;
@@ -240,8 +247,8 @@ export class EmergencyFundComponent implements OnInit, OnDestroy {
 
         this.currentBalance = emergencyWallet.balance;
         this.emergencyWalletId = emergencyWallet.id;
-        this.targetGoal = emergencyWallet.targetAmount || DEFAULT_TARGET;
-        this.monthlySaveGoal = emergencyWallet.monthlyTarget || DEFAULT_MONTHLY_TARGET;
+        this.targetGoal = emergencyWallet.targetAmount || 0;
+        this.monthlySaveGoal = emergencyWallet.monthlyTarget || 0;
         
         if (allTransactions) {
           const walletTransactions = allTransactions.filter(t => t.walletId === emergencyWallet.id);
@@ -377,7 +384,7 @@ export class EmergencyFundComponent implements OnInit, OnDestroy {
   }
 
   navToAddFunds(): void {
-    this.router.navigate(['/transactions'], { queryParams: { walletType: 'emergencyfund', action: 'add' } });
+    this.router.navigate(['/wallets'], { queryParams: { walletType: 'emergencyfund', action: 'add' } });
   }
 
   formatDate(date: Date): string {

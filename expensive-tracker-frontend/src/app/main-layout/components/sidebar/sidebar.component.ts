@@ -21,7 +21,8 @@ import {
   faFeed,
   faBell,
   faChevronRight,
-  faChevronDown
+  faChevronDown,
+  faFileImport
 } from '@fortawesome/free-solid-svg-icons';
 import { SidebarService } from '../../../services/sidebar-service.service';
 
@@ -87,6 +88,13 @@ export class SidebarComponent implements OnInit {
       name: 'Transactions',
       path: '/transactions',
       isNew: false,
+      isLocked: false
+    },
+    {
+      icon: faFileImport,
+      name: 'Import & Scan',
+      path: '/import',
+      isNew: true,
       isLocked: false
     },
     {
@@ -174,7 +182,8 @@ export class SidebarComponent implements OnInit {
       faFeed,
       faBell,
       faChevronRight,
-      faChevronDown
+      faChevronDown,
+      faFileImport
     );
 
     // Update parent item lock status based on subitems

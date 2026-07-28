@@ -120,8 +120,24 @@
 
   <!-- Goals Grid -->
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    @if (goals.length === 0) {
+      <div class="col-span-full">
+        <app-empty-state
+          [icon]="faBullseye"
+          title="No budget goals yet"
+          message="Create a goal to track what you are saving towards and how close you are."
+          size="lg"
+          >
+          <button type="button" (click)="openDrawer('add')"
+            class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-600">
+            Create your first goal
+          </button>
+        </app-empty-state>
+      </div>
+    }
+
     <!-- No Results Message -->
-    @if (filteredGoals.length === 0) {
+    @if (goals.length > 0 && filteredGoals.length === 0) {
       <div class="col-span-full text-center py-12">
         <div class="text-gray-500 dark:text-gray-400">
           <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto mb-4 opacity-50" fill="none"

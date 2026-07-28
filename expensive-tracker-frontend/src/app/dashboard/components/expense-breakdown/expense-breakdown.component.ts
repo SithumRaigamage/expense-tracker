@@ -91,10 +91,14 @@ export class ExpenseBreakdownComponent implements OnInit {
       tooltip: {
         trigger: 'item',
         triggerOn: 'mousemove',
+        confine: true,
+        appendToBody: false,
         formatter: (params: SankeyTooltipParams) => {
           if (params.dataType === 'edge') {
             return `${params.data.source} → ${params.data.target}: ${currency} ${Number(params.data.value).toLocaleString()}`;
           }
+          // Node labels are hidden below, so this hover is the only way left to
+          // identify a node. Suppressing it too would leave them anonymous.
           return `${params.name}`;
         }
       },
@@ -105,7 +109,9 @@ export class ExpenseBreakdownComponent implements OnInit {
         emphasis: { focus: 'adjacency' },
         nodeGap: 12,
         nodeWidth: 12,
-        label: { fontSize: 11, color: '#374151' },
+        label: {
+          show: false // Hide labels to prevent text overlay
+        },
         lineStyle: { curveness: 0.5 }
       }]
     } as EChartsOption;

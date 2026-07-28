@@ -44,7 +44,6 @@ Thumbs.db
 # SonarQube
 .scannerwork/
 .sonarlint/
-sonar-project.properties
 .vscode/settings.json
 coverage/
 .sonar/

@@ -28,7 +28,8 @@ module.exports = [
         setInterval: 'readonly',
         clearInterval: 'readonly',
         exports: 'writable',
-        URL: 'readonly'
+        URL: 'readonly',
+        URLSearchParams: 'readonly'
       }
     },
     rules: {
