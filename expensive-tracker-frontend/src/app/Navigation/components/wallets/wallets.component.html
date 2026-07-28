@@ -18,7 +18,7 @@
         Transfer
       </button>
       <button (click)="openDrawer()"
-              class="flex-1 sm:flex-none inline-flex justify-center items-center gap-2 rounded-lg bg-primary-500 px-5 py-2.5 text-sm font-medium hover:bg-primary-600 transition-colors shadow-sm hover:shadow-md"
+              class="flex-1 sm:flex-none inline-flex justify-center items-center gap-2 rounded-lg bg-brand-500 px-5 py-2.5 text-sm font-medium hover:bg-brand-600 transition-colors shadow-sm hover:shadow-md"
               [disabled]="hasError">
         <fa-icon [icon]="faPlus"></fa-icon>
         Add Wallet
@@ -28,7 +28,7 @@
 
   <!-- Loading State -->
   <div *ngIf="isLoading" class="flex justify-center items-center py-16">
-    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-500"></div>
     <span class="ml-3 text-gray-600 dark:text-gray-400">Loading wallets...</span>
   </div>
 
@@ -39,13 +39,13 @@
     <p class="text-gray-600 dark:text-gray-400 mb-4 max-w-md mx-auto">{{ error }}</p>
     <button *ngIf="!isAuthError"
       (click)="refreshWallets()"
-      class="inline-flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors">
+      class="inline-flex items-center gap-2 px-4 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition-colors">
       <fa-icon [icon]="faRefresh"></fa-icon>
       Try Again
     </button>
     <button *ngIf="isAuthError"
       (click)="goToLogin()"
-      class="inline-flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors">
+      class="inline-flex items-center gap-2 px-4 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition-colors">
       <fa-icon [icon]="faArrowRight"></fa-icon>
       Go to Login
     </button>
@@ -58,23 +58,23 @@
     <p class="text-gray-600 dark:text-gray-400 mb-4">Create your first wallet to start managing your finances</p>
     <button
       (click)="openDrawer()"
-      class="inline-flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors">
+      class="inline-flex items-center gap-2 px-4 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition-colors">
       <fa-icon [icon]="faPlus"></fa-icon>
       Add Wallet
     </button>
   </div>
 
   <!-- Total Summary -->
-  <div *ngIf="hasWallets && !isLoading && !hasError" class="bg-primary-50 dark:bg-primary-900/10 rounded-xl p-6 mb-8 border border-primary-100 dark:border-primary-800/30">
+  <div *ngIf="hasWallets && !isLoading && !hasError" class="bg-brand-50 dark:bg-brand-900/10 rounded-xl p-6 mb-8 border border-brand-100 dark:border-brand-800/30">
     <div class="flex items-center justify-between">
       <div>
-        <h3 class="text-sm font-medium text-primary-800 dark:text-primary-300 mb-1">Total Assets ({{currencyService.getActiveCurrency()}})</h3>
+        <h3 class="text-sm font-medium text-brand-800 dark:text-brand-300 mb-1">Total Assets ({{currencyService.getActiveCurrency()}})</h3>
         <p class="text-3xl font-bold text-gray-900 dark:text-white">
           {{ ((walletService.getTotalAssets() | async) || 0) | appCurrency }}
         </p>
       </div>
       <div class="hidden md:block">
-        <fa-icon [icon]="faChartLine" class="text-primary-300 dark:text-primary-700 text-5xl"></fa-icon>
+        <fa-icon [icon]="faChartLine" class="text-brand-300 dark:text-brand-700 text-5xl"></fa-icon>
       </div>
     </div>
   </div>
@@ -93,11 +93,11 @@
         <div class="flex items-center gap-1">
           <button (click)="openTransferDialog(wallet)"
                   title="Transfer Funds"
-                  class="p-2 rounded-full text-gray-500 hover:text-primary-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-primary-400 dark:hover:bg-gray-700 transition-all">
+                  class="p-2 rounded-full text-gray-500 hover:text-brand-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-brand-400 dark:hover:bg-gray-700 transition-all">
             <fa-icon [icon]="faExchangeAlt"></fa-icon>
           </button>
           <button (click)="openDrawer(wallet)"
-                  class="p-2 rounded-full text-gray-500 hover:text-primary-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-primary-400 dark:hover:bg-gray-700 transition-all">
+                  class="p-2 rounded-full text-gray-500 hover:text-brand-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-brand-400 dark:hover:bg-gray-700 transition-all">
             <fa-icon [icon]="faEdit"></fa-icon>
           </button>
           <button (click)="deleteWallet(wallet.id)"
@@ -112,7 +112,7 @@
           <span class="text-gray-500 dark:text-gray-400 text-sm">Balance</span>
           <div class="text-right">
             <span class="font-semibold text-lg text-gray-900 dark:text-white block">{{formatCurrency(wallet.balance, wallet.currency)}}</span>
-            <span *ngIf="wallet.currency !== (currencyService.activeCurrency$ | async)" class="text-xs text-primary-600 dark:text-primary-400 font-medium">
+            <span *ngIf="wallet.currency !== (currencyService.activeCurrency$ | async)" class="text-xs text-brand-600 dark:text-brand-400 font-medium">
               ≈ {{ wallet.balance | appCurrency : wallet.currency }}
             </span>
           </div>
@@ -138,13 +138,13 @@
       <!-- Tab Navigation (only for adding new) -->
       <div *ngIf="!selectedWallet" class="mb-8 p-1 bg-gray-100/50 dark:bg-gray-800/50 rounded-2xl flex">
         <button (click)="switchTab('manual')"
-           [class]="activeTab === 'manual' ? 'bg-white dark:bg-gray-700 shadow-sm text-primary-600 dark:text-primary-400' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'"
+           [class]="activeTab === 'manual' ? 'bg-white dark:bg-gray-700 shadow-sm text-brand-600 dark:text-brand-400' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'"
            class="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-200">
           <fa-icon [icon]="faEdit"></fa-icon>
           Manual
         </button>
         <button (click)="switchTab('upload')"
-           [class]="activeTab === 'upload' ? 'bg-white dark:bg-gray-700 shadow-sm text-primary-600 dark:text-primary-400' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'"
+           [class]="activeTab === 'upload' ? 'bg-white dark:bg-gray-700 shadow-sm text-brand-600 dark:text-brand-400' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'"
            class="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-200">
           <fa-icon [icon]="faUpload"></fa-icon>
           Import JSON
@@ -158,12 +158,12 @@
             Wallet Name
           </label>
           <div class="relative group">
-            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-primary-500">
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-brand-500">
               <fa-icon [icon]="faWallet" class="text-gray-400"></fa-icon>
             </div>
             <input type="text"
                    formControlName="name"
-                   class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 pl-11 px-4 py-3.5 text-gray-900 dark:text-white transition-all duration-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 placeholder-gray-400"
+                   class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 pl-11 px-4 py-3.5 text-gray-900 dark:text-white transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 placeholder-gray-400"
                    placeholder="e.g. Personal Savings">
           </div>
           <div class="px-1 text-xs font-medium text-red-500" *ngIf="nameErrors.required">
@@ -180,11 +180,11 @@
               Type
             </label>
             <div class="relative group">
-              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-primary-500">
+              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-brand-500">
                 <fa-icon [icon]="getWalletIcon(walletForm.get('type')?.value || '')" class="text-gray-400"></fa-icon>
               </div>
               <select formControlName="type"
-                      class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 pl-11 pr-10 py-3.5 text-gray-900 dark:text-white transition-all duration-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 appearance-none">
+                      class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 pl-11 pr-10 py-3.5 text-gray-900 dark:text-white transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 appearance-none">
                 <option value="">Select type</option>
                 <option value="cash">Cash</option>
                 <option value="bank">Bank Account</option>
@@ -211,11 +211,11 @@
               Currency
             </label>
             <div class="relative group">
-              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-primary-500">
+              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-brand-500">
                 <fa-icon [icon]="faMoneyBillWave" class="text-gray-400"></fa-icon>
               </div>
               <select formControlName="currency"
-                      class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 pl-11 pr-10 py-3.5 text-gray-900 dark:text-white transition-all duration-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 appearance-none">
+                      class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 pl-11 pr-10 py-3.5 text-gray-900 dark:text-white transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 appearance-none">
                 <option *ngFor="let curr of currencies" [value]="curr">{{curr}}</option>
               </select>
               <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
@@ -232,12 +232,12 @@
             {{selectedWallet ? 'Current Balance' : 'Initial Balance'}}
           </label>
           <div class="relative group">
-            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 font-bold group-focus-within:text-primary-500">
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 font-bold group-focus-within:text-brand-500">
               {{walletForm.get('currency')?.value}}
             </div>
             <input type="number"
                    formControlName="balance"
-                   class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 pl-14 px-4 py-4 text-xl font-bold text-gray-900 dark:text-white transition-all duration-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 placeholder-0.00"
+                   class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 pl-14 px-4 py-4 text-xl font-bold text-gray-900 dark:text-white transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 placeholder-0.00"
                    placeholder="0.00">
           </div>
           <div class="px-1 text-xs font-medium text-red-500" *ngIf="balanceErrors.required">
@@ -256,7 +256,7 @@
           </button>
           <button type="submit"
                   [disabled]="!formIsValid || isLoading"
-                  class="flex-[2] rounded-2xl bg-primary-500 px-6 py-4 text-sm font-bold text-black shadow-lg shadow-primary-500/20 hover:bg-primary-600 hover:shadow-primary-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95 flex items-center justify-center gap-2">
+                  class="flex-[2] rounded-2xl bg-brand-500 px-6 py-4 text-sm font-bold text-white shadow-lg shadow-brand-500/20 hover:bg-brand-600 hover:shadow-brand-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95 flex items-center justify-center gap-2">
             <fa-icon *ngIf="isLoading" class="animate-spin" [icon]="faRefresh"></fa-icon>
             <fa-icon *ngIf="!isLoading" [icon]="selectedWallet ? faEdit : faPlus"></fa-icon>
             {{isLoading ? (selectedWallet ? 'Saving...' : 'Adding...') : (selectedWallet ? 'Save Changes' : 'Add Wallet')}}
@@ -266,10 +266,10 @@
 
       <!-- JSON Upload Form -->
       <div *ngIf="activeTab === 'upload' && !selectedWallet" class="space-y-8">
-        <div class="group relative bg-gray-50/50 dark:bg-gray-800/30 rounded-3xl p-10 border-2 border-dashed border-gray-200 dark:border-gray-800 hover:border-primary-500 transition-all duration-300">
+        <div class="group relative bg-gray-50/50 dark:bg-gray-800/30 rounded-3xl p-10 border-2 border-dashed border-gray-200 dark:border-gray-800 hover:border-brand-500 transition-all duration-300">
           <div class="text-center">
             <div class="w-16 h-16 bg-white dark:bg-gray-800 rounded-2xl shadow-sm flex items-center justify-center mx-auto mb-6 transition-transform duration-300 group-hover:-translate-y-1">
-              <fa-icon [icon]="faFileUpload" class="text-gray-400 text-2xl group-hover:text-primary-500"></fa-icon>
+              <fa-icon [icon]="faFileUpload" class="text-gray-400 text-2xl group-hover:text-brand-500"></fa-icon>
             </div>
             <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Import Wallet Data</h3>
             <p class="text-sm text-gray-500 dark:text-gray-400 mb-8 max-w-[200px] mx-auto leading-relaxed">
@@ -280,13 +280,13 @@
               {{ jsonError }}
             </div>
 
-            <label for="json-upload" class="inline-flex items-center justify-center gap-3 rounded-2xl bg-white dark:bg-gray-800 border-2 border-primary-500 px-8 py-3.5 text-sm font-bold text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/10 cursor-pointer shadow-sm transition-all duration-200 active:scale-95">
+            <label for="json-upload" class="inline-flex items-center justify-center gap-3 rounded-2xl bg-white dark:bg-gray-800 border-2 border-brand-500 px-8 py-3.5 text-sm font-bold text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/10 cursor-pointer shadow-sm transition-all duration-200 active:scale-95">
               <fa-icon [icon]="faUpload"></fa-icon>
               {{ selectedFile ? 'Change File' : 'Select JSON' }}
               <input type="file" id="json-upload" accept=".json" class="hidden" (change)="onFileSelected($event)">
             </label>
 
-            <p *ngIf="selectedFile" class="mt-4 text-xs font-bold text-primary-500 bg-primary-50 dark:bg-primary-900/10 py-1.5 px-3 rounded-full inline-block">
+            <p *ngIf="selectedFile" class="mt-4 text-xs font-bold text-brand-500 bg-brand-50 dark:bg-brand-900/10 py-1.5 px-3 rounded-full inline-block">
               {{ selectedFile.name }}
             </p>
           </div>
@@ -304,7 +304,7 @@
                     <div class="font-bold text-gray-900 dark:text-white">{{ wallet.name }}</div>
                     <div class="text-[10px] font-bold uppercase tracking-wider text-gray-400 mt-0.5">{{ wallet.type }}</div>
                   </td>
-                  <td class="px-6 py-4 text-right font-bold text-primary-600 dark:text-primary-400">
+                  <td class="px-6 py-4 text-right font-bold text-brand-600 dark:text-brand-400">
                     {{ wallet.balance | appCurrency:wallet.currency }}
                   </td>
                 </tr>
@@ -322,7 +322,7 @@
           <button type="button"
                   [disabled]="!selectedFile || isLoading || jsonError"
                   (click)="importWallets()"
-                  class="flex-[2] rounded-2xl bg-primary-500 px-6 py-4 text-sm font-bold text-black shadow-lg shadow-primary-500/20 hover:bg-primary-600 hover:shadow-primary-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95 flex items-center justify-center gap-2">
+                  class="flex-[2] rounded-2xl bg-brand-500 px-6 py-4 text-sm font-bold text-white shadow-lg shadow-brand-500/20 hover:bg-brand-600 hover:shadow-brand-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95 flex items-center justify-center gap-2">
             <fa-icon *ngIf="isLoading" class="animate-spin" [icon]="faRefresh"></fa-icon>
             <fa-icon *ngIf="!isLoading" [icon]="faFileImport"></fa-icon>
             {{isLoading ? 'Importing...' : 'Start Import'}}

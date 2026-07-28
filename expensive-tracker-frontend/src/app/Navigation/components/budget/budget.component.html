@@ -14,7 +14,7 @@
           Export
         </button>
         <button (click)="openDrawer('add')"
-          class="flex-1 sm:flex-none inline-flex justify-center items-center gap-2 px-5 py-2.5 bg-primary text-black rounded-lg hover:bg-primary-dark transition-colors shadow-sm hover:shadow">
+          class="flex-1 sm:flex-none inline-flex justify-center items-center gap-2 px-5 py-2.5 bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition-colors shadow-sm hover:shadow">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -31,7 +31,7 @@
       <!-- Search -->
       <div class="relative w-full sm:w-64">
         <input type="text" [(ngModel)]="searchQuery" (input)="applyFilters()" placeholder="Search goals..."
-          class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50">
+          class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500/50">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-3 top-2.5 text-gray-400" fill="none"
           viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -58,16 +58,16 @@
           <div *ngIf="isSortOpen" class="absolute right-0 top-full mt-2 w-full sm:w-48 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-100">
             <div class="py-1">
               <button (click)="selectSort('progress')" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2">
-                <span [class.opacity-0]="sortOption !== 'progress'" class="text-primary-500">✓</span> Progress
+                <span [class.opacity-0]="sortOption !== 'progress'" class="text-brand-500">✓</span> Progress
               </button>
               <button (click)="selectSort('amount')" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2">
-                <span [class.opacity-0]="sortOption !== 'amount'" class="text-primary-500">✓</span> Amount
+                <span [class.opacity-0]="sortOption !== 'amount'" class="text-brand-500">✓</span> Amount
               </button>
               <button (click)="selectSort('date')" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2">
-                <span [class.opacity-0]="sortOption !== 'date'" class="text-primary-500">✓</span> Date
+                <span [class.opacity-0]="sortOption !== 'date'" class="text-brand-500">✓</span> Date
               </button>
               <button (click)="selectSort('name')" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2">
-                <span [class.opacity-0]="sortOption !== 'name'" class="text-primary-500">✓</span> Name
+                <span [class.opacity-0]="sortOption !== 'name'" class="text-brand-500">✓</span> Name
               </button>
             </div>
           </div>
@@ -91,13 +91,13 @@
           <div *ngIf="isFilterOpen" class="absolute right-0 top-full mt-2 w-full sm:w-48 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-100">
             <div class="py-1">
               <button (click)="selectFilter('all')" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2">
-                <span [class.opacity-0]="filterOption !== 'all'" class="text-primary-500">✓</span> All Goals
+                <span [class.opacity-0]="filterOption !== 'all'" class="text-brand-500">✓</span> All Goals
               </button>
               <button (click)="selectFilter('ongoing')" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2">
-                <span [class.opacity-0]="filterOption !== 'ongoing'" class="text-primary-500">✓</span> Ongoing
+                <span [class.opacity-0]="filterOption !== 'ongoing'" class="text-brand-500">✓</span> Ongoing
               </button>
               <button (click)="selectFilter('completed')" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2">
-                <span [class.opacity-0]="filterOption !== 'completed'" class="text-primary-500">✓</span> Completed
+                <span [class.opacity-0]="filterOption !== 'completed'" class="text-brand-500">✓</span> Completed
               </button>
             </div>
           </div>
@@ -206,13 +206,13 @@
        <!-- Tab Navigation (only for adding new) -->
        <div *ngIf="drawerMode === 'add'" class="mb-8 p-1 bg-gray-100/50 dark:bg-gray-800/50 rounded-2xl flex">
         <button (click)="switchTab('manual')"
-           [class]="activeTab === 'manual' ? 'bg-white dark:bg-gray-700 shadow-sm text-primary-600 dark:text-primary-400' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'"
+           [class]="activeTab === 'manual' ? 'bg-white dark:bg-gray-700 shadow-sm text-brand-600 dark:text-brand-400' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'"
            class="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-200">
           <fa-icon [icon]="faEdit"></fa-icon>
           Manual
         </button>
         <button (click)="switchTab('upload')"
-           [class]="activeTab === 'upload' ? 'bg-white dark:bg-gray-700 shadow-sm text-primary-600 dark:text-primary-400' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'"
+           [class]="activeTab === 'upload' ? 'bg-white dark:bg-gray-700 shadow-sm text-brand-600 dark:text-brand-400' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'"
            class="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-200">
           <fa-icon [icon]="faUpload"></fa-icon>
           Import JSON
@@ -229,7 +229,7 @@
              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Cover Image</label>
              
              <!-- Image Preview / Placeholder -->
-             <div class="relative group h-40 rounded-3xl overflow-hidden bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-200 dark:border-gray-800 flex items-center justify-center transition-all duration-300 hover:border-primary-500">
+             <div class="relative group h-40 rounded-3xl overflow-hidden bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-200 dark:border-gray-800 flex items-center justify-center transition-all duration-300 hover:border-brand-500">
                <img *ngIf="currentGoal.imageUrl" [src]="currentGoal.imageUrl" class="w-full h-full object-cover">
                <div *ngIf="!currentGoal.imageUrl" class="text-center p-6">
                  <div class="w-12 h-12 bg-white dark:bg-gray-700 rounded-2xl shadow-sm flex items-center justify-center mx-auto mb-3">
@@ -240,7 +240,7 @@
                
                <!-- Loading Overlay -->
                <div *ngIf="isUploading" class="absolute inset-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm flex items-center justify-center z-10">
-                 <fa-icon [icon]="faRefresh" class="animate-spin text-primary-500 text-2xl"></fa-icon>
+                 <fa-icon [icon]="faRefresh" class="animate-spin text-brand-500 text-2xl"></fa-icon>
                </div>
              </div>
 
@@ -255,7 +255,7 @@
                  <input type="text" 
                         [(ngModel)]="currentGoal.imageUrl" 
                         placeholder="Or paste image URL"
-                        class="w-full rounded-xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3 text-xs text-gray-900 dark:text-white transition-all focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10">
+                        class="w-full rounded-xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3 text-xs text-gray-900 dark:text-white transition-all focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10">
                </div>
                <input type="file" id="imageUpload" class="hidden" (change)="handleImageUpload($event)" accept="image/*">
              </div>
@@ -266,7 +266,7 @@
             <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Goal Name</label>
             <input type="text"
                    [(ngModel)]="currentGoal.name"
-                   class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10"
+                   class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
                    placeholder="e.g. New MacBook Pro">
           </div>
 
@@ -276,14 +276,14 @@
                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Target Amount</label>
                <input type="number"
                       [(ngModel)]="currentGoal.targetAmount"
-                      class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10"
+                      class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
                       placeholder="0.00">
              </div>
              <div class="space-y-1.5">
                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Initial Savings</label>
                <input type="number"
                       [(ngModel)]="currentGoal.savedAmount"
-                      class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10"
+                      class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
                       placeholder="0.00">
              </div>
           </div>
@@ -293,7 +293,7 @@
             <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Target Date</label>
             <input type="date"
                    [(ngModel)]="currentGoal.targetDate"
-                   class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10">
+                   class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10">
           </div>
 
           <div class="pt-6 flex gap-4">
@@ -304,7 +304,7 @@
             </button>
             <button (click)="submitForm()"
                     [disabled]="!currentGoal.name || currentGoal.targetAmount <= 0"
-                    class="flex-[2] rounded-2xl bg-primary-500 px-6 py-4 text-sm font-bold text-black shadow-lg shadow-primary-500/20 hover:bg-primary-600 hover:shadow-primary-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95">
+                    class="flex-[2] rounded-2xl bg-brand-500 px-6 py-4 text-sm font-bold text-white shadow-lg shadow-brand-500/20 hover:bg-brand-600 hover:shadow-brand-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95">
               {{ drawerMode === 'add' ? 'Create Goal' : 'Save Changes' }}
             </button>
           </div>
@@ -318,7 +318,7 @@
              <div class="grid grid-cols-1 gap-3">
                <button *ngFor="let wallet of availableWallets"
                        (click)="selectWallet(wallet.id)"
-                       [class]="selectedWalletId === wallet.id ? 'border-primary-500 bg-primary-50/10 ring-4 ring-primary-500/10' : 'border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800'"
+                       [class]="selectedWalletId === wallet.id ? 'border-brand-500 bg-brand-50/10 ring-4 ring-brand-500/10' : 'border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800'"
                        class="text-left p-4 rounded-2xl border-2 transition-all duration-200 text-gray-900 dark:text-white">
                   <div class="flex justify-between items-center">
                     <div>
@@ -338,12 +338,12 @@
           <div class="space-y-1.5" *ngIf="selectedWalletId">
             <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Contribution Amount</label>
             <div class="relative group">
-              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 font-bold group-focus-within:text-primary-500">
+              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 font-bold group-focus-within:text-brand-500">
                 {{currencyService.getActiveCurrency()}}
               </div>
               <input type="number"
                      [(ngModel)]="addAmount"
-                     class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 pl-14 px-4 py-4 text-2xl font-bold text-gray-900 dark:text-white transition-all duration-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10"
+                     class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 pl-14 px-4 py-4 text-2xl font-bold text-gray-900 dark:text-white transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
                      placeholder="0.00">
             </div>
             
@@ -363,7 +363,7 @@
             </button>
             <button (click)="submitAddMoney()"
                     [disabled]="!selectedWalletId || addAmount <= 0"
-                    class="flex-[2] rounded-2xl bg-primary-500 px-6 py-4 text-sm font-bold text-black shadow-lg shadow-primary-500/20 hover:bg-primary-600 hover:shadow-primary-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95">
+                    class="flex-[2] rounded-2xl bg-brand-500 px-6 py-4 text-sm font-bold text-white shadow-lg shadow-brand-500/20 hover:bg-brand-600 hover:shadow-brand-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95">
               Confirm Deposit
             </button>
           </div>
@@ -372,10 +372,10 @@
 
       <!-- JSON Upload Form (only for add mode) -->
       <div *ngIf="activeTab === 'upload' && drawerMode === 'add'" class="space-y-8">
-        <div class="group relative bg-gray-50/50 dark:bg-gray-800/30 rounded-3xl p-10 border-2 border-dashed border-gray-200 dark:border-gray-800 hover:border-primary-500 transition-all duration-300">
+        <div class="group relative bg-gray-50/50 dark:bg-gray-800/30 rounded-3xl p-10 border-2 border-dashed border-gray-200 dark:border-gray-800 hover:border-brand-500 transition-all duration-300">
           <div class="text-center">
             <div class="w-16 h-16 bg-white dark:bg-gray-800 rounded-2xl shadow-sm flex items-center justify-center mx-auto mb-6 transition-transform duration-300 group-hover:-translate-y-1">
-              <fa-icon [icon]="faFileUpload" class="text-gray-400 text-2xl group-hover:text-primary-500"></fa-icon>
+              <fa-icon [icon]="faFileUpload" class="text-gray-400 text-2xl group-hover:text-brand-500"></fa-icon>
             </div>
             <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Import Goals</h3>
             <p class="text-sm text-gray-500 dark:text-gray-400 mb-8 max-w-[200px] mx-auto leading-relaxed">
@@ -386,13 +386,13 @@
               {{ jsonError }}
             </div>
 
-            <label for="json-upload-budget" class="inline-flex items-center justify-center gap-3 rounded-2xl bg-white dark:bg-gray-800 border-2 border-primary-500 px-8 py-3.5 text-sm font-bold text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/10 cursor-pointer shadow-sm transition-all duration-200 active:scale-95">
+            <label for="json-upload-budget" class="inline-flex items-center justify-center gap-3 rounded-2xl bg-white dark:bg-gray-800 border-2 border-brand-500 px-8 py-3.5 text-sm font-bold text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/10 cursor-pointer shadow-sm transition-all duration-200 active:scale-95">
               <fa-icon [icon]="faUpload"></fa-icon>
               {{ selectedFile ? 'Change File' : 'Select JSON' }}
               <input type="file" id="json-upload-budget" accept=".json" class="hidden" (change)="onFileSelected($event)">
             </label>
 
-            <p *ngIf="selectedFile" class="mt-4 text-xs font-bold text-primary-500 bg-primary-50 dark:bg-primary-900/10 py-1.5 px-3 rounded-full inline-block">
+            <p *ngIf="selectedFile" class="mt-4 text-xs font-bold text-brand-500 bg-brand-50 dark:bg-brand-900/10 py-1.5 px-3 rounded-full inline-block">
               {{ selectedFile.name }}
             </p>
           </div>
@@ -410,7 +410,7 @@
                   <td class="px-6 py-4">
                     <div class="font-bold text-gray-900 dark:text-white">{{ goal.name }}</div>
                   </td>
-                  <td class="px-6 py-4 text-right font-bold text-primary-500">
+                  <td class="px-6 py-4 text-right font-bold text-brand-500">
                     {{ goal.targetAmount | appCurrency }}
                   </td>
                 </tr>
@@ -428,7 +428,7 @@
           <button type="button"
                   [disabled]="!selectedFile || isLoading || jsonError"
                   (click)="importGoals()"
-                  class="flex-[2] rounded-2xl bg-primary-500 px-6 py-4 text-sm font-bold text-black shadow-lg shadow-primary-500/20 hover:bg-primary-600 hover:shadow-primary-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95 flex items-center justify-center gap-2">
+                  class="flex-[2] rounded-2xl bg-brand-500 px-6 py-4 text-sm font-bold text-white shadow-lg shadow-brand-500/20 hover:bg-brand-600 hover:shadow-brand-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95 flex items-center justify-center gap-2">
             <fa-icon *ngIf="isLoading" class="animate-spin" [icon]="faRefresh"></fa-icon>
             <fa-icon *ngIf="!isLoading" [icon]="faFileImport"></fa-icon>
             {{isLoading ? 'Importing...' : 'Start Import'}}

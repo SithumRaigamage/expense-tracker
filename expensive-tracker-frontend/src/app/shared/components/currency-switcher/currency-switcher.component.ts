@@ -13,7 +13,7 @@ import { faGlobe } from '@fortawesome/free-solid-svg-icons';
     <div class="relative">
       <button 
         (click)="toggleDropdown()"
-        class="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-700 transition-colors">
+        class="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-700 transition-colors">
         <fa-icon [icon]="faGlobe" class="text-gray-500 dark:text-gray-400"></fa-icon>
         <span>{{ (activeCurrency$ | async) }}</span>
       </button>

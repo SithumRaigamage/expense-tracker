@@ -21,7 +21,7 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
         <!-- Header -->
         <div class="px-8 py-8 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
           <div class="flex items-center gap-4">
-            <div *ngIf="icon" class="w-12 h-12 rounded-2xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400 shadow-sm border border-primary-200/50 dark:border-primary-800/30">
+            <div *ngIf="icon" class="w-12 h-12 rounded-2xl bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center text-brand-600 dark:text-brand-400 shadow-sm border border-brand-200/50 dark:border-brand-800/30">
               <fa-icon [icon]="icon" class="text-xl"></fa-icon>
             </div>
             <div>

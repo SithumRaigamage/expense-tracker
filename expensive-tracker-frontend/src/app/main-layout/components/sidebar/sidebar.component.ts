@@ -97,7 +97,7 @@ export class SidebarComponent implements OnInit {
       path: '/financial-education',
       isUpcoming: true,
       isNew: false,
-      isLocked: true
+      isLocked: false
     },
     {
       icon: faComments,
@@ -105,7 +105,7 @@ export class SidebarComponent implements OnInit {
       path: '/chat',
       isUpcoming: true,
       isNew: false,
-      isLocked: true
+      isLocked: false
     }
   ];
 
@@ -119,7 +119,7 @@ export class SidebarComponent implements OnInit {
       isNew: false,
       subItems: [
         { name: 'Profile', path: '/settings/profile', isLocked: false, isNew: false, isUpcoming: false },
-        { name: 'About & Support', path: '/settings/about & support', isLocked: true, isNew: false, isUpcoming: true },
+        { name: 'About & Support', path: '/settings/about & support', isLocked: false, isNew: false, isUpcoming: true },
       ]
     },
     {
@@ -131,10 +131,10 @@ export class SidebarComponent implements OnInit {
       isNew: false,
       isLocked: false,
       subItems: [
-        { name: 'FAQs', path: '/help/faqs', isLocked: true, isNew: false, isUpcoming: true },
-        { name: 'Documentation', path: '/help/docs', isLocked: true, isNew: false, isUpcoming: true },
-        { name: 'Contact Support', path: '/help/support', isLocked: true, isNew: false, isUpcoming: false },
-        { name: 'Troubleshooting', path: '/help/troubleshooting', isLocked: true, isNew: false, isUpcoming: true },
+        { name: 'FAQs', path: '/help/faqs', isLocked: false, isNew: false, isUpcoming: true },
+        { name: 'Documentation', path: '/help/docs', isLocked: false, isNew: false, isUpcoming: true },
+        { name: 'Contact Support', path: '/help/support', isLocked: false, isNew: false, isUpcoming: false },
+        { name: 'Troubleshooting', path: '/help/troubleshooting', isLocked: false, isNew: false, isUpcoming: true },
         { name: 'Release Notes', path: '/help/release-notes', isLocked: false, isNew: true, isUpcoming: false },
       ]
     },
@@ -144,7 +144,7 @@ export class SidebarComponent implements OnInit {
       path: '/feedback',
       isUpcoming: true,
       isNew: false,
-      isLocked: true
+      isLocked: false
     }
   ];
 
