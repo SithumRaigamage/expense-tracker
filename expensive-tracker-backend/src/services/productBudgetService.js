@@ -13,7 +13,7 @@ class ProductBudgetService {
    */
   static async createProductBudget(budgetData, userId) {
     budgetData.user = userId;
-    return await ProductBudget.create(budgetData);
+    return ProductBudget.create(budgetData);
   }
 
   /**
@@ -30,7 +30,7 @@ class ProductBudgetService {
       filter.isActive = query.isActive === 'true';
     }
 
-    return await ProductBudget.find(filter).sort({ createdAt: -1 });
+    return ProductBudget.find(filter).sort({ createdAt: -1 });
   }
 
   /**

@@ -105,7 +105,7 @@ class WalletService {
     }
 
     walletData.user = userId;
-    return await Wallet.create(walletData);
+    return Wallet.create(walletData);
   }
 
   /**

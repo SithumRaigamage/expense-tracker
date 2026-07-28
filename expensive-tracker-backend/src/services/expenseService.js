@@ -140,7 +140,7 @@ class ExpenseService {
     await WalletService.updateBalance(expense.wallet, userId, expense.amount * multiplier);
     
     // Populate info for response
-    return await Expense.findById(expense._id)
+    return Expense.findById(expense._id)
       .populate('category', 'name color icon type')
       .populate('wallet', 'name type currency');
   }

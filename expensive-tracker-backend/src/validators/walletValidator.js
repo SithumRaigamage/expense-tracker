@@ -1,5 +1,5 @@
 const { body, param, validationResult } = require('express-validator');
-const { WALLET_TYPES, CURRENCIES } = require('../config/constants');
+const { CURRENCIES } = require('../config/constants');
 
 // Validation middleware to handle errors
 const handleValidationErrors = (req, res, next) => {

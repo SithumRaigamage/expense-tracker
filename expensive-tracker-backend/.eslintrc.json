@@ -11,16 +11,36 @@
   },
   "extends": "eslint:recommended",
   "rules": {
-    "no-unused-vars": ["warn", { "argsIgnorePattern": "^_|^next$" }],
+    "no-unused-vars": [
+      "warn",
+      {
+        "argsIgnorePattern": "^_|^next$"
+      }
+    ],
     "no-console": "warn",
-    "eqeqeq": ["warn", "smart"],
+    "eqeqeq": [
+      "warn",
+      "smart"
+    ],
     "no-var": "error",
     "prefer-const": "warn",
     "no-return-await": "warn"
   },
   "overrides": [
     {
-      "files": ["scripts/**", "dummy-data/**", "tests/**"],
+      "files": [
+        "scripts/**",
+        "dummy-data/**",
+        "tests/**"
+      ],
+      "rules": {
+        "no-console": "off"
+      }
+    },
+    {
+      "files": [
+        "src/server.js"
+      ],
       "rules": {
         "no-console": "off"
       }
