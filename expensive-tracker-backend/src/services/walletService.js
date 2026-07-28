@@ -190,15 +190,32 @@ class WalletService {
    * @returns {Promise<Object>} Restored wallet
    */
   static async restoreWallet(walletId, userId) {
-    const wallet = await Wallet.findOneAndUpdate(
-      { _id: walletId, user: userId, isActive: false },
-      { isActive: true },
-      { new: true }
-    );
+    const wallet = await Wallet.findOne({
+      _id: walletId,
+      user: userId,
+      isActive: false
+    });
 
     if (!wallet) {
       throw new NotFoundError('Wallet not found or already active');
     }
+
+    // Create and update both reject duplicate active names. Restoring skipped that
+    // check, so re-activating a wallet was a back door to two active wallets
+    // sharing a name — which then makes them indistinguishable in every picker.
+    const nameTaken = await Wallet.findOne({
+      name: wallet.name,
+      user: userId,
+      isActive: true,
+      _id: { $ne: walletId }
+    });
+
+    if (nameTaken) {
+      throw new ConflictError('An active wallet with this name already exists. Rename it before restoring.');
+    }
+
+    wallet.isActive = true;
+    await wallet.save();
 
     return wallet;
   }

@@ -10,6 +10,7 @@ const {
   getProductBudgetsSummary
 } = require('../controllers/productBudgetController');
 const { protect } = require('../middleware/auth');
+const { validateObjectId } = require('../middleware/validation');
 
 // Apply authentication middleware to all routes
 router.use(protect);
@@ -17,16 +18,18 @@ router.use(protect);
 router.route('/')
   .post(createProductBudget)
   .get(getProductBudgets);
-  
+
 router.route('/summary')
   .get(getProductBudgetsSummary);
 
+// Validate the id up front so a malformed one returns 400 like every other
+// resource, instead of surfacing a Mongoose CastError as a misleading 404.
 router.route('/:id')
-  .get(getProductBudgetById)
-  .put(updateProductBudget)
-  .delete(deleteProductBudget);
+  .get(validateObjectId(), getProductBudgetById)
+  .put(validateObjectId(), updateProductBudget)
+  .delete(validateObjectId(), deleteProductBudget);
 
 router.route('/:id/amount')
-  .patch(updateSavedAmount);
+  .patch(validateObjectId(), updateSavedAmount);
 
 module.exports = router;

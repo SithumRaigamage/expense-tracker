@@ -2,12 +2,17 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const mongoSanitize = require('express-mongo-sanitize');
 const dotenv = require('dotenv');
 const fs = require('fs');
 const logger = require('./utils/logger');
 
 // Load environment variables
 dotenv.config();
+
+// Fail fast on a missing/placeholder JWT secret rather than signing tokens with
+// `undefined` at runtime or shipping the example secret to production.
+require('./config/validateEnv')();
 
 // Import routes
 const expenseRoutes = require('./routes/expenseRoutes');
@@ -22,6 +27,7 @@ const currencyRoutes = require('./routes/currencyRoutes');
 const errorHandler = require('./middleware/errorHandler');
 const notFound = require('./middleware/notFound');
 const { sanitizeInput } = require('./middleware/validation');
+const { apiLimiter } = require('./middleware/rateLimiter');
 
 const app = express();
 
@@ -50,8 +56,23 @@ if (process.env.NODE_ENV === 'development') {
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Strip Mongo operators ($gt, $ne, dotted paths) from user input. Without this a
+// request body like {"email": {"$gt": ""}} reaches the query layer as an operator.
+app.use(mongoSanitize({
+  onSanitize: ({ req, key }) => {
+    logger.warn('Sanitized prohibited characters from request', {
+      key,
+      url: req.originalUrl,
+      ip: req.ip
+    });
+  }
+}));
+
 // Input sanitization middleware
 app.use(sanitizeInput);
+
+// Rate limiting (auth endpoints are limited separately inside their router)
+app.use('/api', apiLimiter);
 
 // Set static folder for file uploads
 const path = require('path');
