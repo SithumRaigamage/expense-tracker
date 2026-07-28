@@ -8,6 +8,11 @@
 #   ./start.sh --no-mongo   # skip the MongoDB check/auto-start
 #   ./start.sh --install    # run `npm install` in each project first
 #
+# MongoDB is bootstrapped by ensure-mongo.sh: when NODE_ENV=development it starts
+# Docker Desktop if needed, brings up the `mongodb` compose service, and waits for
+# it to accept connections. The backend's `npm run dev` runs the same script via
+# `predev`. Any other NODE_ENV skips the container entirely.
+#
 # Env overrides:
 #   MONGO_PORT (default 27017)   BACKEND_PORT (default 3001)   FRONTEND_PORT (default 4200)
 #
@@ -27,7 +32,6 @@ DO_INSTALL=0
 MONGO_PORT="${MONGO_PORT:-27017}"
 BACKEND_PORT="${BACKEND_PORT:-3001}"
 FRONTEND_PORT="${FRONTEND_PORT:-4200}"
-MONGO_CONTAINER="expense-tracker-mongo"
 
 for arg in "$@"; do
   case "$arg" in
@@ -44,8 +48,13 @@ Usage:
   ./start.sh --no-mongo   skip the MongoDB check/auto-start
   ./start.sh --install    run `npm install` in each project first
 
+MongoDB is bootstrapped by ensure-mongo.sh (starts Docker Desktop if needed, then
+the `mongodb` compose service) — only when NODE_ENV=development. `npm run dev` in
+the backend does the same.
+
 Env overrides:
   MONGO_PORT (default 27017)   BACKEND_PORT (default 3001)   FRONTEND_PORT (default 4200)
+  SKIP_MONGO=1                 same as --no-mongo (e.g. when using Mongo Atlas)
 
 Ctrl+C stops both services cleanly.
 USAGE
@@ -79,39 +88,32 @@ maybe_install "$BACKEND_DIR" "backend"
 maybe_install "$FRONTEND_DIR" "frontend"
 
 # --- ensure MongoDB is reachable (backend depends on it) ---
-mongo_reachable() {
-  (exec 3<>"/dev/tcp/127.0.0.1/$MONGO_PORT") >/dev/null 2>&1
-}
-
+# Delegated to ensure-mongo.sh, which is also used by the backend's `npm run dev`.
 if [ "$CHECK_MONGO" -eq 1 ]; then
-  if mongo_reachable; then
-    ok "MongoDB is reachable on port $MONGO_PORT."
-  elif command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
-    warn "MongoDB not reachable — starting a Docker container ($MONGO_CONTAINER)…"
-    if docker ps -a --format '{{.Names}}' | grep -qx "$MONGO_CONTAINER"; then
-      docker start "$MONGO_CONTAINER" >/dev/null
-    else
-      docker run -d --name "$MONGO_CONTAINER" \
-        -p "$MONGO_PORT:27017" \
-        -v "${MONGO_CONTAINER}-data:/data/db" \
-        mongo:6 >/dev/null
-    fi
-    info "Waiting for MongoDB to accept connections…"
-    for _ in $(seq 1 30); do mongo_reachable && break; sleep 1; done
-    mongo_reachable && ok "MongoDB is up." || { err "MongoDB did not come up in time."; exit 1; }
-  else
-    warn "MongoDB not reachable on port $MONGO_PORT and Docker is unavailable."
-    warn "Start MongoDB manually, or re-run with --no-mongo if it lives elsewhere."
-  fi
+  MONGO_PORT="$MONGO_PORT" bash "$ROOT_DIR/ensure-mongo.sh"
+else
+  warn "Skipping MongoDB check (--no-mongo)."
 fi
 
 # --- start both services, tearing down together on exit ---
 PIDS=()
+
+# npm/nodemon/ng each spawn their own children, so killing the job leader alone
+# leaves node holding the ports. Walk the tree and kill depth-first instead.
+kill_tree() {
+  local pid="$1" child
+  for child in $(pgrep -P "$pid" 2>/dev/null); do
+    kill_tree "$child"
+  done
+  kill "$pid" >/dev/null 2>&1 || true
+}
+
 cleanup() {
+  trap - INT TERM EXIT
   echo
   info "Shutting down…"
   for pid in "${PIDS[@]:-}"; do
-    kill "$pid" >/dev/null 2>&1 || true
+    [ -n "$pid" ] && kill_tree "$pid"
   done
   wait 2>/dev/null || true
   ok "Stopped."

@@ -80,8 +80,8 @@ expense-tracker/
 ### Quick Start
 
 > **⚡ One command:** From the repo root, run `./start.sh` to launch the backend
-> and frontend together. It installs dependencies if needed, ensures MongoDB is
-> running (auto-starting a Docker container when available), and streams both
+> and frontend together. It installs dependencies if needed, brings MongoDB up in
+> Docker (starting Docker Desktop first if it isn't running), and streams both
 > logs. Press `Ctrl+C` to stop everything.
 >
 > ```bash
@@ -89,6 +89,17 @@ expense-tracker/
 > ./start.sh --dev      # backend with data seeding + nodemon
 > ./start.sh --help     # all options
 > ```
+>
+> The same MongoDB bootstrap runs on `npm run dev` inside the backend, so that
+> works standalone too. Both go through `ensure-mongo.sh`, which starts the
+> `mongodb` service from `expensive-tracker-backend/docker-compose.yml` (container
+> `expense-tracker-db`, data kept in a named volume) and waits for it to accept
+> connections.
+>
+> **This only happens when `NODE_ENV=development`** — taken from the shell if set,
+> otherwise from `expensive-tracker-backend/.env`. Any other value skips the
+> container so deployed environments keep using their own database. Pointing local
+> dev at Mongo Atlas or a local `mongod`? Set `SKIP_MONGO=1` (or pass `--no-mongo`).
 
 Prefer to run each service manually? Follow the steps below.
 

@@ -4,6 +4,7 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
+    "predev": "if [ -f ../ensure-mongo.sh ]; then bash ../ensure-mongo.sh; else echo '[mongo] ensure-mongo.sh not found — skipping MongoDB bootstrap'; fi",
     "dev": "node scripts/seedUser.js && node scripts/seedReleaseNotes.js && nodemon src/server.js",
     "seed:user": "node scripts/seedUser.js",
     "test": "jest",
