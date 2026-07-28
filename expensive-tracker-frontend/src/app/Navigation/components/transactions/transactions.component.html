@@ -46,10 +46,11 @@
     <form [formGroup]="filterForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
       <!-- Start Date -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label for="tx-filter-start-date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Start Date
         </label>
         <input
+          id="tx-filter-start-date"
           type="date"
           formControlName="startDate"
           class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
@@ -58,10 +59,11 @@
 
       <!-- End Date -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label for="tx-filter-end-date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           End Date
         </label>
         <input
+          id="tx-filter-end-date"
           type="date"
           formControlName="endDate"
           class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
@@ -70,11 +72,15 @@
 
       <!-- Type -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <span id="tx-filter-type-label" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Type
-        </label>
+        </span>
         <div class="relative">
           <button type="button" (click)="toggleTypeDropdown()"
+            id="tx-filter-type-button"
+            aria-haspopup="listbox"
+            [attr.aria-expanded]="isTypeOpen"
+            aria-labelledby="tx-filter-type-label tx-filter-type-button"
             class="w-full flex items-center justify-between text-left rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white bg-white dark:bg-gray-700">
             <span class="block truncate">
               {{ filterForm.get('type')?.value ? (filterForm.get('type')?.value | titlecase) : 'All Types' }}
@@ -103,11 +109,15 @@
 
       <!-- Category -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <span id="tx-filter-category-label" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Category
-        </label>
+        </span>
         <div class="relative">
           <button type="button" (click)="toggleCategoryDropdown()"
+            id="tx-filter-category-button"
+            aria-haspopup="listbox"
+            [attr.aria-expanded]="isCategoryOpen"
+            aria-labelledby="tx-filter-category-label tx-filter-category-button"
             class="w-full flex items-center justify-between text-left rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white bg-white dark:bg-gray-700">
             <span class="block truncate">
               {{ filterForm.get('category')?.value || 'All Categories' }}
@@ -135,11 +145,15 @@
 
       <!-- Wallet -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <span id="tx-filter-wallet-label" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Wallet
-        </label>
+        </span>
         <div class="relative">
           <button type="button" (click)="toggleWalletDropdown()"
+            id="tx-filter-wallet-button"
+            aria-haspopup="listbox"
+            [attr.aria-expanded]="isWalletOpen"
+            aria-labelledby="tx-filter-wallet-label tx-filter-wallet-button"
             class="w-full flex items-center justify-between text-left rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white bg-white dark:bg-gray-700">
             <span class="block truncate">
               {{ getWalletName(filterForm.get('wallet')?.value) }}
@@ -167,7 +181,7 @@
 
       <!-- Search -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label for="tx-filter-search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Search
         </label>
         <div class="relative">
@@ -175,6 +189,7 @@
             <fa-icon [icon]="faSearch" class="text-gray-400"></fa-icon>
           </div>
           <input
+            id="tx-filter-search"
             type="text"
             formControlName="searchTerm"
             placeholder="Search by description..."
@@ -353,7 +368,7 @@
           </div>
           <!-- Amount -->
           <div class="space-y-1.5">
-            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
+            <label for="tx-form-amount" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
               Amount
             </label>
             <div class="relative group">
@@ -361,6 +376,7 @@
                 {{currencyService.getActiveCurrency()}}
               </div>
               <input type="number"
+                id="tx-form-amount"
                 formControlName="amount"
                 class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 pl-14 px-4 py-4 text-2xl font-bold text-gray-900 dark:text-white transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 placeholder-0.00"
                 placeholder="0.00">
@@ -369,11 +385,11 @@
           <!-- Wallet and Category -->
           <div class="grid grid-cols-2 gap-4">
             <div class="space-y-1.5">
-              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
+              <label for="tx-form-wallet" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
                 Wallet
               </label>
               <div class="relative group">
-                <select formControlName="walletId"
+                <select id="tx-form-wallet" formControlName="walletId"
                   class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 appearance-none">
                   <option value="">Select Wallet</option>
                   @for (wallet of wallets; track wallet) {
@@ -388,11 +404,11 @@
               </div>
             </div>
             <div class="space-y-1.5">
-              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
+              <label for="tx-form-category" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
                 Category
               </label>
               <div class="relative group">
-                <select formControlName="category"
+                <select id="tx-form-category" formControlName="category"
                   class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 appearance-none">
                   <option value="">Select Category</option>
                   @for (category of filteredCategories; track category) {
@@ -409,19 +425,20 @@
           </div>
           <!-- Date -->
           <div class="space-y-1.5">
-            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
+            <label for="tx-form-date" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
               Date
             </label>
             <input type="date"
+              id="tx-form-date"
               formControlName="date"
               class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10">
             </div>
             <!-- Description -->
             <div class="space-y-1.5">
-              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
+              <label for="tx-form-description" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
                 Description
               </label>
-              <textarea formControlName="description"
+              <textarea id="tx-form-description" formControlName="description"
                 rows="3"
                 class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 placeholder-What was this for? resize-none"
               placeholder="What was this for?"></textarea>

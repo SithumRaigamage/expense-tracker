@@ -25,23 +25,23 @@
     <form [formGroup]="feedbackForm" (ngSubmit)="submitFeedback()" class="bg-white rounded-lg shadow-sm p-6 space-y-6">
       <!-- Title -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
-        <input type="text" formControlName="title"
+        <label for="feedback-title" class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+        <input id="feedback-title" type="text" formControlName="title"
           class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="Brief summary of your feedback">
       </div>
 
       <!-- Description -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-        <textarea formControlName="description" rows="4"
+        <label for="feedback-description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+        <textarea id="feedback-description" formControlName="description" rows="4"
           class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         placeholder="Please provide detailed feedback..."></textarea>
       </div>
 
       <!-- Sentiment Rating -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-3">How do you feel about this?</label>
+      <fieldset class="min-w-0">
+        <legend class="block text-sm font-medium text-gray-700 mb-3">How do you feel about this?</legend>
         <div class="flex items-center gap-6">
           @for (option of sentimentOptions; track option) {
             <button
@@ -54,11 +54,11 @@
             </button>
           }
         </div>
-      </div>
+      </fieldset>
 
       <!-- Star Rating -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-3">Rate your overall experience</label>
+      <fieldset class="min-w-0">
+        <legend class="block text-sm font-medium text-gray-700 mb-3">Rate your overall experience</legend>
         <div class="flex items-center gap-1">
           @for (i of [1,2,3,4,5]; track i) {
             <button
@@ -71,11 +71,11 @@
             </button>
           }
         </div>
-      </div>
+      </fieldset>
 
       <!-- File Attachments -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Attachments</label>
+        <h4 class="block text-sm font-medium text-gray-700 mb-1">Attachments</h4>
         <div class="flex items-center gap-2">
           <label class="cursor-pointer px-4 py-2 border border-gray-200 rounded-lg hover:border-blue-500 transition-colors">
             <input type="file" multiple class="hidden" (change)="onFileSelected($event)">

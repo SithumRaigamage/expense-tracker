@@ -85,8 +85,8 @@
     <form (ngSubmit)="submitForm()" class="space-y-6">
       <!-- Bill Name -->
       <div class="space-y-1.5">
-        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Bill Name</label>
-        <input [(ngModel)]="currentBill.name"
+        <label for="bill-name" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Bill Name</label>
+        <input id="bill-name" [(ngModel)]="currentBill.name"
           name="name"
           type="text"
           class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
@@ -96,8 +96,8 @@
       <!-- Category & Provider -->
       <div class="grid grid-cols-2 gap-4">
         <div class="space-y-1.5">
-          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Category</label>
-          <select [(ngModel)]="currentBill.category"
+          <label for="bill-category" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Category</label>
+          <select id="bill-category" [(ngModel)]="currentBill.category"
             name="category"
             class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10">
             <option value="">Select Category</option>
@@ -109,8 +109,8 @@
           </select>
         </div>
         <div class="space-y-1.5">
-          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Provider</label>
-          <input [(ngModel)]="currentBill.provider"
+          <label for="bill-provider" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Provider</label>
+          <input id="bill-provider" [(ngModel)]="currentBill.provider"
             name="provider"
             type="text"
             class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
@@ -120,12 +120,12 @@
 
       <!-- Amount -->
       <div class="space-y-1.5">
-        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Amount</label>
+        <label for="bill-amount" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Amount</label>
         <div class="relative group">
           <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 font-bold group-focus-within:text-brand-500">
             {{currencyService.getActiveCurrency()}}
           </div>
-          <input [(ngModel)]="currentBill.amount"
+          <input id="bill-amount" [(ngModel)]="currentBill.amount"
             name="amount"
             type="number"
             class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 pl-14 px-4 py-3.5 text-gray-900 dark:text-white transition-all focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
@@ -135,8 +135,8 @@
 
       <!-- Due Date -->
       <div class="space-y-1.5">
-        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Due Date</label>
-        <input [(ngModel)]="currentBill.dueDate"
+        <label for="bill-due-date" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Due Date</label>
+        <input id="bill-due-date" [(ngModel)]="currentBill.dueDate"
           name="dueDate"
           type="date"
           class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10">
@@ -144,8 +144,8 @@
 
         <!-- Icon URL -->
         <div class="space-y-1.5">
-          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Icon URL (Optional)</label>
-          <input [(ngModel)]="currentBill.iconUrl"
+          <label for="bill-icon-url" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Icon URL (Optional)</label>
+          <input id="bill-icon-url" [(ngModel)]="currentBill.iconUrl"
             name="iconUrl"
             type="text"
             class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
@@ -176,8 +176,8 @@
           <!-- Payment Method (only for subscription) -->
           @if (currentBill.isSubscription) {
             <div class="space-y-1.5 animate-slide-down">
-              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Auto-pay Wallet</label>
-              <select [(ngModel)]="currentBill.selectedWalletId"
+              <label for="bill-autopay-wallet" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Auto-pay Wallet</label>
+              <select id="bill-autopay-wallet" [(ngModel)]="currentBill.selectedWalletId"
                 name="selectedWalletId"
                 class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10">
                 <option value="">Select a wallet</option>

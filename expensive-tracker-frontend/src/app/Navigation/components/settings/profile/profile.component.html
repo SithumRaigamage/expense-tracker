@@ -83,9 +83,9 @@
         <div class="flex flex-col gap-5">
           <form [formGroup]="passwordForm" (ngSubmit)="onPasswordChange()" class="grid grid-cols-1 gap-4">
             <div>
-              <label class="mb-2.5 block text-black dark:text-white">Current Password</label>
+              <label for="profile-current-password" class="mb-2.5 block text-black dark:text-white">Current Password</label>
               <div class="relative">
-                <input [type]="hideCurrent ? 'password' : 'text'" formControlName="currentPassword"
+                <input id="profile-current-password" [type]="hideCurrent ? 'password' : 'text'" formControlName="currentPassword"
                   class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 pr-11 dark:border-gray-700 disabled:bg-gray-50 focus:bg-white"
                   placeholder="Enter current password"
                   (focus)="clearMaskedPassword('currentPassword', passwordForm)">
@@ -107,9 +107,9 @@
             </div>
 
             <div>
-              <label class="mb-2.5 block text-black dark:text-white">New Password</label>
+              <label for="profile-new-password" class="mb-2.5 block text-black dark:text-white">New Password</label>
               <div class="relative">
-                <input [type]="hideNew ? 'password' : 'text'" formControlName="newPassword"
+                <input id="profile-new-password" [type]="hideNew ? 'password' : 'text'" formControlName="newPassword"
                   class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 pr-11 dark:border-gray-700"
                   placeholder="Enter new password">
                 <button type="button" (click)="hideNew = !hideNew"
@@ -126,9 +126,9 @@
             </div>
 
             <div>
-              <label class="mb-2.5 block text-black dark:text-white">Confirm Password</label>
+              <label for="profile-confirm-password" class="mb-2.5 block text-black dark:text-white">Confirm Password</label>
               <div class="relative">
-                <input [type]="hideConfirm ? 'password' : 'text'" formControlName="confirmPassword"
+                <input id="profile-confirm-password" [type]="hideConfirm ? 'password' : 'text'" formControlName="confirmPassword"
                   class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 pr-11 dark:border-gray-700"
                   placeholder="Confirm new password">
                 <button type="button" (click)="hideConfirm = !hideConfirm"
@@ -171,14 +171,14 @@
         <div class="flex flex-col gap-5">
           <form [formGroup]="emailForm" (ngSubmit)="onEmailChange()" class="grid grid-cols-1 gap-4">
             <div>
-              <label class="mb-2.5 block text-black dark:text-white">Current Email</label>
-              <input type="email" [value]="user?.email" disabled
+              <label for="profile-current-email" class="mb-2.5 block text-black dark:text-white">Current Email</label>
+              <input id="profile-current-email" type="email" [value]="user?.email" disabled
                 class="w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-2.5 dark:border-gray-700 dark:bg-gray-800">
             </div>
 
             <div>
-              <label class="mb-2.5 block text-black dark:text-white">New Email</label>
-              <input type="email" formControlName="newEmail"
+              <label for="profile-new-email" class="mb-2.5 block text-black dark:text-white">New Email</label>
+              <input id="profile-new-email" type="email" formControlName="newEmail"
                 class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700"
                 placeholder="Enter new email">
               @if (emailForm.get('newEmail')?.touched && emailForm.get('newEmail')?.invalid) {
@@ -190,9 +190,9 @@
             </div>
 
             <div>
-              <label class="mb-2.5 block text-black dark:text-white">Password</label>
+              <label for="profile-email-password" class="mb-2.5 block text-black dark:text-white">Password</label>
               <div class="relative">
-                <input [type]="hideEmailPassword ? 'password' : 'text'" formControlName="password"
+                <input id="profile-email-password" [type]="hideEmailPassword ? 'password' : 'text'" formControlName="password"
                   class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 pr-11 dark:border-gray-700"
                   placeholder="Enter your password"
                   (focus)="clearMaskedPassword('password', emailForm)">
@@ -269,35 +269,35 @@
 
       <!-- Section: Basics -->
       <div class="space-y-4">
-        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1">Basic Information</label>
+        <h4 class="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1">Basic Information</h4>
 
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-1.5">
-            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">First Name</label>
-            <input type="text" [(ngModel)]="formData.firstName" name="firstName"
+            <label for="profile-first-name" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">First Name</label>
+            <input id="profile-first-name" type="text" [(ngModel)]="formData.firstName" name="firstName"
               class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
               placeholder="John">
           </div>
           <div class="space-y-1.5">
-            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Last Name</label>
-            <input type="text" [(ngModel)]="formData.lastName" name="lastName"
+            <label for="profile-last-name" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Last Name</label>
+            <input id="profile-last-name" type="text" [(ngModel)]="formData.lastName" name="lastName"
               class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
               placeholder="Doe">
           </div>
         </div>
 
         <div class="space-y-1.5">
-          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Location</label>
+          <label for="profile-location" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Location</label>
           <div class="relative group">
-            <input type="text" [(ngModel)]="formData.location" name="location"
+            <input id="profile-location" type="text" [(ngModel)]="formData.location" name="location"
               class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
               placeholder="e.g. San Francisco, CA">
           </div>
         </div>
 
         <div class="space-y-1.5">
-          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Role/Occupation</label>
-          <input type="text" [(ngModel)]="formData.role" name="role"
+          <label for="profile-role" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Role/Occupation</label>
+          <input id="profile-role" type="text" [(ngModel)]="formData.role" name="role"
             class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
             placeholder="e.g. Software Engineer">
         </div>
@@ -305,9 +305,9 @@
 
       <!-- Section: Bio -->
       <div class="space-y-4">
-        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1">About Me</label>
+        <label for="profile-bio" class="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1">About Me</label>
         <div class="space-y-1.5">
-          <textarea [(ngModel)]="formData.bio" name="bio" rows="4"
+          <textarea id="profile-bio" [(ngModel)]="formData.bio" name="bio" rows="4"
             class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 resize-none"
           placeholder="Tell us a bit about yourself..."></textarea>
         </div>

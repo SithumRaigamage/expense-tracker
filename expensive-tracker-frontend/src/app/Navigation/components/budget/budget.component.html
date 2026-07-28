@@ -235,7 +235,7 @@
           @if (drawerMode === 'add' || drawerMode === 'edit') {
             <!-- Image Section -->
             <div class="space-y-3">
-              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Cover Image</label>
+              <h4 class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Cover Image</h4>
               <!-- Image Preview / Placeholder -->
               <div class="relative group h-40 rounded-3xl overflow-hidden bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-200 dark:border-gray-800 flex items-center justify-center transition-all duration-300 hover:border-brand-500">
                 @if (currentGoal.imageUrl) {
@@ -266,16 +266,18 @@
                 <div class="relative flex-[2]">
                   <input type="text"
                     [(ngModel)]="currentGoal.imageUrl"
+                    aria-label="Cover image URL"
                     placeholder="Or paste image URL"
                     class="w-full rounded-xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3 text-xs text-gray-900 dark:text-white transition-all focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10">
                   </div>
-                  <input type="file" id="imageUpload" class="hidden" (change)="handleImageUpload($event)" accept="image/*">
+                  <input type="file" id="imageUpload" class="hidden" aria-label="Upload cover image" (change)="handleImageUpload($event)" accept="image/*">
                 </div>
               </div>
               <!-- Goal Name -->
               <div class="space-y-1.5">
-                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Goal Name</label>
+                <label for="goal-name" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Goal Name</label>
                 <input type="text"
+                  id="goal-name"
                   [(ngModel)]="currentGoal.name"
                   class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
                   placeholder="e.g. New MacBook Pro">
@@ -283,15 +285,17 @@
               <!-- Amounts Grid -->
               <div class="grid grid-cols-2 gap-4">
                 <div class="space-y-1.5">
-                  <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Target Amount</label>
+                  <label for="goal-target-amount" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Target Amount</label>
                   <input type="number"
+                    id="goal-target-amount"
                     [(ngModel)]="currentGoal.targetAmount"
                     class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
                     placeholder="0.00">
                 </div>
                 <div class="space-y-1.5">
-                  <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Initial Savings</label>
+                  <label for="goal-initial-savings" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Initial Savings</label>
                   <input type="number"
+                    id="goal-initial-savings"
                     [(ngModel)]="currentGoal.savedAmount"
                     class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
                     placeholder="0.00">
@@ -299,8 +303,9 @@
               </div>
               <!-- Target Date -->
               <div class="space-y-1.5">
-                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Target Date</label>
+                <label for="goal-target-date" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Target Date</label>
                 <input type="date"
+                  id="goal-target-date"
                   [(ngModel)]="currentGoal.targetDate"
                   class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10">
                 </div>
@@ -320,8 +325,8 @@
               <!-- Add Money Flow -->
               @if (drawerMode === 'addMoney') {
                 <!-- Wallet Selection -->
-                <div class="space-y-4">
-                  <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Select Source Wallet</label>
+                <fieldset class="space-y-4 min-w-0">
+                  <legend class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Select Source Wallet</legend>
                   <div class="grid grid-cols-1 gap-3">
                     @for (wallet of availableWallets; track wallet) {
                       <button
@@ -341,16 +346,17 @@
                     </button>
                   }
                 </div>
-              </div>
+              </fieldset>
               <!-- Amount Input -->
               @if (selectedWalletId) {
                 <div class="space-y-1.5">
-                  <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Contribution Amount</label>
+                  <label for="goal-contribution-amount" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Contribution Amount</label>
                   <div class="relative group">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 font-bold group-focus-within:text-brand-500">
                       {{currencyService.getActiveCurrency()}}
                     </div>
                     <input type="number"
+                      id="goal-contribution-amount"
                       [(ngModel)]="addAmount"
                       class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 pl-14 px-4 py-4 text-2xl font-bold text-gray-900 dark:text-white transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
                       placeholder="0.00">

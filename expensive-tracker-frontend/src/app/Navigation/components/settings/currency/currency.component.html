@@ -8,8 +8,9 @@
       <div class="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
         <div class="flex flex-col gap-5">
           <div>
-            <label class="mb-2.5 block text-black dark:text-white">Select Currency</label>
+            <label for="settings-currency" class="mb-2.5 block text-black dark:text-white">Select Currency</label>
             <select
+              id="settings-currency"
               [ngModel]="selectedCurrency"
               (change)="onCurrencyChange($event)"
               class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700">
