@@ -5,6 +5,7 @@ import { Wallet } from '../core/models/Wallet';
 import { Metric } from '../core/models/Metric';
 import { AuthService } from './auth.service';
 import { CurrencyService } from '../core/services/currency.service';
+import { toUserMessage } from '../core/utils/http-error';
 import {
   faMoneyBillWave,
   faBuildingColumns,
@@ -89,17 +90,7 @@ export class WalletService {
           user: wallet.user || this.currentUserId || '' // Ensure user ID is present as string
         }))),
         catchError(error => {
-          console.error('Error loading wallets:', error);
-          let errorMessage = 'Failed to connect to the server. Please check if the backend is running.';
-
-          if (error.status === 401) {
-            errorMessage = 'You are not authorized. Please login again.';
-          } else if (error.status === 404) {
-            errorMessage = 'Wallets endpoint not found.';
-          } else if (error.status === 0) {
-            errorMessage = 'Cannot connect to the server. Please check if the backend is running on http://localhost:3001';
-          }
-
+          const errorMessage = toUserMessage(error, 'Failed to connect to the server. Please check if the backend is running.');
           this.error.next(errorMessage);
           return throwError(() => error);
         })
@@ -175,19 +166,7 @@ export class WalletService {
           this.wallets.next([...currentWallets, wallet]);
         }),
         catchError(error => {
-          console.error('Error adding wallet:', error);
-          let errorMessage = 'Failed to add wallet. Please try again.';
-
-          if (error.status === 401) {
-            errorMessage = 'You are not authorized. Please login again.';
-          } else if (error.status === 400) {
-            if (error.error?.error?.includes('already exists')) {
-              errorMessage = 'A wallet with this name already exists.';
-            } else {
-              errorMessage = 'Invalid wallet data. Please check your input.';
-            }
-          }
-
+          const errorMessage = toUserMessage(error, 'Failed to add wallet. Please try again.');
           throw new Error(errorMessage);
         })
       );
@@ -215,21 +194,7 @@ export class WalletService {
           this.wallets.next(updatedWallets);
         }),
         catchError(error => {
-          console.error('Error updating wallet:', error);
-          let errorMessage = 'Failed to update wallet. Please try again.';
-
-          if (error.status === 401) {
-            errorMessage = 'You are not authorized. Please login again.';
-          } else if (error.status === 404) {
-            errorMessage = 'Wallet not found.';
-          } else if (error.status === 400) {
-            if (error.error?.error?.includes('already exists')) {
-              errorMessage = 'A wallet with this name already exists.';
-            } else {
-              errorMessage = 'Invalid wallet data. Please check your input.';
-            }
-          }
-
+          const errorMessage = toUserMessage(error, 'Failed to update wallet. Please try again.');
           throw new Error(errorMessage);
         })
       );
@@ -249,15 +214,7 @@ export class WalletService {
           this.wallets.next(filteredWallets);
         }),
         catchError(error => {
-          console.error('Error deleting wallet:', error);
-          let errorMessage = 'Failed to delete wallet. Please try again.';
-
-          if (error.status === 401) {
-            errorMessage = 'You are not authorized. Please login again.';
-          } else if (error.status === 404) {
-            errorMessage = 'Wallet not found.';
-          }
-
+          const errorMessage = toUserMessage(error, 'Failed to delete wallet. Please try again.');
           throw new Error(errorMessage);
         })
       );
@@ -280,15 +237,7 @@ export class WalletService {
           this.wallets.next(filteredWallets);
         }),
         catchError(error => {
-          console.error('Error bulk deleting wallets:', error);
-          let errorMessage = 'Failed to delete wallets. Please try again.';
-
-          if (error.status === 401) {
-            errorMessage = 'You are not authorized. Please login again.';
-          } else if (error.status === 400) {
-            errorMessage = 'Invalid wallet IDs provided.';
-          }
-
+          const errorMessage = toUserMessage(error, 'Failed to delete wallets. Please try again.');
           throw new Error(errorMessage);
         })
       );
@@ -311,21 +260,7 @@ export class WalletService {
           this.wallets.next([...currentWallets, restoredWallet]);
         }),
         catchError(error => {
-          console.error('Error restoring wallet:', error);
-          let errorMessage = 'Failed to restore wallet. Please try again.';
-
-          if (error.status === 401) {
-            errorMessage = 'You are not authorized. Please login again.';
-          } else if (error.status === 404) {
-            errorMessage = 'Deleted wallet not found.';
-          } else if (error.status === 400) {
-            if (error.error?.error?.includes('already exists')) {
-              errorMessage = 'A wallet with this name already exists. Please rename the existing wallet first.';
-            } else {
-              errorMessage = 'Cannot restore this wallet.';
-            }
-          }
-
+          const errorMessage = toUserMessage(error, 'Failed to restore wallet. Please try again.');
           throw new Error(errorMessage);
         })
       );
