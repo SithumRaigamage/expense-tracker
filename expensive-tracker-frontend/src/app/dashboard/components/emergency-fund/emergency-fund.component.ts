@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import {
   NgApexchartsModule,
   ApexAxisChartSeries,
@@ -19,6 +20,11 @@ import { Subscription, combineLatest } from 'rxjs';
 import { Router } from '@angular/router';
 import { CurrencyService } from '../../../core/services/currency.service';
 import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
+import { NotificationService } from '../../../shared/services/notification.service';
+
+/** Used until the user sets their own; three months of a modest income. */
+const DEFAULT_TARGET = 100000;
+const DEFAULT_MONTHLY_TARGET = 5000;
 
 interface EmergencyTransaction {
   date: Date;
@@ -48,7 +54,7 @@ export interface EmergencyChartOptions {
   selector: 'app-emergency-fund',
   templateUrl: './emergency-fund.component.html',
   standalone: true,
-  imports: [CommonModule, NgApexchartsModule, AppCurrencyPipe]
+  imports: [CommonModule, FormsModule, NgApexchartsModule, AppCurrencyPipe]
 })
 export class EmergencyFundComponent implements OnInit, OnDestroy {
   public chartOptions!: Partial<EmergencyChartOptions>;
@@ -62,9 +68,18 @@ export class EmergencyFundComponent implements OnInit, OnDestroy {
 
   private subscription: Subscription = new Subscription();
   transactions: EmergencyTransaction[] = [];
-  currentBalance = 35000;
-  targetGoal = 100000;
-  monthlySaveGoal = 5000;
+  currentBalance = 0;
+  /**
+   * Read from the wallet, not baked in. These were literals (100000 and 5000)
+   * so every user saw the same goal and had no way to change it; the defaults
+   * below only apply until someone sets a real one.
+   */
+  targetGoal = DEFAULT_TARGET;
+  monthlySaveGoal = DEFAULT_MONTHLY_TARGET;
+  emergencyWalletId: string | null = null;
+  isEditingTargets = false;
+  targetDraft = DEFAULT_TARGET;
+  monthlyDraft = DEFAULT_MONTHLY_TARGET;
 
   // Pagination
   currentPage = 1;
@@ -75,7 +90,8 @@ export class EmergencyFundComponent implements OnInit, OnDestroy {
     private transactionService: TransactionService,
     private walletService: WalletService,
     private router: Router,
-    private currencyService: CurrencyService
+    private currencyService: CurrencyService,
+    private readonly notifications: NotificationService
   ) {}
 
   ngOnInit(): void {
@@ -218,12 +234,16 @@ export class EmergencyFundComponent implements OnInit, OnDestroy {
         const emergencyWallet = wallets.find((w: any) => w.type === 'emergencyfund');
         if (!emergencyWallet) {
           this.currentBalance = 0;
+          this.emergencyWalletId = null;
           this.transactions = [];
           this.initializeChart();
           return;
         }
 
         this.currentBalance = emergencyWallet.balance;
+        this.emergencyWalletId = emergencyWallet.id;
+        this.targetGoal = emergencyWallet.targetAmount || DEFAULT_TARGET;
+        this.monthlySaveGoal = emergencyWallet.monthlyTarget || DEFAULT_MONTHLY_TARGET;
         
         if (allTransactions) {
           const walletTransactions = allTransactions.filter((t: any) => t.walletId === emergencyWallet.id);
@@ -305,6 +325,36 @@ export class EmergencyFundComponent implements OnInit, OnDestroy {
       month: 'short',
       day: 'numeric'
     }).format(date);
+  }
+
+  startEditingTargets(): void {
+    this.targetDraft = this.targetGoal;
+    this.monthlyDraft = this.monthlySaveGoal;
+    this.isEditingTargets = true;
+  }
+
+  cancelEditingTargets(): void {
+    this.isEditingTargets = false;
+  }
+
+  saveTargets(): void {
+    if (!this.emergencyWalletId || this.targetDraft <= 0 || this.monthlyDraft < 0) {
+      this.notifications.error('Enter a target greater than zero.');
+      return;
+    }
+
+    this.walletService.updateWallet(this.emergencyWalletId, {
+      targetAmount: this.targetDraft,
+      monthlyTarget: this.monthlyDraft
+    }).subscribe({
+      next: () => {
+        this.targetGoal = this.targetDraft;
+        this.monthlySaveGoal = this.monthlyDraft;
+        this.isEditingTargets = false;
+        this.notifications.success('Savings targets updated.');
+      },
+      error: (error) => this.notifications.error(error?.message || 'Could not save your targets.')
+    });
   }
 
 

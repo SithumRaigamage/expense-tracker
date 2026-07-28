@@ -11,6 +11,8 @@ import {
   faPaintBrush
 } from '@fortawesome/free-solid-svg-icons';
 import { faStar as faStarRegular } from '@fortawesome/free-regular-svg-icons';
+import { FeedbackService } from '../../../services/feedback.service';
+import { NotificationService } from '../../../shared/services/notification.service';
 
 interface FeedbackCategory {
   id: string;
@@ -73,7 +75,13 @@ export class FeedbackComponent {
     { emoji: '😄', label: 'Very Satisfied', value: 5 }
   ];
 
-  constructor(private fb: FormBuilder) {
+  isSubmitting = false;
+
+  constructor(
+    private fb: FormBuilder,
+    private readonly feedbackService: FeedbackService,
+    private readonly notifications: NotificationService
+  ) {
     this.initForm();
   }
 
@@ -94,7 +102,7 @@ export class FeedbackComponent {
     });
   }
 
-  private getDeviceInfo(): string {
+  getDeviceInfo(): string {
     return `Browser: ${navigator.userAgent}
 Platform: ${navigator.platform}
 Screen: ${window.screen.width}x${window.screen.height}

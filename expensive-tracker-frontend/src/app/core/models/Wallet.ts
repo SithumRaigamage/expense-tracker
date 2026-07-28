@@ -13,6 +13,9 @@ export interface Wallet {
    */
   primaryCurrency?: string;
   paymentMethod?: string;
+  /** Savings targets — only meaningful on an emergency-fund wallet. */
+  targetAmount?: number | null;
+  monthlyTarget?: number | null;
   user?: string;
   isActive?: boolean;
   createdAt?: Date;

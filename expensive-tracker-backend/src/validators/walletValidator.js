@@ -100,6 +100,16 @@ const validateWalletUpdate = [
     .optional()
     .isBoolean()
     .withMessage('isActive must be a boolean'),
+
+  body('targetAmount')
+    .optional({ nullable: true })
+    .isFloat({ min: 0 })
+    .withMessage('Target amount cannot be negative'),
+
+  body('monthlyTarget')
+    .optional({ nullable: true })
+    .isFloat({ min: 0 })
+    .withMessage('Monthly target cannot be negative'),
   
   handleValidationErrors
 ];

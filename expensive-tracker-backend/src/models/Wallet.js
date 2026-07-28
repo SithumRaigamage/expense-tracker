@@ -25,6 +25,21 @@ const walletSchema = new mongoose.Schema({
     default: 'LKR',
     enum: CURRENCIES
   },
+  /**
+   * Savings targets, used by the emergency-fund view. They were hardcoded in
+   * the component (100000 and 5000), so every user saw the same goal and could
+   * not change it. Optional because they only mean anything for a fund wallet.
+   */
+  targetAmount: {
+    type: Number,
+    min: [0, 'Target amount cannot be negative'],
+    default: null
+  },
+  monthlyTarget: {
+    type: Number,
+    min: [0, 'Monthly target cannot be negative'],
+    default: null
+  },
   paymentMethod: {
     type: String,
     trim: true,

@@ -9,7 +9,13 @@
         <p class="text-sm text-gray-500 dark:text-gray-400">Track your emergency savings progress</p>
       </div>
 
-      <div class="flex items-center gap-3">
+      <div class="flex flex-wrap items-center gap-3">
+        @if (emergencyWalletId) {
+          <button type="button" (click)="startEditingTargets()"
+            class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-gray-700 shadow-theme-xs transition hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03]">
+            Edit targets
+          </button>
+        }
         <button (click)="navToAddFunds()"
           class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
@@ -21,6 +27,32 @@
         </button>
       </div>
     </div>
+
+    @if (isEditingTargets) {
+      <form class="mb-6 grid gap-4 rounded-xl border border-gray-200 bg-gray-50 p-4 sm:grid-cols-3 dark:border-gray-800 dark:bg-gray-800/50"
+        (ngSubmit)="saveTargets()">
+        <div>
+          <label for="ef-target" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Target goal</label>
+          <input id="ef-target" type="number" min="1" step="any" [(ngModel)]="targetDraft" name="targetDraft"
+            class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
+        </div>
+        <div>
+          <label for="ef-monthly" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Monthly goal</label>
+          <input id="ef-monthly" type="number" min="0" step="any" [(ngModel)]="monthlyDraft" name="monthlyDraft"
+            class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
+        </div>
+        <div class="flex items-end gap-2">
+          <button type="submit"
+            class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500">
+            Save
+          </button>
+          <button type="button" (click)="cancelEditingTargets()"
+            class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
+            Cancel
+          </button>
+        </div>
+      </form>
+    }
 
     <!-- Summary Cards Row -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
