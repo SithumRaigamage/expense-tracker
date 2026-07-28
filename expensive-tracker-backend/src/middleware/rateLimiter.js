@@ -1,4 +1,5 @@
 const rateLimit = require('express-rate-limit');
+const { ipKeyGenerator } = require('express-rate-limit');
 const logger = require('../utils/logger');
 
 const WINDOW_MINUTES = parseInt(process.env.RATE_LIMIT_WINDOW, 10) || 15;
@@ -60,13 +61,21 @@ const authLimiter = rateLimit({
  * Every assistant message is a paid model call, so this is budgeted per user
  * rather than left to the general API limit. Keyed by account, not IP, so one
  * user on a shared network can't exhaust everyone else's allowance.
+ *
+ * The unauthenticated fallback goes through ipKeyGenerator rather than using
+ * req.ip directly. A home IPv6 allocation is a whole block, not one address, so
+ * keying on the raw address let a caller spend the budget, move one address
+ * along and start again — billions of times over. ipKeyGenerator collapses the
+ * address to its /56 block so the whole allocation shares one bucket, and
+ * leaves IPv4 addresses untouched. express-rate-limit refuses to accept a
+ * custom keyGenerator without it, which is why this warned at every startup.
  */
 const chatLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 10,
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => req.user?.id || req.ip,
+  keyGenerator: (req) => req.user?.id || ipKeyGenerator(req.ip),
   message: 'You are sending messages too quickly. Please wait a moment.',
   skip,
   handler
