@@ -22,16 +22,16 @@
   <div class="space-y-4">
     <!-- Bill Card -->
     <div *ngFor="let bill of upcomingBills" class="rounded-xl border border-gray-200 bg-gray-50 p-6 dark:border-gray-800 dark:bg-gray-800/50">
-      <div class="grid grid-cols-12 gap-6 items-center">
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-12 md:gap-6 md:items-center">
         <!-- Left: Bill Info -->
-        <div class="col-span-12 md:col-span-3 flex items-center gap-4">
+        <div class="col-span-12 md:col-span-3 flex items-center gap-4 min-w-0">
           <div class="h-10 w-10 flex-shrink-0 rounded-lg overflow-hidden">
             <img [src]="bill.iconUrl"
                  [alt]="bill.provider + ' logo'"
                  class="h-full w-full object-cover">
           </div>
-          <div>
-            <h4 class="font-medium text-gray-900 dark:text-white">{{bill.name}}</h4>
+          <div class="min-w-0">
+            <h4 class="truncate font-medium text-gray-900 dark:text-white">{{bill.name}}</h4>
             <p class="text-sm text-gray-500 dark:text-gray-400">{{bill.provider}}</p>
           </div>
         </div>

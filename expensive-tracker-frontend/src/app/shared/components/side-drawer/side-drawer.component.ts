@@ -13,11 +13,18 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
          (click)="onClose()">
     </div>
 
-    <!-- Drawer Panel -->
-    <div class="fixed inset-y-0 right-0 w-full md:w-[450px] bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-2xl transform transition-transform duration-500 ease-in-out z-[60001] border-l border-gray-200 dark:border-gray-800"
-         [class.translate-x-full]="!isOpen"
-         [class.translate-x-0]="isOpen">
-      <div class="h-full flex flex-col">
+    <!--
+      Clipping viewport for the panel. When closed, the panel is parked a full
+      width to the right of the screen; without this wrapper it counted as page
+      content and every screen using a drawer could be scrolled sideways into
+      empty space. pointer-events-none so the wrapper never swallows clicks.
+    -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none z-[60001]">
+      <!-- Drawer Panel -->
+      <div class="absolute inset-y-0 right-0 w-full md:w-[450px] pointer-events-auto bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-2xl transform transition-transform duration-500 ease-in-out border-l border-gray-200 dark:border-gray-800"
+           [class.translate-x-full]="!isOpen"
+           [class.translate-x-0]="isOpen">
+        <div class="h-full flex flex-col">
         <!-- Header -->
         <div class="px-8 py-8 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
           <div class="flex items-center gap-4">
@@ -42,6 +49,7 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
         <!-- Content -->
         <div class="flex-1 overflow-y-auto px-8 py-8 custom-scrollbar">
           <ng-content></ng-content>
+        </div>
         </div>
       </div>
     </div>

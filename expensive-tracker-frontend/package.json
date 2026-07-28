@@ -12,7 +12,9 @@
     "sonar": "sonar-scanner",
     "test:sonar": "npm run test:coverage && npm run sonar",
     "sonar:quick": "sonar-scanner -Dsonar.qualitygate.wait=false",
-    "sonar:analyze": "npm run test:coverage && sonar-scanner"
+    "sonar:analyze": "npm run test:coverage && sonar-scanner",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui"
   },
   "private": true,
   "dependencies": {
@@ -46,6 +48,7 @@
     "@angular-devkit/build-angular": "^19.1.6",
     "@angular/cli": "^19.1.6",
     "@angular/compiler-cli": "^19.1.0",
+    "@playwright/test": "^1.62.0",
     "@types/jasmine": "~5.1.0",
     "jasmine-core": "~5.5.0",
     "karma": "~6.4.0",
