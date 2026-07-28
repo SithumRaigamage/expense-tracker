@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faDownload } from '@fortawesome/free-solid-svg-icons';
@@ -8,6 +9,7 @@ import { ProductBudgetService } from '../../../../services/product-budget.servic
 import { BillsService } from '../../../../services/bill.service';
 import { ExcelExportService } from '../../../../services/excel-export.service';
 import { forkJoin, take, finalize } from 'rxjs';
+import { NotificationService } from '../../../../shared/services/notification.service';
 
 interface LegalLink {
   title: string;
@@ -27,6 +29,8 @@ interface Developer {
   templateUrl: './about-support.component.html',
 })
 export class AboutSupportComponent {
+  private readonly destroyRef = inject(DestroyRef);
+
   isExporting = false;
   faDownload = faDownload;
 
@@ -35,7 +39,8 @@ export class AboutSupportComponent {
     private transactionService: TransactionService,
     private budgetService: ProductBudgetService,
     private billsService: BillsService,
-    private excelExportService: ExcelExportService
+    private excelExportService: ExcelExportService,
+    private readonly notifications: NotificationService
   ) {}
   appName = 'ExpenseTracker';
   appVersion = '1.0.0';
@@ -71,7 +76,7 @@ export class AboutSupportComponent {
       billTransactions: this.billsService.getTransactions().pipe(take(1))
     }).pipe(
       finalize(() => this.isExporting = false)
-    ).subscribe({
+    ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (data) => {
         this.excelExportService.exportAllToExcel({
           'Wallets': data.wallets,
@@ -83,7 +88,7 @@ export class AboutSupportComponent {
       },
       error: (error) => {
         console.error('Export failed:', error);
-        alert('Failed to export data. Please try again.');
+        this.notifications.error('Could not export your data. Please try again.');
       }
     });
   }

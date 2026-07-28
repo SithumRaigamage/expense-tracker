@@ -3,6 +3,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { BehaviorSubject, Observable, map, tap, catchError, throwError, of } from 'rxjs';
 import { Transaction } from '../core/models/Transaction';
 import { AuthService } from './auth.service';
+import { environment } from '../../environments/environment';
 
 interface ApiResponse<T> {
   success: boolean;
@@ -47,7 +48,7 @@ interface MonthlyStats {
   providedIn: 'root'
 })
 export class TransactionService {
-  private apiUrl = 'http://localhost:3001/api/v1';
+  private apiUrl = environment.apiUrl;
   private transactions = new BehaviorSubject<Transaction[]>([]);
   private categories = new BehaviorSubject<Category[]>([]);
 
@@ -68,7 +69,6 @@ export class TransactionService {
   }
 
   private loadCategories(): void {
-    console.log('Loading categories...');
 
     this.http.get<ApiResponse<Category[]>>(`${this.apiUrl}/categories`)
       .pipe(
@@ -81,7 +81,6 @@ export class TransactionService {
           this.categories.next(categories);
           // If no categories exist, create default ones
           if (categories.length === 0) {
-            console.log('No categories found, creating defaults...');
             this.createDefaultCategories();
           }
         },
@@ -92,7 +91,6 @@ export class TransactionService {
   }
 
   private createDefaultCategories(): void {
-    console.log('Creating default categories...');
 
     this.http.post<ApiResponse<Category[]>>(`${this.apiUrl}/categories/defaults`, {})
       .pipe(
@@ -105,7 +103,6 @@ export class TransactionService {
       )
       .subscribe({
         next: (categories) => {
-          console.log('Default categories created:', categories);
           this.categories.next(categories);
         },
         error: (error) => {
@@ -126,7 +123,6 @@ export class TransactionService {
       { name: 'Healthcare', type: 'expense' as const }
     ];
 
-    console.log('Creating categories manually:', defaultCategories);
 
     return new Observable<Category[]>(observer => {
       const createdCategories: Category[] = [];
@@ -145,12 +141,10 @@ export class TransactionService {
             next: (created) => {
               if (created) {
                 createdCategories.push(created);
-                console.log('Created category:', created);
               }
               completedRequests++;
 
               if (completedRequests === defaultCategories.length) {
-                console.log('All categories created:', createdCategories);
                 observer.next(createdCategories);
                 observer.complete();
               }
@@ -170,7 +164,6 @@ export class TransactionService {
   }
 
   private loadTransactions(): void {
-    console.log('Loading transactions with limit=1000 for pagination...');
 
     // Set a large limit to get all transactions
     const params = { limit: '1000' };
@@ -183,7 +176,6 @@ export class TransactionService {
       )
       .subscribe({
         next: (transactions) => {
-          console.log('Transactions loaded:', transactions.length);
           this.transactions.next(transactions);
         },
         error: (error) => {
@@ -493,10 +485,8 @@ export class TransactionService {
 
   // Public method to force create categories
   createCategories(): Observable<Category[]> {
-    console.log('Force creating categories...');
     return this.createCategoriesManually().pipe(
       tap(categories => {
-        console.log('Categories force created:', categories);
         this.categories.next(categories);
       })
     );
@@ -504,7 +494,6 @@ export class TransactionService {
 
   // Public method to force refresh categories
   forceRefreshCategories(): Observable<Category[]> {
-    console.log('Force refreshing categories...');
 
     // Add cache busting parameter to force fresh data
     const cacheBuster = new Date().getTime();
@@ -512,7 +501,6 @@ export class TransactionService {
       .pipe(
         map(response => response.data),
         tap(categories => {
-          console.log('Categories force refreshed:', categories);
           this.categories.next(categories);
         }),
         catchError(this.handleError)

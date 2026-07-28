@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { faReceipt } from '@fortawesome/free-solid-svg-icons';
@@ -16,6 +17,8 @@ import { Transaction } from '../../../core/models/Transaction';
   templateUrl: './recent-transactions.component.html'
 })
 export class RecentTransactionsComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
+
   faReceipt = faReceipt;
   transactions: Transaction[] = [];
   isLoading = true;
@@ -32,7 +35,7 @@ export class RecentTransactionsComponent implements OnInit {
   private loadRecentTransactions(): void {
     this.isLoading = true;
     // Get all recent transactions regardless of month
-    this.transactionService.getRecentTransactions(20).subscribe({
+    this.transactionService.getRecentTransactions(20).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (transactions) => {
         // Sort transactions by date in descending order (most recent first)
         this.transactions = transactions.sort((a, b) =>

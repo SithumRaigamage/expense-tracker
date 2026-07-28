@@ -3,6 +3,7 @@ import { Currency, SettingsService } from '../../../../services/settings.service
 
 import { FormsModule } from '@angular/forms';
 import { CurrencyService } from '../../../../core/services/currency.service';
+import { NotificationService } from '../../../../shared/services/notification.service';
 
 @Component({
   selector: 'app-currency',
@@ -16,7 +17,8 @@ export class CurrencyComponent implements OnInit {
 
   constructor(
     private settingsService: SettingsService,
-    private currencyService: CurrencyService
+    private currencyService: CurrencyService,
+    private readonly notifications: NotificationService
   ) {}
 
   ngOnInit(): void {
@@ -42,7 +44,7 @@ export class CurrencyComponent implements OnInit {
     const newCurrency = select.value;
     this.currencyService.setCurrency(newCurrency);
     this.selectedCurrency = newCurrency;
-    alert('Currency updated successfully');
+    this.notifications.success(`Amounts now shown in ${newCurrency}.`);
   }
 
 }

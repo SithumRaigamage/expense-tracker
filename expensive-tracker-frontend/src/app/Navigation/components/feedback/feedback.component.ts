@@ -118,7 +118,6 @@ Window: ${window.innerWidth}x${window.innerHeight}`;
 
   submitFeedback(): void {
     if (this.feedbackForm.valid) {
-      console.log('Feedback submitted:', this.feedbackForm.value);
       // Implement API call to submit feedback
       this.feedbackForm.reset();
       this.rating = 0;

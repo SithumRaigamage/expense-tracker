@@ -1,4 +1,5 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { faChartLine } from '@fortawesome/free-solid-svg-icons';
 import { ChartTabComponent } from "../../../shared/components/chart-tab/chart-tab.component";
@@ -44,6 +45,8 @@ export interface ChartOptions {
   templateUrl: './statchart.component.html',
 })
 export class StatchartComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
+
   @ViewChild("chart") chart!: ChartComponent;
   public chartOptions!: ChartOptions;
   faChartLine = faChartLine;
@@ -67,13 +70,13 @@ export class StatchartComponent implements OnInit {
 
   ngOnInit() {
     this.loadTransactionData();
-    this.currencyService.activeCurrency$.subscribe(() => {
+    this.currencyService.activeCurrency$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.loadTransactionData();
     });
   }
 
   private loadTransactionData() {
-    this.transactionService.getTransactions().subscribe({
+    this.transactionService.getTransactions().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: transactions => {
         this.hasTransactions = transactions.length > 0;
         this.updateChartData('monthly', this.aggregateMonthlyData(transactions));
@@ -144,7 +147,7 @@ export class StatchartComponent implements OnInit {
   }
 
   onPeriodChanged(period: 'monthly' | 'quarterly' | 'annually' | 'trends'): void {
-    this.transactionService.getTransactions().subscribe(transactions => {
+    this.transactionService.getTransactions().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(transactions => {
       this.hasTransactions = transactions.length > 0;
 
       if (period === 'trends') {

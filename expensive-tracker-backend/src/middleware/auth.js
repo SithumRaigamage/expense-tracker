@@ -1,7 +1,21 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-// Protect routes
+const UNAUTHORIZED = {
+  success: false,
+  error: 'Not authorized to access this route'
+};
+
+/**
+ * Verifies the bearer token and attaches the owning user to the request.
+ *
+ * The lookup can legitimately come back empty: a token stays valid for its full
+ * lifetime, so one issued before an account was deleted still verifies. Every
+ * controller then reads `req.user.id` — 44 call sites — which throws on null and
+ * surfaces as a 500 rather than the 401 it actually is. Deactivated accounts had
+ * the mirror-image problem: `isActive` was never checked here, so clearing the
+ * flag did nothing until the token expired. Both are unauthenticated requests.
+ */
 const protect = async (req, res, next) => {
   let token;
 
@@ -11,24 +25,24 @@ const protect = async (req, res, next) => {
 
   // Make sure token exists
   if (!token) {
-    return res.status(401).json({
-      success: false,
-      error: 'Not authorized to access this route'
-    });
+    return res.status(401).json(UNAUTHORIZED);
   }
 
   try {
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    req.user = await User.findById(decoded.id);
+    const user = await User.findById(decoded.id);
+
+    if (!user || user.isActive === false) {
+      return res.status(401).json(UNAUTHORIZED);
+    }
+
+    req.user = user;
 
     next();
   } catch {
-    return res.status(401).json({
-      success: false,
-      error: 'Not authorized to access this route'
-    });
+    return res.status(401).json(UNAUTHORIZED);
   }
 };
 

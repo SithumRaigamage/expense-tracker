@@ -15,6 +15,8 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { ReleaseNote, ReleaseNoteService } from '../../../../services/release-note.service';
 import { HttpClientModule } from '@angular/common/http';
 import { AuthService } from '../../../../services/auth.service';
+import { NotificationService } from '../../../../shared/services/notification.service';
+import { DialogService } from '../../../../shared/services/dialog.service';
 
 @Component({
   selector: 'app-release-notes',
@@ -45,7 +47,9 @@ export class ReleaseNotesComponent implements OnInit {
   constructor(
     private releaseNoteService: ReleaseNoteService,
     private fb: FormBuilder,
-    private authService: AuthService
+    private authService: AuthService,
+    private readonly notifications: NotificationService,
+    private readonly dialogs: DialogService
   ) {
     this.releaseForm = this.fb.group({
       version: ['', [Validators.required, Validators.pattern(/^\d+\.\d+\.\d+(-\w+)?$/)]],
@@ -142,10 +146,18 @@ export class ReleaseNotesComponent implements OnInit {
   }
 
   deleteReleaseNote(id: string): void {
-    if (!id || !confirm('Are you sure you want to delete this release note?')) {
+    if (!id) {
       return;
     }
 
+    this.dialogs.confirmDelete('release note').subscribe(confirmed => {
+      if (confirmed) {
+        this.performDelete(id);
+      }
+    });
+  }
+
+  private performDelete(id: string): void {
     this.isLoading = true;
     this.error = ''; // Clear any previous errors
 
@@ -153,6 +165,7 @@ export class ReleaseNotesComponent implements OnInit {
       next: () => {
         this.releases = this.releases.filter(r => r._id !== id);
         this.isLoading = false;
+        this.notifications.success('Release note deleted.');
       },
       error: (err) => {
         if (err.status === 403) {
@@ -160,7 +173,7 @@ export class ReleaseNotesComponent implements OnInit {
         } else {
           this.error = 'Failed to delete release note: ' + (err.error?.message || err.message || 'Unknown error');
         }
-        console.error('Error deleting release note:', err);
+        this.notifications.error(this.error);
         this.isLoading = false;
       }
     });

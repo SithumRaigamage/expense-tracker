@@ -7,6 +7,7 @@ const {
   updateProductBudget, 
   deleteProductBudget,
   updateSavedAmount,
+  contributeToProductBudget,
   getProductBudgetsSummary
 } = require('../controllers/productBudgetController');
 const { protect } = require('../middleware/auth');
@@ -31,5 +32,9 @@ router.route('/:id')
 
 router.route('/:id/amount')
   .patch(validateObjectId(), updateSavedAmount);
+
+// Funding a goal moves money and must not be split across two client calls.
+router.route('/:id/contribute')
+  .post(validateObjectId(), contributeToProductBudget);
 
 module.exports = router;

@@ -1,4 +1,5 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
@@ -29,6 +30,8 @@ import { MatButtonModule } from '@angular/material/button';
   templateUrl: './transfer-dialog.component.html',
 })
 export class TransferDialogComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
+
   faExchangeAlt = faExchangeAlt;
   faWallet = faWallet;
   faMoneyBillWave = faMoneyBillWave;
@@ -55,7 +58,7 @@ export class TransferDialogComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.walletService.getAllWallets().subscribe(wallets => {
+    this.walletService.getAllWallets().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(wallets => {
       this.wallets = wallets;
     });
   }
@@ -72,7 +75,7 @@ export class TransferDialogComponent implements OnInit {
       this.isLoading = true;
       this.error = null;
 
-      this.walletService.transferFunds(fromWalletId, toWalletId, amount, description).subscribe({
+      this.walletService.transferFunds(fromWalletId, toWalletId, amount, description).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: () => {
           this.isLoading = false;
           this.dialogRef.close(true);

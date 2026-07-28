@@ -27,10 +27,8 @@
         <div class="w-20 h-20 flex-shrink-0 overflow-hidden border border-gray-200 rounded-full dark:border-gray-800 relative group">
           <img class="w-full h-full object-cover" width="80" height="80"
             [src]="user?.profileImage || user?.avatar || getDefaultAvatarUrl()"
-            [attr.crossorigin]="user?.profileImage?.includes('localhost') ? 'anonymous' : null"
             [alt]="user?.name || 'user'"
-            (error)="handleImageError($event)"
-            (load)="onImageLoaded($event)" />
+            (error)="handleImageError($event)" />
           <button type="button"
             aria-label="Change profile photo"
             class="absolute inset-0 w-full bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity cursor-pointer rounded-full"
@@ -243,10 +241,8 @@
         <div class="w-32 h-32 rounded-3xl overflow-hidden border-4 border-white dark:border-gray-800 shadow-xl relative bg-gray-100 dark:bg-gray-800">
           <img [src]="previewImage || user?.profileImage || user?.avatar || getDefaultAvatarUrl()"
             [alt]="user?.name || 'Profile'"
-            [attr.crossorigin]="(user?.profileImage?.includes('localhost') || user?.avatar?.includes('localhost')) ? 'anonymous' : null"
             class="w-full h-full object-cover"
-            (error)="handleImageError($event)"
-            (load)="onImageLoaded($event)">
+            (error)="handleImageError($event)">
 
           <!-- Upload Overlay -->
           <label for="profile-image-upload"

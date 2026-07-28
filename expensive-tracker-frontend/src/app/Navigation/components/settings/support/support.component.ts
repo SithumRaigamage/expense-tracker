@@ -149,7 +149,6 @@ export class SupportComponent {
 
   submitSupportRequest() {
     if (this.supportForm.valid) {
-      console.log('Support request submitted:', this.supportForm.value);
       // Implement API call to submit support request
     }
   }

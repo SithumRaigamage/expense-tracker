@@ -169,7 +169,7 @@ Static curated cards (article/video, difficulty, duration) with a category filte
 - **Goal cards** — cover image, name, a colour-graded progress ring/bar (red → orange → yellow → blue → green), saved vs target amounts, target date, and per-card **Add Money**, **Edit** and **Delete** actions. Empty state: *“No goals found”*.
 - **Drawer**, in three modes:
   - **Add / Edit Goal** — Cover Image via **URL or upload** (images only, ≤ 2 MB, stored as a base64 data URL with an upload spinner), Goal Name, Target Amount, Initial Savings, Target Date.
-  - **Add Money to Goal** — pick a **source wallet** (only cash/bank wallets with a positive balance, each showing its available balance), then a contribution amount with quick-fill percentage buttons and an **Entire Balance** button. The amount is always clamped to the smaller of the wallet balance and the remaining target; the wallet is debited and the goal credited, with the wallet restored if the goal update fails. Fully funding a goal shows a congratulations message.
+  - **Add Money to Goal** — pick a **source wallet** (only cash/bank wallets with a positive balance, each showing its available balance), then a contribution amount with quick-fill percentage buttons and an **Entire Balance** button. The server debits the wallet and credits the goal in a single transaction, clamping the amount to whichever is smaller — the wallet balance or what the goal still needs — and reports back how much it actually applied.
   - **Import** — JSON array of goals validated for name, targetAmount and targetDate, with a preview and per-goal failure report.
 
 ## 🧾 Bills & Payments (`/bills`)
@@ -229,6 +229,7 @@ Reusable pieces in [`shared/components/`](expensive-tracker-frontend/src/app/sha
 | Empty State | `app-empty-state` | Icon + title + message placeholder in three sizes. |
 | Side Drawer | `app-side-drawer` | The right-hand sheet used by Wallets, Transactions, Budget, Bills and Profile. |
 | Skeleton | `app-skeleton` | Shimmer placeholder with width, height and rounding inputs. |
+| Toast | `app-toast` | Global feedback stack, fed by `NotificationService`; mounted once at the app root. |
 | `appCurrency` pipe | — | Converts and formats any amount into the currently active currency. |
 
 ## 🔌 Frontend Services
@@ -269,7 +270,8 @@ All routes are mounted under `/api/v1` and, unless noted, require a bearer token
 | `POST` | `/categories/defaults` | Seed the default category set. |
 | `GET` `POST` | `/productbudgets` | List / create savings goals. |
 | `GET` `PUT` `DELETE` | `/productbudgets/:id` | Single-goal operations. |
-| `PATCH` | `/productbudgets/:id/amount` | Add money to a goal. |
+| `PATCH` | `/productbudgets/:id/amount` | Set a goal's saved amount directly. |
+| `POST` | `/productbudgets/:id/contribute` | Move money from a wallet into a goal in one transaction. |
 | `GET` | `/productbudgets/summary` | Goal summary. |
 | `GET` | `/release-notes` · `/release-notes/:version` | Public changelog. |
 | `POST` `PUT` `DELETE` | `/release-notes[/:id]` | Manage changelog entries. **Admin only.** |
@@ -343,6 +345,23 @@ expense-tracker/
 ### Prerequisites
 - Node.js (v18.x or higher)
 - MongoDB running locally or on Atlas
+
+### Environment variables
+
+The API refuses to boot without these (see `src/config/validateEnv.js`):
+
+| Variable | Required | Notes |
+|----------|----------|-------|
+| `MONGODB_URI` | yes | Connection string. |
+| `JWT_SECRET` | yes | Rejected if absent, a known placeholder, or under 32 chars in production. Generate with `openssl rand -base64 48`. |
+| `PORT` | no | Defaults to 3001. |
+| `NODE_ENV` | no | `development` enables the Docker MongoDB bootstrap and verbose logging. |
+| `FRONTEND_URL` | production | Comma-separated allowed origins for CORS. Ignored outside production, where CORS is open. |
+| `JWT_EXPIRE` | no | Token lifetime, default 30d. |
+
+The frontend reads its API base URL from `src/environments/environment.ts`
+(development) and `environment.prod.ts` (production, `/api/v1` relative to the
+host). Production builds swap the file via `fileReplacements` in `angular.json`.
 
 ### Quick Start
 

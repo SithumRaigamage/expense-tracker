@@ -39,6 +39,5 @@ export class DocumentationComponent {
 
   downloadPdf() {
     // Implementation for PDF download
-    console.log('Downloading PDF documentation...');
   }
 }

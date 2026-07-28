@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { faChartColumn } from '@fortawesome/free-solid-svg-icons';
 import { ChartComponent } from '../../../shared/components/chart/chart.component';
@@ -14,6 +15,8 @@ import { Transaction } from '../../../core/models/Transaction';
   templateUrl: './monthly-stat.component.html'
 })
 export class MonthlyStatComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
+
   faChartColumn = faChartColumn;
   currentChartType: 'income' | 'expense' | 'all' = 'all';
   currentMonthStats = {
@@ -40,7 +43,7 @@ export class MonthlyStatComponent implements OnInit {
     this.transactionService.getMonthlyStats(
       currentDate.getMonth(),
       currentDate.getFullYear()
-    ).subscribe({
+    ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (stats) => {
         this.currentMonthStats = stats;
       },
@@ -51,7 +54,7 @@ export class MonthlyStatComponent implements OnInit {
     });
 
     // Get all transactions for the chart
-    this.transactionService.getTransactions().subscribe({
+    this.transactionService.getTransactions().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (transactions) => {
         this.transactions = transactions;
         this.isLoading = false;

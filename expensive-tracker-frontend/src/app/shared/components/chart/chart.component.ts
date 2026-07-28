@@ -1,4 +1,5 @@
-import { Component, Input, OnChanges, SimpleChanges, OnInit } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, OnInit, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import {
   ApexAxisChartSeries,
@@ -49,6 +50,8 @@ export interface ChartOptions {
   templateUrl: './chart.component.html',
 })
 export class ChartComponent implements OnChanges, OnInit {
+  private readonly destroyRef = inject(DestroyRef);
+
   @Input() chartType: 'income' | 'expense' | 'all' = 'all';
   @Input() transactions: Transaction[] = [];
 
@@ -66,7 +69,7 @@ export class ChartComponent implements OnChanges, OnInit {
   }
 
   ngOnInit() {
-    this.currencyService.activeCurrency$.subscribe(() => {
+    this.currencyService.activeCurrency$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
         this.updateChartData();
     });
   }

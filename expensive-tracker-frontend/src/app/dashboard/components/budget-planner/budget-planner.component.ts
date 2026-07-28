@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -14,6 +15,8 @@ import { WalletService } from '../../../services/wallet.service';
   imports: [CommonModule, FormsModule, RouterModule, AppCurrencyPipe]
 })
 export class BudgetPlannerComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
+
   productgoals: ProductBudget[] = [];
   isLoading = true;
   error: string | null = null;
@@ -31,7 +34,7 @@ export class BudgetPlannerComponent implements OnInit {
     this.isLoading = true;
     this.error = null;
 
-    this.productBudgetService.getGoals().subscribe({
+    this.productBudgetService.getGoals().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (goals) => {
         this.productgoals = goals;
         this.isLoading = false;

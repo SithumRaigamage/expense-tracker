@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -14,6 +15,8 @@ import { faEye, faEyeSlash, faSpinner, faArrowRight, faLock, faEnvelope } from '
   styleUrl: './login.component.css'
 })
 export class LoginComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
+
   loginForm: FormGroup;
   loading = false;
   error = '';
@@ -61,7 +64,7 @@ export class LoginComponent implements OnInit {
       this.loading = true;
       this.error = '';
 
-      this.authService.login(this.loginForm.value).subscribe({
+      this.authService.login(this.loginForm.value).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: () => {
           this.loading = false;
           this.router.navigateByUrl(this.returnUrl);

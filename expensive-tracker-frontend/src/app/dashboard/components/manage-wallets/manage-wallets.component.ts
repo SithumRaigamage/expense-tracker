@@ -1,6 +1,7 @@
 import { Wallet } from '../../../core/models/Wallet';
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { WalletService } from '../../../services/wallet.service';
 import { RouterModule } from '@angular/router';
 import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
@@ -11,12 +12,14 @@ import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
   templateUrl: './manage-wallets.component.html',
 })
 export class ManageWalletsComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
+
   wallets: Wallet[] = [];
 
   constructor(private wallet : WalletService) {}
 
   ngOnInit(): void {
-    this.wallet.getAllWallets().subscribe(wallets => {
+    this.wallet.getAllWallets().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(wallets => {
       this.wallets = wallets;
     });
 

@@ -98,6 +98,33 @@ const updateSavedAmount = asyncHandler(async (req, res) => {
 });
 
 /**
+ * @desc    Move money from a wallet into a savings goal, atomically
+ * @route   POST /api/v1/productbudgets/:id/contribute
+ * @access  Private
+ */
+const contributeToProductBudget = asyncHandler(async (req, res) => {
+  const { walletId, amount } = req.body;
+
+  if (!walletId) {
+    throw new BadRequestError('A source wallet is required');
+  }
+
+  const result = await ProductBudgetService.contribute(
+    req.params.id,
+    req.user.id,
+    walletId,
+    amount
+  );
+
+  successResponse(
+    res,
+    result,
+    200,
+    result.isFullyFunded ? 'Goal fully funded' : 'Contribution added successfully'
+  );
+});
+
+/**
  * @desc    Get summary statistics for all product budgets of a user
  * @route   GET /api/v1/productbudgets/stats/summary
  * @access  Private
@@ -115,5 +142,6 @@ module.exports = {
   updateProductBudget,
   deleteProductBudget,
   updateSavedAmount,
+  contributeToProductBudget,
   getProductBudgetsSummary
 };

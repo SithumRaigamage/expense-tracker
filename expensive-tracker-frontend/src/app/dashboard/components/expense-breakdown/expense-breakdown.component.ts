@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -17,6 +18,8 @@ import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.
   templateUrl: './expense-breakdown.component.html',
 })
 export class ExpenseBreakdownComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
+
   faChartPie = faChartPie;
   breakdownTab: 'sankey' | 'sunburst' = 'sankey';
   isBreakdownLoading = true;
@@ -28,7 +31,7 @@ export class ExpenseBreakdownComponent implements OnInit {
   constructor(private walletService: WalletService, private currencyService: CurrencyService) {}
 
   ngOnInit() {
-    this.walletService.getExpenseFlow().subscribe({
+    this.walletService.getExpenseFlow().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (data) => {
         this.rawData = data;
         this.updateCharts();
@@ -36,7 +39,7 @@ export class ExpenseBreakdownComponent implements OnInit {
       error: () => { this.isBreakdownLoading = false; }
     });
 
-    this.currencyService.activeCurrency$.subscribe(() => {
+    this.currencyService.activeCurrency$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       if (this.rawData) this.updateCharts();
     });
   }

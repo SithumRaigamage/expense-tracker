@@ -6,6 +6,7 @@ import { Metric } from '../core/models/Metric';
 import { AuthService } from './auth.service';
 import { CurrencyService } from '../core/services/currency.service';
 import { toUserMessage } from '../core/utils/http-error';
+import { environment } from '../../environments/environment';
 import {
   faMoneyBillWave,
   faBuildingColumns,
@@ -36,7 +37,7 @@ interface ApiResponse<T> {
   providedIn: 'root'
 })
 export class WalletService {
-  private apiUrl = 'http://localhost:3001/api/v1/wallets';
+  private apiUrl = `${environment.apiUrl}/wallets`;
   private wallets = new BehaviorSubject<Wallet[]>([]);
   private error = new BehaviorSubject<string | null>(null);
   private loading = new BehaviorSubject<boolean>(false);

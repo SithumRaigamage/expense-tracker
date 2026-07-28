@@ -25,6 +25,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule } from '@angular/material/dialog';
+import { NotificationService } from '../../../shared/services/notification.service';
 
 @Component({
   selector: 'app-wallets',
@@ -79,7 +80,8 @@ export class WalletsComponent implements OnInit, OnDestroy {
     private dialog: MatDialog,
     private router: Router,
     public currencyService: CurrencyService,
-    private excelExportService: ExcelExportService
+    private excelExportService: ExcelExportService,
+    private readonly notifications: NotificationService
   ) {
     this.subscription = new Subscription();
     this.initForm();
@@ -93,7 +95,7 @@ export class WalletsComponent implements OnInit, OnDestroy {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        console.log('Transfer successful');
+        this.notifications.success('Transfer complete.');
       }
     });
   }
@@ -207,26 +209,24 @@ export class WalletsComponent implements OnInit, OnDestroy {
       if (this.selectedWallet) {
         this.walletService.updateWallet(this.selectedWallet.id, walletData).subscribe({
           next: () => {
-            console.log('Wallet updated successfully');
             this.closeDrawer();
             this.isLoading = false;
           },
           error: (error) => {
             console.error('Error updating wallet:', error);
-            alert(error.message || 'Error updating wallet');
+            this.notifications.error(error?.message || 'Could not update that wallet.');
             this.isLoading = false;
           }
         });
       } else {
         this.walletService.addWallet(walletData).subscribe({
           next: () => {
-            console.log('Wallet added successfully');
             this.closeDrawer();
             this.isLoading = false;
           },
           error: (error) => {
             console.error('Error adding wallet:', error);
-            alert(error.message || 'Error adding wallet');
+            this.notifications.error(error?.message || 'Could not add that wallet.');
             this.isLoading = false;
           }
         });
@@ -329,7 +329,6 @@ export class WalletsComponent implements OnInit, OnDestroy {
     // Use the updated bulkAddWallets method that now handles sequential processing
     this.walletService.bulkAddWallets(this.jsonPreview).subscribe({
       next: (result) => {
-        console.log(`Successfully imported ${result.successCount} wallets`);
         if (result.failedCount > 0 && result.failedWallets) {
           // Create a more detailed message about the failures
           const failureDetails = result.failedWallets
@@ -337,18 +336,18 @@ export class WalletsComponent implements OnInit, OnDestroy {
             .join('\n');
 
           // Use a simple alert with details
-          alert(`Successfully imported ${result.successCount} wallets.\n\n${result.failedCount} wallet(s) failed to import:\n${failureDetails}`);
+          this.notifications.error(`Imported ${result.successCount}. ${result.failedCount} failed: ${failureDetails}`);
         } else if (result.failedCount > 0) {
-          alert(`${result.successCount} wallets imported successfully. ${result.failedCount} wallets failed to import.`);
+          this.notifications.error(`Imported ${result.successCount} wallets; ${result.failedCount} failed.`);
         } else {
-          alert(`${result.successCount} wallets imported successfully!`);
+          this.notifications.success(`Imported ${result.successCount} wallets.`);
         }
         this.closeDrawer();
         this.isLoading = false;
       },
       error: (error) => {
         console.error('Error importing wallets:', error);
-        alert(error.message || 'Error importing wallets');
+        this.notifications.error(error?.message || 'Could not import those wallets.');
         this.isLoading = false;
       }
     });
@@ -364,13 +363,11 @@ export class WalletsComponent implements OnInit, OnDestroy {
     this.dialogService.confirmDelete('wallet').subscribe(result => {
       if (result) {
         this.walletService.deleteWallet(id).subscribe({
-          next: () => {
-            console.log('Wallet deleted successfully');
-          },
+          next: () => this.notifications.success('Wallet deleted.'),
           error: (error) => {
             console.error('Error deleting wallet:', error);
             // We could use another dialog here instead of alert, but keeping it simple for now
-            alert(error.message || 'Error deleting wallet');
+            this.notifications.error(error?.message || 'Could not delete that wallet.');
           }
         });
       }

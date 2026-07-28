@@ -1,4 +1,5 @@
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit, HostListener, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faGear, faEye, faEyeSlash, faTimes, faArrowsRotate, faChartPie } from '@fortawesome/free-solid-svg-icons';
@@ -36,6 +37,8 @@ import { ExpenseBreakdownComponent } from './components/expense-breakdown/expens
   templateUrl: './dashboard.component.html',
 })
 export class DashboardComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
+
   faGear = faGear;
   faEye = faEye;
   faEyeSlash = faEyeSlash;
@@ -49,7 +52,7 @@ export class DashboardComponent implements OnInit {
   constructor(private dashboardService: DashboardService) {}
 
   ngOnInit() {
-    this.dashboardService.widgets$.subscribe(widgets => {
+    this.dashboardService.widgets$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(widgets => {
       this.widgets = widgets;
     });
 

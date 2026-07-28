@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { BillsService } from '../../../services/bill.service';
 import { Bill } from '../../../core/models/Bill';
@@ -12,12 +13,14 @@ import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
   imports: [CommonModule, AppCurrencyPipe]
 })
 export class UpcomingBillsComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
+
   upcomingBills: Bill[] = [];
 
   constructor(private billsService: BillsService) {}
 
   ngOnInit(): void {
-    this.billsService.getBills().subscribe(bills => {
+    this.billsService.getBills().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(bills => {
       // Filter to show only upcoming and due today bills
       this.upcomingBills = bills.filter(bill =>
         bill.status === 'Upcoming' || bill.status === 'Due Today'

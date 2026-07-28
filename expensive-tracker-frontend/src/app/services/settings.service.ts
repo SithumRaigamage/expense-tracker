@@ -198,35 +198,19 @@ export class SettingsService {
       'Authorization': `Bearer ${token}`
     });
 
-    console.log('Sending profile image to API...');
-
-    // Log formData contents for debugging
-    formData.forEach((value, key) => {
-      if (key !== 'profileImage') { // Don't log binary data
-        console.log(`FormData contains: ${key}: ${value}`);
-      } else {
-        console.log(`FormData contains file: ${key}`);
-      }
-    });
-
     // Upload the image to API
     return this.http.post<{success: boolean, data: any}>(
       `${this.apiUrl}/users/profile/image`,
       formData,
       { headers }
     ).pipe(
-      tap(response => {
-        console.log('Raw API response:', JSON.stringify(response, null, 2));
-      }),
       map(response => {
-        console.log('Profile update response received:', response);
         // Extract user data and image URL from response
         const userData = response.data.user;
         const profileImage = response.data.profileImage;
 
         //console.log('Profile image URL from response:', profileImage);
         //console.log('User data profileImage:', userData.profileImage);
-        console.log('User data avatar:', userData.avatar);
 
         const user: User = {
           ...userData,
@@ -241,7 +225,6 @@ export class SettingsService {
             userData.name.split(' ').slice(1).join(' ') : '')
         };
 
-        console.log('Final user object with profileImage:', user.profileImage);
 
         this.user = user;
         return user;

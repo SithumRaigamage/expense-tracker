@@ -1,4 +1,5 @@
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit, HostListener, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { Router, RouterModule } from '@angular/router';
 import { FontAwesomeModule, FaIconLibrary } from '@fortawesome/angular-fontawesome';
@@ -53,6 +54,8 @@ interface NavItem {
   imports: [RouterModule, FontAwesomeModule]
 })
 export class SidebarComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
+
   isExpanded = true;
   isMobileOpen = false;
   isHovered = false;
@@ -215,10 +218,10 @@ export class SidebarComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.sidebarService.isOpen$.subscribe(
+    this.sidebarService.isOpen$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(
       state => this.isExpanded = state
     );
-    this.sidebarService.isMobileOpen$.subscribe(
+    this.sidebarService.isMobileOpen$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(
       state => this.isMobileOpen = state
     );
   }

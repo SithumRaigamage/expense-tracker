@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { FormsModule } from '@angular/forms';
 import { BillsService } from '../../../services/bill.service';
@@ -11,6 +12,8 @@ import { ExcelExportService } from '../../../services/excel-export.service';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faDownload, faEdit, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { SideDrawerComponent } from '../../../shared/components/side-drawer/side-drawer.component';
+import { NotificationService } from '../../../shared/services/notification.service';
+import { DialogService } from '../../../shared/services/dialog.service';
 
 @Component({
   selector: 'app-bills',
@@ -19,6 +22,8 @@ import { SideDrawerComponent } from '../../../shared/components/side-drawer/side
   templateUrl: './bills.component.html',
 })
 export class BillsComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
+
   bills: Bill[] = [];
   transactions: BillTransaction[] = [];
   availableWallets: Wallet[] = [];
@@ -34,7 +39,9 @@ export class BillsComponent implements OnInit {
     private billsService: BillsService,
     private walletService: WalletService,
     public currencyService: CurrencyService,
-    private excelExportService: ExcelExportService
+    private excelExportService: ExcelExportService,
+    private readonly notifications: NotificationService,
+    private readonly dialogs: DialogService
   ) {}
 
   ngOnInit(): void {
@@ -42,15 +49,15 @@ export class BillsComponent implements OnInit {
   }
 
   private loadData(): void {
-    this.billsService.getBills().subscribe(bills => {
+    this.billsService.getBills().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(bills => {
       this.bills = bills;
     });
 
-    this.billsService.getTransactions().subscribe(transactions => {
+    this.billsService.getTransactions().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(transactions => {
       this.transactions = transactions;
     });
 
-    this.walletService.getAllWallets().subscribe(wallets => {
+    this.walletService.getAllWallets().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(wallets => {
       this.availableWallets = wallets.filter(w =>
         (w.type === 'cash' || w.type === 'bank') && w.balance > 0
       );
@@ -96,9 +103,12 @@ export class BillsComponent implements OnInit {
   }
 
   deleteBill(id: string): void {
-    if (confirm('Are you sure you want to delete this bill?')) {
-      this.billsService.deleteBill(id);
-    }
+    this.dialogs.confirmDelete('bill').pipe(takeUntilDestroyed(this.destroyRef)).subscribe(confirmed => {
+      if (confirmed) {
+        this.billsService.deleteBill(id);
+        this.notifications.success('Bill deleted.');
+      }
+    });
   }
 
   private validateBill(): boolean {
