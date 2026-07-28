@@ -57,7 +57,7 @@
         <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/50">
           <div class="flex flex-col gap-6 lg:flex-row lg:items-center">
             <!-- Left: Image and Basic Info -->
-            <div class="flex items-center gap-4 lg:min-w-[240px]">
+            <div class="flex min-w-0 items-center gap-4 lg:min-w-[200px]">
               <img [src]="goal.imageUrl" alt="Product image" class="h-16 w-16 rounded-lg object-cover shadow-sm"
                 onerror="this.src='https://images.unsplash.com/photo-1560393464-5c69a73c5770?w=100&h=100&fit=crop'">
                 <div>
@@ -66,7 +66,7 @@
                 </div>
               </div>
               <!-- Middle: Progress Bar and Details -->
-              <div class="flex-1 w-full">
+              <div class="w-full min-w-0 flex-1">
                 <div class="flex flex-col gap-4 md:flex-row md:items-center">
                   <!-- Progress Bar -->
                   <div class="flex-1">
@@ -81,16 +81,16 @@
                     </div>
                   </div>
                   <!-- Amount Details -->
-                  <div class="grid grid-cols-2 gap-4 sm:flex sm:gap-6 md:min-w-[300px]">
-                    <div class="flex flex-col">
+                  <div class="grid min-w-0 grid-cols-2 gap-4 sm:flex sm:gap-6">
+                    <div class="flex min-w-0 flex-col">
                       <span class="text-sm text-gray-500 dark:text-gray-400">Saved</span>
                       <span class="font-medium text-gray-900 dark:text-white">{{goal.savedAmount | appCurrency}}</span>
                     </div>
-                    <div class="flex flex-col">
+                    <div class="flex min-w-0 flex-col">
                       <span class="text-sm text-gray-500 dark:text-gray-400">Remaining</span>
                       <span class="font-medium text-gray-900 dark:text-white">{{(goal.targetAmount - goal.savedAmount) | appCurrency}}</span>
                     </div>
-                    <div class="flex flex-col col-span-2 sm:col-span-1">
+                    <div class="flex min-w-0 flex-col col-span-2 sm:col-span-1">
                       <span class="text-sm text-gray-500 dark:text-gray-400">Target Date</span>
                       <span class="font-medium text-gray-900 dark:text-white">{{formatDate(goal.targetDate)}}</span>
                     </div>
@@ -98,7 +98,7 @@
                 </div>
               </div>
               <!-- Right: Actions -->
-              <div class="flex items-center gap-3 lg:min-w-[200px]">
+              <div class="flex w-full min-w-0 items-center gap-3 lg:w-auto">
                 <a [routerLink]="['/budget']" class="flex-1 rounded-lg bg-brand-500 px-3 py-2 text-sm font-medium text-white hover:bg-brand-600 transition-colors text-center">
                   Manage
                 </a>

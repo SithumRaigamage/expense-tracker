@@ -10,6 +10,10 @@ import { STORAGE_STATE } from './e2e/global-setup';
  *
  * Expects the app on :4200 and the API on :3001 — `./start.sh` from the repo
  * root brings up both plus MongoDB.
+ *
+ * A full sweep is ~30 page loads, each fanning out to roughly ten endpoints, so
+ * repeated runs will trip the API's general rate limit. Start the backend with
+ * RATE_LIMIT_DISABLED=true when iterating on these tests.
  */
 export default defineConfig({
   testDir: './e2e',
