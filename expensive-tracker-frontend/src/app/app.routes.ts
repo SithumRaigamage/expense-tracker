@@ -66,6 +66,11 @@ export const routes: Routes = [
         title: 'Financial Education'
       },
       {
+        path: 'financial-education/:articleId',
+        loadComponent: () => import('./Navigation/components/education/article/article.component').then(m => m.ArticleComponent),
+        title: 'Financial Education'
+      },
+      {
         path: 'chat',
         loadComponent: () => import('./Navigation/components/chat/chat.component').then(m => m.ChatComponent),
         title: 'Chat'
