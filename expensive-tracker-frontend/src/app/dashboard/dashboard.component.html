@@ -1,122 +1,148 @@
 <!-- Customization Toggle Button -->
 <div class="fixed bottom-8 right-8 z-50">
-  <button (click)="toggleDrawer()" 
-          class="flex items-center gap-2 bg-brand-500 hover:bg-brand-600 text-white px-4 py-3 rounded-full shadow-lg transition-all hover:scale-105 group">
+  <button (click)="toggleDrawer()"
+    class="flex items-center gap-2 bg-brand-500 hover:bg-brand-600 text-white px-4 py-3 rounded-full shadow-lg transition-all hover:scale-105 group">
     <fa-icon [icon]="faGear" [class.animate-spin-slow]="isCustomizing"></fa-icon>
     <span class="font-medium">Customize Dashboard</span>
   </button>
 </div>
 
 <!-- Customization Drawer -->
-<div *ngIf="isCustomizing" 
-     class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] transition-opacity"
-     (click)="toggleDrawer()">
-</div>
+@if (isCustomizing) {
+  <div
+    class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] transition-opacity"
+    (click)="toggleDrawer()">
+  </div>
+}
 
 <!-- Clipping viewport: the closed drawer sits a full width off-screen and would
-     otherwise let the page scroll sideways into empty space. -->
+otherwise let the page scroll sideways into empty space. -->
 <div class="fixed inset-0 overflow-hidden pointer-events-none z-[70]">
-<div class="absolute inset-y-0 right-0 w-80 max-w-full pointer-events-auto bg-white shadow-2xl transform transition-transform duration-300 ease-in-out"
-     [class.translate-x-0]="isCustomizing"
-     [class.translate-x-full]="!isCustomizing">
-  <div class="flex flex-col h-full">
-    <div class="p-6 border-b border-gray-200 flex justify-between items-center bg-gray-50 dark:bg-gray-800/50">
-      <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
-        <fa-icon [icon]="faGear" class="text-brand-500"></fa-icon>
-        Customize
-      </h2>
-      <button (click)="toggleDrawer()" class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors">
-        <fa-icon [icon]="faTimes" class="text-gray-500"></fa-icon>
-      </button>
-    </div>
+  <div class="absolute inset-y-0 right-0 w-80 max-w-full pointer-events-auto bg-white shadow-2xl transform transition-transform duration-300 ease-in-out"
+    [class.translate-x-0]="isCustomizing"
+    [class.translate-x-full]="!isCustomizing">
+    <div class="flex flex-col h-full">
+      <div class="p-6 border-b border-gray-200 flex justify-between items-center bg-gray-50 dark:bg-gray-800/50">
+        <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+          <fa-icon [icon]="faGear" class="text-brand-500"></fa-icon>
+          Customize
+        </h2>
+        <button (click)="toggleDrawer()" class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors">
+          <fa-icon [icon]="faTimes" class="text-gray-500"></fa-icon>
+        </button>
+      </div>
 
-    <div class="flex-1 overflow-y-auto p-6 space-y-4">
-      <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">
-        Toggle the visibility of widgets to personalize your dashboard overview.
-      </p>
+      <div class="flex-1 overflow-y-auto p-6 space-y-4">
+        <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">
+          Toggle the visibility of widgets to personalize your dashboard overview.
+        </p>
 
-      <div *ngFor="let widget of widgets" 
-           (click)="toggleWidget(widget.id)"
-           class="flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-all"
+        @for (widget of widgets; track widget) {
+          <div
+            (click)="toggleWidget(widget.id)"
+            class="flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-all"
            [ngClass]="{
              'bg-brand-50 border-brand-200 dark:bg-brand-900/10 dark:border-brand-800/30': widget.isVisible,
              'bg-white border-gray-200': !widget.isVisible
            }">
-        <span class="font-medium" 
+            <span class="font-medium"
               [ngClass]="{
                 'text-brand-800 ': widget.isVisible,
                 'text-gray-700 ': !widget.isVisible
               }">
-          {{widget.label}}
-        </span>
-        <fa-icon [icon]="widget.isVisible ? faEye : faEyeSlash" 
-                 [class.text-brand-600]="widget.isVisible"
-                 [class.text-gray-400]="!widget.isVisible"></fa-icon>
+              {{widget.label}}
+            </span>
+            <fa-icon [icon]="widget.isVisible ? faEye : faEyeSlash"
+              [class.text-brand-600]="widget.isVisible"
+            [class.text-gray-400]="!widget.isVisible"></fa-icon>
+          </div>
+        }
+      </div>
+
+      <div class="p-6 border-t border-gray-200 dark:border-gray-700">
+        <button (click)="resetWidgets()"
+          class="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+          <fa-icon [icon]="faArrowsRotate"></fa-icon>
+          Reset to Default
+        </button>
       </div>
     </div>
-
-    <div class="p-6 border-t border-gray-200 dark:border-gray-700">
-      <button (click)="resetWidgets()" 
-              class="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-        <fa-icon [icon]="faArrowsRotate"></fa-icon>
-        Reset to Default
-      </button>
-    </div>
   </div>
-</div>
 </div>
 
 <!-- Main dashboard grid container -->
 <div class="grid grid-cols-12 gap-4 md:gap-6 p-4">
   <!-- Top left section: Metrics and Monthly Statistics -->
-  <div *ngIf="isVisible('metrics') || isVisible('monthlyStat')" 
-       class="col-span-12 space-y-6 xl:col-span-7">
-    <app-metrics *ngIf="isVisible('metrics')"></app-metrics>
-    <app-monthly-stat *ngIf="isVisible('monthlyStat')"></app-monthly-stat>
-  </div>
+  @if (isVisible('metrics') || isVisible('monthlyStat')) {
+    <div
+      class="col-span-12 space-y-6 xl:col-span-7">
+      @if (isVisible('metrics')) {
+        <app-metrics></app-metrics>
+      }
+      @if (isVisible('monthlyStat')) {
+        <app-monthly-stat></app-monthly-stat>
+      }
+    </div>
+  }
 
   <!-- Full-width Statistics Chart -->
-  <div *ngIf="isVisible('statChart')" class="col-span-12 xl:col-span-5 xl:pr-6">
-    <app-statchart></app-statchart>
-  </div>
+  @if (isVisible('statChart')) {
+    <div class="col-span-12 xl:col-span-5 xl:pr-6">
+      <app-statchart></app-statchart>
+    </div>
+  }
 
   <!-- Expense Flow Analysis (Removed as it is redundant) -->
   <!-- <div *ngIf="isVisible('expenseFlow')" class="col-span-12 pr-6">
-    <app-expense-flow></app-expense-flow>
-  </div> -->
+  <app-expense-flow></app-expense-flow>
+</div> -->
 
-  <!-- Expense Breakdown (Tabbed: Sankey / Sunburst) -->
-  <div *ngIf="isVisible('expenseBreakdown')" class="col-span-12 xl:pr-6">
+<!-- Expense Breakdown (Tabbed: Sankey / Sunburst) -->
+@if (isVisible('expenseBreakdown')) {
+  <div class="col-span-12 xl:pr-6">
     <app-expense-breakdown></app-expense-breakdown>
   </div>
+}
 
-  <!-- Wallet Management -->
-  <div *ngIf="isVisible('wallets')" class="col-span-12 xl:col-span-5">
+<!-- Wallet Management -->
+@if (isVisible('wallets')) {
+  <div class="col-span-12 xl:col-span-5">
     <app-manage-wallets></app-manage-wallets>
   </div>
+}
 
-  <!-- Recent Transactions List -->
-  <div *ngIf="isVisible('recentTransactions')" class="col-span-12 xl:col-span-7 xl:pr-6">
+<!-- Recent Transactions List -->
+@if (isVisible('recentTransactions')) {
+  <div class="col-span-12 xl:col-span-7 xl:pr-6">
     <app-recent-transactions></app-recent-transactions>
   </div>
+}
 
-  <!-- Budget Planning Widget -->
-  <div *ngIf="isVisible('budgetPlanner')" class="col-span-12 xl:pr-6">
+<!-- Budget Planning Widget -->
+@if (isVisible('budgetPlanner')) {
+  <div class="col-span-12 xl:pr-6">
     <app-budget-planner></app-budget-planner>
   </div>
+}
 
-  <!-- Upcoming Bills Calendar -->
-  <div *ngIf="isVisible('upcomingBills')" class="col-span-12 xl:pr-6">
+<!-- Upcoming Bills Calendar -->
+@if (isVisible('upcomingBills')) {
+  <div class="col-span-12 xl:pr-6">
     <app-upcoming-bills></app-upcoming-bills>
   </div>
+}
 
-  <!-- Emergency Fund Section -->
-  <div *ngIf="isVisible('emergencyFund')" class="col-span-12 min-w-0 xl:pr-6">
+<!-- Emergency Fund Section -->
+@if (isVisible('emergencyFund')) {
+  <div class="col-span-12 min-w-0 xl:pr-6">
     <app-emergency-fund></app-emergency-fund>
   </div>
+}
 
-  <!-- Financial Education Section -->
-  <div *ngIf="isVisible('financialEducation')" class="col-span-12 xl:pr-6">
+<!-- Financial Education Section -->
+@if (isVisible('financialEducation')) {
+  <div class="col-span-12 xl:pr-6">
     <app-financial-education></app-financial-education>
   </div>
+}
 </div>

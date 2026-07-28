@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { faChartLine } from '@fortawesome/free-solid-svg-icons';
 import { ChartTabComponent } from "../../../shared/components/chart-tab/chart-tab.component";
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
@@ -40,7 +40,7 @@ export type ChartOptions = {
 @Component({
   selector: 'app-statchart',
   standalone: true,
-  imports: [CommonModule, ChartTabComponent, EmptyStateComponent, SkeletonComponent, NgApexchartsModule],
+  imports: [ChartTabComponent, EmptyStateComponent, SkeletonComponent, NgApexchartsModule],
   templateUrl: './statchart.component.html',
 })
 export class StatchartComponent implements OnInit {

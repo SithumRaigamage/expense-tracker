@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faDownload, faFileExport, faDatabase } from '@fortawesome/free-solid-svg-icons';
 import { WalletService } from '../../../../services/wallet.service';
@@ -29,7 +29,7 @@ interface Developer {
 @Component({
   selector: 'app-about-support',
   standalone: true,
-  imports: [CommonModule, FontAwesomeModule],
+  imports: [FontAwesomeModule],
   templateUrl: './about-support.component.html',
 })
 export class AboutSupportComponent {

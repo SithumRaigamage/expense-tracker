@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { MatCardModule } from '@angular/material/card';
 import { RouterModule } from '@angular/router';
@@ -14,7 +14,7 @@ import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-metrics',
-  imports: [CommonModule, RouterModule, BadgeComponent, EmptyStateComponent, SkeletonComponent, FontAwesomeModule, MatCardModule, AppCurrencyPipe],
+  imports: [RouterModule, BadgeComponent, EmptyStateComponent, SkeletonComponent, FontAwesomeModule, MatCardModule, AppCurrencyPipe],
   templateUrl: './metrics.component.html',
   standalone: true
 })

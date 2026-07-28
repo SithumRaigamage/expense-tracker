@@ -13,9 +13,11 @@
               [ngModel]="selectedCurrency"
               (change)="onCurrencyChange($event)"
               class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 dark:border-gray-700">
-              <option *ngFor="let currency of currencies" [value]="currency.code">
-                {{currency.name}} ({{currency.symbol}})
-              </option>
+              @for (currency of currencies; track currency) {
+                <option [value]="currency.code">
+                  {{currency.name}} ({{currency.symbol}})
+                </option>
+              }
             </select>
             <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
               This will be the default currency for all your transactions

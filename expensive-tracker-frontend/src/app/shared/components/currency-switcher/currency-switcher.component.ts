@@ -11,32 +11,37 @@ import { faGlobe } from '@fortawesome/free-solid-svg-icons';
   imports: [CommonModule, FontAwesomeModule],
   template: `
     <div class="relative">
-      <button 
+      <button
         (click)="toggleDropdown()"
         class="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-700 transition-colors">
         <fa-icon [icon]="faGlobe" class="text-gray-500 dark:text-gray-400"></fa-icon>
         <span>{{ (activeCurrency$ | async) }}</span>
       </button>
-
+    
       <!-- Dropdown Menu -->
-      <div *ngIf="isOpen" class="absolute right-0 z-50 mt-2 w-24 origin-top-right bg-white border border-gray-200 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-gray-800 dark:border-gray-700 max-h-60 overflow-y-auto">
-        <div class="py-1">
-          <button 
-            *ngFor="let currency of supportedCurrencies"
-            (click)="selectCurrency(currency)"
-            class="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-white transition-colors"
-            [class.bg-gray-50]="(activeCurrency$ | async) === currency"
-            [class.dark:bg-gray-700]="(activeCurrency$ | async) === currency"
-            [class.font-bold]="(activeCurrency$ | async) === currency">
-            {{ currency }}
-          </button>
+      @if (isOpen) {
+        <div class="absolute right-0 z-50 mt-2 w-24 origin-top-right bg-white border border-gray-200 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-gray-800 dark:border-gray-700 max-h-60 overflow-y-auto">
+          <div class="py-1">
+            @for (currency of supportedCurrencies; track currency) {
+              <button
+                (click)="selectCurrency(currency)"
+                class="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-white transition-colors"
+                [class.bg-gray-50]="(activeCurrency$ | async) === currency"
+                [class.dark:bg-gray-700]="(activeCurrency$ | async) === currency"
+                [class.font-bold]="(activeCurrency$ | async) === currency">
+                {{ currency }}
+              </button>
+            }
+          </div>
         </div>
-      </div>
-      
+      }
+    
       <!-- Overlay to close -->
-      <div *ngIf="isOpen" (click)="isOpen = false" class="fixed inset-0 z-40 bg-transparent cursor-default"></div>
+      @if (isOpen) {
+        <div (click)="isOpen = false" class="fixed inset-0 z-40 bg-transparent cursor-default"></div>
+      }
     </div>
-  `
+    `
 })
 export class CurrencySwitcherComponent {
   isOpen = false;

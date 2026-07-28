@@ -1,6 +1,6 @@
 <div
   class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 h-full flex flex-col"
->
+  >
   <div class="flex flex-col gap-4 mb-4 sm:flex-row sm:items-center sm:justify-between">
     <div>
       <h3 class="text-xl font-bold text-gray-900">Financial Flow Analysis</h3>
@@ -19,7 +19,7 @@
               breakdownTab === 'sankey',
             'bg-white border-gray-200 text-gray-700': breakdownTab !== 'sankey',
           }"
-        >
+          >
           Sankey
         </button>
         <button
@@ -31,7 +31,7 @@
             'bg-white border-gray-200 text-gray-700':
               breakdownTab !== 'sunburst',
           }"
-        >
+          >
           Sunburst
         </button>
       </div>
@@ -40,35 +40,39 @@
 
   <div class="flex-1">
     <!-- Loading: shaped like the chart it becomes, so the panel keeps its height -->
-    <div *ngIf="isBreakdownLoading" class="space-y-4">
-      <app-skeleton width="100%" height="340px" rounded="xl"></app-skeleton>
-      <div class="flex gap-3">
-        <app-skeleton width="22%" height="0.75rem"></app-skeleton>
-        <app-skeleton width="22%" height="0.75rem"></app-skeleton>
-        <app-skeleton width="22%" height="0.75rem"></app-skeleton>
+    @if (isBreakdownLoading) {
+      <div class="space-y-4">
+        <app-skeleton width="100%" height="340px" rounded="xl"></app-skeleton>
+        <div class="flex gap-3">
+          <app-skeleton width="22%" height="0.75rem"></app-skeleton>
+          <app-skeleton width="22%" height="0.75rem"></app-skeleton>
+          <app-skeleton width="22%" height="0.75rem"></app-skeleton>
+        </div>
       </div>
-    </div>
+    }
 
-    <app-empty-state
-      *ngIf="!isBreakdownLoading && !hasFlowData"
-      [icon]="faChartPie"
-      title="No data available"
-      message="Once you record income and expenses across your wallets, your money flow will be charted here."
-      size="lg"
-    >
-      <a
-        routerLink="/transactions"
-        class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-600"
-      >
-        Add a transaction
-      </a>
-    </app-empty-state>
+    @if (!isBreakdownLoading && !hasFlowData) {
+      <app-empty-state
+        [icon]="faChartPie"
+        title="No data available"
+        message="Once you record income and expenses across your wallets, your money flow will be charted here."
+        size="lg"
+        >
+        <a
+          routerLink="/transactions"
+          class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-600"
+          >
+          Add a transaction
+        </a>
+      </app-empty-state>
+    }
 
-    <div
-      *ngIf="!isBreakdownLoading && hasFlowData"
-      echarts
-      [options]="breakdownTab === 'sankey' ? sankeyOptions : sunburstOptions"
-      class="w-full h-[420px]"
-    ></div>
+    @if (!isBreakdownLoading && hasFlowData) {
+      <div
+        echarts
+        [options]="breakdownTab === 'sankey' ? sankeyOptions : sunburstOptions"
+        class="w-full h-[420px]"
+      ></div>
+    }
   </div>
 </div>

@@ -2,95 +2,96 @@
   <!-- Header -->
   <div class="col-span-12 flex justify-between items-center">
     <h1 class="text-xl font-bold text-gray-800">Release Notes</h1>
-    <button *ngIf="isAdmin"
-            (click)="toggleForm()"
-            class="flex items-center gap-2 px-4 py-2 text-white bg-brand-500 rounded-lg hover:bg-brand-500/90 transition-colors">
-      <fa-icon [icon]="showForm ? trashIcon : plusIcon"></fa-icon>
-      {{ showForm ? 'Cancel' : 'Add Release' }}
-    </button>
+    @if (isAdmin) {
+      <button
+        (click)="toggleForm()"
+        class="flex items-center gap-2 px-4 py-2 text-white bg-brand-500 rounded-lg hover:bg-brand-500/90 transition-colors">
+        <fa-icon [icon]="showForm ? trashIcon : plusIcon"></fa-icon>
+        {{ showForm ? 'Cancel' : 'Add Release' }}
+      </button>
+    }
   </div>  <!-- Admin Form -->
-  <div *ngIf="showForm && isAdmin" class="col-span-12">
-    <div class="bg-white rounded-lg shadow-sm p-6">
-      <h2 class="text-lg font-semibold mb-4">{{ editMode ? 'Edit' : 'Add New' }} Release Note</h2>
-
-      <form [formGroup]="releaseForm" (ngSubmit)="onSubmit()" class="space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Version -->
-          <div>
-            <label for="version" class="block text-sm font-medium text-gray-700">Version Number *</label>
-            <input type="text"
-                   id="version"
-                   formControlName="version"
-                   placeholder="e.g. 1.0.0"
-                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring focus:ring-brand-500 focus:ring-opacity-50">
-            <div *ngIf="releaseForm.get('version')?.invalid && releaseForm.get('version')?.touched" class="text-red-500 text-xs mt-1">
-              Version is required (format: x.x.x)
+  @if (showForm && isAdmin) {
+    <div class="col-span-12">
+      <div class="bg-white rounded-lg shadow-sm p-6">
+        <h2 class="text-lg font-semibold mb-4">{{ editMode ? 'Edit' : 'Add New' }} Release Note</h2>
+        <form [formGroup]="releaseForm" (ngSubmit)="onSubmit()" class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Version -->
+            <div>
+              <label for="version" class="block text-sm font-medium text-gray-700">Version Number *</label>
+              <input type="text"
+                id="version"
+                formControlName="version"
+                placeholder="e.g. 1.0.0"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring focus:ring-brand-500 focus:ring-opacity-50">
+              @if (releaseForm.get('version')?.invalid && releaseForm.get('version')?.touched) {
+                <div class="text-red-500 text-xs mt-1">
+                  Version is required (format: x.x.x)
+                </div>
+              }
+            </div>
+            <!-- Date -->
+            <div>
+              <label for="date" class="block text-sm font-medium text-gray-700">Release Date *</label>
+              <input type="date"
+                id="date"
+                formControlName="date"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring focus:ring-brand-500 focus:ring-opacity-50">
+              @if (releaseForm.get('date')?.invalid && releaseForm.get('date')?.touched) {
+                <div class="text-red-500 text-xs mt-1">
+                  Date is required
+                </div>
+              }
             </div>
           </div>
-
-          <!-- Date -->
+          <!-- Features -->
           <div>
-            <label for="date" class="block text-sm font-medium text-gray-700">Release Date *</label>
-            <input type="date"
-                   id="date"
-                   formControlName="date"
-                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring focus:ring-brand-500 focus:ring-opacity-50">
-            <div *ngIf="releaseForm.get('date')?.invalid && releaseForm.get('date')?.touched" class="text-red-500 text-xs mt-1">
-              Date is required
-            </div>
+            <label for="features" class="block text-sm font-medium text-gray-700">Features (one per line)</label>
+            <textarea id="features"
+              formControlName="features"
+              rows="4"
+              placeholder="Add features (one per line)"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring focus:ring-brand-500 focus:ring-opacity-50"></textarea>
           </div>
-        </div>
-
-        <!-- Features -->
-        <div>
-          <label for="features" class="block text-sm font-medium text-gray-700">Features (one per line)</label>
-          <textarea id="features"
-                    formControlName="features"
-                    rows="4"
-                    placeholder="Add features (one per line)"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring focus:ring-brand-500 focus:ring-opacity-50"></textarea>
-        </div>
-
-        <!-- Bug Fixes -->
-        <div>
-          <label for="bugfixes" class="block text-sm font-medium text-gray-700">Bug Fixes (one per line)</label>
-          <textarea id="bugfixes"
-                    formControlName="bugfixes"
-                    rows="4"
-                    placeholder="Add bug fixes (one per line)"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring focus:ring-brand-500 focus:ring-opacity-50"></textarea>
-        </div>
-
-        <!-- Improvements -->
-        <div>
-          <label for="improvements" class="block text-sm font-medium text-gray-700">Improvements (one per line)</label>
-          <textarea id="improvements"
-                    formControlName="improvements"
-                    rows="4"
-                    placeholder="Add improvements (one per line)"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring focus:ring-brand-500 focus:ring-opacity-50"></textarea>
-        </div>
-
-        <!-- Published Status -->
-        <div class="flex items-center">
-          <input type="checkbox"
-                 id="isPublished"
-                 formControlName="isPublished"
-                 class="h-4 w-4 text-brand-500 focus:ring-brand-500 border-gray-300 rounded">
-          <label for="isPublished" class="ml-2 block text-sm text-gray-700">Publish immediately</label>
-        </div>
-
-        <div>
-          <button type="submit"
-                  [disabled]="releaseForm.invalid || isLoading"
-                  class="flex items-center gap-2 px-6 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-500/90 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed">
-            <fa-icon [icon]="saveIcon"></fa-icon>
-            {{ editMode ? 'Update' : 'Save' }} Release Note
-          </button>
-        </div>
-      </form>
+          <!-- Bug Fixes -->
+          <div>
+            <label for="bugfixes" class="block text-sm font-medium text-gray-700">Bug Fixes (one per line)</label>
+            <textarea id="bugfixes"
+              formControlName="bugfixes"
+              rows="4"
+              placeholder="Add bug fixes (one per line)"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring focus:ring-brand-500 focus:ring-opacity-50"></textarea>
+          </div>
+          <!-- Improvements -->
+          <div>
+            <label for="improvements" class="block text-sm font-medium text-gray-700">Improvements (one per line)</label>
+            <textarea id="improvements"
+              formControlName="improvements"
+              rows="4"
+              placeholder="Add improvements (one per line)"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring focus:ring-brand-500 focus:ring-opacity-50"></textarea>
+          </div>
+          <!-- Published Status -->
+          <div class="flex items-center">
+            <input type="checkbox"
+              id="isPublished"
+              formControlName="isPublished"
+              class="h-4 w-4 text-brand-500 focus:ring-brand-500 border-gray-300 rounded">
+            <label for="isPublished" class="ml-2 block text-sm text-gray-700">Publish immediately</label>
+          </div>
+          <div>
+            <button type="submit"
+              [disabled]="releaseForm.invalid || isLoading"
+              class="flex items-center gap-2 px-6 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-500/90 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed">
+              <fa-icon [icon]="saveIcon"></fa-icon>
+              {{ editMode ? 'Update' : 'Save' }} Release Note
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
-  </div>
+  }
 
   <!-- Search Bar -->
   <div class="col-span-12">
@@ -102,118 +103,146 @@
           [(ngModel)]="searchTerm"
           placeholder="Search release notes..."
           class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
+          >
       </div>
     </div>
   </div>
 
   <!-- Loading State -->
-  <div *ngIf="isLoading" class="col-span-12 flex justify-center py-8">
-    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-500"></div>
-  </div>
+  @if (isLoading) {
+    <div class="col-span-12 flex justify-center py-8">
+      <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-500"></div>
+    </div>
+  }
 
   <!-- Error State -->
-  <div *ngIf="error" class="col-span-12 bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg">
-    {{ error }}
-  </div>
+  @if (error) {
+    <div class="col-span-12 bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg">
+      {{ error }}
+    </div>
+  }
 
   <!-- Empty State -->
-  <div *ngIf="!isLoading && filteredReleases.length === 0" class="col-span-12 bg-white rounded-lg shadow-sm p-8 text-center">
-    <div class="text-gray-500">
-      <p class="text-lg">No release notes found</p>
-      <p *ngIf="searchTerm" class="mt-2">Try adjusting your search term</p>
-      <p *ngIf="!searchTerm && isAdmin" class="mt-2">Click the "Add Release" button to create your first release note</p>
-    </div>
-  </div>
-
-  <!-- Release Notes List -->
-  <div *ngIf="!isLoading && filteredReleases.length > 0" class="col-span-12">
-    <div class="bg-white rounded-lg shadow-sm p-6 space-y-6">
-      <!-- Release Item -->
-      <div *ngFor="let release of filteredReleases"
-           class="border border-gray-100 rounded-lg">
-        <!-- Release Header -->
-        <div class="flex items-center justify-between p-4 hover:bg-gray-50" (click)="toggleRelease(release)">
-          <div class="flex items-center gap-4 flex-1 cursor-pointer">
-            <span class="font-medium text-gray-800">Version {{ release.version }}</span>
-            <span class="text-sm text-gray-500">{{ release.date | date:'mediumDate' }}</span>
-          </div>
-
-          <!-- Admin Actions -->
-          <div *ngIf="isAdmin" class="flex items-center gap-2">
-            <button (click)="editReleaseNote(release); $event.stopPropagation()"
-                    class="p-2 text-gray-500 hover:text-brand-500 hover:bg-gray-100 rounded">
-              <fa-icon [icon]="editIcon"></fa-icon>
-            </button>
-            <button (click)="deleteReleaseNote(release._id!); $event.stopPropagation()"
-                    class="p-2 text-gray-500 hover:text-red-500 hover:bg-gray-100 rounded">
-              <fa-icon [icon]="trashIcon"></fa-icon>
-            </button>
-            <svg xmlns="http://www.w3.org/2000/svg"
-                 [class.rotate-180]="release.isExpanded"
-                 class="w-5 h-5 transition-transform ml-2"
-                 fill="none"
-                 viewBox="0 0 24 24"
-                 stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-            </svg>
-          </div>
-
-          <!-- Non-Admin View -->
-          <svg *ngIf="!isAdmin"
-               xmlns="http://www.w3.org/2000/svg"
-               [class.rotate-180]="release.isExpanded"
-               class="w-5 h-5 transition-transform"
-               fill="none"
-               viewBox="0 0 24 24"
-               stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-          </svg>
-        </div>        <!-- Release Details -->
-        <div *ngIf="release.isExpanded" class="p-4 border-t border-gray-100 space-y-4">
-          <!-- New Features -->
-          <div *ngIf="release.features.length" class="space-y-2">
-            <h3 class="flex items-center gap-2 font-medium text-gray-700">
-              <fa-icon [icon]="rocketIcon" class="text-blue-500"></fa-icon>
-              New Features
-            </h3>
-            <ul class="space-y-1 text-gray-600">
-              <li *ngFor="let feature of release.features" class="flex items-start gap-2">
-                <span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                {{ feature }}
-              </li>
-            </ul>
-          </div>
-
-          <!-- Bug Fixes -->
-          <div *ngIf="release.bugfixes.length" class="space-y-2">
-            <h3 class="flex items-center gap-2 font-medium text-gray-700">
-              <fa-icon [icon]="bugIcon" class="text-red-500"></fa-icon>
-              Bug Fixes
-            </h3>
-            <ul class="space-y-1 text-gray-600">
-              <li *ngFor="let bug of release.bugfixes" class="flex items-start gap-2">
-                <span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-red-500"></span>
-                {{ bug }}
-              </li>
-            </ul>
-          </div>
-
-          <!-- Improvements -->
-          <div *ngIf="release.improvements.length" class="space-y-2">
-            <h3 class="flex items-center gap-2 font-medium text-gray-700">
-              <fa-icon [icon]="speedIcon" class="text-green-500"></fa-icon>
-              Improvements
-            </h3>
-            <ul class="space-y-1 text-gray-600">
-              <li *ngFor="let improvement of release.improvements" class="flex items-start gap-2">
-                <span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                {{ improvement }}
-              </li>
-            </ul>
-          </div>
-        </div>
+  @if (!isLoading && filteredReleases.length === 0) {
+    <div class="col-span-12 bg-white rounded-lg shadow-sm p-8 text-center">
+      <div class="text-gray-500">
+        <p class="text-lg">No release notes found</p>
+        @if (searchTerm) {
+          <p class="mt-2">Try adjusting your search term</p>
+        }
+        @if (!searchTerm && isAdmin) {
+          <p class="mt-2">Click the "Add Release" button to create your first release note</p>
+        }
       </div>
     </div>
-  </div>
+  }
+
+  <!-- Release Notes List -->
+  @if (!isLoading && filteredReleases.length > 0) {
+    <div class="col-span-12">
+      <div class="bg-white rounded-lg shadow-sm p-6 space-y-6">
+        <!-- Release Item -->
+        @for (release of filteredReleases; track release) {
+          <div
+            class="border border-gray-100 rounded-lg">
+            <!-- Release Header -->
+            <div class="flex items-center justify-between p-4 hover:bg-gray-50" (click)="toggleRelease(release)">
+              <div class="flex items-center gap-4 flex-1 cursor-pointer">
+                <span class="font-medium text-gray-800">Version {{ release.version }}</span>
+                <span class="text-sm text-gray-500">{{ release.date | date:'mediumDate' }}</span>
+              </div>
+              <!-- Admin Actions -->
+              @if (isAdmin) {
+                <div class="flex items-center gap-2">
+                  <button (click)="editReleaseNote(release); $event.stopPropagation()"
+                    class="p-2 text-gray-500 hover:text-brand-500 hover:bg-gray-100 rounded">
+                    <fa-icon [icon]="editIcon"></fa-icon>
+                  </button>
+                  <button (click)="deleteReleaseNote(release._id!); $event.stopPropagation()"
+                    class="p-2 text-gray-500 hover:text-red-500 hover:bg-gray-100 rounded">
+                    <fa-icon [icon]="trashIcon"></fa-icon>
+                  </button>
+                  <svg xmlns="http://www.w3.org/2000/svg"
+                    [class.rotate-180]="release.isExpanded"
+                    class="w-5 h-5 transition-transform ml-2"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                  </svg>
+                </div>
+              }
+              <!-- Non-Admin View -->
+              @if (!isAdmin) {
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  [class.rotate-180]="release.isExpanded"
+                  class="w-5 h-5 transition-transform"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+              }
+            </div>        <!-- Release Details -->
+            @if (release.isExpanded) {
+              <div class="p-4 border-t border-gray-100 space-y-4">
+                <!-- New Features -->
+                @if (release.features.length) {
+                  <div class="space-y-2">
+                    <h3 class="flex items-center gap-2 font-medium text-gray-700">
+                      <fa-icon [icon]="rocketIcon" class="text-blue-500"></fa-icon>
+                      New Features
+                    </h3>
+                    <ul class="space-y-1 text-gray-600">
+                      @for (feature of release.features; track feature) {
+                        <li class="flex items-start gap-2">
+                          <span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                          {{ feature }}
+                        </li>
+                      }
+                    </ul>
+                  </div>
+                }
+                <!-- Bug Fixes -->
+                @if (release.bugfixes.length) {
+                  <div class="space-y-2">
+                    <h3 class="flex items-center gap-2 font-medium text-gray-700">
+                      <fa-icon [icon]="bugIcon" class="text-red-500"></fa-icon>
+                      Bug Fixes
+                    </h3>
+                    <ul class="space-y-1 text-gray-600">
+                      @for (bug of release.bugfixes; track bug) {
+                        <li class="flex items-start gap-2">
+                          <span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                          {{ bug }}
+                        </li>
+                      }
+                    </ul>
+                  </div>
+                }
+                <!-- Improvements -->
+                @if (release.improvements.length) {
+                  <div class="space-y-2">
+                    <h3 class="flex items-center gap-2 font-medium text-gray-700">
+                      <fa-icon [icon]="speedIcon" class="text-green-500"></fa-icon>
+                      Improvements
+                    </h3>
+                    <ul class="space-y-1 text-gray-600">
+                      @for (improvement of release.improvements; track improvement) {
+                        <li class="flex items-start gap-2">
+                          <span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                          {{ improvement }}
+                        </li>
+                      }
+                    </ul>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
 </div>

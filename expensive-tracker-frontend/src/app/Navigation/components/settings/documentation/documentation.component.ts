@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { RouterModule } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faDownload, faBook, faVideo } from '@fortawesome/free-solid-svg-icons';
@@ -14,7 +14,7 @@ interface DocSection {
 @Component({
   selector: 'app-documentation',
   standalone: true,
-  imports: [CommonModule, RouterModule, FontAwesomeModule],
+  imports: [RouterModule, FontAwesomeModule],
   templateUrl: './documentation.component.html'
 })
 export class DocumentationComponent {

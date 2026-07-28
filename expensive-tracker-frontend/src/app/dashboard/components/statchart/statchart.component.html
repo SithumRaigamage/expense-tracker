@@ -14,41 +14,46 @@
   </div>
 
   <!-- Loading: chart-shaped placeholder, so the panel keeps its height -->
-  <div *ngIf="isLoading" class="space-y-3">
-    <app-skeleton width="100%" height="280px" rounded="xl"></app-skeleton>
-    <div class="flex justify-between gap-2">
-      <app-skeleton width="18%" height="0.75rem"></app-skeleton>
-      <app-skeleton width="18%" height="0.75rem"></app-skeleton>
-      <app-skeleton width="18%" height="0.75rem"></app-skeleton>
-      <app-skeleton width="18%" height="0.75rem"></app-skeleton>
+  @if (isLoading) {
+    <div class="space-y-3">
+      <app-skeleton width="100%" height="280px" rounded="xl"></app-skeleton>
+      <div class="flex justify-between gap-2">
+        <app-skeleton width="18%" height="0.75rem"></app-skeleton>
+        <app-skeleton width="18%" height="0.75rem"></app-skeleton>
+        <app-skeleton width="18%" height="0.75rem"></app-skeleton>
+        <app-skeleton width="18%" height="0.75rem"></app-skeleton>
+      </div>
     </div>
-  </div>
+  }
 
-  <app-empty-state
-    *ngIf="!isLoading && !hasTransactions"
-    [icon]="faChartLine"
-    title="No data available"
-    message="This comparison fills in as soon as you log your first income or expense."
-    size="lg"
-  ></app-empty-state>
+  @if (!isLoading && !hasTransactions) {
+    <app-empty-state
+      [icon]="faChartLine"
+      title="No data available"
+      message="This comparison fills in as soon as you log your first income or expense."
+      size="lg"
+    ></app-empty-state>
+  }
 
-  <div *ngIf="!isLoading && hasTransactions" class="max-w-full overflow-x-auto custom-scrollbar">
-    <div class="w-full">
-      <apx-chart
-        #chart
-        [series]="chartOptions.series"
-        [chart]="chartOptions.chart"
-        [xaxis]="chartOptions.xaxis"
-        [yaxis]="chartOptions.yaxis"
-        [grid]="chartOptions.grid"
-        [markers]="chartOptions.markers"
-        [stroke]="chartOptions.stroke"
-        [fill]="chartOptions.fill"
-        [colors]="chartOptions.colors"
-        [tooltip]="chartOptions.tooltip"
-        [legend]="chartOptions.legend"
-        [dataLabels]="chartOptions.dataLabels"
-      ></apx-chart>
+  @if (!isLoading && hasTransactions) {
+    <div class="max-w-full overflow-x-auto custom-scrollbar">
+      <div class="w-full">
+        <apx-chart
+          #chart
+          [series]="chartOptions.series"
+          [chart]="chartOptions.chart"
+          [xaxis]="chartOptions.xaxis"
+          [yaxis]="chartOptions.yaxis"
+          [grid]="chartOptions.grid"
+          [markers]="chartOptions.markers"
+          [stroke]="chartOptions.stroke"
+          [fill]="chartOptions.fill"
+          [colors]="chartOptions.colors"
+          [tooltip]="chartOptions.tooltip"
+          [legend]="chartOptions.legend"
+          [dataLabels]="chartOptions.dataLabels"
+        ></apx-chart>
+      </div>
     </div>
-  </div>
+  }
 </div>

@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { BillsService } from '../../../services/bill.service';
 import { WalletService } from '../../../services/wallet.service';
@@ -15,7 +15,7 @@ import { SideDrawerComponent } from '../../../shared/components/side-drawer/side
 @Component({
   selector: 'app-bills',
   standalone: true,
-  imports: [CommonModule, FormsModule, AppCurrencyPipe, FontAwesomeModule, SideDrawerComponent],
+  imports: [FormsModule, AppCurrencyPipe, FontAwesomeModule, SideDrawerComponent],
   templateUrl: './bills.component.html',
 })
 export class BillsComponent implements OnInit {

@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {
@@ -37,7 +37,7 @@ interface FormGroupConfig {
 @Component({
   selector: 'app-support',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, FontAwesomeModule],
+  imports: [FormsModule, ReactiveFormsModule, FontAwesomeModule],
   templateUrl: './support.component.html'
 })
 export class SupportComponent {

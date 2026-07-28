@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { CommonModule } from '@angular/common';
+
 import { DropdownComponent } from '../../../../shared/components/dropdown/dropdown.component';
 import { AuthService } from '../../../../services/auth.service';
 import { Subscription } from 'rxjs';
@@ -25,10 +25,9 @@ interface User {
   selector: 'app-user-dropdown',
   standalone: true,
   imports: [
-    CommonModule,
     RouterModule,
     DropdownComponent
-  ],
+],
   templateUrl: './user-dropdown.component.html'
 })
 export class UserDropdownComponent implements OnInit, OnDestroy {

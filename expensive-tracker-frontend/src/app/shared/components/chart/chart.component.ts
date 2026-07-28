@@ -1,5 +1,5 @@
 import { Component, Input, OnChanges, SimpleChanges, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import {
   ApexAxisChartSeries,
   ApexChart,
@@ -45,7 +45,7 @@ export type ChartOptions = {
 @Component({
   selector: 'app-chart',
   standalone: true,
-  imports: [CommonModule, NgApexchartsModule],
+  imports: [NgApexchartsModule],
   templateUrl: './chart.component.html',
 })
 export class ChartComponent implements OnChanges, OnInit {

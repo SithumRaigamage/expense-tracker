@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -14,13 +14,12 @@ import { finalize } from 'rxjs/operators';
   selector: 'app-profile',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     ReactiveFormsModule,
     RouterModule,
     FontAwesomeModule,
     SideDrawerComponent
-  ],
+],
   templateUrl: './profile.component.html',
 })
 export class ProfileComponent implements OnInit {

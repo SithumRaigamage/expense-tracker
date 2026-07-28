@@ -8,13 +8,15 @@
           [(ngModel)]="searchTerm"
           placeholder="Search FAQs..."
           class="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
+          >
         <select
           [(ngModel)]="selectedCategory"
           class="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
+          >
           <option value="all">All Categories</option>
-          <option *ngFor="let category of categories">{{ category }}</option>
+          @for (category of categories; track category) {
+            <option>{{ category }}</option>
+          }
         </select>
       </div>
     </div>
@@ -24,55 +26,60 @@
   <div class="col-span-12">
     <div class="bg-white rounded-lg shadow-sm p-6 space-y-4">
       <!-- Category Headers -->
-      <div *ngFor="let category of categories">
-        <div *ngIf="selectedCategory === 'all' || selectedCategory === category">
-          <h2 class="text-xl font-semibold text-gray-800 mb-4">{{ category }}</h2>
-
-          <!-- FAQ Items -->
-          <div class="space-y-4">
-            <div *ngFor="let faq of filteredFaqs" class="border-b border-gray-100 last:border-0">
-              <button
-                (click)="faq.isOpen = !faq.isOpen"
-                class="w-full flex items-center justify-between py-4 text-left"
-              >
-                <span class="font-medium text-gray-800">{{ faq.question }}</span>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  [class.rotate-180]="faq.isOpen"
-                  class="w-5 h-5 transition-transform"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-
-              <div *ngIf="faq.isOpen" class="pb-4">
-                <p class="text-gray-600">{{ faq.answer }}</p>
-
-                <!-- Feedback Section -->
-                <div class="mt-4 flex items-center gap-4">
-                  <button
-                    (click)="voteFaq(faq, true)"
-                    class="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600"
-                  >
-                    <fa-icon [icon]="thumbsUpIcon"></fa-icon>
-                    Helpful ({{ faq.helpfulVotes || 0 }})
-                  </button>
-                  <button
-                    (click)="voteFaq(faq, false)"
-                    class="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600"
-                  >
-                    <fa-icon [icon]="thumbsDownIcon"></fa-icon>
-                    Not Helpful ({{ faq.unhelpfulVotes || 0 }})
-                  </button>
-                </div>
+      @for (category of categories; track category) {
+        <div>
+          @if (selectedCategory === 'all' || selectedCategory === category) {
+            <div>
+              <h2 class="text-xl font-semibold text-gray-800 mb-4">{{ category }}</h2>
+              <!-- FAQ Items -->
+              <div class="space-y-4">
+                @for (faq of filteredFaqs; track faq) {
+                  <div class="border-b border-gray-100 last:border-0">
+                    <button
+                      (click)="faq.isOpen = !faq.isOpen"
+                      class="w-full flex items-center justify-between py-4 text-left"
+                      >
+                      <span class="font-medium text-gray-800">{{ faq.question }}</span>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        [class.rotate-180]="faq.isOpen"
+                        class="w-5 h-5 transition-transform"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        >
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    @if (faq.isOpen) {
+                      <div class="pb-4">
+                        <p class="text-gray-600">{{ faq.answer }}</p>
+                        <!-- Feedback Section -->
+                        <div class="mt-4 flex items-center gap-4">
+                          <button
+                            (click)="voteFaq(faq, true)"
+                            class="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600"
+                            >
+                            <fa-icon [icon]="thumbsUpIcon"></fa-icon>
+                            Helpful ({{ faq.helpfulVotes || 0 }})
+                          </button>
+                          <button
+                            (click)="voteFaq(faq, false)"
+                            class="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600"
+                            >
+                            <fa-icon [icon]="thumbsDownIcon"></fa-icon>
+                            Not Helpful ({{ faq.unhelpfulVotes || 0 }})
+                          </button>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
               </div>
             </div>
-          </div>
+          }
         </div>
-      </div>
+      }
     </div>
   </div>
 </div>

@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 
 /**
  * Placeholder shown while a widget's data is in flight.
@@ -12,7 +12,7 @@ import { CommonModule } from '@angular/common';
 @Component({
   selector: 'app-skeleton',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   template: `
     <div
       class="skeleton bg-gray-200 dark:bg-gray-700"

@@ -1,12 +1,12 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { EducationalContent, FinancialTerm } from '../../../core/models/Education';
 import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-financial-education',
   standalone: true,
-  imports: [CommonModule,FormsModule],
+  imports: [FormsModule],
   templateUrl: './financial-education.component.html',
 })
 export class FinancialEducationComponent {

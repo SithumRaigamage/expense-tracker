@@ -1,5 +1,5 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -17,16 +17,15 @@ import { MatButtonModule } from '@angular/material/button';
   selector: 'app-transfer-dialog',
   standalone: true,
   imports: [
-    CommonModule, 
-    ReactiveFormsModule, 
-    FontAwesomeModule, 
+    ReactiveFormsModule,
+    FontAwesomeModule,
     MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
     MatButtonModule,
     AppCurrencyPipe
-  ],
+],
   templateUrl: './transfer-dialog.component.html',
 })
 export class TransferDialogComponent implements OnInit {

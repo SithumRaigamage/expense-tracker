@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 
 type BadgeVariant = 'light' | 'solid';
 type BadgeSize = 'sm' | 'md';
@@ -8,7 +8,7 @@ type BadgeColor = 'primary' | 'success' | 'error' | 'warning' | 'info' | 'light'
 @Component({
   selector: 'app-badge',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './badge.component.html',
 })
 export class BadgeComponent {

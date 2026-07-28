@@ -25,102 +25,108 @@
   </div>
 
   <!-- Loading State -->
-  <div *ngIf="isLoading" class="text-center py-12">
-    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-500 mx-auto mb-4"></div>
-    <p class="text-gray-600 dark:text-gray-400">Loading budget goals...</p>
-  </div>
+  @if (isLoading) {
+    <div class="text-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-500 mx-auto mb-4"></div>
+      <p class="text-gray-600 dark:text-gray-400">Loading budget goals...</p>
+    </div>
+  }
 
   <!-- Error State -->
-  <div *ngIf="error" class="text-center py-8 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-800/30 mb-4">
-    <div class="mx-auto w-16 h-16 text-red-500 mb-4">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="10"></circle>
-        <line x1="12" y1="8" x2="12" y2="12"></line>
-        <line x1="12" y1="16" x2="12.01" y2="16"></line>
-      </svg>
-    </div>
-    <h3 class="text-red-700 font-medium dark:text-red-400 mb-2">{{error}}</h3>
-    <button (click)="refreshGoals()" class="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
-      Try Again
-    </button>
-  </div>
-
-  <!-- Goals List -->
-  <div *ngIf="!isLoading && !error" class="space-y-4">
-    <!-- Goal Card -->
-    <div *ngFor="let goal of productgoals" class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/50">
-      <div class="flex flex-col gap-6 lg:flex-row lg:items-center">
-        <!-- Left: Image and Basic Info -->
-        <div class="flex items-center gap-4 lg:min-w-[240px]">
-          <img [src]="goal.imageUrl" alt="Product image" class="h-16 w-16 rounded-lg object-cover shadow-sm"
-               onerror="this.src='https://images.unsplash.com/photo-1560393464-5c69a73c5770?w=100&h=100&fit=crop'">
-          <div>
-            <h4 class="font-medium text-gray-900 dark:text-white">{{goal.name}}</h4>
-            <p class="text-sm text-gray-500 dark:text-gray-400">Target: {{goal.targetAmount | appCurrency}}</p>
-          </div>
-        </div>
-
-        <!-- Middle: Progress Bar and Details -->
-        <div class="flex-1 w-full">
-          <div class="flex flex-col gap-4 md:flex-row md:items-center">
-            <!-- Progress Bar -->
-            <div class="flex-1">
-              <div class="flex justify-between text-sm mb-1">
-                <span class="text-gray-500 dark:text-gray-400">Progress</span>
-                <span class="font-medium text-gray-900 dark:text-white">{{calculateProgress(goal)}}%</span>
-              </div>
-              <div class="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-700">
-                <div class="h-2 rounded-full transition-all duration-300"
-                     [ngClass]="getProgressColor(calculateProgress(goal))"
-                     [style.width]="calculateProgress(goal) + '%'"></div>
-              </div>
-            </div>
-
-            <!-- Amount Details -->
-            <div class="grid grid-cols-2 gap-4 sm:flex sm:gap-6 md:min-w-[300px]">
-              <div class="flex flex-col">
-                <span class="text-sm text-gray-500 dark:text-gray-400">Saved</span>
-                <span class="font-medium text-gray-900 dark:text-white">{{goal.savedAmount | appCurrency}}</span>
-              </div>
-              <div class="flex flex-col">
-                <span class="text-sm text-gray-500 dark:text-gray-400">Remaining</span>
-                <span class="font-medium text-gray-900 dark:text-white">{{(goal.targetAmount - goal.savedAmount) | appCurrency}}</span>
-              </div>
-              <div class="flex flex-col col-span-2 sm:col-span-1">
-                <span class="text-sm text-gray-500 dark:text-gray-400">Target Date</span>
-                <span class="font-medium text-gray-900 dark:text-white">{{formatDate(goal.targetDate)}}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Right: Actions -->
-        <div class="flex items-center gap-3 lg:min-w-[200px]">
-          <a [routerLink]="['/budget']" class="flex-1 rounded-lg bg-brand-500 px-3 py-2 text-sm font-medium text-white hover:bg-brand-600 transition-colors text-center">
-            Manage
-          </a>
-        </div>
-      </div>
-    </div>
-
-    <!-- Empty State -->
-    <div *ngIf="productgoals.length === 0" class="text-center py-12">
-      <div class="mx-auto w-16 h-16 text-gray-400 mb-4">
+  @if (error) {
+    <div class="text-center py-8 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-800/30 mb-4">
+      <div class="mx-auto w-16 h-16 text-red-500 mb-4">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="10"></circle>
-          <line x1="12" y1="8" x2="12" y2="16"></line>
-          <line x1="8" y1="12" x2="16" y2="12"></line>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
         </svg>
       </div>
-      <h3 class="text-gray-900 font-medium dark:text-white mb-2">No budget goals yet</h3>
-      <p class="text-gray-500 dark:text-gray-400">Start planning your purchases by adding a goal</p>
-      <a [routerLink]="['/budget']" class="mt-6 inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 transition-colors">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="12" y1="5" x2="12" y2="19"></line>
-          <line x1="5" y1="12" x2="19" y2="12"></line>
-        </svg>
-        Create Your First Goal
-      </a>
+      <h3 class="text-red-700 font-medium dark:text-red-400 mb-2">{{error}}</h3>
+      <button (click)="refreshGoals()" class="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+        Try Again
+      </button>
     </div>
+  }
+
+  <!-- Goals List -->
+  @if (!isLoading && !error) {
+    <div class="space-y-4">
+      <!-- Goal Card -->
+      @for (goal of productgoals; track goal) {
+        <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/50">
+          <div class="flex flex-col gap-6 lg:flex-row lg:items-center">
+            <!-- Left: Image and Basic Info -->
+            <div class="flex items-center gap-4 lg:min-w-[240px]">
+              <img [src]="goal.imageUrl" alt="Product image" class="h-16 w-16 rounded-lg object-cover shadow-sm"
+                onerror="this.src='https://images.unsplash.com/photo-1560393464-5c69a73c5770?w=100&h=100&fit=crop'">
+                <div>
+                  <h4 class="font-medium text-gray-900 dark:text-white">{{goal.name}}</h4>
+                  <p class="text-sm text-gray-500 dark:text-gray-400">Target: {{goal.targetAmount | appCurrency}}</p>
+                </div>
+              </div>
+              <!-- Middle: Progress Bar and Details -->
+              <div class="flex-1 w-full">
+                <div class="flex flex-col gap-4 md:flex-row md:items-center">
+                  <!-- Progress Bar -->
+                  <div class="flex-1">
+                    <div class="flex justify-between text-sm mb-1">
+                      <span class="text-gray-500 dark:text-gray-400">Progress</span>
+                      <span class="font-medium text-gray-900 dark:text-white">{{calculateProgress(goal)}}%</span>
+                    </div>
+                    <div class="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-700">
+                      <div class="h-2 rounded-full transition-all duration-300"
+                        [ngClass]="getProgressColor(calculateProgress(goal))"
+                      [style.width]="calculateProgress(goal) + '%'"></div>
+                    </div>
+                  </div>
+                  <!-- Amount Details -->
+                  <div class="grid grid-cols-2 gap-4 sm:flex sm:gap-6 md:min-w-[300px]">
+                    <div class="flex flex-col">
+                      <span class="text-sm text-gray-500 dark:text-gray-400">Saved</span>
+                      <span class="font-medium text-gray-900 dark:text-white">{{goal.savedAmount | appCurrency}}</span>
+                    </div>
+                    <div class="flex flex-col">
+                      <span class="text-sm text-gray-500 dark:text-gray-400">Remaining</span>
+                      <span class="font-medium text-gray-900 dark:text-white">{{(goal.targetAmount - goal.savedAmount) | appCurrency}}</span>
+                    </div>
+                    <div class="flex flex-col col-span-2 sm:col-span-1">
+                      <span class="text-sm text-gray-500 dark:text-gray-400">Target Date</span>
+                      <span class="font-medium text-gray-900 dark:text-white">{{formatDate(goal.targetDate)}}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Right: Actions -->
+              <div class="flex items-center gap-3 lg:min-w-[200px]">
+                <a [routerLink]="['/budget']" class="flex-1 rounded-lg bg-brand-500 px-3 py-2 text-sm font-medium text-white hover:bg-brand-600 transition-colors text-center">
+                  Manage
+                </a>
+              </div>
+            </div>
+          </div>
+        }
+        <!-- Empty State -->
+        @if (productgoals.length === 0) {
+          <div class="text-center py-12">
+            <div class="mx-auto w-16 h-16 text-gray-400 mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="16"></line>
+                <line x1="8" y1="12" x2="16" y2="12"></line>
+              </svg>
+            </div>
+            <h3 class="text-gray-900 font-medium dark:text-white mb-2">No budget goals yet</h3>
+            <p class="text-gray-500 dark:text-gray-400">Start planning your purchases by adding a goal</p>
+            <a [routerLink]="['/budget']" class="mt-6 inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              Create Your First Goal
+            </a>
+          </div>
+        }
+      </div>
+    }
   </div>
-</div>

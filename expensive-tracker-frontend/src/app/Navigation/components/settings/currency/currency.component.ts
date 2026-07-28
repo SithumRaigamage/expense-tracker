@@ -1,12 +1,12 @@
 import { Component } from '@angular/core';
 import { Currency, SettingsService } from '../../../../services/settings.service';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { CurrencyService } from '../../../../core/services/currency.service';
 
 @Component({
   selector: 'app-currency',
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   templateUrl: './currency.component.html',
 })
 export class CurrencyComponent {

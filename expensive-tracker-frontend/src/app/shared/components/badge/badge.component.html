@@ -1,4 +1,6 @@
 <span [class]="computedClasses">
-  <i *ngIf="startIcon" [class]="getIconClasses()"></i>
+  @if (startIcon) {
+    <i [class]="getIconClasses()"></i>
+  }
   <ng-content></ng-content>
 </span>

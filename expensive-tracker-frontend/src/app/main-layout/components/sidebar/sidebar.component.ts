@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { Router, RouterModule } from '@angular/router';
 import { FontAwesomeModule, FaIconLibrary } from '@fortawesome/angular-fontawesome';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
@@ -50,7 +50,7 @@ interface NavItem {
   selector: 'app-sidebar',
   templateUrl: './sidebar.component.html',
   standalone: true,
-  imports: [CommonModule, RouterModule, FontAwesomeModule]
+  imports: [RouterModule, FontAwesomeModule]
 })
 export class SidebarComponent implements OnInit {
   isExpanded = true;
