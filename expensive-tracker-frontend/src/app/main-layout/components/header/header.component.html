@@ -1,4 +1,4 @@
-<header class="sticky top-0 flex w-full bg-white border-gray-200 lg:border-b">
+<header class="sticky top-0 flex w-full bg-white border-gray-200 dark:bg-gray-900 dark:border-gray-800 lg:border-b">
   <div
     class="flex flex-col items-center justify-between grow lg:h-20 lg:flex-row lg:px-5"
     >
@@ -8,10 +8,13 @@
       <button
         class="items-center justify-center w-10 h-10 text-gray-500 border-gray-200 rounded-lg z-99999 lg:flex lg:h-11 lg:w-11 lg:border"
         (click)="handleToggle()"
-        aria-label="Toggle Sidebar"
+        [attr.aria-label]="isMobileOpen ? 'Close navigation menu' : 'Open navigation menu'"
+        [attr.aria-expanded]="isMobileOpen"
+        aria-controls="app-sidebar"
         >
         @if (isMobileOpen) {
           <svg
+            aria-hidden="true"
             width="24"
             height="24"
             viewBox="0 0 24 24"
@@ -27,6 +30,7 @@
           </svg>
         } @else {
           <svg
+            aria-hidden="true"
             width="16"
             height="12"
             viewBox="0 0 16 12"
@@ -53,9 +57,13 @@
 
       <button
         (click)="toggleApplicationMenu()"
+        [attr.aria-label]="isApplicationMenuOpen ? 'Hide account options' : 'Show account options'"
+        [attr.aria-expanded]="isApplicationMenuOpen"
+        aria-controls="header-application-menu"
         class="flex items-center justify-center w-10 h-10 text-gray-700 rounded-lg z-99999 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 lg:hidden"
         >
         <svg
+          aria-hidden="true"
           width="24"
           height="24"
           viewBox="0 0 24 24"
@@ -72,18 +80,25 @@
       </button>
     </div>
     <div
+      id="header-application-menu"
       [ngClass]="{
         flex: isApplicationMenuOpen,
         hidden: !isApplicationMenuOpen,
       }"
       class="items-center justify-between w-full gap-4 px-5 py-4 lg:flex shadow-theme-md lg:h-full lg:justify-end lg:px-0 lg:py-0 lg:shadow-none"
       >
+      <!--
+        A notification dropdown used to sit here, commented out. It was three
+        hardcoded alerts ("Emergency fund target is below threshold") with avatars
+        that were never in the repo, wired to nothing, so it has been deleted
+        rather than left looking like a feature.
+
+        app-theme-toggle-button is still commented out below and still does not
+        work: it is React JSX that Angular never binds, and nothing in the app
+        ever puts the `dark` class on <html>, so every dark: rule in the
+        templates is currently inert.
+      -->
       <div class="flex items-center gap-2 2xsm:gap-3">
-        <!-- Dark Mode Toggler -->
-        <!-- <app-theme-toggle-button></app-theme-toggle-button> -->
-        <!-- Dark Mode Toggler -->
-        <!-- <app-notification-dropdown></app-notification-dropdown> -->
-        <!-- Notification Menu Area -->
         <app-currency-switcher></app-currency-switcher>
       </div>
       <!-- User Area -->

@@ -4,8 +4,8 @@
     <div class="bg-white rounded-lg shadow-sm p-6">
       <div class="relative">
         <fa-icon [icon]="searchIcon" class="absolute left-3 top-3 text-gray-400"></fa-icon>
-        <input
-          type="text"
+        <input aria-label="Search issues or error codes"
+          type="search"
           [(ngModel)]="searchTerm"
           placeholder="Search issues or error codes..."
           class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"

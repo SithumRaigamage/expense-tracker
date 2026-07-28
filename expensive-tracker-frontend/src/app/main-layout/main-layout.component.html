@@ -3,7 +3,14 @@
   <app-sidebar></app-sidebar>
 
   <!-- Content Area -->
-  <div class="flex flex-col flex-1 min-w-0 transition-[margin] duration-300 ease-in-out lg:ml-72">
+  <!--
+    The left margin has to track the sidebar's own width, which collapses to
+    w-24 when the sidebar is not expanded. Hard-coding lg:ml-72 left twelve rems
+    of dead space beside the collapsed rail.
+  -->
+  <div class="flex flex-col flex-1 min-w-0 transition-[margin] duration-300 ease-in-out"
+    [class.lg:ml-72]="isSidebarExpanded"
+    [class.lg:ml-24]="!isSidebarExpanded">
     <!-- Header -->
     <div class="sticky top-0 z-30">
       <app-header></app-header>

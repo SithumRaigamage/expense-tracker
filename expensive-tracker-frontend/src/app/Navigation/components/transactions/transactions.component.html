@@ -1,4 +1,4 @@
-<div class="p-6">
+<div class="p-4 sm:p-6">
   <!-- Header -->
   <!-- Header -->
   <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
@@ -85,7 +85,7 @@
             <span class="block truncate">
               {{ filterForm.get('type')?.value ? (filterForm.get('type')?.value | titlecase) : 'All Types' }}
             </span>
-            <svg class="w-4 h-4 text-gray-500 transition-transform duration-200" [class.rotate-180]="isTypeOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            <svg aria-hidden="true" class="w-4 h-4 text-gray-500 transition-transform duration-200" [class.rotate-180]="isTypeOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
           </button>
 
           @if (isTypeOpen) {
@@ -122,7 +122,7 @@
             <span class="block truncate">
               {{ filterForm.get('category')?.value || 'All Categories' }}
             </span>
-            <svg class="w-4 h-4 text-gray-500 transition-transform duration-200" [class.rotate-180]="isCategoryOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            <svg aria-hidden="true" class="w-4 h-4 text-gray-500 transition-transform duration-200" [class.rotate-180]="isCategoryOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
           </button>
 
           @if (isCategoryOpen) {
@@ -158,7 +158,7 @@
             <span class="block truncate">
               {{ getWalletName(filterForm.get('wallet')?.value) }}
             </span>
-            <svg class="w-4 h-4 text-gray-500 transition-transform duration-200" [class.rotate-180]="isWalletOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            <svg aria-hidden="true" class="w-4 h-4 text-gray-500 transition-transform duration-200" [class.rotate-180]="isWalletOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
           </button>
 
           @if (isWalletOpen) {
@@ -238,10 +238,12 @@
             <td class="px-6 py-4">
               <div class="flex gap-3">
                 <button (click)="openDrawer(transaction)"
+                  [attr.aria-label]="'Edit transaction: ' + transaction.description"
                   class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
                   <fa-icon [icon]="faPencil"></fa-icon>
                 </button>
                 <button (click)="deleteTransaction(transaction.id)"
+                  [attr.aria-label]="'Delete transaction: ' + transaction.description"
                   class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors">
                   <fa-icon [icon]="faTrash"></fa-icon>
                 </button>
@@ -301,6 +303,7 @@
       <button
         (click)="goToPage(currentPage - 1)"
         [disabled]="currentPage === 1"
+        aria-label="Previous page"
         class="inline-flex items-center justify-center rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
         [class.opacity-50]="currentPage === 1"
         >
@@ -314,6 +317,7 @@
       <button
         (click)="goToPage(currentPage + 1)"
         [disabled]="currentPage === totalPages"
+        aria-label="Next page"
         class="inline-flex items-center justify-center rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
         [class.opacity-50]="currentPage === totalPages"
         >
@@ -383,7 +387,7 @@
             </div>
           </div>
           <!-- Wallet and Category -->
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div class="space-y-1.5">
               <label for="tx-form-wallet" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
                 Wallet
@@ -397,7 +401,7 @@
                   }
                 </select>
                 <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400">
+                  <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400">
                     <polyline points="6 9 12 15 18 9"></polyline>
                   </svg>
                 </div>
@@ -416,7 +420,7 @@
                   }
                 </select>
                 <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400">
+                  <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400">
                     <polyline points="6 9 12 15 18 9"></polyline>
                   </svg>
                 </div>

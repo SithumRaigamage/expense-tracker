@@ -1,9 +1,14 @@
 <!-- Customization Toggle Button -->
-<div class="fixed bottom-8 right-8 z-50">
+<!-- Icon-only below sm: a full-width pill sitting over the content is a lot of
+     screen to give up on a phone. The label stays as the accessible name. -->
+<div class="fixed bottom-6 right-6 z-50 sm:bottom-8 sm:right-8">
   <button (click)="toggleDrawer()"
-    class="flex items-center gap-2 bg-brand-500 hover:bg-brand-600 text-white px-4 py-3 rounded-full shadow-lg transition-all hover:scale-105 group">
+    aria-label="Customize dashboard"
+    [attr.aria-expanded]="isCustomizing"
+    aria-controls="dashboard-customize-drawer"
+    class="flex items-center gap-2 bg-brand-500 hover:bg-brand-600 text-white p-4 sm:px-4 sm:py-3 rounded-full shadow-lg transition-all hover:scale-105 group">
     <fa-icon [icon]="faGear" [class.animate-spin-slow]="isCustomizing"></fa-icon>
-    <span class="font-medium">Customize Dashboard</span>
+    <span class="hidden font-medium sm:inline">Customize Dashboard</span>
   </button>
 </div>
 
@@ -18,17 +23,24 @@
 
 <!-- Clipping viewport: the closed drawer sits a full width off-screen and would
 otherwise let the page scroll sideways into empty space. -->
-<div class="fixed inset-0 overflow-hidden pointer-events-none z-[70]">
-  <div class="absolute inset-y-0 right-0 w-80 max-w-full pointer-events-auto bg-white shadow-2xl transform transition-transform duration-300 ease-in-out"
+<div class="fixed inset-0 overflow-hidden pointer-events-none z-[70]"
+  [attr.inert]="isCustomizing ? null : ''">
+  <!-- The closed drawer is only translated off-screen, so without `inert` above
+       its controls stay in the tab order and the accessibility tree. -->
+  <div id="dashboard-customize-drawer"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="dashboard-customize-title"
+    class="absolute inset-y-0 right-0 w-80 max-w-full pointer-events-auto bg-white shadow-2xl transform transition-transform duration-300 ease-in-out"
     [class.translate-x-0]="isCustomizing"
     [class.translate-x-full]="!isCustomizing">
     <div class="flex flex-col h-full">
       <div class="p-6 border-b border-gray-200 flex justify-between items-center bg-gray-50 dark:bg-gray-800/50">
-        <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+        <h2 id="dashboard-customize-title" class="text-xl font-bold text-gray-900 flex items-center gap-2">
           <fa-icon [icon]="faGear" class="text-brand-500"></fa-icon>
           Customize
         </h2>
-        <button (click)="toggleDrawer()" class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors">
+        <button (click)="toggleDrawer()" aria-label="Close customize panel" class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors">
           <fa-icon [icon]="faTimes" class="text-gray-500"></fa-icon>
         </button>
       </div>

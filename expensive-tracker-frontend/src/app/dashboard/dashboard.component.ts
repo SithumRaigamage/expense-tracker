@@ -31,12 +31,13 @@ import { ExpenseBreakdownComponent } from './components/expense-breakdown/expens
     UpcomingBillsComponent,
     EmergencyFundComponent,
     FinancialEducationComponent,
-    FinancialEducationComponent,
     ExpenseBreakdownComponent
   ],
   templateUrl: './dashboard.component.html',
 })
 export class DashboardComponent implements OnInit {
+  private dashboardService = inject(DashboardService);
+
   private readonly destroyRef = inject(DestroyRef);
 
   faGear = faGear;
@@ -48,8 +49,6 @@ export class DashboardComponent implements OnInit {
 
   isCustomizing = false;
   widgets: WidgetConfig[] = [];
-
-  constructor(private dashboardService: DashboardService) {}
 
   ngOnInit() {
     this.dashboardService.widgets$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(widgets => {

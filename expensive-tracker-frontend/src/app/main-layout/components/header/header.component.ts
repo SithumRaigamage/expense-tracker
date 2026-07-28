@@ -1,4 +1,5 @@
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SidebarService } from '../../../services/sidebar-service.service';
 import { CommonModule } from '@angular/common';
 import { UserDropdownComponent } from "./user-dropdown/user-dropdown.component";
@@ -16,23 +17,22 @@ import { RouterModule } from '@angular/router';
   ],
   standalone: true
 })
-export class HeaderComponent implements OnInit, OnDestroy {
+export class HeaderComponent {
+  private readonly sidebarService = inject(SidebarService);
+  private readonly destroyRef = inject(DestroyRef);
+
   isApplicationMenuOpen = false;
   isMobileOpen = false;
 
-  @ViewChild('inputRef') inputRef!: ElementRef<HTMLInputElement>;
-
-  constructor(private sidebarService: SidebarService) {}
-
-  ngOnInit(): void {
-    this.sidebarService.isMobileOpen$.subscribe(state => {
-      this.isMobileOpen = state;
-    });
-    document.addEventListener('keydown', this.handleKeyDown.bind(this));
-  }
-
-  ngOnDestroy(): void {
-    document.removeEventListener('keydown', this.handleKeyDown.bind(this));
+  constructor() {
+    // Previously a bare .subscribe() that was never torn down. There was also a
+    // document-level Cmd+K handler here that focused a #inputRef template
+    // reference the header does not have — pressing Cmd+K anywhere in the app
+    // threw on undefined. There is no search field to focus, so the shortcut is
+    // gone rather than pointed at nothing.
+    this.sidebarService.isMobileOpen$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(state => (this.isMobileOpen = state));
   }
 
   handleToggle(): void {
@@ -45,12 +45,5 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   toggleApplicationMenu(): void {
     this.isApplicationMenuOpen = !this.isApplicationMenuOpen;
-  }
-
-  handleKeyDown(event: KeyboardEvent): void {
-    if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
-      event.preventDefault();
-      this.inputRef.nativeElement.focus();
-    }
   }
 }

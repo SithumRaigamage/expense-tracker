@@ -1,4 +1,4 @@
-<div class="p-6">
+<div class="p-4 sm:p-6">
   <!-- Header -->
   <div class="mb-8">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
@@ -15,7 +15,7 @@
         </button>
         <button (click)="openDrawer('add')"
           class="flex-1 sm:flex-none inline-flex justify-center items-center gap-2 px-5 py-2.5 bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition-colors shadow-sm hover:shadow">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+          <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="12" y1="5" x2="12" y2="19"></line>
             <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -30,9 +30,9 @@
       class="flex flex-col sm:flex-row gap-4 justify-between items-center bg-white dark:bg-gray-800/50 p-4 rounded-xl shadow-sm">
       <!-- Search -->
       <div class="relative w-full sm:w-64">
-        <input type="text" [(ngModel)]="searchQuery" (input)="applyFilters()" placeholder="Search goals..."
+        <input type="search" aria-label="Search goals" [(ngModel)]="searchQuery" (input)="applyFilters()" placeholder="Search goals..."
           class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500/50">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-3 top-2.5 text-gray-400" fill="none"
+          <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-3 top-2.5 text-gray-400" fill="none"
             viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -51,7 +51,7 @@
               sortOption === 'amount' ? 'Sort by Amount' :
               sortOption === 'date' ? 'Sort by Date' : 'Sort by Name' }}
             </span>
-            <svg class="w-4 h-4 text-gray-500 transition-transform duration-200" [class.rotate-180]="isSortOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            <svg aria-hidden="true" class="w-4 h-4 text-gray-500 transition-transform duration-200" [class.rotate-180]="isSortOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
           </button>
 
           <!-- Dropdown Menu -->
@@ -88,7 +88,7 @@
               {{ filterOption === 'all' ? 'All Goals' :
               filterOption === 'ongoing' ? 'Ongoing (< 100%)' : 'Completed (100%)' }}
             </span>
-            <svg class="w-4 h-4 text-gray-500 transition-transform duration-200" [class.rotate-180]="isFilterOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            <svg aria-hidden="true" class="w-4 h-4 text-gray-500 transition-transform duration-200" [class.rotate-180]="isFilterOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
           </button>
 
           <!-- Dropdown Menu -->
@@ -124,7 +124,7 @@
     @if (filteredGoals.length === 0) {
       <div class="col-span-full text-center py-12">
         <div class="text-gray-500 dark:text-gray-400">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto mb-4 opacity-50" fill="none"
+          <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto mb-4 opacity-50" fill="none"
             viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -193,6 +193,7 @@
               <fa-icon [icon]="faPlusCircle" class="mr-1"></fa-icon> Fund
             </button>
             <button (click)="deleteGoal(goal.id)"
+              [attr.aria-label]="'Delete goal: ' + goal.name"
               class="w-10 h-10 flex items-center justify-center rounded-lg text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
               <fa-icon [icon]="faTrash"></fa-icon>
             </button>
@@ -244,7 +245,7 @@
                 @if (!currentGoal.imageUrl) {
                   <div class="text-center p-6">
                     <div class="w-12 h-12 bg-white dark:bg-gray-700 rounded-2xl shadow-sm flex items-center justify-center mx-auto mb-3">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                      <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                     </div>
                     <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">No Image Selected</p>
                   </div>
@@ -283,7 +284,7 @@
                   placeholder="e.g. New MacBook Pro">
               </div>
               <!-- Amounts Grid -->
-              <div class="grid grid-cols-2 gap-4">
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div class="space-y-1.5">
                   <label for="goal-target-amount" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Target Amount</label>
                   <input type="number"
@@ -420,7 +421,7 @@
                 <div class="px-6 py-4 border-b border-gray-50 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/20 flex justify-between items-center">
                   <h4 class="text-sm font-bold text-gray-900 dark:text-white">Previewing {{ jsonPreview.length }} Items</h4>
                 </div>
-                <div class="max-h-60 overflow-y-auto custom-scrollbar">
+                <div class="max-h-60 overflow-auto custom-scrollbar">
                   <table class="w-full text-left text-sm">
                     <tbody class="divide-y divide-gray-50 dark:divide-gray-800">
                       @for (goal of jsonPreview; track goal) {

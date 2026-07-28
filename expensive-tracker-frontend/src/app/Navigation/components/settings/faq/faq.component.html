@@ -4,12 +4,14 @@
     <div class="bg-white rounded-lg shadow-sm p-6">
       <div class="flex flex-col md:flex-row gap-4">
         <input
-          type="text"
+          type="search"
+          aria-label="Search FAQs"
           [(ngModel)]="searchTerm"
           placeholder="Search FAQs..."
           class="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
         <select
+          aria-label="Filter FAQs by category"
           [(ngModel)]="selectedCategory"
           class="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
@@ -40,7 +42,7 @@
                       class="w-full flex items-center justify-between py-4 text-left"
                       >
                       <span class="font-medium text-gray-800">{{ faq.question }}</span>
-                      <svg
+                      <svg aria-hidden="true"
                         xmlns="http://www.w3.org/2000/svg"
                         [class.rotate-180]="faq.isOpen"
                         class="w-5 h-5 transition-transform"

@@ -98,8 +98,8 @@
     <div class="bg-white rounded-lg shadow-sm p-6">
       <div class="relative">
         <fa-icon [icon]="searchIcon" class="absolute left-3 top-3 text-gray-400"></fa-icon>
-        <input
-          type="text"
+        <input aria-label="Search release notes"
+          type="search"
           [(ngModel)]="searchTerm"
           placeholder="Search release notes..."
           class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -171,15 +171,17 @@
               <!-- Admin Actions -->
               @if (isAdmin) {
                 <div class="flex items-center gap-2">
-                  <button (click)="editReleaseNote(release); $event.stopPropagation()"
+                  <button [attr.aria-label]="'Edit release note ' + release.version"
+                    (click)="editReleaseNote(release); $event.stopPropagation()"
                     class="p-2 text-gray-500 hover:text-brand-500 hover:bg-gray-100 rounded">
                     <fa-icon [icon]="editIcon"></fa-icon>
                   </button>
-                  <button (click)="deleteReleaseNote(release._id!); $event.stopPropagation()"
+                  <button [attr.aria-label]="'Delete release note ' + release.version"
+                    (click)="deleteReleaseNote(release._id!); $event.stopPropagation()"
                     class="p-2 text-gray-500 hover:text-red-500 hover:bg-gray-100 rounded">
                     <fa-icon [icon]="trashIcon"></fa-icon>
                   </button>
-                  <svg xmlns="http://www.w3.org/2000/svg"
+                  <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                     [class.rotate-180]="release.isExpanded"
                     class="w-5 h-5 transition-transform ml-2"
                     fill="none"

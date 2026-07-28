@@ -17,7 +17,7 @@
         [routerLink]="['/wallets']"
         class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50 hover:text-gray-900 transition-colors dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
         >
-        <svg
+        <svg aria-hidden="true"
           xmlns="http://www.w3.org/2000/svg"
           width="16"
           height="16"
@@ -48,7 +48,7 @@
               [ngClass]="getWalletIconClass(wallet.type)"
               class="flex h-10 w-10 items-center justify-center rounded-lg"
               >
-              <svg
+              <svg aria-hidden="true"
                 xmlns="http://www.w3.org/2000/svg"
                 width="20"
                 height="20"
@@ -74,9 +74,11 @@
             </div>
           </div>
           <button
+            type="button"
+            [attr.aria-label]="'Options for ' + wallet.name"
             class="text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"
             >
-            <svg
+            <svg aria-hidden="true"
               xmlns="http://www.w3.org/2000/svg"
               width="20"
               height="20"
@@ -114,7 +116,7 @@
     @if (wallets.length === 0) {
       <div class="col-span-full text-center py-8">
         <div class="mx-auto w-16 h-16 text-gray-400 mb-4">
-          <svg
+          <svg aria-hidden="true"
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
             fill="none"
@@ -135,7 +137,7 @@
           [routerLink]="['/add-wallet']"
           class="mt-4 inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600"
           >
-          <svg
+          <svg aria-hidden="true"
             xmlns="http://www.w3.org/2000/svg"
             width="16"
             height="16"

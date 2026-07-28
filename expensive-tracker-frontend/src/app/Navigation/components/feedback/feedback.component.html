@@ -6,9 +6,11 @@
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         @for (category of categories; track category) {
           <button
+            type="button"
             (click)="feedbackForm.patchValue({category: category.id})"
+            [attr.aria-pressed]="feedbackForm.get('category')?.value === category.id"
             [class.border-blue-500]="feedbackForm.get('category')?.value === category.id"
-            class="p-4 border border-gray-200 rounded-lg hover:border-blue-500 transition-colors">
+            class="p-4 text-left border border-gray-200 rounded-lg hover:border-blue-500 transition-colors">
             <div class="flex items-center gap-3 mb-2">
               <fa-icon [icon]="category.icon" class="text-blue-500"></fa-icon>
               <h3 class="font-medium text-gray-800">{{ category.title }}</h3>
@@ -42,11 +44,14 @@
       <!-- Sentiment Rating -->
       <fieldset class="min-w-0">
         <legend class="block text-sm font-medium text-gray-700 mb-3">How do you feel about this?</legend>
-        <div class="flex items-center gap-6">
+        <!-- gap-6 across five labelled options is 95px wider than a 375px
+             screen; wrap and tighten the gap so it fits on a phone. -->
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-2 sm:gap-6">
           @for (option of sentimentOptions; track option) {
             <button
               type="button"
               (click)="feedbackForm.patchValue({sentiment: option.value})"
+              [attr.aria-pressed]="feedbackForm.get('sentiment')?.value === option.value"
               [class.ring-2]="feedbackForm.get('sentiment')?.value === option.value"
               class="flex flex-col items-center p-2 rounded-lg hover:bg-gray-50">
               <span class="text-2xl">{{ option.emoji }}</span>
