@@ -56,7 +56,6 @@ export class SidebarComponent implements OnInit {
   isExpanded = true;
   isMobileOpen = false;
   isHovered = false;
-  moneyIcon = faMoneyCheckDollar;
   lockIcon = faLock;
   sparklesIcon = faStar;
   chevronRight = faChevronRight;

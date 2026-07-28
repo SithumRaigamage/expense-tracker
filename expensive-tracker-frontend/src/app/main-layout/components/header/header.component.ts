@@ -4,8 +4,6 @@ import { CommonModule } from '@angular/common';
 import { UserDropdownComponent } from "./user-dropdown/user-dropdown.component";
 import { CurrencySwitcherComponent } from '../../../shared/components/currency-switcher/currency-switcher.component';
 import { RouterModule } from '@angular/router';
-import { FontAwesomeModule, FaIconLibrary } from '@fortawesome/angular-fontawesome';
-import { faMoneyCheckDollar } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-header',
@@ -14,24 +12,17 @@ import { faMoneyCheckDollar } from '@fortawesome/free-solid-svg-icons';
     CommonModule,
     RouterModule,
     UserDropdownComponent,
-    CurrencySwitcherComponent,
-    FontAwesomeModule
+    CurrencySwitcherComponent
   ],
   standalone: true
 })
 export class HeaderComponent implements OnInit, OnDestroy {
   isApplicationMenuOpen = false;
   isMobileOpen = false;
-  moneyIcon = faMoneyCheckDollar;
 
   @ViewChild('inputRef') inputRef!: ElementRef<HTMLInputElement>;
 
-  constructor(
-    private sidebarService: SidebarService,
-    library: FaIconLibrary
-  ) {
-    library.addIcons(faMoneyCheckDollar);
-  }
+  constructor(private sidebarService: SidebarService) {}
 
   ngOnInit(): void {
     this.sidebarService.isMobileOpen$.subscribe(state => {
