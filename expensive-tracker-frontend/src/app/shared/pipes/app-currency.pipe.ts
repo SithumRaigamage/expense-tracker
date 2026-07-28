@@ -19,7 +19,7 @@ export class AppCurrencyPipe implements PipeTransform {
 
   constructor(private currencyService: CurrencyService) {}
 
-  transform(value: number, sourceCurrency: string = 'LKR'): string | null {
+  transform(value: number, sourceCurrency = 'LKR'): string | null {
     if (value === null || value === undefined) return null;
 
     const targetCurrency = this.currencyService.getActiveCurrency();

@@ -27,7 +27,7 @@ export class UpcomingBillsComponent implements OnInit {
 
   getBillIconClass(category: string): string {
     const baseClasses = 'text-white';
-    const categoryClasses: { [key: string]: string } = {
+    const categoryClasses: Record<string, string> = {
       'Utilities': 'bg-blue-500',
       'Subscription': 'bg-yellow-500',
       'Entertainment': 'bg-pink-500',
@@ -40,7 +40,7 @@ export class UpcomingBillsComponent implements OnInit {
   }
 
   getStatusClass(status: string): string {
-    const statusClasses: { [key: string]: string } = {
+    const statusClasses: Record<string, string> = {
       'Upcoming': 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-500',
       'Due Today': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500',
       'Overdue': 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-500'

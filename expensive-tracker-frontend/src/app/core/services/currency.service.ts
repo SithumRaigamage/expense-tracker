@@ -43,7 +43,7 @@ export class CurrencyService {
     });
   }
 
-  setCurrency(currency: string, updateBackend: boolean = true) {
+  setCurrency(currency: string, updateBackend = true) {
     if (!this.supportedCurrencies.includes(currency)) return;
 
     this.activeCurrencySubject.next(currency);

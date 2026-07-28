@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Currency, SettingsService } from '../../../../services/settings.service';
 
 import { FormsModule } from '@angular/forms';
@@ -9,9 +9,9 @@ import { CurrencyService } from '../../../../core/services/currency.service';
   imports: [FormsModule],
   templateUrl: './currency.component.html',
 })
-export class CurrencyComponent {
+export class CurrencyComponent implements OnInit {
 
-  selectedCurrency: string = 'LKR'; // Default currency
+  selectedCurrency = 'LKR'; // Default currency
   currencies: Currency[] = [];
 
   constructor(

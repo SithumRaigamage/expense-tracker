@@ -24,7 +24,7 @@ export class ManageWalletsComponent implements OnInit {
 
   getWalletIconClass(type: string): string {
     const baseClasses = 'text-white';
-    const typeClasses: { [key: string]: string } = {
+    const typeClasses: Record<string, string> = {
       'cash': 'bg-green-500',
       'bank': 'bg-blue-500',
       'credit': 'bg-purple-500',

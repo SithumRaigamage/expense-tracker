@@ -274,7 +274,7 @@ export class WalletService {
   bulkAddWallets(wallets: Omit<Wallet, 'id' | 'user'>[]): Observable<{
     successCount: number;
     failedCount: number;
-    failedWallets?: Array<{name: string; error: string}>;
+    failedWallets?: {name: string; error: string}[];
   }> {
     if (!this.currentUserId) {
       return throwError(() => new Error('Not authenticated. Please log in.'));
@@ -287,13 +287,13 @@ export class WalletService {
     return new Observable<{
       successCount: number;
       failedCount: number;
-      failedWallets?: Array<{name: string; error: string}>;
+      failedWallets?: {name: string; error: string}[];
     }>(observer => {
       let successCount = 0;
       let failedCount = 0;
       let completed = 0;
       const total = wallets.length;
-      const failedWalletsList: Array<{name: string; error: string}> = [];
+      const failedWalletsList: {name: string; error: string}[] = [];
 
       wallets.forEach(wallet => {
         const walletWithUser = {
@@ -359,7 +359,7 @@ export class WalletService {
         tap(() => this.refreshWallets()),
         catchError(error => {
           console.error('Error transferring funds:', error);
-          let errorMessage = error.error?.error || 'Failed to transfer funds. Please try again.';
+          const errorMessage = error.error?.error || 'Failed to transfer funds. Please try again.';
           throw new Error(errorMessage);
         })
       );

@@ -27,7 +27,7 @@ export class ExcelExportService {
   /**
    * Export a single data array to an Excel file with one sheet
    */
-  async exportToExcel(data: any[], fileName: string, sheetName: string = 'Sheet1'): Promise<void> {
+  async exportToExcel(data: any[], fileName: string, sheetName = 'Sheet1'): Promise<void> {
     if (!data || data.length === 0) return;
 
     const workbook = await this.newWorkbook();
@@ -39,7 +39,7 @@ export class ExcelExportService {
   /**
    * Export multiple data arrays to an Excel file with multiple sheets
    */
-  async exportAllToExcel(sheetsData: { [key: string]: any[] }, fileName: string): Promise<void> {
+  async exportAllToExcel(sheetsData: Record<string, any[]>, fileName: string): Promise<void> {
     const workbook = await this.newWorkbook();
 
     Object.keys(sheetsData).forEach(sheetName => {

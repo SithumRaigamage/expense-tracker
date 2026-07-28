@@ -58,7 +58,7 @@ export class WalletsComponent implements OnInit, OnDestroy {
   isDrawerOpen = false;
   selectedWallet: Wallet | null = null;
   wallets: Wallet[] = [];
-  primaryCurrency: string = 'LKR';
+  primaryCurrency = 'LKR';
   error: string | null = null;
   isLoading = false;
   isAuthError = false;
@@ -148,7 +148,7 @@ export class WalletsComponent implements OnInit, OnDestroy {
 
   // Method to get wallet color based on type
   getWalletColor(type: string): string {
-    const colorMap: { [key: string]: string } = {
+    const colorMap: Record<string, string> = {
       'cash': 'text-green-600 bg-green-100',
       'bank': 'text-blue-600 bg-blue-100',
       'credit': 'text-purple-600 bg-purple-100',
@@ -397,8 +397,8 @@ export class WalletsComponent implements OnInit, OnDestroy {
     this.router.navigate(['/login']);
   }
 
-  formatCurrency(amount: number, currencyCode: string = 'LKR'): string {
-    const localeMap: { [key: string]: string } = {
+  formatCurrency(amount: number, currencyCode = 'LKR'): string {
+    const localeMap: Record<string, string> = {
       'LKR': 'en-LK',
       'USD': 'en-US',
       'EUR': 'de-DE',

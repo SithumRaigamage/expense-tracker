@@ -18,7 +18,7 @@ import {
 import { Transaction } from '../../../core/models/Transaction';
 import { CurrencyService } from '../../../core/services/currency.service';
 
-export type ChartOptions = {
+export interface ChartOptions {
   series: ApexAxisChartSeries;
   chart: ApexChart;
   xaxis: ApexXAxis;
@@ -40,7 +40,7 @@ export type ChartOptions = {
       };
     }
   };
-};
+}
 
 @Component({
   selector: 'app-chart',

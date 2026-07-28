@@ -38,7 +38,7 @@ export class BudgetComponent implements OnInit {
   addAmount = 0;
   selectedGoalId: string | null = null;
   availableWallets: Wallet[] = [];
-  selectedWalletId: string = '';
+  selectedWalletId = '';
   isLoading = false;
   searchQuery = '';
   sortOption = 'progress';

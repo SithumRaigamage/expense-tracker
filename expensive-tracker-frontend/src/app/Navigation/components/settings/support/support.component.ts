@@ -30,9 +30,7 @@ interface FormField {
   validation?: any[];
 }
 
-interface FormGroupConfig {
-  [key: string]: [string, import('@angular/forms').ValidatorFn[]];
-}
+type FormGroupConfig = Record<string, [string, import('@angular/forms').ValidatorFn[]]>;
 
 @Component({
   selector: 'app-support',

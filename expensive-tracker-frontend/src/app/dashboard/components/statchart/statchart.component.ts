@@ -22,7 +22,7 @@ import {
   NgApexchartsModule
 } from "ng-apexcharts";
 
-export type ChartOptions = {
+export interface ChartOptions {
   series: ApexAxisChartSeries;
   chart: ApexChart;
   xaxis: ApexXAxis;
@@ -35,7 +35,7 @@ export type ChartOptions = {
   dataLabels: ApexDataLabels;
   tooltip: ApexTooltip;
   legend: ApexLegend;
-};
+}
 
 @Component({
   selector: 'app-statchart',

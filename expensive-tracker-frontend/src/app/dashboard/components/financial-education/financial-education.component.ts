@@ -10,8 +10,8 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './financial-education.component.html',
 })
 export class FinancialEducationComponent {
-  selectedCategory: string = 'all';
-  searchQuery: string = '';
+  selectedCategory = 'all';
+  searchQuery = '';
 
   educationalContent: EducationalContent[] = [
     {

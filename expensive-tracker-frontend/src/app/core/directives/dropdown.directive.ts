@@ -5,7 +5,7 @@ import { Directive, ElementRef, EventEmitter, HostListener, Output, Input, OnDes
   standalone: true
 })
 export class DropdownDirective implements OnDestroy {
-  @Input() appDropdown: boolean = false;
+  @Input() appDropdown = false;
   @Output() closeDropdown = new EventEmitter<void>();
   private isDestroyed = false;
 

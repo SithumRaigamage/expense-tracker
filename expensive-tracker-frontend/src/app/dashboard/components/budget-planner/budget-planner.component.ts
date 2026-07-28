@@ -16,7 +16,7 @@ import { Wallet } from '../../../core/models/Wallet';
 })
 export class BudgetPlannerComponent implements OnInit {
   productgoals: ProductBudget[] = [];
-  isLoading: boolean = true;
+  isLoading = true;
   error: string | null = null;
 
   constructor(

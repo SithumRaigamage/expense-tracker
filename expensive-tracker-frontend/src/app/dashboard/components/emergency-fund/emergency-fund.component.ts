@@ -31,7 +31,7 @@ interface EmergencyTransaction {
   cumulativeExpense: number;
 }
 
-export type EmergencyChartOptions = {
+export interface EmergencyChartOptions {
   series: ApexAxisChartSeries;
   chart: ApexChart;
   xaxis: ApexXAxis;
@@ -43,7 +43,7 @@ export type EmergencyChartOptions = {
   fill: ApexFill;
   theme: ApexTheme;
   colors: string[];
-};
+}
 
 @Component({
   selector: 'app-emergency-fund',
@@ -63,14 +63,14 @@ export class EmergencyFundComponent implements OnInit, OnDestroy {
 
   private subscription: Subscription = new Subscription();
   transactions: EmergencyTransaction[] = [];
-  currentBalance: number = 35000;
-  targetGoal: number = 100000;
-  monthlySaveGoal: number = 5000;
+  currentBalance = 35000;
+  targetGoal = 100000;
+  monthlySaveGoal = 5000;
 
   // Pagination
-  currentPage: number = 1;
-  pageSize: number = 10;
-  totalPages: number = 1;
+  currentPage = 1;
+  pageSize = 10;
+  totalPages = 1;
 
   constructor(
     private transactionService: TransactionService,

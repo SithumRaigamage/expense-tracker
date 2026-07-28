@@ -6,6 +6,7 @@ import { User } from '../core/models/User';
 import { faCcVisa, faCcMastercard } from '@fortawesome/free-brands-svg-icons';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { environment } from '../../environments/environment';
+import { toUserMessage } from '../core/utils/http-error';
 
 interface PaymentMethod {
   id: string;
@@ -247,30 +248,9 @@ export class SettingsService {
       }),
       catchError(error => {
         console.error('Error uploading profile image:', error);
-
-        // Check for connection errors (status 0)
-        if (error.status === 0) {
-          console.error('Connection error - backend server might not be running');
-          return throwError(() => new Error('Cannot connect to the server. Please make sure the backend is running and try again.'));
-        }
-
-        console.error('Error details:', error.error);
-        console.error('Status:', error.status);
-
-        if (error.status === 413) {
-          return throwError(() => new Error('Image file is too large. Please choose a smaller image.'));
-        } else if (error.status === 415) {
-          return throwError(() => new Error('Invalid file type. Please select a valid image file (JPG, PNG).'));
-        } else if (error.status === 403 || error.status === 401) {
-          return throwError(() => new Error('Unauthorized: Please log in again.'));
-        } else if (error.status === 500) {
-          console.error('Server error details:', error.error);
-          return throwError(() => new Error('Server error during file upload. Please try again later.'));
-        }
-
-        // Provide more specific error message if available
-        const errorMessage = error.error?.error || error.message || 'Unknown error';
-        return throwError(() => new Error(`Failed to upload profile image: ${errorMessage}`));
+        return throwError(() => new Error(
+          toUserMessage(error, 'Could not upload that image. Please try again.')
+        ));
       })
     );
   }
@@ -379,9 +359,13 @@ export class SettingsService {
         console.error('Error changing email:', error);
 
         if (error.status === 401) {
+          // This endpoint verifies the current password; 401 is a wrong
+          // password, not an expired session.
           return throwError(() => new Error('Password is incorrect'));
         }
-        return throwError(() => new Error('Failed to change email. Please try again later.'));
+        return throwError(() => new Error(
+          toUserMessage(error, 'Failed to change email. Please try again later.')
+        ));
       })
     );
   }

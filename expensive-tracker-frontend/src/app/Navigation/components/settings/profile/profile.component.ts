@@ -30,12 +30,12 @@ export class ProfileComponent implements OnInit {
   previewImage: SafeUrl | null = null;
   passwordForm: FormGroup;
   emailForm: FormGroup;
-  isLoading: boolean = false;
-  isSaving: boolean = false;
-  isPasswordChanging: boolean = false;
-  isEmailChanging: boolean = false;
-  uploadProgress: number = 0;
-  imageError: boolean = false;
+  isLoading = false;
+  isSaving = false;
+  isPasswordChanging = false;
+  isEmailChanging = false;
+  uploadProgress = 0;
+  imageError = false;
 
   // Password visibility
   hideCurrent = true;

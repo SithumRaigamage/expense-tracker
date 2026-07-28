@@ -222,7 +222,7 @@ export class TransactionService {
     return this.categories.asObservable();
   }
 
-  getRecentTransactions(limit: number = 10): Observable<Transaction[]> {
+  getRecentTransactions(limit = 10): Observable<Transaction[]> {
     return this.transactions.pipe(
       map(transactions => {
         // Sort transactions by date, most recent first
@@ -409,7 +409,7 @@ export class TransactionService {
   bulkAddTransactions(transactions: Omit<Transaction, 'id'>[]): Observable<{
     successCount: number;
     failedCount: number;
-    failedTransactions?: Array<{description: string; error: string}>;
+    failedTransactions?: {description: string; error: string}[];
   }> {
     if (!this.authService.isAuthenticated()) {
       return throwError(() => new Error('User not authenticated'));
@@ -424,13 +424,13 @@ export class TransactionService {
     return new Observable<{
       successCount: number;
       failedCount: number;
-      failedTransactions?: Array<{description: string; error: string}>;
+      failedTransactions?: {description: string; error: string}[];
     }>(observer => {
       let successCount = 0;
       let failedCount = 0;
       let completed = 0;
       const total = transactions.length;
-      const failedTransactions: Array<{description: string; error: string}> = [];
+      const failedTransactions: {description: string; error: string}[] = [];
 
       // Process transactions one by one
       transactions.forEach(transaction => {

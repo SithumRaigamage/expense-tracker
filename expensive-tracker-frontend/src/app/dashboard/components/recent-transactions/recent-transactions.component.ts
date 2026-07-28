@@ -20,7 +20,7 @@ export class RecentTransactionsComponent implements OnInit {
   transactions: Transaction[] = [];
   isLoading = true;
   displayedTransactions: Transaction[] = [];
-  showAll: boolean = false;
+  showAll = false;
   private readonly INITIAL_DISPLAY_COUNT = 5; // Changed to show fewer items initially
 
   constructor(private transactionService: TransactionService) {}
