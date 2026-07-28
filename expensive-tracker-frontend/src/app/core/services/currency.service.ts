@@ -1,12 +1,14 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CurrencyService {
+  private http = inject(HttpClient);
+
   private apiUrl = `${environment.apiUrl}/currency`;
   private userUrl = `${environment.apiUrl}/users`;
 
@@ -20,7 +22,7 @@ export class CurrencyService {
   // TODO: Fetch this from backend /supported endpoint for consistency
   public supportedCurrencies: string[] = ['USD', 'LKR', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD', 'CHF', 'CNY', 'INR'];
 
-  constructor(private http: HttpClient) {
+  constructor() {
     this.loadSavedCurrency();
     this.loadRates();
   }
@@ -33,7 +35,7 @@ export class CurrencyService {
   }
 
   loadRates() {
-    this.http.get<any>(`${this.apiUrl}/rates`).subscribe({
+    this.http.get<{ success: boolean; data: Record<string, number> }>(`${this.apiUrl}/rates`).subscribe({
       next: (response) => {
         if (response.success) {
           this.ratesSubject.next(response.data);
@@ -43,7 +45,7 @@ export class CurrencyService {
     });
   }
 
-  setCurrency(currency: string, updateBackend: boolean = true) {
+  setCurrency(currency: string, updateBackend = true) {
     if (!this.supportedCurrencies.includes(currency)) return;
 
     this.activeCurrencySubject.next(currency);

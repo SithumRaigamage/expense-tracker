@@ -1,6 +1,9 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+
+import { faChartColumn } from '@fortawesome/free-solid-svg-icons';
 import { ChartComponent } from '../../../shared/components/chart/chart.component';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { MonthlyTransactionTabComponent } from '../../../shared/components/monthly-transaction-tab/monthly-transaction-tab.component';
 import { TransactionService } from '../../../services/transaction.service';
 import { Transaction } from '../../../core/models/Transaction';
@@ -8,10 +11,15 @@ import { Transaction } from '../../../core/models/Transaction';
 @Component({
   selector: 'app-monthly-stat',
   standalone: true,
-  imports: [CommonModule, ChartComponent, MonthlyTransactionTabComponent],
+  imports: [ChartComponent, EmptyStateComponent, MonthlyTransactionTabComponent],
   templateUrl: './monthly-stat.component.html'
 })
 export class MonthlyStatComponent implements OnInit {
+  private transactionService = inject(TransactionService);
+
+  private readonly destroyRef = inject(DestroyRef);
+
+  faChartColumn = faChartColumn;
   currentChartType: 'income' | 'expense' | 'all' = 'all';
   currentMonthStats = {
     income: 0,
@@ -21,8 +29,6 @@ export class MonthlyStatComponent implements OnInit {
   transactions: Transaction[] = [];
   isLoading = true;
   errorMessage = '';
-
-  constructor(private transactionService: TransactionService) {}
 
   ngOnInit() {
     this.loadData();
@@ -37,7 +43,7 @@ export class MonthlyStatComponent implements OnInit {
     this.transactionService.getMonthlyStats(
       currentDate.getMonth(),
       currentDate.getFullYear()
-    ).subscribe({
+    ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (stats) => {
         this.currentMonthStats = stats;
       },
@@ -48,7 +54,7 @@ export class MonthlyStatComponent implements OnInit {
     });
 
     // Get all transactions for the chart
-    this.transactionService.getTransactions().subscribe({
+    this.transactionService.getTransactions().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (transactions) => {
         this.transactions = transactions;
         this.isLoading = false;

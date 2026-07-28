@@ -1,5 +1,6 @@
-import { Component, Inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -17,19 +18,28 @@ import { MatButtonModule } from '@angular/material/button';
   selector: 'app-transfer-dialog',
   standalone: true,
   imports: [
-    CommonModule, 
-    ReactiveFormsModule, 
-    FontAwesomeModule, 
+    ReactiveFormsModule,
+    FontAwesomeModule,
     MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
     MatButtonModule,
     AppCurrencyPipe
-  ],
+],
   templateUrl: './transfer-dialog.component.html',
 })
 export class TransferDialogComponent implements OnInit {
+  private fb = inject(FormBuilder);
+  private walletService = inject(WalletService);
+  dialogRef = inject<MatDialogRef<TransferDialogComponent>>(MatDialogRef);
+  currencyService = inject(CurrencyService);
+  data = inject<{
+    fromWallet?: Wallet;
+}>(MAT_DIALOG_DATA);
+
+  private readonly destroyRef = inject(DestroyRef);
+
   faExchangeAlt = faExchangeAlt;
   faWallet = faWallet;
   faMoneyBillWave = faMoneyBillWave;
@@ -40,13 +50,9 @@ export class TransferDialogComponent implements OnInit {
   isLoading = false;
   error: string | null = null;
 
-  constructor(
-    private fb: FormBuilder,
-    private walletService: WalletService,
-    public dialogRef: MatDialogRef<TransferDialogComponent>,
-    public currencyService: CurrencyService,
-    @Inject(MAT_DIALOG_DATA) public data: { fromWallet?: Wallet }
-  ) {
+  constructor() {
+    const data = this.data;
+
     this.transferForm = this.fb.group({
       fromWalletId: [data.fromWallet?.id || '', Validators.required],
       toWalletId: ['', Validators.required],
@@ -56,7 +62,7 @@ export class TransferDialogComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.walletService.getAllWallets().subscribe(wallets => {
+    this.walletService.getAllWallets().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(wallets => {
       this.wallets = wallets;
     });
   }
@@ -73,7 +79,7 @@ export class TransferDialogComponent implements OnInit {
       this.isLoading = true;
       this.error = null;
 
-      this.walletService.transferFunds(fromWalletId, toWalletId, amount, description).subscribe({
+      this.walletService.transferFunds(fromWalletId, toWalletId, amount, description).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: () => {
           this.isLoading = false;
           this.dialogRef.close(true);

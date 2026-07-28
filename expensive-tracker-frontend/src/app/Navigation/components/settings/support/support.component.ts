@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Component, inject } from '@angular/core';
+
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, ValidatorFn } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {
   faEnvelope,
@@ -10,6 +10,7 @@ import {
   faComments,
   faSearch
 } from '@fortawesome/free-solid-svg-icons';
+import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 
 interface SupportHours {
   day: string;
@@ -17,7 +18,7 @@ interface SupportHours {
 }
 
 interface ContactOption {
-  icon: any;
+  icon: IconDefinition;
   title: string;
   description: string;
 }
@@ -27,20 +28,20 @@ interface FormField {
   label: string;
   type: string;
   options?: { value: string; label: string; }[];
-  validation?: any[];
+  validation?: ValidatorFn[];
 }
 
-interface FormGroupConfig {
-  [key: string]: [string, import('@angular/forms').ValidatorFn[]];
-}
+type FormGroupConfig = Record<string, [string, ValidatorFn[]]>;
 
 @Component({
   selector: 'app-support',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, FontAwesomeModule],
+  imports: [FormsModule, ReactiveFormsModule, FontAwesomeModule],
   templateUrl: './support.component.html'
 })
 export class SupportComponent {
+  private fb = inject(FormBuilder);
+
   // Icons
   emailIcon = faEnvelope;
   phoneIcon = faPhone;
@@ -128,7 +129,7 @@ export class SupportComponent {
   supportForm!: FormGroup;
   searchTerm = '';
 
-  constructor(private fb: FormBuilder) {
+  constructor() {
     this.initForm();
   }
 
@@ -151,7 +152,6 @@ export class SupportComponent {
 
   submitSupportRequest() {
     if (this.supportForm.valid) {
-      console.log('Support request submitted:', this.supportForm.value);
       // Implement API call to submit support request
     }
   }

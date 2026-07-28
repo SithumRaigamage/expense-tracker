@@ -1,23 +1,23 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject } from '@angular/core';
+
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {
   faStar as faStarSolid,
-  faThumbsUp,
-  faThumbsDown,
   faPaperclip,
-  faComment,
   faBug,
   faLightbulb,
   faGaugeHigh,
   faPaintBrush
 } from '@fortawesome/free-solid-svg-icons';
 import { faStar as faStarRegular } from '@fortawesome/free-regular-svg-icons';
+import { FeedbackService } from '../../../services/feedback.service';
+import { NotificationService } from '../../../shared/services/notification.service';
+import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 
 interface FeedbackCategory {
   id: string;
-  icon: any;
+  icon: IconDefinition;
   title: string;
   description: string;
 }
@@ -31,10 +31,14 @@ interface SentimentOption {
 @Component({
   selector: 'app-feedback',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, FontAwesomeModule],
+  imports: [FormsModule, ReactiveFormsModule, FontAwesomeModule],
   templateUrl: './feedback.component.html'
 })
 export class FeedbackComponent {
+  private fb = inject(FormBuilder);
+  private readonly feedbackService = inject(FeedbackService);
+  private readonly notifications = inject(NotificationService);
+
   feedbackForm!: FormGroup;
   rating = 0;
   starSolid = faStarSolid;
@@ -76,7 +80,9 @@ export class FeedbackComponent {
     { emoji: '😄', label: 'Very Satisfied', value: 5 }
   ];
 
-  constructor(private fb: FormBuilder) {
+  isSubmitting = false;
+
+  constructor() {
     this.initForm();
   }
 
@@ -97,7 +103,7 @@ export class FeedbackComponent {
     });
   }
 
-  private getDeviceInfo(): string {
+  getDeviceInfo(): string {
     return `Browser: ${navigator.userAgent}
 Platform: ${navigator.platform}
 Screen: ${window.screen.width}x${window.screen.height}
@@ -121,7 +127,6 @@ Window: ${window.innerWidth}x${window.innerHeight}`;
 
   submitFeedback(): void {
     if (this.feedbackForm.valid) {
-      console.log('Feedback submitted:', this.feedbackForm.value);
       // Implement API call to submit feedback
       this.feedbackForm.reset();
       this.rating = 0;

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -25,6 +25,10 @@ type ImportMode = 'file' | 'text' | 'sms';
   templateUrl: './import-scan.component.html'
 })
 export class ImportScanComponent implements OnInit {
+  private importService = inject(ImportService);
+  private transactionService = inject(TransactionService);
+  private walletService = inject(WalletService);
+
   // Icons
   faReceipt = faReceipt; faFileCsv = faFileCsv; faCommentSms = faCommentSms;
   faFileImport = faFileImport; faCamera = faCamera; faSpinner = faSpinner;
@@ -58,12 +62,6 @@ export class ImportScanComponent implements OnInit {
   importError = '';
   summary: ImportSummary | null = null;
   lastRunWasPreview = false;
-
-  constructor(
-    private importService: ImportService,
-    private transactionService: TransactionService,
-    private walletService: WalletService
-  ) {}
 
   ngOnInit(): void {
     this.walletService.wallets$.subscribe((wallets) => {
@@ -124,7 +122,7 @@ export class ImportScanComponent implements OnInit {
       type: category?.type ?? 'expense',
       date: s.date ? new Date(s.date) : new Date(),
       walletId: this.selectedWalletId
-    } as any).subscribe({
+    }).subscribe({
       next: () => { this.creatingExpense = false; this.expenseCreated = true; },
       error: (err) => { this.creatingExpense = false; this.receiptError = err.message; }
     });

@@ -1,8 +1,10 @@
-<div class="p-6 dark:bg-gray-800 dark:text-gray-100 min-w-[400px]">
+<!-- min-w only from sm: a hard 400px floor made the dialog wider than a 375px
+     phone, so the whole page scrolled sideways to reach the Cancel button. -->
+<div class="p-4 sm:p-6 dark:bg-gray-800 dark:text-gray-100 sm:min-w-[400px]">
   <div class="flex items-center gap-3 mb-6">
     <div
-      class="p-3 rounded-full bg-primary-100 text-primary-600 dark:bg-primary-900/30 dark:text-primary-400"
-    >
+      class="p-3 rounded-full bg-brand-100 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400"
+      >
       <fa-icon [icon]="faExchangeAlt" class="text-xl"></fa-icon>
     </div>
     <div>
@@ -15,130 +17,144 @@
     </div>
   </div>
 
-  <div
-    *ngIf="error"
-    class="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm flex items-start gap-3"
-  >
-    <fa-icon [icon]="faWallet" class="mt-0.5"></fa-icon>
-    <span>{{ error }}</span>
-  </div>
+  @if (error) {
+    <div
+      class="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm flex items-start gap-3"
+      >
+      <fa-icon [icon]="faWallet" class="mt-0.5"></fa-icon>
+      <span>{{ error }}</span>
+    </div>
+  }
 
   <form [formGroup]="transferForm" (ngSubmit)="onSubmit()" class="space-y-6">
     <div class="grid grid-cols-1 gap-6">
       <!-- From Wallet -->
       <div>
         <label
+          for="transfer-from-wallet"
           class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
           >From Wallet</label
-        >
-        <div class="relative">
-          <select
-            formControlName="fromWalletId"
-            class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white appearance-none"
           >
-            <option value="">Select source wallet</option>
-            <option *ngFor="let wallet of wallets" [value]="wallet.id">
-              {{ wallet.name }} ({{ wallet.balance | appCurrency:wallet.currency }})
-            </option>
-          </select>
-          <div
-            class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none"
-          >
-            <fa-icon [icon]="faWallet" class="text-gray-400 text-xs"></fa-icon>
+          <div class="relative">
+            <select
+              id="transfer-from-wallet"
+              formControlName="fromWalletId"
+              class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white appearance-none"
+              >
+              <option value="">Select source wallet</option>
+              @for (wallet of wallets; track wallet) {
+                <option [value]="wallet.id">
+                  {{ wallet.name }} ({{ wallet.balance | appCurrency:wallet.currency }})
+                </option>
+              }
+            </select>
+            <div
+              class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none"
+              >
+              <fa-icon [icon]="faWallet" class="text-gray-400 text-xs"></fa-icon>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Arrow Down Icon -->
-      <div class="flex justify-center -my-3">
-        <div class="p-2 bg-gray-100 dark:bg-gray-700 rounded-full">
-          <fa-icon
-            [icon]="faArrowRight"
-            class="transform rotate-90 text-gray-500"
-          ></fa-icon>
-        </div>
-      </div>
-
-      <!-- To Wallet -->
-      <div>
-        <label
-          class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-          >To Wallet</label
-        >
-        <div class="relative">
-          <select
-            formControlName="toWalletId"
-            class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white appearance-none"
-          >
-            <option value="">Select destination wallet</option>
-            <option *ngFor="let wallet of wallets" [value]="wallet.id">
-              {{ wallet.name }} ({{ wallet.balance | appCurrency:wallet.currency }})
-            </option>
-          </select>
-          <div
-            class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none"
-          >
-            <fa-icon [icon]="faWallet" class="text-gray-400 text-xs"></fa-icon>
+        <!-- Arrow Down Icon -->
+        <div class="flex justify-center -my-3">
+          <div class="p-2 bg-gray-100 dark:bg-gray-700 rounded-full">
+            <fa-icon
+              [icon]="faArrowRight"
+              class="transform rotate-90 text-gray-500"
+            ></fa-icon>
           </div>
         </div>
-      </div>
 
-      <!-- Amount -->
-      <div>
-        <label
-          class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-          >Amount</label
-        >
-        <div class="relative">
-          <div
-            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
-          >
-            <span class="text-gray-400 sm:text-sm">{{currencyService.getActiveCurrency()}}</span>
+        <!-- To Wallet -->
+        <div>
+          <label
+            for="transfer-to-wallet"
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >To Wallet</label
+            >
+            <div class="relative">
+              <select
+                id="transfer-to-wallet"
+                formControlName="toWalletId"
+                class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white appearance-none"
+                >
+                <option value="">Select destination wallet</option>
+                @for (wallet of wallets; track wallet) {
+                  <option [value]="wallet.id">
+                    {{ wallet.name }} ({{ wallet.balance | appCurrency:wallet.currency }})
+                  </option>
+                }
+              </select>
+              <div
+                class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none"
+                >
+                <fa-icon [icon]="faWallet" class="text-gray-400 text-xs"></fa-icon>
+              </div>
+            </div>
           </div>
-          <input
-            type="number"
-            formControlName="amount"
-            class="w-full rounded-lg border border-gray-300 bg-white pl-12 px-4 py-2.5 text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-            placeholder="0.00"
-          />
+
+          <!-- Amount -->
+          <div>
+            <label
+              for="transfer-amount"
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >Amount</label
+              >
+              <div class="relative">
+                <div
+                  class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+                  >
+                  <span class="text-gray-400 sm:text-sm">{{currencyService.getActiveCurrency()}}</span>
+                </div>
+                <input
+                  id="transfer-amount"
+                  type="number"
+                  formControlName="amount"
+                  class="w-full rounded-lg border border-gray-300 bg-white pl-12 px-4 py-2.5 text-gray-900 focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  placeholder="0.00"
+                  />
+              </div>
+            </div>
+
+            <!-- Description -->
+            <div>
+              <label
+                for="transfer-description"
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >Description (Optional)</label
+                >
+                <textarea
+                  id="transfer-description"
+                  formControlName="description"
+                  rows="2"
+                  class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  placeholder="What is this transfer for?"
+                ></textarea>
+              </div>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-4">
+              <button
+                type="button"
+                (click)="onCancel()"
+                class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-4 focus:ring-gray-100 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700"
+                >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                [disabled]="!transferForm.valid || isLoading"
+                class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-brand-500 rounded-lg hover:bg-brand-600 focus:ring-4 focus:ring-brand-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                @if (isLoading) {
+                  <fa-icon
+                    [icon]="faExchangeAlt"
+                    class="animate-spin"
+                  ></fa-icon>
+                }
+                {{ isLoading ? "Processing..." : "Transfer Funds" }}
+              </button>
+            </div>
+          </form>
         </div>
-      </div>
-
-      <!-- Description -->
-      <div>
-        <label
-          class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-          >Description (Optional)</label
-        >
-        <textarea
-          formControlName="description"
-          rows="2"
-          class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-          placeholder="What is this transfer for?"
-        ></textarea>
-      </div>
-    </div>
-
-    <div class="flex justify-end gap-3 pt-4">
-      <button
-        type="button"
-        (click)="onCancel()"
-        class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-4 focus:ring-gray-100 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700"
-      >
-        Cancel
-      </button>
-      <button
-        type="submit"
-        [disabled]="!transferForm.valid || isLoading"
-        class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-black bg-primary-500 rounded-lg hover:bg-primary-600 focus:ring-4 focus:ring-primary-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-      >
-        <fa-icon
-          *ngIf="isLoading"
-          [icon]="faExchangeAlt"
-          class="animate-spin"
-        ></fa-icon>
-        {{ isLoading ? "Processing..." : "Transfer Funds" }}
-      </button>
-    </div>
-  </form>
-</div>

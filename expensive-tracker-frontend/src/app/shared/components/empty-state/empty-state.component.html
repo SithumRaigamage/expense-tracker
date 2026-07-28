@@ -1,0 +1,21 @@
+<div
+  class="flex flex-col items-center justify-center text-center rounded-xl border border-dashed border-gray-200 bg-gray-50/60 px-6 dark:border-gray-700 dark:bg-white/[0.02]"
+  [ngClass]="paddingClass"
+  >
+  <div
+    class="inline-flex items-center justify-center w-14 h-14 mb-4 rounded-full bg-white text-gray-400 shadow-sm dark:bg-gray-800 dark:text-gray-500"
+    >
+    <fa-icon [icon]="icon" class="text-xl"></fa-icon>
+  </div>
+
+  <h3 class="font-medium text-gray-900 dark:text-white">{{ title }}</h3>
+
+  @if (message) {
+    <p class="mt-1 max-w-sm text-sm text-gray-500 dark:text-gray-400">
+      {{ message }}
+    </p>
+  }
+
+  <!-- Kept on one line so the wrapper is truly :empty (and stays collapsed) when no action is projected. -->
+  <div class="mt-6 empty:hidden empty:mt-0"><ng-content></ng-content></div>
+</div>

@@ -1,140 +1,112 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faBookOpen } from '@fortawesome/free-solid-svg-icons';
 
-interface EducationalContent {
-  id: string;
-  title: string;
-  description: string;
-  type: 'article' | 'video' | 'quiz';
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
-  category: string;
-  duration: number;
-  dateAdded: Date;
-  progress?: number;
-  rating?: number;
-  bookmarked?: boolean;
-  completed?: boolean;
-}
-
-// Add this after the EducationalContent interface
-type SortableField = keyof Pick<EducationalContent, 'title' | 'dateAdded' | 'duration' | 'difficulty'>;
+import {
+  ARTICLES,
+  GLOSSARY,
+  Article,
+  ArticleCategory,
+  ArticleLevel,
+  GlossaryTerm
+} from '../../../shared/content/financial-education';
+import { EducationProgressService } from '../../../shared/services/education-progress.service';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 
 @Component({
   selector: 'app-education',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink, FontAwesomeModule, EmptyStateComponent],
   templateUrl: './education.component.html',
 })
 export class EducationComponent implements OnInit {
-  // Content Data
-  contents: EducationalContent[] = [];
-  filteredContents: EducationalContent[] = [];
+  readonly progress = inject(EducationProgressService);
 
-  // Filters
+  readonly faBookOpen = faBookOpen;
+
+  /**
+   * The article set is a compiled-in constant, not a fetch. Filtering happens
+   * over the whole list in memory, which is the right shape for six articles —
+   * there is no pagination here because there is never a second page.
+   */
+  readonly articles = ARTICLES;
+  readonly glossary: GlossaryTerm[] = GLOSSARY;
+
+  filteredArticles: Article[] = [];
+
   searchQuery = '';
-  selectedDifficulty = 'all';
-  selectedType = 'all';
-  selectedCategory = 'all';
+  selectedCategory: ArticleCategory | 'all' = 'all';
+  selectedLevel: ArticleLevel | 'all' = 'all';
+  bookmarkedOnly = false;
 
-  // Sorting
-  sortField: SortableField = 'dateAdded';
-  sortDirection: 'asc' | 'desc' = 'desc';
+  readonly categories: ArticleCategory[] = ['budgeting', 'saving', 'debt', 'investing'];
+  readonly levels: ArticleLevel[] = ['beginner', 'intermediate'];
 
-  // Pagination
-  currentPage = 1;
-  itemsPerPage = 9;
-
-  // Filter options
-  difficulties = ['beginner', 'intermediate', 'advanced'];
-  contentTypes = ['article', 'video', 'quiz'];
-  categories = ['budgeting', 'investing', 'savings', 'taxes'];
-
-  ngOnInit() {
-    // Simulate loading initial data
-    this.loadDummyData();
+  ngOnInit(): void {
     this.applyFilters();
   }
 
-  loadDummyData() {
-    this.contents = [
-      {
-        id: '1',
-        title: 'Budgeting Basics',
-        description: 'Learn the fundamentals of creating a budget',
-        type: 'article',
-        difficulty: 'beginner',
-        category: 'budgeting',
-        duration: 15,
-        dateAdded: new Date(),
-        rating: 4.5,
-        progress: 0
-      },
-      // Add more dummy content...
-    ];
-  }
+  applyFilters(): void {
+    const query = this.searchQuery.trim().toLowerCase();
 
-  applyFilters() {
-    this.filteredContents = this.contents.filter(content => {
-      const matchesSearch = content.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-                          content.description.toLowerCase().includes(this.searchQuery.toLowerCase());
+    this.filteredArticles = this.articles.filter(article => {
+      const matchesSearch =
+        !query ||
+        article.title.toLowerCase().includes(query) ||
+        article.summary.toLowerCase().includes(query);
 
-      const matchesDifficulty = this.selectedDifficulty === 'all' ||
-                               content.difficulty === this.selectedDifficulty;
+      const matchesCategory =
+        this.selectedCategory === 'all' || article.category === this.selectedCategory;
 
-      const matchesType = this.selectedType === 'all' ||
-                         content.type === this.selectedType;
+      const matchesLevel = this.selectedLevel === 'all' || article.level === this.selectedLevel;
 
-      const matchesCategory = this.selectedCategory === 'all' ||
-                             content.category === this.selectedCategory;
+      const matchesBookmark = !this.bookmarkedOnly || this.progress.isBookmarked(article.id);
 
-      return matchesSearch && matchesDifficulty && matchesType && matchesCategory;
-    });
-
-    // Apply sorting with type safety
-    this.filteredContents.sort((a, b) => {
-      const factor = this.sortDirection === 'asc' ? 1 : -1;
-
-      // Handle different types of values
-      if (this.sortField === 'dateAdded') {
-        return (a.dateAdded.getTime() - b.dateAdded.getTime()) * factor;
-      }
-
-      if (this.sortField === 'duration') {
-        return (a.duration - b.duration) * factor;
-      }
-
-      if (this.sortField === 'title' || this.sortField === 'difficulty') {
-        const aValue = a[this.sortField]?.toLowerCase() || '';
-        const bValue = b[this.sortField]?.toLowerCase() || '';
-        return aValue.localeCompare(bValue) * factor;
-      }
-
-      return 0;
+      return matchesSearch && matchesCategory && matchesLevel && matchesBookmark;
     });
   }
 
-  get paginatedContent() {
-    const start = (this.currentPage - 1) * this.itemsPerPage;
-    return this.filteredContents.slice(start, start + this.itemsPerPage);
+  clearFilters(): void {
+    this.searchQuery = '';
+    this.selectedCategory = 'all';
+    this.selectedLevel = 'all';
+    this.bookmarkedOnly = false;
+    this.applyFilters();
   }
 
-  get totalPages() {
-    return Math.ceil(this.filteredContents.length / this.itemsPerPage);
+  get hasActiveFilters(): boolean {
+    return (
+      !!this.searchQuery.trim() ||
+      this.selectedCategory !== 'all' ||
+      this.selectedLevel !== 'all' ||
+      this.bookmarkedOnly
+    );
   }
 
-  toggleBookmark(content: EducationalContent) {
-    content.bookmarked = !content.bookmarked;
+  /** Tailwind classes for a category pill. Kept out of the template so the markup stays readable. */
+  categoryClass(category: ArticleCategory): string {
+    const classes: Record<ArticleCategory, string> = {
+      budgeting: 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200',
+      saving: 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200',
+      debt: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200',
+      investing: 'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-200'
+    };
+    return classes[category];
   }
 
-  markAsCompleted(content: EducationalContent) {
-    content.completed = true;
-    content.progress = 100;
-  }
+  toggleBookmark(article: Article, event: Event): void {
+    // The whole card is a link to the article; the star sits inside it.
+    event.preventDefault();
+    event.stopPropagation();
 
-  updateRating(content: EducationalContent, rating: number): void {
-    content.rating = rating;
-    // Optionally, you can trigger save/update to backend here
-    this.applyFilters(); // If you want to re-sort based on rating
+    this.progress.toggleBookmark(article.id);
+
+    // Un-bookmarking while filtered to bookmarks should remove the card.
+    if (this.bookmarkedOnly) {
+      this.applyFilters();
+    }
   }
 }

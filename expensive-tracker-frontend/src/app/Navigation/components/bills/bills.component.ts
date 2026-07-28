@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+
 import { FormsModule } from '@angular/forms';
 import { BillsService } from '../../../services/bill.service';
 import { WalletService } from '../../../services/wallet.service';
@@ -11,14 +12,25 @@ import { ExcelExportService } from '../../../services/excel-export.service';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faDownload, faEdit, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { SideDrawerComponent } from '../../../shared/components/side-drawer/side-drawer.component';
+import { NotificationService } from '../../../shared/services/notification.service';
+import { DialogService } from '../../../shared/services/dialog.service';
 
 @Component({
   selector: 'app-bills',
   standalone: true,
-  imports: [CommonModule, FormsModule, AppCurrencyPipe, FontAwesomeModule, SideDrawerComponent],
+  imports: [FormsModule, AppCurrencyPipe, FontAwesomeModule, SideDrawerComponent],
   templateUrl: './bills.component.html',
 })
 export class BillsComponent implements OnInit {
+  private billsService = inject(BillsService);
+  private walletService = inject(WalletService);
+  currencyService = inject(CurrencyService);
+  private excelExportService = inject(ExcelExportService);
+  private readonly notifications = inject(NotificationService);
+  private readonly dialogs = inject(DialogService);
+
+  private readonly destroyRef = inject(DestroyRef);
+
   bills: Bill[] = [];
   transactions: BillTransaction[] = [];
   availableWallets: Wallet[] = [];
@@ -30,27 +42,20 @@ export class BillsComponent implements OnInit {
   faEdit = faEdit;
   faPlus = faPlus;
 
-  constructor(
-    private billsService: BillsService,
-    private walletService: WalletService,
-    public currencyService: CurrencyService,
-    private excelExportService: ExcelExportService
-  ) {}
-
   ngOnInit(): void {
     this.loadData();
   }
 
   private loadData(): void {
-    this.billsService.getBills().subscribe(bills => {
+    this.billsService.getBills().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(bills => {
       this.bills = bills;
     });
 
-    this.billsService.getTransactions().subscribe(transactions => {
+    this.billsService.getTransactions().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(transactions => {
       this.transactions = transactions;
     });
 
-    this.walletService.getAllWallets().subscribe(wallets => {
+    this.walletService.getAllWallets().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(wallets => {
       this.availableWallets = wallets.filter(w =>
         (w.type === 'cash' || w.type === 'bank') && w.balance > 0
       );
@@ -82,23 +87,46 @@ export class BillsComponent implements OnInit {
   }
 
   submitForm(): void {
-    if (this.validateBill()) {
-      if (this.drawerMode === 'add') {
-        this.billsService.addBill(this.currentBill as Omit<Bill, 'id' | 'status'>);
-      } else {
-        this.billsService.updateBill(
-          this.currentBill.id!,
-          this.currentBill as Partial<Bill>
-        );
-      }
-      this.closeDrawer();
+    if (!this.validateBill()) {
+      this.notifications.error('Fill in every field before saving.');
+      return;
     }
+
+    const request$ = this.drawerMode === 'add'
+      ? this.billsService.addBill(this.currentBill)
+      : this.billsService.updateBill(this.currentBill.id!, this.currentBill);
+
+    request$.subscribe({
+      next: () => {
+        this.notifications.success(this.drawerMode === 'add' ? 'Bill added.' : 'Bill updated.');
+        this.closeDrawer();
+      },
+      error: (error) => this.notifications.error(error?.message || 'Could not save that bill.')
+    });
+  }
+
+  /** Pays the bill from a wallet; the server moves the money and logs it. */
+  payBill(bill: Bill): void {
+    const walletId = bill.selectedWalletId || this.availableWallets[0]?.id;
+
+    if (!walletId) {
+      this.notifications.error('Add a funded cash or bank wallet first.');
+      return;
+    }
+
+    this.billsService.payBill(bill.id, walletId).subscribe({
+      next: () => this.notifications.success(`Paid ${bill.name}.`),
+      error: (error) => this.notifications.error(error?.message || 'Could not pay that bill.')
+    });
   }
 
   deleteBill(id: string): void {
-    if (confirm('Are you sure you want to delete this bill?')) {
-      this.billsService.deleteBill(id);
-    }
+    this.dialogs.confirmDelete('bill').pipe(takeUntilDestroyed(this.destroyRef)).subscribe(confirmed => {
+      if (confirmed) {
+        this.billsService.deleteBill(id);
+        this.notifications.success('Bill deleted.');
+      }
+    });
   }
 
   private validateBill(): boolean {
@@ -109,6 +137,21 @@ export class BillsComponent implements OnInit {
       this.currentBill.dueDate &&
       this.currentBill.provider
     );
+  }
+
+  /** Same palette the dashboard widget uses, so a status reads the same everywhere. */
+  getStatusClass(status: Bill['status']): string {
+    const classes: Record<string, string> = {
+      'Upcoming': 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
+      'Due Today': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
+      'Overdue': 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+      'Paid': 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+    };
+    return classes[status] || '';
+  }
+
+  onIconError(event: Event): void {
+    (event.target as HTMLImageElement).style.display = 'none';
   }
 
   formatDate(date: Date): string {

@@ -10,6 +10,8 @@ const {
 } = require('../controllers/categoryController');
 
 const { protect } = require('../middleware/auth');
+const { validateObjectId } = require('../middleware/validation');
+const { validateCategoryCreate, validateCategoryUpdate } = require('../validators/categoryValidator');
 
 // Apply auth middleware to all routes
 router.use(protect);
@@ -20,11 +22,11 @@ router.post('/defaults', createDefaultCategories);
 // Main CRUD routes
 router.route('/')
   .get(getCategories)
-  .post(createCategory);
+  .post(validateCategoryCreate, createCategory);
 
 router.route('/:id')
-  .get(getCategory)
-  .put(updateCategory)
-  .delete(deleteCategory);
+  .get(validateObjectId(), getCategory)
+  .put(validateObjectId(), validateCategoryUpdate, updateCategory)
+  .delete(validateObjectId(), deleteCategory);
 
 module.exports = router;

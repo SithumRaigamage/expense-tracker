@@ -1,5 +1,6 @@
-import { Component, Input, OnChanges, SimpleChanges, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, Input, OnChanges, SimpleChanges, OnInit, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+
 import {
   ApexAxisChartSeries,
   ApexChart,
@@ -18,7 +19,7 @@ import {
 import { Transaction } from '../../../core/models/Transaction';
 import { CurrencyService } from '../../../core/services/currency.service';
 
-export type ChartOptions = {
+export interface ChartOptions {
   series: ApexAxisChartSeries;
   chart: ApexChart;
   xaxis: ApexXAxis;
@@ -40,15 +41,19 @@ export type ChartOptions = {
       };
     }
   };
-};
+}
 
 @Component({
   selector: 'app-chart',
   standalone: true,
-  imports: [CommonModule, NgApexchartsModule],
+  imports: [NgApexchartsModule],
   templateUrl: './chart.component.html',
 })
 export class ChartComponent implements OnChanges, OnInit {
+  private currencyService = inject(CurrencyService);
+
+  private readonly destroyRef = inject(DestroyRef);
+
   @Input() chartType: 'income' | 'expense' | 'all' = 'all';
   @Input() transactions: Transaction[] = [];
 
@@ -61,12 +66,12 @@ export class ChartComponent implements OnChanges, OnInit {
     grid: '#E2E8F0', // Grid color
   };
 
-  constructor(private currencyService: CurrencyService) {
+  constructor() {
     this.initializeChart();
   }
 
   ngOnInit() {
-    this.currencyService.activeCurrency$.subscribe(() => {
+    this.currencyService.activeCurrency$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
         this.updateChartData();
     });
   }

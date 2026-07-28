@@ -1,5 +1,5 @@
 const axios = require('axios');
-const { CURRENCIES } = require('../config/constants');
+const logger = require('../utils/logger');
 
 /**
  * Service to handle currency exchange rates
@@ -44,11 +44,11 @@ class CurrencyService {
       if (response.data && response.data.rates) {
         this.rates = response.data.rates;
         this.lastFetched = now;
-        console.log('Exchange rates updated from API');
+        logger.info('Exchange rates updated from API');
         return this.rates;
       }
     } catch (error) {
-      console.warn('Failed to fetch exchange rates, using fallback:', error.message);
+      logger.warn('Failed to fetch exchange rates, using fallback', { message: error.message });
     }
 
     // Use fallback if API fails
@@ -69,7 +69,7 @@ class CurrencyService {
     const rates = await this.fetchRates();
     
     if (!rates[fromCurrency] || !rates[toCurrency]) {
-      console.warn(`Missing rate for ${fromCurrency} or ${toCurrency}`);
+      logger.warn('Missing exchange rate', { fromCurrency, toCurrency });
       return amount; // Fallback to original amount if conversion fails
     }
 

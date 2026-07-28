@@ -1,23 +1,23 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { Currency, SettingsService } from '../../../../services/settings.service';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { CurrencyService } from '../../../../core/services/currency.service';
+import { NotificationService } from '../../../../shared/services/notification.service';
 
 @Component({
   selector: 'app-currency',
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   templateUrl: './currency.component.html',
 })
-export class CurrencyComponent {
+export class CurrencyComponent implements OnInit {
+  private settingsService = inject(SettingsService);
+  private currencyService = inject(CurrencyService);
+  private readonly notifications = inject(NotificationService);
 
-  selectedCurrency: string = 'LKR'; // Default currency
+
+  selectedCurrency = 'LKR'; // Default currency
   currencies: Currency[] = [];
-
-  constructor(
-    private settingsService: SettingsService,
-    private currencyService: CurrencyService
-  ) {}
 
   ngOnInit(): void {
     this.loadCurrencies();
@@ -42,7 +42,7 @@ export class CurrencyComponent {
     const newCurrency = select.value;
     this.currencyService.setCurrency(newCurrency);
     this.selectedCurrency = newCurrency;
-    alert('Currency updated successfully');
+    this.notifications.success(`Amounts now shown in ${newCurrency}.`);
   }
 
 }

@@ -21,6 +21,12 @@ const PAYMENT_METHODS = [
 // Category types
 const CATEGORY_TYPES = ['income', 'expense'];
 
+// Feedback categories — must match the tiles the feedback form renders.
+const FEEDBACK_CATEGORIES = ['feature', 'bug', 'ui', 'performance'];
+
+// Bill categories
+const BILL_CATEGORIES = ['Utilities', 'Subscription', 'Entertainment', 'Internet', 'Insurance', 'Other'];
+
 // Recurring frequencies
 const RECURRING_FREQUENCIES = ['daily', 'weekly', 'monthly', 'yearly'];
 
@@ -51,6 +57,8 @@ module.exports = {
   CURRENCIES,
   PAYMENT_METHODS,
   CATEGORY_TYPES,
+  BILL_CATEGORIES,
+  FEEDBACK_CATEGORIES,
   RECURRING_FREQUENCIES,
   FILE_UPLOAD,
   PAGINATION,

@@ -1,9 +1,10 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError, of } from 'rxjs';
-import { catchError, map, tap, switchMap } from 'rxjs/operators';
+import { catchError, map, tap } from 'rxjs/operators';
 import { ProductBudget } from '../core/models/ProductBudget';
 import { AuthService } from './auth.service';
+import { environment } from '../../environments/environment';
 
 interface ApiResponse<T> {
   success: boolean;
@@ -12,14 +13,53 @@ interface ApiResponse<T> {
   error?: string;
 }
 
+/** Raw shape returned by POST /productbudgets/:id/contribute. */
+interface ApiContributionResult {
+  budget: {
+    _id: string;
+    name: string;
+    imageUrl: string;
+    targetAmount: number;
+    savedAmount: number;
+    targetDate: string;
+  };
+  appliedAmount: number;
+  isFullyFunded: boolean;
+  walletBalance: number;
+}
+
+/** What the server actually did — `appliedAmount` can be less than requested. */
+export interface ContributionResult {
+  goal: ProductBudget;
+  appliedAmount: number;
+  isFullyFunded: boolean;
+  walletBalance: number;
+}
+
+/**
+ * A goal as the API stores it: Mongo's `_id`, and a date that has not been
+ * revived from its ISO string yet.
+ */
+interface ApiGoal {
+  _id: string;
+  name: string;
+  imageUrl: string;
+  targetAmount: number;
+  savedAmount: number;
+  targetDate: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class ProductBudgetService {
-  private apiUrl = 'http://localhost:3001/api/v1';
+  private http = inject(HttpClient);
+  private authService = inject(AuthService);
+
+  private apiUrl = environment.apiUrl;
   private goals = new BehaviorSubject<ProductBudget[]>([]);
 
-  constructor(private http: HttpClient, private authService: AuthService) {
+  constructor() {
     // Load goals when the service is initialized if user is authenticated
     if (this.authService.isAuthenticated()) {
       this.loadGoals();
@@ -34,9 +74,8 @@ export class ProductBudgetService {
   }
 
   private loadGoals(): void {
-    console.log('Loading product budget goals...');
 
-    this.http.get<ApiResponse<ProductBudget[]>>(`${this.apiUrl}/productbudgets`)
+    this.http.get<ApiResponse<ApiGoal[]>>(`${this.apiUrl}/productbudgets`)
       .pipe(
         map(response => response.data),
         map(goals => this.mapApiGoalsToProductBudgets(goals)),
@@ -44,7 +83,6 @@ export class ProductBudgetService {
       )
       .subscribe({
         next: (goals) => {
-          console.log('Product budget goals loaded:', goals);
           this.goals.next(goals);
         },
         error: (error) => {
@@ -53,7 +91,7 @@ export class ProductBudgetService {
       });
   }
 
-  private mapApiGoalsToProductBudgets(goals: any[]): ProductBudget[] {
+  private mapApiGoalsToProductBudgets(goals: ApiGoal[]): ProductBudget[] {
     return goals.map(goal => ({
       id: goal._id,
       name: goal.name,
@@ -77,7 +115,7 @@ export class ProductBudgetService {
       return throwError(() => new Error('User not authenticated'));
     }
 
-    return this.http.post<ApiResponse<any>>(`${this.apiUrl}/productbudgets`, goal)
+    return this.http.post<ApiResponse<ApiGoal>>(`${this.apiUrl}/productbudgets`, goal)
       .pipe(
         map(response => response.data),
         map(newGoal => ({
@@ -103,7 +141,7 @@ export class ProductBudgetService {
 
     const { id, ...goalData } = goal;
 
-    return this.http.put<ApiResponse<any>>(`${this.apiUrl}/productbudgets/${id}`, goalData)
+    return this.http.put<ApiResponse<ApiGoal>>(`${this.apiUrl}/productbudgets/${id}`, goalData)
       .pipe(
         map(response => response.data),
         map(updatedGoal => ({
@@ -131,7 +169,7 @@ export class ProductBudgetService {
       return throwError(() => new Error('User not authenticated'));
     }
 
-    return this.http.delete<ApiResponse<any>>(`${this.apiUrl}/productbudgets/${id}`)
+    return this.http.delete<ApiResponse<unknown>>(`${this.apiUrl}/productbudgets/${id}`)
       .pipe(
         map(() => void 0),
         tap(() => {
@@ -142,43 +180,49 @@ export class ProductBudgetService {
       );
   }
 
-  addMoney(id: string, amount: number): Observable<ProductBudget> {
+  /**
+   * Moves money from a wallet into a goal in a single server-side transaction.
+   *
+   * The previous implementation read the goal, added to `savedAmount` in the
+   * browser and wrote the whole document back — a read-modify-write that loses
+   * a concurrent contribution — while the caller separately debited the wallet.
+   * Three round trips for one transfer, with no way to keep the two sides in
+   * step if any of them failed. The server does both halves together now and
+   * returns the amount it actually applied, which may be less than requested
+   * when the goal needed less than was offered.
+   */
+  contribute(id: string, walletId: string, amount: number): Observable<ContributionResult> {
     if (!this.authService.isAuthenticated()) {
       return throwError(() => new Error('User not authenticated'));
     }
 
-    // Get the current saved amount first
-    return this.http.get<ApiResponse<ProductBudget>>(`${this.apiUrl}/productbudgets/${id}`)
+    return this.http
+      .post<ApiResponse<ApiContributionResult>>(
+        `${this.apiUrl}/productbudgets/${id}/contribute`,
+        { walletId, amount }
+      )
       .pipe(
-        map(response => response.data),
-        switchMap((goal: any) => {
-          // Calculate the new total amount
-          const currentAmount = goal.savedAmount || 0;
-          const newAmount = currentAmount + amount;
-
-          // Update the entire goal using PUT instead of PATCH (which might be having issues)
-          return this.http.put<ApiResponse<ProductBudget>>(`${this.apiUrl}/productbudgets/${id}`, {
-            savedAmount: newAmount,
-            name: goal.name,
-            imageUrl: goal.imageUrl,
-            targetAmount: goal.targetAmount,
-            targetDate: goal.targetDate
-          });
+        map(response => {
+          const { budget, appliedAmount, isFullyFunded, walletBalance } = response.data;
+          return {
+            goal: {
+              id: budget._id,
+              name: budget.name,
+              imageUrl: budget.imageUrl,
+              targetAmount: budget.targetAmount,
+              savedAmount: budget.savedAmount,
+              targetDate: new Date(budget.targetDate)
+            },
+            appliedAmount,
+            isFullyFunded,
+            walletBalance
+          };
         }),
-        map((response: ApiResponse<any>) => response.data),
-        map(updatedGoal => ({
-          id: updatedGoal._id,
-          name: updatedGoal.name,
-          imageUrl: updatedGoal.imageUrl,
-          targetAmount: updatedGoal.targetAmount,
-          savedAmount: updatedGoal.savedAmount,
-          targetDate: new Date(updatedGoal.targetDate)
-        })),
-        tap(updatedGoal => {
+        tap(({ goal }) => {
           const currentGoals = this.goals.getValue();
-          const index = currentGoals.findIndex(g => g.id === updatedGoal.id);
+          const index = currentGoals.findIndex(g => g.id === goal.id);
           if (index !== -1) {
-            currentGoals[index] = updatedGoal;
+            currentGoals[index] = goal;
             this.goals.next([...currentGoals]);
           }
         }),
@@ -199,7 +243,6 @@ export class ProductBudgetService {
       return throwError(() => new Error('User not authenticated'));
     }
 
-    console.log('Bulk adding goals:', goals);
 
     // Track successful and failed goals
     let successCount = 0;
@@ -230,7 +273,7 @@ export class ProductBudgetService {
 
         // Process the current goal
         const goal = goals[index];
-        this.http.post<ApiResponse<any>>(`${this.apiUrl}/productbudgets`, goal)
+        this.http.post<ApiResponse<ApiGoal>>(`${this.apiUrl}/productbudgets`, goal)
           .pipe(
             map(response => response.data),
             map(newGoal => ({

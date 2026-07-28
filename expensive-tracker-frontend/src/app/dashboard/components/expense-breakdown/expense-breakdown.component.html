@@ -1,37 +1,37 @@
 <div
   class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 h-full flex flex-col"
->
+  >
   <div class="flex flex-col gap-4 mb-4 sm:flex-row sm:items-center sm:justify-between">
     <div>
       <h3 class="text-xl font-bold text-gray-900">Financial Flow Analysis</h3>
       <p class="text-sm text-gray-500 mt-1">{{ breakdownSubtitle }}</p>
     </div>
     <div class="flex items-center gap-3">
-      <div class="bg-primary-50 p-2 rounded-lg">
-        <fa-icon [icon]="faChartPie" class="text-primary-600"></fa-icon>
+      <div class="bg-brand-50 p-2 rounded-lg">
+        <fa-icon [icon]="faChartPie" class="text-brand-600"></fa-icon>
       </div>
       <div class="flex items-center gap-2">
         <button
           (click)="setBreakdownTab('sankey')"
           class="px-3 py-1 text-sm rounded-md border"
           [ngClass]="{
-            'bg-primary-50 border-primary-200 text-primary-700 dark:bg-primary-900/10 dark:border-primary-800/30 dark:text-primary-300':
+            'bg-brand-50 border-brand-200 text-brand-700 dark:bg-brand-900/10 dark:border-brand-800/30 dark:text-brand-300':
               breakdownTab === 'sankey',
             'bg-white border-gray-200 text-gray-700': breakdownTab !== 'sankey',
           }"
-        >
+          >
           Sankey
         </button>
         <button
           (click)="setBreakdownTab('sunburst')"
           class="px-3 py-1 text-sm rounded-md border"
           [ngClass]="{
-            'bg-primary-50 border-primary-200 text-primary-700 dark:bg-primary-900/10 dark:border-primary-800/30 dark:text-primary-300':
+            'bg-brand-50 border-brand-200 text-brand-700 dark:bg-brand-900/10 dark:border-brand-800/30 dark:text-brand-300':
               breakdownTab === 'sunburst',
             'bg-white border-gray-200 text-gray-700':
               breakdownTab !== 'sunburst',
           }"
-        >
+          >
           Sunburst
         </button>
       </div>
@@ -39,42 +39,40 @@
   </div>
 
   <div class="flex-1">
-    <div
-      *ngIf="isBreakdownLoading"
-      class="flex items-center justify-center h-64"
-    >
-      <div class="relative w-12 h-12">
-        <div
-          class="absolute inset-0 border-4 border-primary-500/20 rounded-full"
-        ></div>
-        <div
-          class="absolute inset-0 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"
-        ></div>
+    <!-- Loading: shaped like the chart it becomes, so the panel keeps its height -->
+    @if (isBreakdownLoading) {
+      <div class="space-y-4">
+        <app-skeleton width="100%" height="340px" rounded="xl"></app-skeleton>
+        <div class="flex gap-3">
+          <app-skeleton width="22%" height="0.75rem"></app-skeleton>
+          <app-skeleton width="22%" height="0.75rem"></app-skeleton>
+          <app-skeleton width="22%" height="0.75rem"></app-skeleton>
+        </div>
       </div>
-    </div>
+    }
 
-    <!-- Empty State -->
-    <div
-      *ngIf="!isBreakdownLoading && !hasData"
-      class="flex flex-col items-center justify-center py-12 text-center"
-    >
-      <div class="mb-4 rounded-full bg-gray-100 p-6 dark:bg-gray-800">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-        </svg>
-      </div>
-      <h3 class="mb-2 text-lg font-semibold text-gray-900 dark:text-white">No Financial Flow Data</h3>
-      <p class="max-w-md text-sm text-gray-500 dark:text-gray-400">
-        Add transactions and wallets to visualize your financial flow and spending patterns.
-      </p>
-    </div>
+    @if (!isBreakdownLoading && !hasFlowData) {
+      <app-empty-state
+        [icon]="faChartPie"
+        title="No data available"
+        message="Once you record income and expenses across your wallets, your money flow will be charted here."
+        size="lg"
+        >
+        <a
+          routerLink="/transactions"
+          class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-600"
+          >
+          Add a transaction
+        </a>
+      </app-empty-state>
+    }
 
-    <!-- Chart Content -->
-    <div
-      *ngIf="!isBreakdownLoading && hasData"
-      echarts
-      [options]="breakdownTab === 'sankey' ? sankeyOptions : sunburstOptions"
-      class="w-full h-[420px]"
-    ></div>
+    @if (!isBreakdownLoading && hasFlowData) {
+      <div
+        echarts
+        [options]="breakdownTab === 'sankey' ? sankeyOptions : sunburstOptions"
+        class="w-full h-[420px]"
+      ></div>
+    }
   </div>
 </div>

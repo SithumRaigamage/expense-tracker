@@ -1,8 +1,8 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import {
   NgApexchartsModule,
-  ChartComponent,
   ApexAxisChartSeries,
   ApexChart,
   ApexXAxis,
@@ -20,6 +20,9 @@ import { Subscription, combineLatest } from 'rxjs';
 import { Router } from '@angular/router';
 import { CurrencyService } from '../../../core/services/currency.service';
 import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
+import { NotificationService } from '../../../shared/services/notification.service';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
+import { faShieldHalved } from '@fortawesome/free-solid-svg-icons';
 
 interface EmergencyTransaction {
   date: Date;
@@ -31,7 +34,7 @@ interface EmergencyTransaction {
   cumulativeExpense: number;
 }
 
-export type EmergencyChartOptions = {
+export interface EmergencyChartOptions {
   series: ApexAxisChartSeries;
   chart: ApexChart;
   xaxis: ApexXAxis;
@@ -43,16 +46,23 @@ export type EmergencyChartOptions = {
   fill: ApexFill;
   theme: ApexTheme;
   colors: string[];
-};
+}
 
 @Component({
   selector: 'app-emergency-fund',
   templateUrl: './emergency-fund.component.html',
   standalone: true,
-  imports: [CommonModule, NgApexchartsModule, AppCurrencyPipe]
+  imports: [CommonModule, FormsModule, NgApexchartsModule, AppCurrencyPipe, EmptyStateComponent]
 })
 export class EmergencyFundComponent implements OnInit, OnDestroy {
+  private transactionService = inject(TransactionService);
+  private walletService = inject(WalletService);
+  private router = inject(Router);
+  private currencyService = inject(CurrencyService);
+  private readonly notifications = inject(NotificationService);
+
   public chartOptions!: Partial<EmergencyChartOptions>;
+  readonly faShieldHalved = faShieldHalved;
   protected Math = Math;
 
   private readonly COLORS = {
@@ -63,22 +73,29 @@ export class EmergencyFundComponent implements OnInit, OnDestroy {
 
   private subscription: Subscription = new Subscription();
   transactions: EmergencyTransaction[] = [];
-  currentBalance: number = 0;
-  targetGoal: number = 0;
-  monthlySaveGoal: number = 0;
-  hasEmergencyWallet: boolean = false;
+  currentBalance = 0;
+  /**
+   * Read from the wallet, not baked in. These were literals (100000 and 5000)
+   * so every user saw the same goal and had no way to change it. They now sit
+   * at zero until the user sets one, and the template says "No target goal set"
+   * rather than showing a figure nobody chose.
+   */
+  targetGoal = 0;
+  monthlySaveGoal = 0;
+  emergencyWalletId: string | null = null;
+  isEditingTargets = false;
+  targetDraft = 0;
+  monthlyDraft = 0;
+
+  /** One source of truth: the widget has a fund exactly when it has its id. */
+  get hasEmergencyWallet(): boolean {
+    return this.emergencyWalletId !== null;
+  }
 
   // Pagination
-  currentPage: number = 1;
-  pageSize: number = 10;
-  totalPages: number = 1;
-
-  constructor(
-    private transactionService: TransactionService,
-    private walletService: WalletService,
-    private router: Router,
-    private currencyService: CurrencyService
-  ) {}
+  currentPage = 1;
+  pageSize = 10;
+  totalPages = 1;
 
   ngOnInit(): void {
     this.loadTransactions();
@@ -123,9 +140,17 @@ export class EmergencyFundComponent implements OnInit, OnDestroy {
       },
       xaxis: {
         categories: this.transactions.map(t => this.formatDate(t.date)),
+        // One label per transaction turned the axis into an unreadable smear
+        // once real history existed. Show a handful of evenly spaced dates and
+        // let ApexCharts drop any that would still collide.
+        tickAmount: 6,
         labels: {
+          rotate: -45,
+          rotateAlways: false,
+          hideOverlappingLabels: true,
+          trim: true,
           style: {
-            colors: Array(12).fill(this.COLORS.textMuted),
+            colors: this.COLORS.textMuted,
             fontSize: '12px',
             fontWeight: '500',
             fontFamily: 'Inter, sans-serif'
@@ -208,11 +233,11 @@ export class EmergencyFundComponent implements OnInit, OnDestroy {
       combineLatest([
         this.walletService.getAllWallets(),
         this.transactionService.getTransactions()
-      ]).subscribe(([wallets, allTransactions]: [any[], any[]]) => {
-        const emergencyWallet = wallets.find((w: any) => w.type === 'emergencyfund');
+      ]).subscribe(([wallets, allTransactions]) => {
+        const emergencyWallet = wallets.find(w => w.type === 'emergencyfund');
         if (!emergencyWallet) {
-          this.hasEmergencyWallet = false;
           this.currentBalance = 0;
+          this.emergencyWalletId = null;
           this.targetGoal = 0;
           this.monthlySaveGoal = 0;
           this.transactions = [];
@@ -220,13 +245,13 @@ export class EmergencyFundComponent implements OnInit, OnDestroy {
           return;
         }
 
-        this.hasEmergencyWallet = true;
         this.currentBalance = emergencyWallet.balance;
-        this.targetGoal = emergencyWallet.targetGoal || 0;
-        this.monthlySaveGoal = emergencyWallet.monthlySaveGoal || 0;
+        this.emergencyWalletId = emergencyWallet.id;
+        this.targetGoal = emergencyWallet.targetAmount || 0;
+        this.monthlySaveGoal = emergencyWallet.monthlyTarget || 0;
         
         if (allTransactions) {
-          const walletTransactions = allTransactions.filter((t: any) => t.walletId === emergencyWallet.id);
+          const walletTransactions = allTransactions.filter(t => t.walletId === emergencyWallet.id);
           
           // Sort by date ascending for the chart
           const sortedTransactions = [...walletTransactions].sort((a, b) => 
@@ -254,39 +279,6 @@ export class EmergencyFundComponent implements OnInit, OnDestroy {
 
           this.initializeChart();
           this.updatePagination();
-        }
-      })
-    );
-  }
-
-  updateGoals(): void {
-    this.subscription.add(
-      this.walletService.getAllWallets().subscribe(wallets => {
-        const emergencyWallet = wallets.find((w: any) => w.type === 'emergencyfund');
-
-        if (!emergencyWallet) {
-          alert('No emergency fund wallet found. Please create one first.');
-          return;
-        }
-
-        const newTarget = prompt('Enter new target goal:', this.targetGoal.toString());
-        if (newTarget !== null && !isNaN(Number(newTarget)) && Number(newTarget) >= 0) {
-          const newMonthly = prompt('Enter new monthly savings goal:', this.monthlySaveGoal.toString());
-          if (newMonthly !== null && !isNaN(Number(newMonthly)) && Number(newMonthly) >= 0) {
-            this.walletService.updateWallet(emergencyWallet.id, {
-              targetGoal: Number(newTarget),
-              monthlySaveGoal: Number(newMonthly)
-            }).subscribe({
-              next: () => {
-                this.targetGoal = Number(newTarget);
-                this.monthlySaveGoal = Number(newMonthly);
-              },
-              error: (err) => {
-                console.error('Error updating goals:', err);
-                alert('Failed to update goals. Please try again.');
-              }
-            });
-          }
         }
       })
     );
@@ -325,6 +317,68 @@ export class EmergencyFundComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * The three badges beside these figures used to read "+25% MTD", "6 months"
+   * and "On Track" — string literals sitting next to real balances, so they
+   * claimed things about the user's money that nothing had calculated. Each one
+   * below is derived, and returns null when the underlying number does not
+   * exist yet so the template can leave the badge out rather than invent one.
+   */
+
+  /** Net deposits minus withdrawals since the first of the current month. */
+  get monthToDateChange(): number {
+    const monthStart = new Date();
+    monthStart.setDate(1);
+    monthStart.setHours(0, 0, 0, 0);
+
+    return this.transactions
+      .filter(t => t.date >= monthStart)
+      .reduce((total, t) => total + (t.type === 'deposit' ? t.amount : -t.amount), 0);
+  }
+
+  /**
+   * Month-to-date change as a share of what the fund held on the first. Null
+   * when nothing moved this month, or when the fund opened the month empty —
+   * a percentage of zero is not a number anyone can act on, and the template
+   * falls back to showing the amount itself.
+   */
+  get monthToDatePercent(): number | null {
+    const change = this.monthToDateChange;
+    if (change === 0) return null;
+
+    const openingBalance = this.currentBalance - change;
+    if (openingBalance <= 0) return null;
+
+    return (change / openingBalance) * 100;
+  }
+
+  /**
+   * Whole months of contributions still needed to reach the target at the
+   * current monthly goal. Null when the target is already met, or when no
+   * monthly goal is set to divide by.
+   */
+  get monthsToTarget(): number | null {
+    const remaining = this.targetGoal - this.currentBalance;
+    if (remaining <= 0 || this.monthlySaveGoal <= 0) return null;
+
+    return Math.ceil(remaining / this.monthlySaveGoal);
+  }
+
+  get hasReachedTarget(): boolean {
+    return this.targetGoal > 0 && this.currentBalance >= this.targetGoal;
+  }
+
+  /** How far this month's net saving is short of the monthly goal; 0 once met. */
+  get monthlyGoalShortfall(): number {
+    return Math.max(0, this.monthlySaveGoal - this.monthToDateChange);
+  }
+
+  /** Share of the target saved so far, clamped and guarded against a zero target. */
+  get progressPercent(): number {
+    if (this.targetGoal <= 0) return 0;
+    return Math.min(100, Math.max(0, (this.currentBalance / this.targetGoal) * 100));
+  }
+
   navToAllTransactions(): void {
     this.router.navigate(['/transactions'], { queryParams: { walletType: 'emergencyfund' } });
   }
@@ -338,6 +392,36 @@ export class EmergencyFundComponent implements OnInit, OnDestroy {
       month: 'short',
       day: 'numeric'
     }).format(date);
+  }
+
+  startEditingTargets(): void {
+    this.targetDraft = this.targetGoal;
+    this.monthlyDraft = this.monthlySaveGoal;
+    this.isEditingTargets = true;
+  }
+
+  cancelEditingTargets(): void {
+    this.isEditingTargets = false;
+  }
+
+  saveTargets(): void {
+    if (!this.emergencyWalletId || this.targetDraft <= 0 || this.monthlyDraft < 0) {
+      this.notifications.error('Enter a target greater than zero.');
+      return;
+    }
+
+    this.walletService.updateWallet(this.emergencyWalletId, {
+      targetAmount: this.targetDraft,
+      monthlyTarget: this.monthlyDraft
+    }).subscribe({
+      next: () => {
+        this.targetGoal = this.targetDraft;
+        this.monthlySaveGoal = this.monthlyDraft;
+        this.isEditingTargets = false;
+        this.notifications.success('Savings targets updated.');
+      },
+      error: (error) => this.notifications.error(error?.message || 'Could not save your targets.')
+    });
   }
 
 

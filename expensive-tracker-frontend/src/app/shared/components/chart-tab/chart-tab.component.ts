@@ -1,12 +1,12 @@
 import { Component, Output, EventEmitter } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 
 type TabOption = 'monthly' | 'quarterly' | 'annually' | 'trends';
 
 @Component({
   selector: 'app-chart-tab',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './chart-tab.component.html',
 })
 export class ChartTabComponent {

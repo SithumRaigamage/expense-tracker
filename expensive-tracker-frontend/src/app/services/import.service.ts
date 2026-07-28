@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, map, catchError, throwError } from 'rxjs';
 import { environment } from '../../environments/environment';
 
@@ -57,9 +57,9 @@ export interface ImportOptions {
  */
 @Injectable({ providedIn: 'root' })
 export class ImportService {
-  private readonly apiUrl = environment.apiUrl;
+  private http = inject(HttpClient);
 
-  constructor(private http: HttpClient) {}
+  private readonly apiUrl = environment.apiUrl;
 
   /** Upload a receipt image and get back pre-filled expense fields. */
   scanReceipt(file: File): Observable<ReceiptScanResult> {
@@ -100,8 +100,9 @@ export class ImportService {
     if (options.dryRun !== undefined) form.append('dryRun', String(options.dryRun));
   }
 
-  private handleError(error: any): Observable<never> {
-    const message = error?.error?.error || error?.error?.message || error?.message || 'Import failed';
+  private handleError(error: HttpErrorResponse | Error): Observable<never> {
+    const body = error instanceof HttpErrorResponse ? error.error : null;
+    const message = body?.error || body?.message || error?.message || 'Import failed';
     return throwError(() => new Error(message));
   }
 }

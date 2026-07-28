@@ -8,93 +8,121 @@
 
     <div class="flex items-center gap-3">
       <button (click)="refreshTransactions()"
-              class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
+        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M2.5 2v6h6M2.66 15.57a10 10 0 1 0 .57-8.38"/>
         </svg>
         Refresh
       </button>
-      <button (click)="toggleViewAll()"
-              class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
-        {{ showAll ? 'Show Less' : 'View All' }} ({{ transactions.length }})
-      </button>
+      @if (transactions.length > 0) {
+        <button (click)="toggleViewAll()"
+          class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
+          {{ showAll ? 'Show Less' : 'View All' }} ({{ transactions.length }})
+        </button>
+      }
     </div>
   </div>
+
+  <!-- Loading: row-shaped placeholders matching the table that replaces them -->
+  @if (isLoading) {
+    <div class="space-y-3 py-2">
+      @for (row of [1, 2, 3, 4, 5]; track row) {
+        <div class="flex items-center gap-4">
+          <app-skeleton width="35%" height="1rem"></app-skeleton>
+          <app-skeleton width="20%" height="1rem"></app-skeleton>
+          <app-skeleton width="20%" height="1rem"></app-skeleton>
+          <app-skeleton width="15%" height="1.25rem" rounded="full"></app-skeleton>
+        </div>
+      }
+    </div>
+  }
 
   <!-- Empty State -->
-  <div *ngIf="transactions.length === 0" class="flex flex-col items-center justify-center py-12 text-center">
-    <div class="mb-4 rounded-full bg-gray-100 p-6 dark:bg-gray-800">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-      </svg>
-    </div>
-    <h3 class="mb-2 text-lg font-semibold text-gray-900 dark:text-white">No Transactions Yet</h3>
-    <p class="max-w-md text-sm text-gray-500 dark:text-gray-400">
-      Start tracking your finances by adding your first transaction.
-    </p>
-  </div>
+  @if (!isLoading && transactions.length === 0) {
+    <app-empty-state
+      [icon]="faReceipt"
+      title="No transactions yet"
+      message="Income and expenses you record will show up here, newest first."
+      class="block mb-4"
+      >
+      <a
+        routerLink="/transactions"
+        class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-600"
+        >
+        Add your first transaction
+      </a>
+    </app-empty-state>
+  }
 
   <!-- Table view for desktop -->
-  <div *ngIf="transactions.length > 0" class="hidden md:block max-w-full overflow-x-auto">
-    <table class="w-full">
-      <thead>
-        <tr class="border-y border-gray-100 dark:border-gray-800">
-          <th class="py-3 px-4 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Description</th>
-          <th class="py-3 px-4 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Category</th>
-          <th class="py-3 px-4 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Date</th>
-          <th class="py-3 px-4 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Amount</th>
-          <th class="py-3 px-4 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Type</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-        <tr *ngFor="let transaction of displayedTransactions">
-          <td class="py-3 px-4">
-            <div class="flex items-center gap-3">
-              <div class="min-w-0">
-                <p class="font-medium text-gray-800 text-theme-sm dark:text-white/90">
-                  {{transaction.description}}
-                </p>
-              </div>
+  @if (!isLoading && transactions.length > 0) {
+    <div class="hidden md:block max-w-full overflow-x-auto">
+      <table class="w-full">
+        <thead>
+          <tr class="border-y border-gray-100 dark:border-gray-800">
+            <th class="py-3 px-4 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Description</th>
+            <th class="py-3 px-4 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Category</th>
+            <th class="py-3 px-4 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Date</th>
+            <th class="py-3 px-4 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Amount</th>
+            <th class="py-3 px-4 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Type</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+          @for (transaction of displayedTransactions; track transaction) {
+            <tr>
+              <td class="py-3 px-4">
+                <div class="flex items-center gap-3">
+                  <div class="min-w-0">
+                    <p class="font-medium text-gray-800 text-theme-sm dark:text-white/90">
+                      {{transaction.description}}
+                    </p>
+                  </div>
+                </div>
+              </td>
+              <td class="py-3 px-4 text-gray-500 text-theme-sm dark:text-gray-400">{{transaction.category}}</td>
+              <td class="py-3 px-4 text-gray-500 text-theme-sm dark:text-gray-400">{{formatDate(transaction.date)}}</td>
+              <td class="py-3 px-4 text-gray-500 text-theme-sm dark:text-gray-400">{{ transaction.amount | appCurrency : 'LKR' }}</td>
+              <td class="py-3 px-4">
+                <app-badge
+                  [color]="getBadgeColor(transaction.type)"
+                  variant="light"
+                  size="sm"
+                  >
+                  {{transaction.type | titlecase}}
+                </app-badge>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- Card view for mobile -->
+  @if (!isLoading && transactions.length > 0) {
+    <div class="md:hidden space-y-4">
+      @for (transaction of displayedTransactions; track transaction) {
+        <div
+          class="p-4 rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-white/5">
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <p class="font-medium text-gray-900 dark:text-white">{{transaction.description}}</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">{{formatDate(transaction.date)}}</p>
             </div>
-          </td>
-          <td class="py-3 px-4 text-gray-500 text-theme-sm dark:text-gray-400">{{transaction.category}}</td>
-          <td class="py-3 px-4 text-gray-500 text-theme-sm dark:text-gray-400">{{formatDate(transaction.date)}}</td>
-          <td class="py-3 px-4 text-gray-500 text-theme-sm dark:text-gray-400">{{ transaction.amount | appCurrency : 'LKR' }}</td>
-          <td class="py-3 px-4">
             <app-badge
               [color]="getBadgeColor(transaction.type)"
               variant="light"
               size="sm"
-            >
+              >
               {{transaction.type | titlecase}}
             </app-badge>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- Card view for mobile -->
-  <div *ngIf="transactions.length > 0" class="md:hidden space-y-4">
-    <div *ngFor="let transaction of displayedTransactions" 
-         class="p-4 rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-white/5">
-      <div class="flex justify-between items-start mb-2">
-        <div>
-          <p class="font-medium text-gray-900 dark:text-white">{{transaction.description}}</p>
-          <p class="text-xs text-gray-500 dark:text-gray-400">{{formatDate(transaction.date)}}</p>
+          </div>
+          <div class="flex justify-between items-center mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+            <span class="text-sm text-gray-500 dark:text-gray-400">{{transaction.category}}</span>
+            <span class="font-bold text-gray-900 dark:text-white">{{ transaction.amount | appCurrency : 'LKR' }}</span>
+          </div>
         </div>
-        <app-badge
-          [color]="getBadgeColor(transaction.type)"
-          variant="light"
-          size="sm"
-        >
-          {{transaction.type | titlecase}}
-        </app-badge>
-      </div>
-      <div class="flex justify-between items-center mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
-        <span class="text-sm text-gray-500 dark:text-gray-400">{{transaction.category}}</span>
-        <span class="font-bold text-gray-900 dark:text-white">{{ transaction.amount | appCurrency : 'LKR' }}</span>
-      </div>
+      }
     </div>
-  </div>
+  }
 </div>

@@ -12,6 +12,7 @@ const {
 } = require('../controllers/expenseController');
 
 const { protect } = require('../middleware/auth');
+const { validateObjectId } = require('../middleware/validation');
 const upload = require('../middleware/fileUpload');
 const { scanReceipt } = require('../controllers/receiptController');
 
@@ -31,9 +32,11 @@ router.route('/')
   .get(getExpenses)
   .post(createExpense);
 
+// Validate the id first so a malformed one is a 400, matching wallets and
+// product budgets, instead of a Mongoose CastError surfacing as a 404.
 router.route('/:id')
-  .get(getExpense)
-  .put(updateExpense)
-  .delete(deleteExpense);
+  .get(validateObjectId(), getExpense)
+  .put(validateObjectId(), updateExpense)
+  .delete(validateObjectId(), deleteExpense);
 
 module.exports = router;

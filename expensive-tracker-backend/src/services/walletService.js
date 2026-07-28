@@ -105,7 +105,7 @@ class WalletService {
     }
 
     walletData.user = userId;
-    return await Wallet.create(walletData);
+    return Wallet.create(walletData);
   }
 
   /**
@@ -190,27 +190,34 @@ class WalletService {
    * @returns {Promise<Object>} Restored wallet
    */
   static async restoreWallet(walletId, userId) {
-    const target = await Wallet.findOne({ _id: walletId, user: userId, isActive: false });
+    const wallet = await Wallet.findOne({
+      _id: walletId,
+      user: userId,
+      isActive: false
+    });
 
-    if (!target) {
+    if (!wallet) {
       throw new NotFoundError('Wallet not found or already active');
     }
 
-    // Don't restore into a name that an active wallet already uses.
-    const nameClash = await Wallet.findOne({
+    // Create and update both reject duplicate active names. Restoring skipped that
+    // check, so re-activating a wallet was a back door to two active wallets
+    // sharing a name — which then makes them indistinguishable in every picker.
+    const nameTaken = await Wallet.findOne({
+      name: wallet.name,
       user: userId,
       isActive: true,
-      name: target.name
+      _id: { $ne: walletId }
     });
 
-    if (nameClash) {
-      throw new ConflictError('An active wallet with this name already exists');
+    if (nameTaken) {
+      throw new ConflictError('An active wallet with this name already exists. Rename it before restoring.');
     }
 
-    target.isActive = true;
-    await target.save();
+    wallet.isActive = true;
+    await wallet.save();
 
-    return target;
+    return wallet;
   }
 
   /**
@@ -332,11 +339,11 @@ class WalletService {
       // Standalone MongoDB will throw "Transaction numbers are only allowed on a replica set..." 
       // when we attempt the first command with a transaction
       await mongoose.connection.db.command({ ping: 1 }, { session });
-    } catch (error) {
+    } catch {
       if (session) {
         try {
           await session.abortTransaction();
-        } catch (e) {
+        } catch {
           // Ignore abort errors
         }
         await session.endSession();
@@ -424,7 +431,7 @@ class WalletService {
       if (session) {
         try {
           await session.abortTransaction();
-        } catch (e) {
+        } catch {
           // Ignore abort errors
         }
         session.endSession();

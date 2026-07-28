@@ -1,7 +1,8 @@
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { provideRouter, TitleStrategy } from '@angular/router';
 import { provideHttpClient, withInterceptorsFromDi, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { AuthInterceptor } from './core/interceptors/auth.interceptor';
+import { AppTitleStrategy } from './core/title.strategy';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideEcharts } from 'ngx-echarts';
 
@@ -14,6 +15,10 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptorsFromDi()),
     provideAnimations(),
     provideEcharts(),
+    {
+      provide: TitleStrategy,
+      useClass: AppTitleStrategy
+    },
     {
       provide: HTTP_INTERCEPTORS,
       useClass: AuthInterceptor,

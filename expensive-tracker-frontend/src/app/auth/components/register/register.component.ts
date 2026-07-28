@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject } from '@angular/core';
+
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
@@ -9,11 +9,15 @@ import { faEye, faEyeSlash, faSpinner, faArrowRight, faLock, faEnvelope, faUser 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, FontAwesomeModule],
+  imports: [ReactiveFormsModule, RouterModule, FontAwesomeModule],
   templateUrl: './register.component.html',
   styleUrl: './register.component.css'
 })
-export class RegisterComponent implements OnInit {
+export class RegisterComponent {
+  private fb = inject(FormBuilder);
+  private authService = inject(AuthService);
+  private router = inject(Router);
+
   registerForm: FormGroup;
   loading = false;
   error = '';
@@ -28,19 +32,13 @@ export class RegisterComponent implements OnInit {
   faEnvelope = faEnvelope;
   faUser = faUser;
 
-  constructor(
-    private fb: FormBuilder,
-    private authService: AuthService,
-    private router: Router
-  ) {
+  constructor() {
     this.registerForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
   }
-
-  ngOnInit(): void {}
 
   togglePasswordVisibility(): void {
     this.showPassword = !this.showPassword;
@@ -70,8 +68,8 @@ export class RegisterComponent implements OnInit {
     Object.values(formGroup.controls).forEach(control => {
       control.markAsTouched();
 
-      if ((control as any).controls) {
-        this.markFormGroupTouched(control as any);
+      if (control instanceof FormGroup) {
+        this.markFormGroupTouched(control);
       }
     });
   }

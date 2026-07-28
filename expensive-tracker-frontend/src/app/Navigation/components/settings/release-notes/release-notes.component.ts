@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {
@@ -15,6 +15,8 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { ReleaseNote, ReleaseNoteService } from '../../../../services/release-note.service';
 import { HttpClientModule } from '@angular/common/http';
 import { AuthService } from '../../../../services/auth.service';
+import { NotificationService } from '../../../../shared/services/notification.service';
+import { DialogService } from '../../../../shared/services/dialog.service';
 
 @Component({
   selector: 'app-release-notes',
@@ -23,6 +25,12 @@ import { AuthService } from '../../../../services/auth.service';
   templateUrl: './release-notes.component.html'
 })
 export class ReleaseNotesComponent implements OnInit {
+  private releaseNoteService = inject(ReleaseNoteService);
+  private fb = inject(FormBuilder);
+  private authService = inject(AuthService);
+  private readonly notifications = inject(NotificationService);
+  private readonly dialogs = inject(DialogService);
+
   searchTerm = '';
   rocketIcon = faRocket;
   bugIcon = faBug;
@@ -42,11 +50,7 @@ export class ReleaseNotesComponent implements OnInit {
   editMode = false;
   currentReleaseId: string | null = null;
 
-  constructor(
-    private releaseNoteService: ReleaseNoteService,
-    private fb: FormBuilder,
-    private authService: AuthService
-  ) {
+  constructor() {
     this.releaseForm = this.fb.group({
       version: ['', [Validators.required, Validators.pattern(/^\d+\.\d+\.\d+(-\w+)?$/)]],
       date: [new Date().toISOString().split('T')[0], Validators.required],
@@ -63,8 +67,6 @@ export class ReleaseNotesComponent implements OnInit {
   }
 
   checkUserRole(): void {
-    const currentUser = this.authService.getCurrentUser();
-
     // Set isAdmin to true if user has admin role
     this.isAdmin = this.authService.isAdmin();
   }
@@ -144,10 +146,18 @@ export class ReleaseNotesComponent implements OnInit {
   }
 
   deleteReleaseNote(id: string): void {
-    if (!id || !confirm('Are you sure you want to delete this release note?')) {
+    if (!id) {
       return;
     }
 
+    this.dialogs.confirmDelete('release note').subscribe(confirmed => {
+      if (confirmed) {
+        this.performDelete(id);
+      }
+    });
+  }
+
+  private performDelete(id: string): void {
     this.isLoading = true;
     this.error = ''; // Clear any previous errors
 
@@ -155,6 +165,7 @@ export class ReleaseNotesComponent implements OnInit {
       next: () => {
         this.releases = this.releases.filter(r => r._id !== id);
         this.isLoading = false;
+        this.notifications.success('Release note deleted.');
       },
       error: (err) => {
         if (err.status === 403) {
@@ -162,7 +173,7 @@ export class ReleaseNotesComponent implements OnInit {
         } else {
           this.error = 'Failed to delete release note: ' + (err.error?.message || err.message || 'Unknown error');
         }
-        console.error('Error deleting release note:', err);
+        this.notifications.error(this.error);
         this.isLoading = false;
       }
     });

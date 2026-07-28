@@ -1,9 +1,12 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { MatCardModule } from '@angular/material/card';
-import { faArrowUp, faArrowDown } from '@fortawesome/free-solid-svg-icons';
+import { RouterModule } from '@angular/router';
+import { faArrowUp, faArrowDown, faWallet } from '@fortawesome/free-solid-svg-icons';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
+import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
 import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
 import { Metric } from '../../../core/models/Metric';
 import { WalletService } from '../../../services/wallet.service';
@@ -11,23 +14,27 @@ import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-metrics',
-  imports: [CommonModule, BadgeComponent, FontAwesomeModule, MatCardModule, AppCurrencyPipe],
+  imports: [RouterModule, BadgeComponent, EmptyStateComponent, SkeletonComponent, FontAwesomeModule, MatCardModule, AppCurrencyPipe],
   templateUrl: './metrics.component.html',
   standalone: true
 })
 export class MetricsComponent implements OnInit, OnDestroy {
+  private walletService = inject(WalletService);
+
   faArrowUp = faArrowUp;
   faArrowDown = faArrowDown;
+  faWallet = faWallet;
   metrics: Metric[] = [];
+  /** Distinguishes "still loading" from "loaded and genuinely empty" — different UI. */
+  isLoading = true;
   private subscription: Subscription = new Subscription();
-
-  constructor(private walletService: WalletService) {}
 
   ngOnInit() {
     this.subscription.add(
       this.walletService.getMetrics().subscribe(
         metrics => {
           this.metrics = metrics;
+          this.isLoading = false;
           //console.log(this.metrics);
         }
       )

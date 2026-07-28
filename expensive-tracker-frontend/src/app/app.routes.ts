@@ -1,28 +1,12 @@
 import { Routes } from '@angular/router';
-import { DashboardComponent } from './dashboard/dashboard.component';
-import { TransactionsComponent } from './Navigation/components/transactions/transactions.component';
-import { BudgetComponent } from './Navigation/components/budget/budget.component';
-
-import { WalletsComponent } from './Navigation/components/wallets/wallets.component';
-import { ProfileComponent } from './Navigation/components/settings/profile/profile.component';
-import { HelpComponent } from './Navigation/components/help/help.component';
-import { BillsComponent } from './Navigation/components/bills/bills.component';
-import { SettingsComponent } from './Navigation/components/settings/settings.component';
-
-import { CurrencyComponent } from './Navigation/components/settings/currency/currency.component';
-import { AboutSupportComponent } from './Navigation/components/settings/about-support/about-support.component';
-import { DocumentationComponent } from './Navigation/components/settings/documentation/documentation.component';
-import { FaqComponent } from './Navigation/components/settings/faq/faq.component';
-import { TroubleshootingComponent } from './Navigation/components/settings/troubleshooting/troubleshooting.component';
-import { ReleaseNotesComponent } from './Navigation/components/settings/release-notes/release-notes.component';
-import { SupportComponent } from './Navigation/components/settings/support/support.component';
-import { FeedbackComponent } from './Navigation/components/feedback/feedback.component';
-import { ChatComponent } from './Navigation/components/chat/chat.component';
-import { EducationComponent } from './Navigation/components/education/education.component';
 import { AuthGuard } from './core/guards/auth.guard';
-import { ManageWalletsComponent } from './dashboard/components/manage-wallets/manage-wallets.component';
-import { MainLayoutComponent } from './main-layout/main-layout.component';
 
+/**
+ * Every route is lazy-loaded. Importing the page components eagerly pulled the
+ * entire application — settings, help centre, chat, education, every chart
+ * library — into the initial bundle, so first paint paid for screens most users
+ * never open. Only the shell and the route actually requested are downloaded now.
+ */
 export const routes: Routes = [
   {
     path: '',
@@ -32,36 +16,38 @@ export const routes: Routes = [
   // Auth routes (without layout)
   {
     path: 'login',
-    loadComponent: () => import('./auth/components/login/login.component').then(m => m.LoginComponent)
+    loadComponent: () => import('./auth/components/login/login.component').then(m => m.LoginComponent),
+    title: 'Sign In'
   },
   {
     path: 'register',
-    loadComponent: () => import('./auth/components/register/register.component').then(m => m.RegisterComponent)
+    loadComponent: () => import('./auth/components/register/register.component').then(m => m.RegisterComponent),
+    title: 'Create Account'
   },
   // Protected routes (with main layout)
   {
     path: '',
-    component: MainLayoutComponent,
+    loadComponent: () => import('./main-layout/main-layout.component').then(m => m.MainLayoutComponent),
     canActivate: [AuthGuard],
     children: [
       {
         path: 'dashboard',
-        component: DashboardComponent,
+        loadComponent: () => import('./dashboard/dashboard.component').then(m => m.DashboardComponent),
         title: 'Dashboard'
       },
       {
         path: 'wallets',
-        component: WalletsComponent,
+        loadComponent: () => import('./Navigation/components/wallets/wallets.component').then(m => m.WalletsComponent),
         title: 'Wallets'
       },
       {
         path: 'manage-wallets',
-        component: ManageWalletsComponent,
+        loadComponent: () => import('./dashboard/components/manage-wallets/manage-wallets.component').then(m => m.ManageWalletsComponent),
         title: 'Manage Wallets'
       },
       {
         path: 'transactions',
-        component: TransactionsComponent,
+        loadComponent: () => import('./Navigation/components/transactions/transactions.component').then(m => m.TransactionsComponent),
         title: 'Transactions'
       },
       {
@@ -71,58 +57,94 @@ export const routes: Routes = [
       },
       {
         path: 'budget',
-        component: BudgetComponent,
+        loadComponent: () => import('./Navigation/components/budget/budget.component').then(m => m.BudgetComponent),
         title: 'Budget Planner'
       },
-
       {
         path: 'bills',
-        component: BillsComponent,
+        loadComponent: () => import('./Navigation/components/bills/bills.component').then(m => m.BillsComponent),
         title: 'Bills & Payments'
       },
       {
         path: 'financial-education',
-        component: EducationComponent,
+        loadComponent: () => import('./Navigation/components/education/education.component').then(m => m.EducationComponent),
+        title: 'Financial Education'
+      },
+      {
+        path: 'financial-education/:articleId',
+        loadComponent: () => import('./Navigation/components/education/article/article.component').then(m => m.ArticleComponent),
         title: 'Financial Education'
       },
       {
         path: 'chat',
-        component: ChatComponent,
+        loadComponent: () => import('./Navigation/components/chat/chat.component').then(m => m.ChatComponent),
         title: 'Chat'
       },
       {
         path: 'settings',
         title: 'Settings',
-        component: SettingsComponent,
+        loadComponent: () => import('./Navigation/components/settings/settings.component').then(m => m.SettingsComponent),
         children: [
           { path: '', redirectTo: 'profile', pathMatch: 'full' },
-          { path: 'profile', component: ProfileComponent, title: 'Profile Settings' },
-          { path: 'currency', component: CurrencyComponent, title: 'Currency Settings' },
-          { path: 'about & support', component: AboutSupportComponent, title: 'About & Support' }
+          {
+            path: 'profile',
+            loadComponent: () => import('./Navigation/components/settings/profile/profile.component').then(m => m.ProfileComponent),
+            title: 'Profile Settings'
+          },
+          {
+            path: 'currency',
+            loadComponent: () => import('./Navigation/components/settings/currency/currency.component').then(m => m.CurrencyComponent),
+            title: 'Currency Settings'
+          },
+          {
+            path: 'about & support',
+            loadComponent: () => import('./Navigation/components/settings/about-support/about-support.component').then(m => m.AboutSupportComponent),
+            title: 'About & Support'
+          }
         ]
       },
       {
         path: 'help',
-        component: HelpComponent,
+        loadComponent: () => import('./Navigation/components/help/help.component').then(m => m.HelpComponent),
         title: 'Help Center',
         children: [
           { path: '', redirectTo: 'help', pathMatch: 'full' },
-          { path: 'faqs', component: FaqComponent, title: 'FAQs' },
-          { path: 'docs', component: DocumentationComponent, title: 'Documentation' },
-          { path: 'support', component: SupportComponent, title: 'Contact Support' },
-          { path: 'troubleshooting', component: TroubleshootingComponent, title: 'Troubleshooting' },
-          { path: 'release-notes', component: ReleaseNotesComponent, title: 'Release Notes' }
+          {
+            path: 'faqs',
+            loadComponent: () => import('./Navigation/components/settings/faq/faq.component').then(m => m.FaqComponent),
+            title: 'FAQs'
+          },
+          {
+            path: 'docs',
+            loadComponent: () => import('./Navigation/components/settings/documentation/documentation.component').then(m => m.DocumentationComponent),
+            title: 'Documentation'
+          },
+          {
+            path: 'support',
+            loadComponent: () => import('./Navigation/components/settings/support/support.component').then(m => m.SupportComponent),
+            title: 'Contact Support'
+          },
+          {
+            path: 'troubleshooting',
+            loadComponent: () => import('./Navigation/components/settings/troubleshooting/troubleshooting.component').then(m => m.TroubleshootingComponent),
+            title: 'Troubleshooting'
+          },
+          {
+            path: 'release-notes',
+            loadComponent: () => import('./Navigation/components/settings/release-notes/release-notes.component').then(m => m.ReleaseNotesComponent),
+            title: 'Release Notes'
+          }
         ]
       },
       {
         path: 'feedback',
-        component: FeedbackComponent,
+        loadComponent: () => import('./Navigation/components/feedback/feedback.component').then(m => m.FeedbackComponent),
         title: 'Feedback'
       }
     ]
   },
   {
     path: '**',
-    redirectTo: '/dashboard',
+    redirectTo: '/dashboard'
   }
 ];

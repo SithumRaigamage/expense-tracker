@@ -3,12 +3,14 @@ const mongoose = require('mongoose');
 const app = require('../../src/app');
 const ProductBudget = require('../../src/models/ProductBudget');
 const User = require('../../src/models/User');
-const { connectDB } = require('../../src/config/database');
+// database.js exports the function directly; destructuring it yielded undefined
+// and every test in this file failed before it began.
+const connectDB = require('../../src/config/database');
+const { tokenFromResponse } = require('../helpers/auth');
 
 describe('Product Budget API', () => {
   let token;
   let user;
-  let productBudgetId;
 
   beforeAll(async () => {
     await connectDB();
@@ -29,7 +31,7 @@ describe('Product Budget API', () => {
         password: 'Password123!'
       });
 
-    token = res.body.token;
+    token = tokenFromResponse(res);
   });
 
   afterAll(async () => {
@@ -61,7 +63,6 @@ describe('Product Budget API', () => {
       expect(res.body.data.name).toBe('New Laptop');
       expect(res.body.data.user.toString()).toBe(user._id.toString());
 
-      productBudgetId = res.body.data._id;
     });
 
     it('should not create product budget with invalid data', async () => {
@@ -125,7 +126,8 @@ describe('Product Budget API', () => {
         .get(`/api/v1/productbudgets/invalidid`)
         .set('Authorization', `Bearer ${token}`);
 
-      expect(res.statusCode).toEqual(500);
+      // A malformed id is a client error, not a server fault.
+      expect(res.statusCode).toEqual(400);
     });
   });
 

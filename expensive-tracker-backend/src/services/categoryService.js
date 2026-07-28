@@ -27,7 +27,7 @@ class CategoryService {
     const sortOptions = {};
     sortOptions[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
-    return await Category.find(query).sort(sortOptions);
+    return Category.find(query).sort(sortOptions);
   }
 
   /**
@@ -67,7 +67,7 @@ class CategoryService {
     }
 
     categoryData.user = userId;
-    return await Category.create(categoryData);
+    return Category.create(categoryData);
   }
 
   /**
@@ -149,7 +149,7 @@ class CategoryService {
       user: userId
     }));
 
-    return await Category.insertMany(categoriesWithUser);
+    return Category.insertMany(categoriesWithUser);
   }
 }
 

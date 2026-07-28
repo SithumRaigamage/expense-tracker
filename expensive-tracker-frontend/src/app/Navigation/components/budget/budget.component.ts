@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProductBudgetService } from '../../../services/product-budget.service';
@@ -8,19 +9,31 @@ import { Wallet } from '../../../core/models/Wallet';
 import { CurrencyService } from '../../../core/services/currency.service';
 import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
 import { ExcelExportService } from '../../../services/excel-export.service';
-import { faDownload, faEdit, faPlus, faPlusCircle, faUpload, faRefresh, faFileUpload, faFileImport, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faDownload, faEdit, faPlus, faPlusCircle, faUpload, faRefresh, faFileUpload, faFileImport, faTrash, faBullseye } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { SideDrawerComponent } from '../../../shared/components/side-drawer/side-drawer.component';
+import { NotificationService } from '../../../shared/services/notification.service';
+import { DialogService } from '../../../shared/services/dialog.service';
 
 type DrawerMode = 'add' | 'edit' | 'addMoney' | null;
 
 @Component({
   selector: 'app-budget',
   standalone: true,
-  imports: [CommonModule, FormsModule, AppCurrencyPipe, FontAwesomeModule, SideDrawerComponent],
+  imports: [CommonModule, FormsModule, AppCurrencyPipe, FontAwesomeModule, SideDrawerComponent, EmptyStateComponent],
   templateUrl: './budget.component.html',
 })
 export class BudgetComponent implements OnInit {
+  private readonly notifications = inject(NotificationService);
+  private readonly dialogs = inject(DialogService);
+  private productBudgetService = inject(ProductBudgetService);
+  private walletService = inject(WalletService);
+  currencyService = inject(CurrencyService);
+  private excelExportService = inject(ExcelExportService);
+
+  private readonly destroyRef = inject(DestroyRef);
+
   goals: ProductBudget[] = [];
   filteredGoals: ProductBudget[] = [];
   faDownload = faDownload;
@@ -32,13 +45,14 @@ export class BudgetComponent implements OnInit {
   faFileUpload = faFileUpload;
   faFileImport = faFileImport;
   faTrash = faTrash;
+  faBullseye = faBullseye;
   isDrawerOpen = false;
   drawerMode: DrawerMode = null;
   currentGoal: Omit<ProductBudget, 'id'> = this.getEmptyGoal();
   addAmount = 0;
   selectedGoalId: string | null = null;
   availableWallets: Wallet[] = [];
-  selectedWalletId: string = '';
+  selectedWalletId = '';
   isLoading = false;
   searchQuery = '';
   sortOption = 'progress';
@@ -58,13 +72,6 @@ export class BudgetComponent implements OnInit {
   selectedFile: File | null = null;
   jsonPreview: Omit<ProductBudget, 'id'>[] | null = null;
   jsonError: string | null = null;
-
-  constructor(
-    private productBudgetService: ProductBudgetService,
-    private walletService: WalletService,
-    public currencyService: CurrencyService,
-    private excelExportService: ExcelExportService
-  ) {}
 
   ngOnInit(): void {
     this.loadGoals();
@@ -94,7 +101,7 @@ export class BudgetComponent implements OnInit {
 
       // Check file size (limit to 2MB)
       if (file.size > 2 * 1024 * 1024) {
-        alert('Image is too large. Maximum size is 2MB.');
+        this.notifications.error('That image is larger than 2 MB. Pick a smaller one.');
         fileInput.value = '';
         this.uploadedFile = null;
         return;
@@ -102,7 +109,7 @@ export class BudgetComponent implements OnInit {
 
       // Check file type
       if (!file.type.match('image.*')) {
-        alert('Only image files are allowed.');
+        this.notifications.error('That file is not an image.');
         fileInput.value = '';
         this.uploadedFile = null;
         return;
@@ -116,15 +123,16 @@ export class BudgetComponent implements OnInit {
 
       // Convert to base64 string for preview and storage
       const reader = new FileReader();
-      reader.onload = (e: any) => {
-        // Set the image URL to the base64 string
-        this.currentGoal.imageUrl = e.target.result;
+      reader.onload = (e: ProgressEvent<FileReader>) => {
+        // readAsDataURL always yields a string; the guard is for the type, and
+        // a non-string result falls through to the same empty preview as no file.
+        this.currentGoal.imageUrl = typeof e.target?.result === 'string' ? e.target.result : '';
         // Hide loading indicator
         this.isUploading = false;
       };
 
       reader.onerror = () => {
-        alert('Error reading file. Please try again.');
+        this.notifications.error('Could not read that file. Please try again.');
         this.isUploading = false;
         this.uploadedFile = null;
         fileInput.value = '';
@@ -259,7 +267,7 @@ export class BudgetComponent implements OnInit {
           if (item.targetDate) {
             try {
               item.targetDate = new Date(item.targetDate);
-            } catch (e) {
+            } catch {
               errors.push(`Goal ${index + 1}: Invalid date format`);
             }
           }
@@ -287,7 +295,6 @@ export class BudgetComponent implements OnInit {
         }
 
         this.jsonPreview = goals;
-        console.log('Parsed goals:', this.jsonPreview);
       } catch (e) {
         console.error('Error parsing JSON:', e);
         this.jsonError = 'Failed to parse JSON file. Please check the file format.';
@@ -309,9 +316,8 @@ export class BudgetComponent implements OnInit {
     this.isLoading = true;
 
     // Use the bulkAddGoals method
-    this.productBudgetService.bulkAddGoals(this.jsonPreview).subscribe({
+    this.productBudgetService.bulkAddGoals(this.jsonPreview).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (result) => {
-        console.log(`Successfully imported ${result.successCount} goals`);
         if (result.failedCount > 0 && result.failedGoals) {
           // Create a more detailed message about the failures
           const failureDetails = result.failedGoals
@@ -319,11 +325,11 @@ export class BudgetComponent implements OnInit {
             .join('\n');
 
           // Use a simple alert with details
-          alert(`Successfully imported ${result.successCount} goals.\n\n${result.failedCount} goal(s) failed to import:\n${failureDetails}`);
+          this.notifications.error(`Imported ${result.successCount}. ${result.failedCount} failed: ${failureDetails}`);
         } else if (result.failedCount > 0) {
-          alert(`${result.successCount} goals imported successfully. ${result.failedCount} goals failed to import.`);
+          this.notifications.error(`Imported ${result.successCount} goals; ${result.failedCount} failed.`);
         } else {
-          alert(`${result.successCount} goals imported successfully!`);
+          this.notifications.success(`Imported ${result.successCount} goals.`);
         }
 
         // Refresh the goals list with a small delay to ensure backend processing is complete
@@ -341,7 +347,7 @@ export class BudgetComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error importing goals:', error);
-        alert('Failed to import goals: ' + (error.message || 'Unknown error'));
+        this.notifications.error(error?.message || 'Could not import those goals.');
         this.isLoading = false;
       }
     });
@@ -356,129 +362,103 @@ export class BudgetComponent implements OnInit {
   submitForm(): void {
     if (this.validateGoal(this.currentGoal)) {
       if (this.drawerMode === 'add') {
-        this.productBudgetService.addGoal(this.currentGoal).subscribe({
+        this.productBudgetService.addGoal(this.currentGoal).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
           next: () => {
             this.loadGoals(); // Refresh goals
             this.closeDrawer();
           },
           error: (error) => {
             console.error('Error adding goal:', error);
-            alert('Failed to add goal: ' + error.message);
+            this.notifications.error(error?.message || 'Could not add that goal.');
           }
         });
       } else if (this.drawerMode === 'edit' && this.selectedGoalId) {
         this.productBudgetService.updateGoal({
           ...this.currentGoal,
           id: this.selectedGoalId
-        }).subscribe({
+        }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
           next: () => {
             this.loadGoals(); // Refresh goals
             this.closeDrawer();
           },
           error: (error) => {
             console.error('Error updating goal:', error);
-            alert('Failed to update goal: ' + error.message);
+            this.notifications.error(error?.message || 'Could not update that goal.');
           }
         });
       }
     }
   }
 
+  /**
+   * Hands the whole contribution to the server, which debits the wallet and
+   * credits the goal in one transaction.
+   *
+   * This used to run as two independent writes from the browser — debit, then
+   * credit, with a best-effort undo of the debit if the credit failed. Closing
+   * the tab in between left the money deducted from the wallet and attached to
+   * nothing. The clamping below is only there to keep the input honest; the
+   * server clamps again against balances it reads inside the transaction.
+   */
   submitAddMoney(): void {
-    if (this.addAmount > 0 && this.selectedGoalId && this.selectedWalletId) {
-      const selectedWallet = this.availableWallets.find(w => w.id === this.selectedWalletId);
-      const selectedGoal = this.goals.find(g => g.id === this.selectedGoalId);
-
-      if (!selectedGoal) {
-        alert('Goal not found');
-        return;
-      }
-
-      // Calculate remaining amount needed to reach target
-      const remainingAmount = selectedGoal.targetAmount - selectedGoal.savedAmount;
-
-      // Limit the amount to add to the remaining amount needed
-      const amountToAdd = Math.min(this.addAmount, remainingAmount);
-
-      if (amountToAdd <= 0) {
-        alert('This goal is already fully funded!');
-        return;
-      }
-
-      if (selectedWallet && selectedWallet.balance >= amountToAdd) {
-        // Update wallet balance
-        this.walletService.updateWallet(this.selectedWalletId, {
-          balance: selectedWallet.balance - amountToAdd
-        }).subscribe({
-          next: () => {
-            // Add money to goal
-            console.log(`Adding ${amountToAdd} to goal ${this.selectedGoalId}`);
-            this.productBudgetService.addMoney(this.selectedGoalId!, amountToAdd).subscribe({
-              next: (updatedGoal) => {
-                console.log('Successfully updated goal:', updatedGoal);
-                this.loadGoals();
-
-                // Check if goal is now fully funded
-                const isFullyFunded = updatedGoal.savedAmount >= updatedGoal.targetAmount;
-
-                if (isFullyFunded) {
-                  // Show success message for fully funded goal
-                  this.showSuccessMessage(`Congratulations! "${updatedGoal.name}" is now fully funded!`);
-                } else {
-                  // Show regular success message
-                  this.showSuccessMessage(`Successfully added ${this.currencyService.getActiveCurrency()} ${amountToAdd.toLocaleString()} to "${updatedGoal.name}"`);
-                }
-
-                this.closeDrawer();
-              },
-              error: (error) => {
-                console.error('Error adding money to goal:', error);
-                console.error('Error details:', error.name, error.status, error.message);
-                alert('Failed to add money to goal: ' + error.message);
-
-                // Restore wallet balance if adding money to goal fails
-                console.log('Restoring wallet balance...');
-                this.walletService.updateWallet(this.selectedWalletId, {
-                  balance: selectedWallet.balance
-                }).subscribe();
-              }
-            });
-          },
-          error: (error) => {
-            console.error('Error updating wallet balance:', error);
-            alert('Failed to update wallet: ' + error.message);
-          }
-        });
-      } else {
-        alert('Insufficient funds in selected wallet');
-      }
+    if (this.isLoading || this.addAmount <= 0 || !this.selectedGoalId || !this.selectedWalletId) {
+      return;
     }
+
+    const goalId = this.selectedGoalId;
+    const walletId = this.selectedWalletId;
+    this.isLoading = true;
+
+    this.productBudgetService.contribute(goalId, walletId, this.addAmount).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: ({ goal, appliedAmount, isFullyFunded }) => {
+        this.isLoading = false;
+        this.loadGoals();
+        // The wallet balance changed server-side; pull the new one.
+        this.walletService.refreshWallets();
+
+        const currency = this.currencyService.getActiveCurrency();
+        this.notifications.success(
+          isFullyFunded
+            ? `"${goal.name}" is now fully funded.`
+            : `Added ${currency} ${appliedAmount.toLocaleString()} to "${goal.name}".`
+        );
+
+        this.closeDrawer();
+      },
+      error: (error) => {
+        this.isLoading = false;
+        this.notifications.error(error?.message || 'Could not add money to this goal.');
+      }
+    });
   }
 
   deleteGoal(id: string): void {
-    if (confirm('Are you sure you want to delete this goal?')) {
-      this.productBudgetService.deleteGoal(id).subscribe({
+    this.dialogs.confirmDelete('goal').pipe(takeUntilDestroyed(this.destroyRef)).subscribe(confirmed => {
+      if (!confirmed) {
+        return;
+      }
+
+      this.productBudgetService.deleteGoal(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: () => {
-          // Goal was successfully deleted, now update the UI
           this.loadGoals();
+          this.notifications.success('Goal deleted.');
         },
         error: (error) => {
-          console.error('Error deleting goal:', error);
-          alert('Failed to delete goal: ' + error.message);
+          this.notifications.error(error?.message || 'Could not delete that goal.');
         }
       });
-    }
+    });
   }
 
   private loadGoals(): void {
-    this.productBudgetService.getGoals().subscribe({
+    this.productBudgetService.getGoals().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (goals) => {
         this.goals = goals;
         this.applyFilters(); // Apply filters after loading goals
       },
       error: (error) => {
         console.error('Error loading goals:', error);
-        alert('Failed to load budget goals: ' + error.message);
+        this.notifications.error(error?.message || 'Could not load your goals.');
       }
     });
   }
@@ -554,7 +534,7 @@ export class BudgetComponent implements OnInit {
   }
 
   private loadWallets(): void {
-    this.walletService.getAllWallets().subscribe(wallets => {
+    this.walletService.getAllWallets().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(wallets => {
       // Only get cash and bank wallets with positive balance
       this.availableWallets = wallets.filter(wallet =>
         (wallet.type === 'cash' || wallet.type === 'bank') &&
@@ -670,6 +650,14 @@ export class BudgetComponent implements OnInit {
     if (this.isFilterOpen) this.isSortOpen = false;
   }
 
+  // Both dropdowns have a transparent backdrop that closes them on click;
+  // Escape is the keyboard equivalent.
+  @HostListener('document:keydown.escape')
+  onEscape() {
+    this.isSortOpen = false;
+    this.isFilterOpen = false;
+  }
+
   selectSort(option: string) {
     this.sortOption = option;
     this.applyFilters();
@@ -682,8 +670,4 @@ export class BudgetComponent implements OnInit {
     this.isFilterOpen = false;
   }
 
-  private showSuccessMessage(message: string): void {
-    // For now, use an alert, but this could be replaced with a nicer toast or notification
-    alert(message);
-  }
 }

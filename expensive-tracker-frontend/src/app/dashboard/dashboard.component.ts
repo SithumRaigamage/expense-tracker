@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faGear, faEye, faEyeSlash, faTimes, faArrowsRotate, faChartPie } from '@fortawesome/free-solid-svg-icons';
@@ -14,7 +15,6 @@ import { UpcomingBillsComponent } from './components/upcoming-bills/upcoming-bil
 import { EmergencyFundComponent } from './components/emergency-fund/emergency-fund.component';
 import { FinancialEducationComponent } from './components/financial-education/financial-education.component';
 import { ExpenseBreakdownComponent } from './components/expense-breakdown/expense-breakdown.component';
-import { WalletService } from '../services/wallet.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -31,12 +31,15 @@ import { WalletService } from '../services/wallet.service';
     UpcomingBillsComponent,
     EmergencyFundComponent,
     FinancialEducationComponent,
-    FinancialEducationComponent,
     ExpenseBreakdownComponent
   ],
   templateUrl: './dashboard.component.html',
 })
 export class DashboardComponent implements OnInit {
+  private dashboardService = inject(DashboardService);
+
+  private readonly destroyRef = inject(DestroyRef);
+
   faGear = faGear;
   faEye = faEye;
   faEyeSlash = faEyeSlash;
@@ -47,10 +50,8 @@ export class DashboardComponent implements OnInit {
   isCustomizing = false;
   widgets: WidgetConfig[] = [];
 
-  constructor(private dashboardService: DashboardService) {}
-
   ngOnInit() {
-    this.dashboardService.widgets$.subscribe(widgets => {
+    this.dashboardService.widgets$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(widgets => {
       this.widgets = widgets;
     });
 
@@ -60,6 +61,15 @@ export class DashboardComponent implements OnInit {
 
   toggleDrawer() {
     this.isCustomizing = !this.isCustomizing;
+  }
+
+  // The backdrop closes the customization drawer on click; Escape is its
+  // keyboard equivalent.
+  @HostListener('document:keydown.escape')
+  onEscape() {
+    if (this.isCustomizing) {
+      this.isCustomizing = false;
+    }
   }
 
   toggleWidget(id: string) {

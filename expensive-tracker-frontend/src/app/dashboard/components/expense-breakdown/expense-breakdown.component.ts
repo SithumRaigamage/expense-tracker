@@ -1,31 +1,54 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faChartPie } from '@fortawesome/free-solid-svg-icons';
 import { NgxEchartsModule } from 'ngx-echarts';
 import type { EChartsOption } from 'echarts';
-import { WalletService } from '../../../services/wallet.service';
+import { WalletService, ExpenseFlow, ExpenseFlowLink, ExpenseFlowNode } from '../../../services/wallet.service';
 import { CurrencyService } from '../../../core/services/currency.service';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
+import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
+
+/**
+ * The slices of echarts' tooltip callback params this component actually reads.
+ * echarts types them as a broad union; naming just the fields used keeps the
+ * formatters checked without dragging in the whole shape.
+ */
+interface SankeyTooltipParams {
+  dataType?: string;
+  name: string;
+  data: { source?: string; target?: string; value?: number };
+}
+
+interface SunburstTooltipParams {
+  name: string;
+  value?: number;
+}
 
 @Component({
   selector: 'app-expense-breakdown',
   standalone: true,
-  imports: [CommonModule, FontAwesomeModule, NgxEchartsModule],
+  imports: [CommonModule, RouterModule, FontAwesomeModule, NgxEchartsModule, EmptyStateComponent, SkeletonComponent],
   templateUrl: './expense-breakdown.component.html',
 })
 export class ExpenseBreakdownComponent implements OnInit {
+  private walletService = inject(WalletService);
+  private currencyService = inject(CurrencyService);
+
+  private readonly destroyRef = inject(DestroyRef);
+
   faChartPie = faChartPie;
   breakdownTab: 'sankey' | 'sunburst' = 'sankey';
   isBreakdownLoading = true;
   sankeyOptions: EChartsOption = {};
   sunburstOptions: EChartsOption = {};
-  rawData: any;
-  hasData = false;
-
-  constructor(private walletService: WalletService, private currencyService: CurrencyService) {}
+  rawData?: ExpenseFlow;
+  hasFlowData = false;
 
   ngOnInit() {
-    this.walletService.getExpenseFlow().subscribe({
+    this.walletService.getExpenseFlow().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (data) => {
         this.rawData = data;
         this.updateCharts();
@@ -33,22 +56,31 @@ export class ExpenseBreakdownComponent implements OnInit {
       error: () => { this.isBreakdownLoading = false; }
     });
 
-    this.currencyService.activeCurrency$.subscribe(() => {
+    this.currencyService.activeCurrency$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       if (this.rawData) this.updateCharts();
     });
   }
 
   updateCharts() {
     const data = this.rawData;
+
+    // The API still returns every category as a node before any money moves. Rendering a
+    // sankey with nodes but no links stacks all labels on top of each other, so treat
+    // "no links" as no data and show the placeholder instead.
+    this.hasFlowData = !!data?.links?.length;
+    if (!data || !this.hasFlowData) {
+      this.sankeyOptions = {};
+      this.sunburstOptions = {};
+      this.isBreakdownLoading = false;
+      return;
+    }
+
     const currency = this.currencyService.getActiveCurrency();
     const convert = (val: number) => this.currencyService.convert(val, 'LKR', currency);
 
-    // Check if we have data
-    this.hasData = data && data.links && data.links.length > 0;
-
     // Sankey options
-    const nodes = data.nodes.map((n: any) => ({ name: n.name, itemStyle: { color: n.color } }));
-    const links = data.links.map((l: any) => ({
+    const nodes = data.nodes.map((n: ExpenseFlowNode) => ({ name: n.name, itemStyle: { color: n.color } }));
+    const links = data.links.map((l: ExpenseFlowLink) => ({
       source: l.source,
       target: l.target,
       value: convert(l.value),
@@ -61,11 +93,13 @@ export class ExpenseBreakdownComponent implements OnInit {
         triggerOn: 'mousemove',
         confine: true,
         appendToBody: false,
-        formatter: (params: any) => {
+        formatter: (params: SankeyTooltipParams) => {
           if (params.dataType === 'edge') {
             return `${params.data.source} → ${params.data.target}: ${currency} ${Number(params.data.value).toLocaleString()}`;
           }
-          return ''; // Don't show tooltip for nodes
+          // Node labels are hidden below, so this hover is the only way left to
+          // identify a node. Suppressing it too would leave them anonymous.
+          return `${params.name}`;
         }
       },
       series: [{
@@ -75,8 +109,8 @@ export class ExpenseBreakdownComponent implements OnInit {
         emphasis: { focus: 'adjacency' },
         nodeGap: 12,
         nodeWidth: 12,
-        label: { 
-          show: false  // Hide labels to prevent text overlay
+        label: {
+          show: false // Hide labels to prevent text overlay
         },
         lineStyle: { curveness: 0.5 }
       }]
@@ -84,16 +118,16 @@ export class ExpenseBreakdownComponent implements OnInit {
 
     // Sunburst options
     const totals: Record<string, { value: number; color: string }> = {};
-    data.links.forEach((l: any) => {
+    data.links.forEach((l: ExpenseFlowLink) => {
       const key = l.target;
       const prev = totals[key] || { value: 0, color: l.color || '#6366f1' };
       totals[key] = { value: prev.value + convert(l.value), color: prev.color };
     });
     const children = Object.entries(totals).map(([name, info]) => ({ name, value: info.value, itemStyle: { color: info.color } }));
-    const root = { name: 'Expenses', children } as any;
+    const root = { name: 'Expenses', children };
     
     this.sunburstOptions = {
-      tooltip: { formatter: (p: any) => `${p.name}: ${currency} ${Number(p.value).toLocaleString()}` },
+      tooltip: { formatter: (p: SunburstTooltipParams) => `${p.name}: ${currency} ${Number(p.value).toLocaleString()}` },
       series: [{
         type: 'sunburst',
         data: [root],

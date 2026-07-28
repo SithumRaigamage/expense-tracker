@@ -1,110 +1,99 @@
-<div class="flex flex-col h-screen" [ngClass]="{'dark': isDarkMode}">
-  <!-- Header with controls -->
-  <div class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4">
-    <div class="flex justify-between items-center">
-      <h1 class="text-xl font-bold text-gray-800 dark:text-white">AI Chat</h1>
-      <div class="flex space-x-2">
-        <button (click)="clearChat()"
-                class="px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
-          Clear Chat
-        </button>
-        <button (click)="toggleTheme()"
-                class="px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
-          Toggle Theme
-        </button>
-      </div>
+<div class="mx-auto flex h-[calc(100vh-9rem)] max-w-3xl flex-col">
+
+  <!-- Header -->
+  <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 pb-4 dark:border-gray-800">
+    <div>
+      <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Assistant</h1>
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        Ask about your spending, balances, and savings goals.
+      </p>
     </div>
+    @if (messages.length) {
+      <button type="button" (click)="clearChat()"
+        class="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
+        Clear chat
+      </button>
+    }
   </div>
 
-  <!-- Chat messages -->
-  <div class="flex-1 overflow-y-auto p-4 bg-gray-50 dark:bg-gray-900">
-    <div class="space-y-4">
-      <div *ngFor="let message of messages"
-           [ngClass]="{'ml-auto max-w-[80%]': message.role === 'user', 'mr-auto max-w-[80%]': message.role === 'assistant'}"
-           class="flex flex-col">
+  <!-- Transcript -->
+  <div class="flex-1 space-y-4 overflow-y-auto py-6" role="log" aria-live="polite" aria-label="Conversation">
+    @if (!messages.length) {
+      <div class="mx-auto max-w-md py-10 text-center">
+        <p class="text-gray-900 font-medium dark:text-white">What would you like to know?</p>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          The assistant can see your wallets, recent transactions and goals.
+        </p>
+        <div class="mt-5 flex flex-col gap-2">
+          @for (prompt of ['Where did most of my money go last month?', 'Am I on track for my savings goals?', 'Which category has grown the most?']; track prompt) {
+            <button type="button" (click)="userInput = prompt"
+              class="rounded-xl border border-gray-200 px-4 py-2.5 text-left text-sm text-gray-700 transition hover:border-brand-300 hover:bg-brand-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-brand-500/10">
+              {{ prompt }}
+            </button>
+          }
+        </div>
+      </div>
+    }
 
-        <!-- Message bubble -->
-        <div [ngClass]="{'bg-blue-500 text-white': message.role === 'user',
-                         'bg-white dark:bg-gray-800 text-gray-800 dark:text-white': message.role === 'assistant'}"
-             class="rounded-lg p-4 shadow">
+    @for (message of messages; track message.id) {
+      <div class="flex" [class.justify-end]="message.role === 'user'">
+        <div class="group max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed"
+          [class]="message.role === 'user'
+            ? 'bg-brand-500 text-white'
+            : 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-100'">
+          <p class="whitespace-pre-wrap">{{ message.content }}</p>
 
-          <!-- Loading indicator -->
-          <div *ngIf="message.isLoading" class="flex items-center space-x-2">
-            <div class="animate-bounce w-2 h-2 bg-gray-400 rounded-full"></div>
-            <div class="animate-bounce w-2 h-2 bg-gray-400 rounded-full" style="animation-delay: 0.2s"></div>
-            <div class="animate-bounce w-2 h-2 bg-gray-400 rounded-full" style="animation-delay: 0.4s"></div>
-          </div>
+          @if (message.isStreaming && !message.content) {
+            <span class="flex gap-1 py-1" aria-label="Thinking">
+              @for (dot of [0, 1, 2]; track dot) {
+                <span class="h-1.5 w-1.5 rounded-full bg-current opacity-40 motion-safe:animate-pulse"
+                  [style.animation-delay]="dot * 150 + 'ms'"></span>
+              }
+            </span>
+          }
 
-          <!-- Message content -->
-          <p *ngIf="!message.isLoading">{{message.content}}</p>
-
-          <!-- Error message -->
-          <p *ngIf="message.error" class="text-red-500 text-sm mt-2">{{message.error}}</p>
-
-          <!-- Message metadata -->
-          <div class="flex justify-between items-center mt-2 text-xs opacity-75">
-            <span>{{message.timestamp | date:'short'}}</span>
-            <button *ngIf="message.role === 'assistant'"
-                    (click)="copyMessage(message)"
-                    class="hover:text-blue-500">
+          @if (message.role === 'assistant' && !message.isStreaming) {
+            <button type="button" (click)="copyMessage(message)"
+              class="mt-2 text-xs font-medium text-gray-500 opacity-0 transition group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:text-gray-400"
+              aria-label="Copy this reply">
               Copy
             </button>
-          </div>
-        </div>
-
-        <!-- Sources/Context (for assistant messages) -->
-        <div *ngIf="message.role === 'assistant' && message.sources?.length"
-             class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          <div *ngFor="let source of message.sources" class="mt-1">
-            <a [href]="source.url"
-               target="_blank"
-               class="text-blue-500 hover:underline">
-              {{source.title}}
-            </a>
-            <p class="text-xs">{{source.snippet}}</p>
-          </div>
+          }
         </div>
       </div>
-    </div>
+    }
   </div>
 
-  <!-- Input area -->
-  <div class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4">
-    <div class="flex space-x-4">
-      <input type="text"
-             [(ngModel)]="userInput"
-             (keyup.enter)="sendMessage()"
-             placeholder="Type your message..."
-             class="flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:border-blue-500">
+  <!-- Composer -->
+  <div class="border-t border-gray-200 pt-4 dark:border-gray-800">
+    @if (!isAvailable) {
+      <p class="rounded-xl bg-gray-100 px-4 py-3 text-sm text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+        The assistant isn't configured on this server. Set <code class="font-mono text-xs">ANTHROPIC_API_KEY</code> to enable it.
+      </p>
+    } @else {
+      <form class="flex items-end gap-2" (ngSubmit)="sendMessage()">
+        <label for="chat-input" class="sr-only">Message</label>
+        <textarea id="chat-input" rows="1" [(ngModel)]="userInput" name="userInput"
+          (keydown.enter)="$event.preventDefault(); sendMessage()"
+          [disabled]="isLoading"
+          placeholder="Ask about your finances…"
+          class="flex-1 resize-none rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 transition focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-brand-500 disabled:opacity-60 dark:border-gray-700 dark:bg-gray-900 dark:text-white"></textarea>
 
-      <button (click)="sendMessage()"
-              [disabled]="!userInput.trim()"
-              class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-        Send
-      </button>
-    </div>
-
-    <!-- Settings controls -->
-    <div class="mt-4 flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
-      <div class="flex items-center">
-        <label class="mr-2">Temperature:</label>
-        <input type="range"
-               [(ngModel)]="temperature"
-               min="0"
-               max="1"
-               step="0.1"
-               class="w-24">
-        <span class="ml-2">{{temperature}}</span>
-      </div>
-
-      <div class="flex items-center">
-        <label class="mr-2">Max Tokens:</label>
-        <input type="number"
-               [(ngModel)]="maxTokens"
-               min="100"
-               max="2000"
-               class="w-20 p-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-800 dark:text-white">
-      </div>
-    </div>
+        @if (isLoading) {
+          <button type="button" (click)="stop()"
+            class="rounded-xl border border-gray-300 px-4 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:border-gray-700 dark:text-gray-300">
+            Stop
+          </button>
+        } @else {
+          <button type="submit" [disabled]="!userInput.trim()"
+            class="rounded-xl bg-brand-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-brand-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 disabled:opacity-50 disabled:cursor-not-allowed">
+            Send
+          </button>
+        }
+      </form>
+      <p class="mt-2 text-xs text-gray-400 dark:text-gray-500">
+        The assistant can be wrong. Check anything important against your transactions.
+      </p>
+    }
   </div>
 </div>

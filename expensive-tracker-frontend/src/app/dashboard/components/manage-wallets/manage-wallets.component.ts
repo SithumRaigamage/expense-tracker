@@ -1,6 +1,7 @@
 import { Wallet } from '../../../core/models/Wallet';
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { WalletService } from '../../../services/wallet.service';
 import { RouterModule } from '@angular/router';
 import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
@@ -11,12 +12,14 @@ import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
   templateUrl: './manage-wallets.component.html',
 })
 export class ManageWalletsComponent implements OnInit {
+  private wallet = inject(WalletService);
+
+  private readonly destroyRef = inject(DestroyRef);
+
   wallets: Wallet[] = [];
 
-  constructor(private wallet : WalletService) {}
-
   ngOnInit(): void {
-    this.wallet.getAllWallets().subscribe(wallets => {
+    this.wallet.getAllWallets().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(wallets => {
       this.wallets = wallets;
     });
 
@@ -24,7 +27,7 @@ export class ManageWalletsComponent implements OnInit {
 
   getWalletIconClass(type: string): string {
     const baseClasses = 'text-white';
-    const typeClasses: { [key: string]: string } = {
+    const typeClasses: Record<string, string> = {
       'cash': 'bg-green-500',
       'bank': 'bg-blue-500',
       'credit': 'bg-purple-500',

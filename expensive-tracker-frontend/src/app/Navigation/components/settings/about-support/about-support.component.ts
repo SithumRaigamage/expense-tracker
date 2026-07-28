@@ -1,19 +1,15 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faDownload, faFileExport, faDatabase } from '@fortawesome/free-solid-svg-icons';
+import { faDownload } from '@fortawesome/free-solid-svg-icons';
 import { WalletService } from '../../../../services/wallet.service';
 import { TransactionService } from '../../../../services/transaction.service';
 import { ProductBudgetService } from '../../../../services/product-budget.service';
 import { BillsService } from '../../../../services/bill.service';
 import { ExcelExportService } from '../../../../services/excel-export.service';
 import { forkJoin, take, finalize } from 'rxjs';
-
-interface TeamMember {
-  name: string;
-  role: string;
-  avatar: string;
-}
+import { NotificationService } from '../../../../shared/services/notification.service';
 
 interface LegalLink {
   title: string;
@@ -29,20 +25,21 @@ interface Developer {
 @Component({
   selector: 'app-about-support',
   standalone: true,
-  imports: [CommonModule, FontAwesomeModule],
+  imports: [FontAwesomeModule],
   templateUrl: './about-support.component.html',
 })
 export class AboutSupportComponent {
+  private walletService = inject(WalletService);
+  private transactionService = inject(TransactionService);
+  private budgetService = inject(ProductBudgetService);
+  private billsService = inject(BillsService);
+  private excelExportService = inject(ExcelExportService);
+  private readonly notifications = inject(NotificationService);
+
+  private readonly destroyRef = inject(DestroyRef);
+
   isExporting = false;
   faDownload = faDownload;
-
-  constructor(
-    private walletService: WalletService,
-    private transactionService: TransactionService,
-    private budgetService: ProductBudgetService,
-    private billsService: BillsService,
-    private excelExportService: ExcelExportService
-  ) {}
   appName = 'ExpenseTracker';
   appVersion = '1.0.0';
   releaseNotes = [
@@ -77,7 +74,7 @@ export class AboutSupportComponent {
       billTransactions: this.billsService.getTransactions().pipe(take(1))
     }).pipe(
       finalize(() => this.isExporting = false)
-    ).subscribe({
+    ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (data) => {
         this.excelExportService.exportAllToExcel({
           'Wallets': data.wallets,
@@ -89,7 +86,7 @@ export class AboutSupportComponent {
       },
       error: (error) => {
         console.error('Export failed:', error);
-        alert('Failed to export data. Please try again.');
+        this.notifications.error('Could not export your data. Please try again.');
       }
     });
   }

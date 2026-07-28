@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -25,6 +25,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule } from '@angular/material/dialog';
+import { NotificationService } from '../../../shared/services/notification.service';
 
 @Component({
   selector: 'app-wallets',
@@ -33,6 +34,15 @@ import { MatDialogModule } from '@angular/material/dialog';
   imports: [CommonModule, ReactiveFormsModule, FontAwesomeModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatButtonModule, AppCurrencyPipe, SideDrawerComponent]
 })
 export class WalletsComponent implements OnInit, OnDestroy {
+  private fb = inject(FormBuilder);
+  walletService = inject(WalletService);
+  private dialogService = inject(DialogService);
+  private dialog = inject(MatDialog);
+  private router = inject(Router);
+  currencyService = inject(CurrencyService);
+  private excelExportService = inject(ExcelExportService);
+  private readonly notifications = inject(NotificationService);
+
   faWallet = faWallet;
   faPlus = faPlus;
   faPencil = faPencil;
@@ -58,7 +68,6 @@ export class WalletsComponent implements OnInit, OnDestroy {
   isDrawerOpen = false;
   selectedWallet: Wallet | null = null;
   wallets: Wallet[] = [];
-  primaryCurrency: string = 'LKR';
   error: string | null = null;
   isLoading = false;
   isAuthError = false;
@@ -73,15 +82,7 @@ export class WalletsComponent implements OnInit, OnDestroy {
 
   private subscription: Subscription;
 
-  constructor(
-    private fb: FormBuilder,
-    public walletService: WalletService,
-    private dialogService: DialogService,
-    private dialog: MatDialog,
-    private router: Router,
-    public currencyService: CurrencyService,
-    private excelExportService: ExcelExportService
-  ) {
+  constructor() {
     this.subscription = new Subscription();
     this.initForm();
   }
@@ -94,7 +95,7 @@ export class WalletsComponent implements OnInit, OnDestroy {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        console.log('Transfer successful');
+        this.notifications.success('Transfer complete.');
       }
     });
   }
@@ -104,9 +105,6 @@ export class WalletsComponent implements OnInit, OnDestroy {
     this.subscription.add(
       this.walletService.wallets$.subscribe(wallets => {
         this.wallets = wallets;
-        if (wallets.length > 0 && wallets[0].primaryCurrency) {
-          this.primaryCurrency = wallets[0].primaryCurrency;
-        }
       })
     );
 
@@ -148,7 +146,7 @@ export class WalletsComponent implements OnInit, OnDestroy {
 
   // Method to get wallet color based on type
   getWalletColor(type: string): string {
-    const colorMap: { [key: string]: string } = {
+    const colorMap: Record<string, string> = {
       'cash': 'text-green-600 bg-green-100',
       'bank': 'text-blue-600 bg-blue-100',
       'credit': 'text-purple-600 bg-purple-100',
@@ -211,26 +209,24 @@ export class WalletsComponent implements OnInit, OnDestroy {
       if (this.selectedWallet) {
         this.walletService.updateWallet(this.selectedWallet.id, walletData).subscribe({
           next: () => {
-            console.log('Wallet updated successfully');
             this.closeDrawer();
             this.isLoading = false;
           },
           error: (error) => {
             console.error('Error updating wallet:', error);
-            alert(error.message || 'Error updating wallet');
+            this.notifications.error(error?.message || 'Could not update that wallet.');
             this.isLoading = false;
           }
         });
       } else {
         this.walletService.addWallet(walletData).subscribe({
           next: () => {
-            console.log('Wallet added successfully');
             this.closeDrawer();
             this.isLoading = false;
           },
           error: (error) => {
             console.error('Error adding wallet:', error);
-            alert(error.message || 'Error adding wallet');
+            this.notifications.error(error?.message || 'Could not add that wallet.');
             this.isLoading = false;
           }
         });
@@ -257,9 +253,11 @@ export class WalletsComponent implements OnInit, OnDestroy {
     }
 
     const reader = new FileReader();
-    reader.onload = (e: any) => {
+    reader.onload = (e: ProgressEvent<FileReader>) => {
       try {
-        const json = JSON.parse(e.target.result);
+        // A null result parses to a SyntaxError, which the catch below already
+        // reports as an invalid file.
+        const json = JSON.parse(String(e.target?.result ?? ''));
         this.processJsonData(json);
       } catch (error) {
         console.error('Error parsing JSON:', error);
@@ -274,7 +272,9 @@ export class WalletsComponent implements OnInit, OnDestroy {
     reader.readAsText(file);
   }
 
-  processJsonData(data: any) {
+  // The argument comes straight from a user-supplied file, so it is unknown
+  // until these checks have run over it.
+  processJsonData(data: unknown) {
     // Validate the JSON structure
     if (!Array.isArray(data)) {
       this.jsonError = 'Invalid JSON format. Expected an array of wallets.';
@@ -283,28 +283,34 @@ export class WalletsComponent implements OnInit, OnDestroy {
 
     const validWallets: Wallet[] = [];
     const errors: string[] = [];
+    const walletTypes = ['cash', 'bank', 'credit', 'savings', 'crypto', 'investment', 'loan', 'emergencyfund'];
 
-    data.forEach((item: any, index: number) => {
-      if (!item.name) {
+    data.forEach((entry: unknown, index: number) => {
+      const item = (entry ?? {}) as Record<string, unknown>;
+      const name = typeof item['name'] === 'string' ? item['name'] : '';
+      const type = item['type'];
+      const label = name || index;
+
+      if (!name) {
         errors.push(`Wallet at index ${index} is missing a name`);
       }
 
-      if (!item.type || !['cash', 'bank', 'credit', 'savings', 'crypto', 'investment', 'loan', 'emergencyfund'].includes(item.type)) {
-        errors.push(`Wallet "${item.name || index}" has an invalid type`);
+      if (typeof type !== 'string' || !walletTypes.includes(type)) {
+        errors.push(`Wallet "${label}" has an invalid type`);
       }
 
-      if (item.balance === undefined || isNaN(Number(item.balance))) {
-        errors.push(`Wallet "${item.name || index}" has an invalid balance`);
+      if (item['balance'] === undefined || isNaN(Number(item['balance']))) {
+        errors.push(`Wallet "${label}" has an invalid balance`);
       }
 
       if (!errors.length) {
         validWallets.push({
           id: '', // Will be assigned by server
-          name: item.name,
-          type: item.type,
-          balance: Number(item.balance),
-          currency: item.currency || 'LKR',
-          paymentMethod: item.paymentMethod || '',
+          name,
+          type: type as Wallet['type'],
+          balance: Number(item['balance']),
+          currency: String(item['currency'] || 'LKR'),
+          paymentMethod: String(item['paymentMethod'] || ''),
           user: '' // Will be assigned by server
         });
       }
@@ -333,7 +339,6 @@ export class WalletsComponent implements OnInit, OnDestroy {
     // Use the updated bulkAddWallets method that now handles sequential processing
     this.walletService.bulkAddWallets(this.jsonPreview).subscribe({
       next: (result) => {
-        console.log(`Successfully imported ${result.successCount} wallets`);
         if (result.failedCount > 0 && result.failedWallets) {
           // Create a more detailed message about the failures
           const failureDetails = result.failedWallets
@@ -341,18 +346,18 @@ export class WalletsComponent implements OnInit, OnDestroy {
             .join('\n');
 
           // Use a simple alert with details
-          alert(`Successfully imported ${result.successCount} wallets.\n\n${result.failedCount} wallet(s) failed to import:\n${failureDetails}`);
+          this.notifications.error(`Imported ${result.successCount}. ${result.failedCount} failed: ${failureDetails}`);
         } else if (result.failedCount > 0) {
-          alert(`${result.successCount} wallets imported successfully. ${result.failedCount} wallets failed to import.`);
+          this.notifications.error(`Imported ${result.successCount} wallets; ${result.failedCount} failed.`);
         } else {
-          alert(`${result.successCount} wallets imported successfully!`);
+          this.notifications.success(`Imported ${result.successCount} wallets.`);
         }
         this.closeDrawer();
         this.isLoading = false;
       },
       error: (error) => {
         console.error('Error importing wallets:', error);
-        alert(error.message || 'Error importing wallets');
+        this.notifications.error(error?.message || 'Could not import those wallets.');
         this.isLoading = false;
       }
     });
@@ -368,13 +373,11 @@ export class WalletsComponent implements OnInit, OnDestroy {
     this.dialogService.confirmDelete('wallet').subscribe(result => {
       if (result) {
         this.walletService.deleteWallet(id).subscribe({
-          next: () => {
-            console.log('Wallet deleted successfully');
-          },
+          next: () => this.notifications.success('Wallet deleted.'),
           error: (error) => {
             console.error('Error deleting wallet:', error);
             // We could use another dialog here instead of alert, but keeping it simple for now
-            alert(error.message || 'Error deleting wallet');
+            this.notifications.error(error?.message || 'Could not delete that wallet.');
           }
         });
       }
@@ -397,8 +400,8 @@ export class WalletsComponent implements OnInit, OnDestroy {
     this.router.navigate(['/login']);
   }
 
-  formatCurrency(amount: number, currencyCode: string = 'LKR'): string {
-    const localeMap: { [key: string]: string } = {
+  formatCurrency(amount: number, currencyCode = 'LKR'): string {
+    const localeMap: Record<string, string> = {
       'LKR': 'en-LK',
       'USD': 'en-US',
       'EUR': 'de-DE',

@@ -3,6 +3,7 @@ const app = require('../../src/app');
 const User = require('../../src/models/User');
 const Wallet = require('../../src/models/Wallet');
 const mongoose = require('mongoose');
+const { tokenFromResponse } = require('../helpers/auth');
 
 // Mock data
 const userData = {
@@ -39,7 +40,7 @@ describe('Wallet CRUD Operations', () => {
       .post('/api/v1/users/register')
       .send(userData);
 
-    authToken = userResponse.body.data.token;
+    authToken = tokenFromResponse(userResponse);
     userId = userResponse.body.data.user.id;
   });
 
@@ -90,7 +91,7 @@ describe('Wallet CRUD Operations', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('Validation failed');
+      expect(response.body.error).toContain('Wallet name is required');
     });
 
     it('should validate wallet type', async () => {
@@ -101,7 +102,7 @@ describe('Wallet CRUD Operations', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('Validation failed');
+      expect(response.body.error).toContain('Invalid wallet type');
     });
 
     it('should not allow negative balance', async () => {
@@ -204,7 +205,7 @@ describe('Wallet CRUD Operations', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toContain('Validation failed');
+      expect(response.body.error).toContain('Invalid wallet ID');
     });
   });
 

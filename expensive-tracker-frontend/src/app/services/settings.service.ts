@@ -1,11 +1,12 @@
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpEventType, HttpEvent } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
-import { map, catchError, tap, filter } from 'rxjs/operators';
+import { map, catchError, tap } from 'rxjs/operators';
 import { User } from '../core/models/User';
 import { faCcVisa, faCcMastercard } from '@fortawesome/free-brands-svg-icons';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { environment } from '../../environments/environment';
+import { toUserMessage } from '../core/utils/http-error';
 
 interface PaymentMethod {
   id: string;
@@ -44,16 +45,46 @@ export interface FAQ {
   isOpen?: boolean;
 }
 
+/** Standard backend envelope. Declared locally, as in the other services. */
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+}
+
+/** What /users/profile returns: a User, plus the avatar alias the app maps over. */
+type ApiUser = Partial<User> & { avatar?: string };
+
 @Injectable({
   providedIn: 'root'
 })
 export class SettingsService {
+  private http = inject(HttpClient);
+
   private apiUrl = environment.apiUrl;
   private user: User | null = null;
 
+  /**
+   * Fill in the fields the backend leaves out. The API sends the avatar under
+   * either `profileImage` or `avatar`, and may send only a combined `name` —
+   * both profile endpoints normalised this the same way, so it lives here now.
+   */
+  private static toUser(source: ApiUser, imageOverride?: string): User {
+    const name = source.name || '';
+    const parts = name.split(' ');
+
+    return {
+      ...source,
+      name,
+      email: source.email || '',
+      profileImage: imageOverride || source.profileImage || source.avatar || '',
+      firstName: source.firstName || parts[0] || '',
+      lastName: source.lastName || (parts.length > 1 ? parts.slice(1).join(' ') : '')
+    };
+  }
+
   // Method to check if the server is reachable
-  checkServerConnection(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/health`).pipe(
+  checkServerConnection(): Observable<{ status?: string }> {
+    return this.http.get<{ status?: string }>(`${this.apiUrl}/health`).pipe(
       tap(response => console.log('Backend server is reachable:', response)),
       catchError(error => {
         console.error('Backend connection check failed:', error);
@@ -112,15 +143,9 @@ export class SettingsService {
     }
   ];
 
-  constructor(private http: HttpClient) {}
-
-  // Helper method to get auth headers
+  // Credentials ride on the session cookie, attached by the interceptor.
   private getHeaders(): HttpHeaders {
-    const token = localStorage.getItem('token');
-    return new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    });
+    return new HttpHeaders({ 'Content-Type': 'application/json' });
   }
 
   getUserProfile(): Observable<User> {
@@ -136,19 +161,7 @@ export class SettingsService {
       .pipe(
         map(response => {
           // Map backend user format to expensive-tracker-frontend User model
-          const userData = response.data;
-          const user: User = {
-            ...userData,
-            // Ensure required fields have default values
-            name: userData.name || '',
-            email: userData.email || '',
-            // Use profileImage if available, fall back to avatar
-            profileImage: userData.profileImage || userData.avatar || '',
-            // If firstName/lastName not provided, try to extract from name
-            firstName: userData.firstName || userData.name?.split(' ')[0] || '',
-            lastName: userData.lastName || (userData.name?.split(' ').length > 1 ?
-              userData.name.split(' ').slice(1).join(' ') : '')
-          };
+          const user = SettingsService.toUser(response.data);
 
           this.user = user;
           return user;
@@ -163,23 +176,11 @@ export class SettingsService {
   updateUserProfile(userData: User): Observable<User> {
     const headers = this.getHeaders();
 
-    return this.http.put<{success: boolean, data: any}>(`${this.apiUrl}/users/profile`, userData, { headers })
+    return this.http.put<ApiResponse<ApiUser>>(`${this.apiUrl}/users/profile`, userData, { headers })
       .pipe(
         map(response => {
           // Map backend response to User model
-          const userData = response.data;
-          const user: User = {
-            ...userData,
-            // Ensure required fields have default values
-            name: userData.name || '',
-            email: userData.email || '',
-            // Use profileImage if available, fall back to avatar
-            profileImage: userData.profileImage || userData.avatar || '',
-            // If firstName/lastName not provided, try to extract from name
-            firstName: userData.firstName || userData.name?.split(' ')[0] || '',
-            lastName: userData.lastName || (userData.name?.split(' ').length > 1 ?
-              userData.name.split(' ').slice(1).join(' ') : '')
-          };
+          const user = SettingsService.toUser(response.data);
 
           this.user = user;
           return user;
@@ -192,85 +193,31 @@ export class SettingsService {
   }
 
   updateUserProfileWithImage(formData: FormData): Observable<User> {
-    const token = localStorage.getItem('token');
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${token}`
-    });
-
-    console.log('Sending profile image to API...');
-
-    // Log formData contents for debugging
-    formData.forEach((value, key) => {
-      if (key !== 'profileImage') { // Don't log binary data
-        console.log(`FormData contains: ${key}: ${value}`);
-      } else {
-        console.log(`FormData contains file: ${key}`);
-      }
-    });
-
-    // Upload the image to API
-    return this.http.post<{success: boolean, data: any}>(
+    // No Content-Type here on purpose: the browser has to set the multipart
+    // boundary itself, and naming the type would strip it.
+    return this.http.post<ApiResponse<{ user: ApiUser; profileImage?: string }>>(
       `${this.apiUrl}/users/profile/image`,
-      formData,
-      { headers }
+      formData
     ).pipe(
-      tap(response => {
-        console.log('Raw API response:', JSON.stringify(response, null, 2));
-      }),
       map(response => {
-        console.log('Profile update response received:', response);
         // Extract user data and image URL from response
         const userData = response.data.user;
         const profileImage = response.data.profileImage;
 
         //console.log('Profile image URL from response:', profileImage);
         //console.log('User data profileImage:', userData.profileImage);
-        console.log('User data avatar:', userData.avatar);
 
-        const user: User = {
-          ...userData,
-          // Ensure required fields
-          name: userData.name || '',
-          email: userData.email || '',
-          // Use the new profile image URL and ensure it's properly set
-          profileImage: profileImage || userData.profileImage || userData.avatar || '',
-          // If firstName/lastName not provided, extract from name
-          firstName: userData.firstName || userData.name?.split(' ')[0] || '',
-          lastName: userData.lastName || (userData.name?.split(' ').length > 1 ?
-            userData.name.split(' ').slice(1).join(' ') : '')
-        };
+        const user = SettingsService.toUser(userData, profileImage);
 
-        console.log('Final user object with profileImage:', user.profileImage);
 
         this.user = user;
         return user;
       }),
       catchError(error => {
         console.error('Error uploading profile image:', error);
-
-        // Check for connection errors (status 0)
-        if (error.status === 0) {
-          console.error('Connection error - backend server might not be running');
-          return throwError(() => new Error('Cannot connect to the server. Please make sure the backend is running and try again.'));
-        }
-
-        console.error('Error details:', error.error);
-        console.error('Status:', error.status);
-
-        if (error.status === 413) {
-          return throwError(() => new Error('Image file is too large. Please choose a smaller image.'));
-        } else if (error.status === 415) {
-          return throwError(() => new Error('Invalid file type. Please select a valid image file (JPG, PNG).'));
-        } else if (error.status === 403 || error.status === 401) {
-          return throwError(() => new Error('Unauthorized: Please log in again.'));
-        } else if (error.status === 500) {
-          console.error('Server error details:', error.error);
-          return throwError(() => new Error('Server error during file upload. Please try again later.'));
-        }
-
-        // Provide more specific error message if available
-        const errorMessage = error.error?.error || error.message || 'Unknown error';
-        return throwError(() => new Error(`Failed to upload profile image: ${errorMessage}`));
+        return throwError(() => new Error(
+          toUserMessage(error, 'Could not upload that image. Please try again.')
+        ));
       })
     );
   }
@@ -323,7 +270,7 @@ export class SettingsService {
   deletePaymentMethod(id: string): Observable<void> {
     const headers = this.getHeaders();
 
-    return this.http.delete<{success: boolean, data: any}>(
+    return this.http.delete<ApiResponse<unknown>>(
       `${this.apiUrl}/users/payment-methods/${id}`,
       { headers }
     ).pipe(
@@ -346,7 +293,7 @@ export class SettingsService {
   changePassword(currentPassword: string, newPassword: string): Observable<void> {
     const headers = this.getHeaders();
 
-    return this.http.put<{success: boolean, data: any}>(
+    return this.http.put<ApiResponse<unknown>>(
       `${this.apiUrl}/users/change-password`,
       { currentPassword, newPassword },
       { headers }
@@ -364,7 +311,7 @@ export class SettingsService {
   changeEmail(newEmail: string, password: string): Observable<void> {
     const headers = this.getHeaders();
 
-    return this.http.put<{success: boolean, data: any}>(
+    return this.http.put<ApiResponse<unknown>>(
       `${this.apiUrl}/users/change-email`,
       { newEmail, password },
       { headers }
@@ -379,9 +326,13 @@ export class SettingsService {
         console.error('Error changing email:', error);
 
         if (error.status === 401) {
+          // This endpoint verifies the current password; 401 is a wrong
+          // password, not an expired session.
           return throwError(() => new Error('Password is incorrect'));
         }
-        return throwError(() => new Error('Failed to change email. Please try again later.'));
+        return throwError(() => new Error(
+          toUserMessage(error, 'Failed to change email. Please try again later.')
+        ));
       })
     );
   }
@@ -393,7 +344,7 @@ export class SettingsService {
   updateCurrency(currencyCode: string): Observable<void> {
     const headers = this.getHeaders();
 
-    return this.http.put<{success: boolean, data: any}>(
+    return this.http.put<ApiResponse<unknown>>(
       `${this.apiUrl}/users/profile`,
       { currency: currencyCode },
       { headers }

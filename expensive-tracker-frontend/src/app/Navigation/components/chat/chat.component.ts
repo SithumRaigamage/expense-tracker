@@ -1,112 +1,125 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+
 import { FormsModule } from '@angular/forms';
+import { ChatService, ChatTurn } from '../../../services/chat.service';
+import { NotificationService } from '../../../shared/services/notification.service';
 
 interface ChatMessage {
   id: string;
   content: string;
   role: 'user' | 'assistant';
   timestamp: Date;
-  sources?: Source[];
-  isLoading?: boolean;
-  error?: string;
+  isStreaming?: boolean;
 }
 
-interface Source {
-  title: string;
-  snippet: string;
-  url: string;
-}
-
+/**
+ * Assistant grounded in the signed-in user's own finances.
+ *
+ * This used to answer every question with "This is a simulated AI response..."
+ * after a two-second timer. It talks to the real model through the backend
+ * proxy now — the API key stays server-side, and the server attaches the
+ * user's balances, spending and goals so answers are about their money rather
+ * than personal finance in the abstract.
+ */
 @Component({
   selector: 'app-chat',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   templateUrl: './chat.component.html',
 })
-export class ChatComponent {
-  messages: ChatMessage[] = [
-    {
-      id: '1',
-      content: 'Hello! How can I help you today?',
-      role: 'assistant',
-      timestamp: new Date(),
-      sources: [
-        {
-          title: 'Sample Documentation',
-          snippet: 'This is a sample context snippet...',
-          url: 'https://example.com'
-        }
-      ]
-    }
-  ];
+export class ChatComponent implements OnInit {
+  private readonly chatService = inject(ChatService);
+  private readonly notifications = inject(NotificationService);
+  private readonly destroyRef = inject(DestroyRef);
 
+  messages: ChatMessage[] = [];
   userInput = '';
   isLoading = false;
-  temperature = 0.7;
-  maxTokens = 1000;
-  isDarkMode = false;
+  /** False when the server has no API key; the composer explains rather than failing. */
+  isAvailable = true;
 
-  async sendMessage() {
-    if (!this.userInput.trim()) return;
+  private controller: AbortController | null = null;
 
-    // Add user message
+  ngOnInit(): void {
+    this.chatService.isAvailable()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(available => {
+        this.isAvailable = available;
+      });
+  }
+
+  async sendMessage(): Promise<void> {
+    const text = this.userInput.trim();
+    if (!text || this.isLoading || !this.isAvailable) {
+      return;
+    }
+
     this.messages.push({
-      id: Date.now().toString(),
-      content: this.userInput,
+      id: `${Date.now()}-user`,
+      content: text,
       role: 'user',
       timestamp: new Date()
     });
+    this.userInput = '';
 
-    // Simulate AI response
-    this.messages.push({
-      id: (Date.now() + 1).toString(),
+    const reply: ChatMessage = {
+      id: `${Date.now()}-assistant`,
       content: '',
       role: 'assistant',
       timestamp: new Date(),
-      isLoading: true
-    });
+      isStreaming: true
+    };
+    this.messages.push(reply);
+    this.isLoading = true;
 
-    // Clear input
-    this.userInput = '';
+    // Only user/assistant text goes back — the server rebuilds the financial
+    // context itself so it is always current, never replayed from the client.
+    const history: ChatTurn[] = this.messages
+      .filter(m => !m.isStreaming || m !== reply)
+      .filter(m => m.content.trim())
+      .map(m => ({ role: m.role, content: m.content }));
 
-    // Simulate API delay
-    setTimeout(() => {
-      const lastMessage = this.messages[this.messages.length - 1];
-      lastMessage.isLoading = false;
-      lastMessage.content = 'This is a simulated AI response...';
-      lastMessage.sources = [
-        {
-          title: 'Documentation',
-          snippet: 'Relevant context...',
-          url: 'https://example.com'
+    this.controller = new AbortController();
+
+    try {
+      for await (const event of this.chatService.send(history, this.controller.signal)) {
+        if (event.type === 'delta') {
+          reply.content += event.text;
+        } else if (event.type === 'error') {
+          this.notifications.error(event.message);
         }
-      ];
-    }, 2000);
-  }
+      }
+    } catch (error) {
+      if ((error as Error)?.name !== 'AbortError') {
+        this.notifications.error('The assistant stopped unexpectedly.');
+      }
+    } finally {
+      reply.isStreaming = false;
+      this.isLoading = false;
+      this.controller = null;
 
-  clearChat() {
-    this.messages = [];
-  }
-
-  copyMessage(message: ChatMessage) {
-    navigator.clipboard.writeText(message.content);
-  }
-
-  regenerateResponse() {
-    if (this.messages.length > 0) {
-      const lastMessage = this.messages[this.messages.length - 1];
-      if (lastMessage.role === 'assistant') {
-        lastMessage.isLoading = true;
-        setTimeout(() => {
-          lastMessage.isLoading = false;
-          lastMessage.content = 'This is a regenerated response...';
-        }, 2000);
+      // An empty bubble reads as a bug; drop it and let the toast explain.
+      if (!reply.content.trim()) {
+        this.messages = this.messages.filter(m => m !== reply);
       }
     }
   }
 
-  toggleTheme() {
-    this.isDarkMode = !this.isDarkMode;
+  /** Stops generation without discarding what has already arrived. */
+  stop(): void {
+    this.controller?.abort();
+  }
+
+  clearChat(): void {
+    this.stop();
+    this.messages = [];
+  }
+
+  copyMessage(message: ChatMessage): void {
+    navigator.clipboard.writeText(message.content).then(
+      () => this.notifications.success('Copied.'),
+      () => this.notifications.error('Could not copy that message.')
+    );
   }
 }

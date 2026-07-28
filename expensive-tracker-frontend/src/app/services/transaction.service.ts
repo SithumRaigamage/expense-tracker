@@ -1,8 +1,10 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { BehaviorSubject, Observable, map, tap, catchError, throwError, of } from 'rxjs';
 import { Transaction } from '../core/models/Transaction';
+import { ExpenseFlow } from './wallet.service';
 import { AuthService } from './auth.service';
+import { environment } from '../../environments/environment';
 
 interface ApiResponse<T> {
   success: boolean;
@@ -29,11 +31,26 @@ interface ExpenseResponse {
   amount: number;
   description: string;
   category: Category;
-  wallet: any;
+  wallet: string | { _id: string; name: string; type: string };
   date: string;
   user: string;
   createdAt: string;
   updatedAt: string;
+}
+
+/** Nested category totals returned by /expenses/hierarchy. */
+export interface HierarchyNode {
+  name: string;
+  value?: number;
+  children?: HierarchyNode[];
+}
+
+/** One row of /expenses/breakdown. */
+export interface CategoryBreakdown {
+  category: string;
+  total: number;
+  count: number;
+  percentage?: number;
 }
 
 interface MonthlyStats {
@@ -47,11 +64,14 @@ interface MonthlyStats {
   providedIn: 'root'
 })
 export class TransactionService {
-  private apiUrl = 'http://localhost:3001/api/v1';
+  private http = inject(HttpClient);
+  private authService = inject(AuthService);
+
+  private apiUrl = environment.apiUrl;
   private transactions = new BehaviorSubject<Transaction[]>([]);
   private categories = new BehaviorSubject<Category[]>([]);
 
-  constructor(private http: HttpClient, private authService: AuthService) {
+  constructor() {
     // Load data immediately if already authenticated
     if (this.authService.isAuthenticated()) {
       this.loadCategories();
@@ -68,7 +88,6 @@ export class TransactionService {
   }
 
   private loadCategories(): void {
-    console.log('Loading categories...');
 
     this.http.get<ApiResponse<Category[]>>(`${this.apiUrl}/categories`)
       .pipe(
@@ -81,7 +100,6 @@ export class TransactionService {
           this.categories.next(categories);
           // If no categories exist, create default ones
           if (categories.length === 0) {
-            console.log('No categories found, creating defaults...');
             this.createDefaultCategories();
           }
         },
@@ -92,7 +110,6 @@ export class TransactionService {
   }
 
   private createDefaultCategories(): void {
-    console.log('Creating default categories...');
 
     this.http.post<ApiResponse<Category[]>>(`${this.apiUrl}/categories/defaults`, {})
       .pipe(
@@ -105,7 +122,6 @@ export class TransactionService {
       )
       .subscribe({
         next: (categories) => {
-          console.log('Default categories created:', categories);
           this.categories.next(categories);
         },
         error: (error) => {
@@ -126,13 +142,12 @@ export class TransactionService {
       { name: 'Healthcare', type: 'expense' as const }
     ];
 
-    console.log('Creating categories manually:', defaultCategories);
 
     return new Observable<Category[]>(observer => {
       const createdCategories: Category[] = [];
       let completedRequests = 0;
 
-      defaultCategories.forEach((category, index) => {
+      defaultCategories.forEach(category => {
         this.http.post<ApiResponse<Category>>(`${this.apiUrl}/categories`, category)
           .pipe(
             map(response => response.data),
@@ -145,12 +160,10 @@ export class TransactionService {
             next: (created) => {
               if (created) {
                 createdCategories.push(created);
-                console.log('Created category:', created);
               }
               completedRequests++;
 
               if (completedRequests === defaultCategories.length) {
-                console.log('All categories created:', createdCategories);
                 observer.next(createdCategories);
                 observer.complete();
               }
@@ -170,7 +183,6 @@ export class TransactionService {
   }
 
   private loadTransactions(): void {
-    console.log('Loading transactions with limit=1000 for pagination...');
 
     // Set a large limit to get all transactions
     const params = { limit: '1000' };
@@ -183,13 +195,27 @@ export class TransactionService {
       )
       .subscribe({
         next: (transactions) => {
-          console.log('Transactions loaded:', transactions.length);
           this.transactions.next(transactions);
         },
         error: (error) => {
           console.error('Error loading transactions:', error);
         }
       });
+  }
+
+  /**
+   * The expenses endpoint sends `wallet` populated on some routes and as a bare
+   * id on others. Both shapes have always been handled here; this just names the
+   * two cases so the compiler can check them.
+   */
+  private static walletFields(wallet: ExpenseResponse['wallet']): Pick<Transaction, 'walletId' | 'wallet'> {
+    if (typeof wallet === 'string') {
+      return { walletId: wallet, wallet: undefined };
+    }
+    if (!wallet) {
+      return { walletId: '', wallet: undefined };
+    }
+    return { walletId: wallet._id, wallet: { name: wallet.name, type: wallet.type } };
   }
 
   private mapExpensesToTransactions(expenses: ExpenseResponse[]): Transaction[] {
@@ -200,11 +226,7 @@ export class TransactionService {
       category: expense.category.name,
       type: expense.category.type,
       date: new Date(expense.date),
-      walletId: expense.wallet?._id || expense.wallet || '',
-      wallet: expense.wallet ? {
-        name: expense.wallet.name,
-        type: expense.wallet.type
-      } : undefined
+      ...TransactionService.walletFields(expense.wallet)
     }));
   }
 
@@ -222,7 +244,7 @@ export class TransactionService {
     return this.categories.asObservable();
   }
 
-  getRecentTransactions(limit: number = 10): Observable<Transaction[]> {
+  getRecentTransactions(limit = 10): Observable<Transaction[]> {
     return this.transactions.pipe(
       map(transactions => {
         // Sort transactions by date, most recent first
@@ -312,7 +334,7 @@ export class TransactionService {
       amount: transaction.amount,
       description: transaction.description,
       category: category._id,
-      wallet: (transaction as any).walletId,
+      wallet: transaction.walletId,
       date: transaction.date
     };
 
@@ -326,11 +348,7 @@ export class TransactionService {
           category: expense.category.name,
           type: expense.category.type,
           date: new Date(expense.date),
-          walletId: expense.wallet?._id || expense.wallet || '',
-          wallet: expense.wallet ? {
-            name: expense.wallet.name,
-            type: expense.wallet.type
-          } : undefined
+          ...TransactionService.walletFields(expense.wallet)
         })),
         tap(newTransaction => {
           const current = this.transactions.getValue();
@@ -375,11 +393,7 @@ export class TransactionService {
           category: expense.category.name,
           type: expense.category.type,
           date: new Date(expense.date),
-          walletId: expense.wallet?._id || expense.wallet || '',
-          wallet: expense.wallet ? {
-            name: expense.wallet.name,
-            type: expense.wallet.type
-          } : undefined
+          ...TransactionService.walletFields(expense.wallet)
         })),
         tap(updatedTransaction => {
           const current = this.transactions.getValue();
@@ -398,7 +412,7 @@ export class TransactionService {
       return throwError(() => new Error('User not authenticated'));
     }
 
-    return this.http.delete<ApiResponse<any>>(`${this.apiUrl}/expenses/${id}`)
+    return this.http.delete<ApiResponse<unknown>>(`${this.apiUrl}/expenses/${id}`)
       .pipe(
         tap(() => {
           const current = this.transactions.getValue();
@@ -417,7 +431,7 @@ export class TransactionService {
   bulkAddTransactions(transactions: Omit<Transaction, 'id'>[]): Observable<{
     successCount: number;
     failedCount: number;
-    failedTransactions?: Array<{description: string; error: string}>;
+    failedTransactions?: {description: string; error: string}[];
   }> {
     if (!this.authService.isAuthenticated()) {
       return throwError(() => new Error('User not authenticated'));
@@ -432,13 +446,13 @@ export class TransactionService {
     return new Observable<{
       successCount: number;
       failedCount: number;
-      failedTransactions?: Array<{description: string; error: string}>;
+      failedTransactions?: {description: string; error: string}[];
     }>(observer => {
       let successCount = 0;
       let failedCount = 0;
       let completed = 0;
       const total = transactions.length;
-      const failedTransactions: Array<{description: string; error: string}> = [];
+      const failedTransactions: {description: string; error: string}[] = [];
 
       // Process transactions one by one
       transactions.forEach(transaction => {
@@ -501,10 +515,8 @@ export class TransactionService {
 
   // Public method to force create categories
   createCategories(): Observable<Category[]> {
-    console.log('Force creating categories...');
     return this.createCategoriesManually().pipe(
       tap(categories => {
-        console.log('Categories force created:', categories);
         this.categories.next(categories);
       })
     );
@@ -512,7 +524,6 @@ export class TransactionService {
 
   // Public method to force refresh categories
   forceRefreshCategories(): Observable<Category[]> {
-    console.log('Force refreshing categories...');
 
     // Add cache busting parameter to force fresh data
     const cacheBuster = new Date().getTime();
@@ -520,7 +531,6 @@ export class TransactionService {
       .pipe(
         map(response => response.data),
         tap(categories => {
-          console.log('Categories force refreshed:', categories);
           this.categories.next(categories);
         }),
         catchError(this.handleError)
@@ -528,39 +538,39 @@ export class TransactionService {
   }
 
   // Expense Breakdown Methods
-  getExpenseFlow(dateFilter: { startDate: string; endDate: string }): Observable<any> {
+  getExpenseFlow(dateFilter: { startDate: string; endDate: string }): Observable<ExpenseFlow> {
     const params = {
       startDate: dateFilter.startDate,
       endDate: dateFilter.endDate
     };
 
-    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/expenses/flow`, { params })
+    return this.http.get<ApiResponse<ExpenseFlow>>(`${this.apiUrl}/expenses/flow`, { params })
       .pipe(
         map(response => response.data),
         catchError(this.handleError)
       );
   }
 
-  getExpenseHierarchy(dateFilter: { startDate: string; endDate: string }): Observable<any> {
+  getExpenseHierarchy(dateFilter: { startDate: string; endDate: string }): Observable<HierarchyNode> {
     const params = {
       startDate: dateFilter.startDate,
       endDate: dateFilter.endDate
     };
 
-    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/expenses/hierarchy`, { params })
+    return this.http.get<ApiResponse<HierarchyNode>>(`${this.apiUrl}/expenses/hierarchy`, { params })
       .pipe(
         map(response => response.data),
         catchError(this.handleError)
       );
   }
 
-  getDetailedBreakdown(dateFilter: { startDate: string; endDate: string }): Observable<any> {
+  getDetailedBreakdown(dateFilter: { startDate: string; endDate: string }): Observable<CategoryBreakdown[]> {
     const params = {
       startDate: dateFilter.startDate,
       endDate: dateFilter.endDate
     };
 
-    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/expenses/breakdown`, { params })
+    return this.http.get<ApiResponse<CategoryBreakdown[]>>(`${this.apiUrl}/expenses/breakdown`, { params })
       .pipe(
         map(response => response.data),
         catchError(this.handleError)

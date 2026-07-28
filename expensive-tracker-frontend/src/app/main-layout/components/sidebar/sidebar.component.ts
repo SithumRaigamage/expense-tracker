@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, HostListener, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+
 import { Router, RouterModule } from '@angular/router';
 import { FontAwesomeModule, FaIconLibrary } from '@fortawesome/angular-fontawesome';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
@@ -51,13 +52,17 @@ interface NavItem {
   selector: 'app-sidebar',
   templateUrl: './sidebar.component.html',
   standalone: true,
-  imports: [CommonModule, RouterModule, FontAwesomeModule]
+  imports: [RouterModule, FontAwesomeModule]
 })
 export class SidebarComponent implements OnInit {
+  private router = inject(Router);
+  sidebarService = inject(SidebarService);
+
+  private readonly destroyRef = inject(DestroyRef);
+
   isExpanded = true;
   isMobileOpen = false;
   isHovered = false;
-  moneyIcon = faMoneyCheckDollar;
   lockIcon = faLock;
   sparklesIcon = faStar;
   chevronRight = faChevronRight;
@@ -105,7 +110,7 @@ export class SidebarComponent implements OnInit {
       path: '/financial-education',
       isUpcoming: true,
       isNew: false,
-      isLocked: true
+      isLocked: false
     },
     {
       icon: faComments,
@@ -113,7 +118,7 @@ export class SidebarComponent implements OnInit {
       path: '/chat',
       isUpcoming: true,
       isNew: false,
-      isLocked: true
+      isLocked: false
     }
   ];
 
@@ -127,7 +132,7 @@ export class SidebarComponent implements OnInit {
       isNew: false,
       subItems: [
         { name: 'Profile', path: '/settings/profile', isLocked: false, isNew: false, isUpcoming: false },
-        { name: 'About & Support', path: '/settings/about & support', isLocked: true, isNew: false, isUpcoming: true },
+        { name: 'About & Support', path: '/settings/about & support', isLocked: false, isNew: false, isUpcoming: true },
       ]
     },
     {
@@ -139,10 +144,10 @@ export class SidebarComponent implements OnInit {
       isNew: false,
       isLocked: false,
       subItems: [
-        { name: 'FAQs', path: '/help/faqs', isLocked: true, isNew: false, isUpcoming: true },
-        { name: 'Documentation', path: '/help/docs', isLocked: true, isNew: false, isUpcoming: true },
-        { name: 'Contact Support', path: '/help/support', isLocked: true, isNew: false, isUpcoming: false },
-        { name: 'Troubleshooting', path: '/help/troubleshooting', isLocked: true, isNew: false, isUpcoming: true },
+        { name: 'FAQs', path: '/help/faqs', isLocked: false, isNew: false, isUpcoming: true },
+        { name: 'Documentation', path: '/help/docs', isLocked: false, isNew: false, isUpcoming: true },
+        { name: 'Contact Support', path: '/help/support', isLocked: false, isNew: false, isUpcoming: false },
+        { name: 'Troubleshooting', path: '/help/troubleshooting', isLocked: false, isNew: false, isUpcoming: true },
         { name: 'Release Notes', path: '/help/release-notes', isLocked: false, isNew: true, isUpcoming: false },
       ]
     },
@@ -152,15 +157,13 @@ export class SidebarComponent implements OnInit {
       path: '/feedback',
       isUpcoming: true,
       isNew: false,
-      isLocked: true
+      isLocked: false
     }
   ];
 
-  constructor(
-    private router: Router,
-    public sidebarService: SidebarService,
-    library: FaIconLibrary
-  ) {
+  constructor() {
+    const library = inject(FaIconLibrary);
+
     // Add icons to the library
     library.addIcons(
       faMoneyCheckDollar,
@@ -225,16 +228,25 @@ export class SidebarComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.sidebarService.isOpen$.subscribe(
+    this.sidebarService.isOpen$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(
       state => this.isExpanded = state
     );
-    this.sidebarService.isMobileOpen$.subscribe(
+    this.sidebarService.isMobileOpen$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(
       state => this.isMobileOpen = state
     );
   }
 
   isActive(path: string): boolean {
     return this.router.url === path;
+  }
+
+  // The mobile backdrop closes the sidebar on click; Escape is its keyboard
+  // equivalent.
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (this.isMobileOpen) {
+      this.sidebarService.toggleMobile();
+    }
   }
 
   toggleSubNav(item: NavItem, event: Event): void {

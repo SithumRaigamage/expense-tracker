@@ -2,12 +2,18 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const mongoSanitize = require('express-mongo-sanitize');
+const cookieParser = require('cookie-parser');
 const dotenv = require('dotenv');
 const fs = require('fs');
 const logger = require('./utils/logger');
 
 // Load environment variables
 dotenv.config();
+
+// Fail fast on a missing/placeholder JWT secret rather than signing tokens with
+// `undefined` at runtime or shipping the example secret to production.
+require('./config/validateEnv')();
 
 // Import routes
 const expenseRoutes = require('./routes/expenseRoutes');
@@ -17,12 +23,16 @@ const walletRoutes = require('./routes/walletRoutes');
 const productBudgetRoutes = require('./routes/productBudgetRoutes');
 const releaseNoteRoutes = require('./routes/releaseNoteRoutes');
 const currencyRoutes = require('./routes/currencyRoutes');
+const billRoutes = require('./routes/billRoutes');
+const feedbackRoutes = require('./routes/feedbackRoutes');
+const chatRoutes = require('./routes/chatRoutes');
 const importRoutes = require('./routes/importRoutes');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
 const notFound = require('./middleware/notFound');
 const { sanitizeInput } = require('./middleware/validation');
+const { apiLimiter } = require('./middleware/rateLimiter');
 
 const app = express();
 
@@ -51,8 +61,26 @@ if (process.env.NODE_ENV === 'development') {
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// The session token arrives as an httpOnly cookie; protect reads it from here.
+app.use(cookieParser());
+
+// Strip Mongo operators ($gt, $ne, dotted paths) from user input. Without this a
+// request body like {"email": {"$gt": ""}} reaches the query layer as an operator.
+app.use(mongoSanitize({
+  onSanitize: ({ req, key }) => {
+    logger.warn('Sanitized prohibited characters from request', {
+      key,
+      url: req.originalUrl,
+      ip: req.ip
+    });
+  }
+}));
+
 // Input sanitization middleware
 app.use(sanitizeInput);
+
+// Rate limiting (auth endpoints are limited separately inside their router)
+app.use('/api', apiLimiter);
 
 // Set static folder for file uploads
 const path = require('path');
@@ -88,6 +116,9 @@ app.use('/api/v1/wallets', walletRoutes);
 app.use('/api/v1/productbudgets', productBudgetRoutes);
 app.use('/api/v1/release-notes', releaseNoteRoutes);
 app.use('/api/v1/currency', currencyRoutes);
+app.use('/api/v1/bills', billRoutes);
+app.use('/api/v1/feedback', feedbackRoutes);
+app.use('/api/v1/chat', chatRoutes);
 app.use('/api/v1/imports', importRoutes);
 
 // Health check endpoint

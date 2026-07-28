@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { BillsService } from '../../../services/bill.service';
 import { Bill } from '../../../core/models/Bill';
@@ -12,12 +13,14 @@ import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
   imports: [CommonModule, AppCurrencyPipe]
 })
 export class UpcomingBillsComponent implements OnInit {
+  private billsService = inject(BillsService);
+
+  private readonly destroyRef = inject(DestroyRef);
+
   upcomingBills: Bill[] = [];
 
-  constructor(private billsService: BillsService) {}
-
   ngOnInit(): void {
-    this.billsService.getBills().subscribe(bills => {
+    this.billsService.getBills().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(bills => {
       // Filter to show only upcoming and due today bills
       this.upcomingBills = bills.filter(bill =>
         bill.status === 'Upcoming' || bill.status === 'Due Today'
@@ -27,7 +30,7 @@ export class UpcomingBillsComponent implements OnInit {
 
   getBillIconClass(category: string): string {
     const baseClasses = 'text-white';
-    const categoryClasses: { [key: string]: string } = {
+    const categoryClasses: Record<string, string> = {
       'Utilities': 'bg-blue-500',
       'Subscription': 'bg-yellow-500',
       'Entertainment': 'bg-pink-500',
@@ -40,7 +43,7 @@ export class UpcomingBillsComponent implements OnInit {
   }
 
   getStatusClass(status: string): string {
-    const statusClasses: { [key: string]: string } = {
+    const statusClasses: Record<string, string> = {
       'Upcoming': 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-500',
       'Due Today': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500',
       'Overdue': 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-500'

@@ -1,17 +1,17 @@
-<div class="p-6">
+<div class="p-4 sm:p-6">
   <!-- Header -->
   <!-- Header -->
   <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
     <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Transactions</h1>
     <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
       <button (click)="exportTransactions()"
-              class="flex-1 sm:flex-none inline-flex justify-center items-center gap-2 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm"
-              [disabled]="allTransactions.length === 0">
+        class="flex-1 sm:flex-none inline-flex justify-center items-center gap-2 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm"
+        [disabled]="allTransactions.length === 0">
         <fa-icon [icon]="faDownload"></fa-icon>
         Export
       </button>
       <button (click)="openDrawer()"
-              class="flex-1 sm:flex-none inline-flex justify-center items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium hover:bg-primary-dark transition-colors shadow-sm">
+        class="flex-1 sm:flex-none inline-flex justify-center items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium hover:bg-brand-600 transition-colors shadow-sm">
         <fa-icon [icon]="faPlus"></fa-icon>
         Add Transaction
       </button>
@@ -19,14 +19,18 @@
   </div>
 
   <!-- Error Message -->
-  <div *ngIf="errorMessage" class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-    {{errorMessage}}
-  </div>
+  @if (errorMessage) {
+    <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+      {{errorMessage}}
+    </div>
+  }
 
   <!-- Loading State -->
-  <div *ngIf="isLoading" class="mb-4 p-4 bg-blue-100 border border-blue-400 text-blue-700 rounded-lg">
-    Processing...
-  </div>
+  @if (isLoading) {
+    <div class="mb-4 p-4 bg-blue-100 border border-blue-400 text-blue-700 rounded-lg">
+      Processing...
+    </div>
+  }
 
   <!-- Filter Section -->
   <div class="mb-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
@@ -42,112 +46,142 @@
     <form [formGroup]="filterForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
       <!-- Start Date -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label for="tx-filter-start-date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Start Date
         </label>
         <input
+          id="tx-filter-start-date"
           type="date"
           formControlName="startDate"
-          class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-        >
+          class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+          >
       </div>
 
       <!-- End Date -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label for="tx-filter-end-date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           End Date
         </label>
         <input
+          id="tx-filter-end-date"
           type="date"
           formControlName="endDate"
-          class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-        >
+          class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+          >
       </div>
 
       <!-- Type -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <span id="tx-filter-type-label" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Type
-        </label>
+        </span>
         <div class="relative">
           <button type="button" (click)="toggleTypeDropdown()"
-                  class="w-full flex items-center justify-between text-left rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white bg-white dark:bg-gray-700">
+            id="tx-filter-type-button"
+            aria-haspopup="listbox"
+            [attr.aria-expanded]="isTypeOpen"
+            aria-labelledby="tx-filter-type-label tx-filter-type-button"
+            class="w-full flex items-center justify-between text-left rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white bg-white dark:bg-gray-700">
             <span class="block truncate">
               {{ filterForm.get('type')?.value ? (filterForm.get('type')?.value | titlecase) : 'All Types' }}
             </span>
-            <svg class="w-4 h-4 text-gray-500 transition-transform duration-200" [class.rotate-180]="isTypeOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            <svg aria-hidden="true" class="w-4 h-4 text-gray-500 transition-transform duration-200" [class.rotate-180]="isTypeOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
           </button>
-          
-          <div *ngIf="isTypeOpen" class="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
-            <button type="button" (click)="selectType('')" class="text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left cursor-pointer select-none relative py-2 pl-3 pr-9">
-              <span [class.font-semibold]="!filterForm.get('type')?.value" class="block truncate">All Types</span>
-            </button>
-            <button type="button" (click)="selectType('income')" class="text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left cursor-pointer select-none relative py-2 pl-3 pr-9">
-              <span [class.font-semibold]="filterForm.get('type')?.value === 'income'" class="block truncate">Income</span>
-            </button>
-             <button type="button" (click)="selectType('expense')" class="text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left cursor-pointer select-none relative py-2 pl-3 pr-9">
-              <span [class.font-semibold]="filterForm.get('type')?.value === 'expense'" class="block truncate">Expense</span>
-            </button>
-          </div>
-          <div *ngIf="isTypeOpen" (click)="isTypeOpen = false" class="fixed inset-0 z-40 bg-transparent"></div>
+
+          @if (isTypeOpen) {
+            <div class="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
+              <button type="button" (click)="selectType('')" class="text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left cursor-pointer select-none relative py-2 pl-3 pr-9">
+                <span [class.font-semibold]="!filterForm.get('type')?.value" class="block truncate">All Types</span>
+              </button>
+              <button type="button" (click)="selectType('income')" class="text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left cursor-pointer select-none relative py-2 pl-3 pr-9">
+                <span [class.font-semibold]="filterForm.get('type')?.value === 'income'" class="block truncate">Income</span>
+              </button>
+              <button type="button" (click)="selectType('expense')" class="text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left cursor-pointer select-none relative py-2 pl-3 pr-9">
+                <span [class.font-semibold]="filterForm.get('type')?.value === 'expense'" class="block truncate">Expense</span>
+              </button>
+            </div>
+          }
+          @if (isTypeOpen) {
+            <div aria-hidden="true" (click)="isTypeOpen = false" class="fixed inset-0 z-40 bg-transparent"></div>
+          }
         </div>
       </div>
 
       <!-- Category -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <span id="tx-filter-category-label" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Category
-        </label>
+        </span>
         <div class="relative">
           <button type="button" (click)="toggleCategoryDropdown()"
-                  class="w-full flex items-center justify-between text-left rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white bg-white dark:bg-gray-700">
+            id="tx-filter-category-button"
+            aria-haspopup="listbox"
+            [attr.aria-expanded]="isCategoryOpen"
+            aria-labelledby="tx-filter-category-label tx-filter-category-button"
+            class="w-full flex items-center justify-between text-left rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white bg-white dark:bg-gray-700">
             <span class="block truncate">
               {{ filterForm.get('category')?.value || 'All Categories' }}
             </span>
-            <svg class="w-4 h-4 text-gray-500 transition-transform duration-200" [class.rotate-180]="isCategoryOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            <svg aria-hidden="true" class="w-4 h-4 text-gray-500 transition-transform duration-200" [class.rotate-180]="isCategoryOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
           </button>
-          
-          <div *ngIf="isCategoryOpen" class="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
-            <button type="button" (click)="selectCategory('')" class="text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left cursor-pointer select-none relative py-2 pl-3 pr-9">
-              <span [class.font-semibold]="!filterForm.get('category')?.value" class="block truncate">All Categories</span>
-            </button>
-            <button *ngFor="let category of categories" type="button" (click)="selectCategory(category.name)" class="text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left cursor-pointer select-none relative py-2 pl-3 pr-9">
-              <span [class.font-semibold]="filterForm.get('category')?.value === category.name" class="block truncate">{{category.name}}</span>
-            </button>
-          </div>
-          <div *ngIf="isCategoryOpen" (click)="isCategoryOpen = false" class="fixed inset-0 z-40 bg-transparent"></div>
+
+          @if (isCategoryOpen) {
+            <div class="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
+              <button type="button" (click)="selectCategory('')" class="text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left cursor-pointer select-none relative py-2 pl-3 pr-9">
+                <span [class.font-semibold]="!filterForm.get('category')?.value" class="block truncate">All Categories</span>
+              </button>
+              @for (category of categories; track category) {
+                <button type="button" (click)="selectCategory(category.name)" class="text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left cursor-pointer select-none relative py-2 pl-3 pr-9">
+                  <span [class.font-semibold]="filterForm.get('category')?.value === category.name" class="block truncate">{{category.name}}</span>
+                </button>
+              }
+            </div>
+          }
+          @if (isCategoryOpen) {
+            <div aria-hidden="true" (click)="isCategoryOpen = false" class="fixed inset-0 z-40 bg-transparent"></div>
+          }
         </div>
       </div>
 
       <!-- Wallet -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <span id="tx-filter-wallet-label" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Wallet
-        </label>
+        </span>
         <div class="relative">
           <button type="button" (click)="toggleWalletDropdown()"
-                  class="w-full flex items-center justify-between text-left rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white bg-white dark:bg-gray-700">
+            id="tx-filter-wallet-button"
+            aria-haspopup="listbox"
+            [attr.aria-expanded]="isWalletOpen"
+            aria-labelledby="tx-filter-wallet-label tx-filter-wallet-button"
+            class="w-full flex items-center justify-between text-left rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white bg-white dark:bg-gray-700">
             <span class="block truncate">
               {{ getWalletName(filterForm.get('wallet')?.value) }}
             </span>
-            <svg class="w-4 h-4 text-gray-500 transition-transform duration-200" [class.rotate-180]="isWalletOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            <svg aria-hidden="true" class="w-4 h-4 text-gray-500 transition-transform duration-200" [class.rotate-180]="isWalletOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
           </button>
-          
-          <div *ngIf="isWalletOpen" class="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
-            <button type="button" (click)="selectWallet('')" class="text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left cursor-pointer select-none relative py-2 pl-3 pr-9">
-              <span [class.font-semibold]="!filterForm.get('wallet')?.value" class="block truncate">All Wallets</span>
-            </button>
-            <button *ngFor="let wallet of wallets" type="button" (click)="selectWallet(wallet.id)" class="text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left cursor-pointer select-none relative py-2 pl-3 pr-9">
-              <span [class.font-semibold]="filterForm.get('wallet')?.value === wallet.id" class="block truncate">{{wallet.name}}</span>
-            </button>
-          </div>
-          <div *ngIf="isWalletOpen" (click)="isWalletOpen = false" class="fixed inset-0 z-40 bg-transparent"></div>
+
+          @if (isWalletOpen) {
+            <div class="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
+              <button type="button" (click)="selectWallet('')" class="text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left cursor-pointer select-none relative py-2 pl-3 pr-9">
+                <span [class.font-semibold]="!filterForm.get('wallet')?.value" class="block truncate">All Wallets</span>
+              </button>
+              @for (wallet of wallets; track wallet) {
+                <button type="button" (click)="selectWallet(wallet.id)" class="text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left cursor-pointer select-none relative py-2 pl-3 pr-9">
+                  <span [class.font-semibold]="filterForm.get('wallet')?.value === wallet.id" class="block truncate">{{wallet.name}}</span>
+                </button>
+              }
+            </div>
+          }
+          @if (isWalletOpen) {
+            <div aria-hidden="true" (click)="isWalletOpen = false" class="fixed inset-0 z-40 bg-transparent"></div>
+          }
         </div>
       </div>
 
       <!-- Search -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label for="tx-filter-search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Search
         </label>
         <div class="relative">
@@ -155,354 +189,382 @@
             <fa-icon [icon]="faSearch" class="text-gray-400"></fa-icon>
           </div>
           <input
+            id="tx-filter-search"
             type="text"
             formControlName="searchTerm"
             placeholder="Search by description..."
-            class="w-full rounded-md border border-gray-300 pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-          >
+            class="w-full rounded-md border border-gray-300 pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+            >
         </div>
       </div>
     </form>
   </div>
 
   <!-- Empty State -->
-  <div *ngIf="allTransactions.length === 0 && !isLoading" class="flex flex-col items-center justify-center py-16 text-center">
-    <div class="mb-4 rounded-full bg-gray-100 p-6 dark:bg-gray-800">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-      </svg>
+  @if (allTransactions.length === 0 && !isLoading) {
+    <div class="flex flex-col items-center justify-center py-16 text-center">
+      <div class="mb-4 rounded-full bg-gray-100 p-6 dark:bg-gray-800">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+        </svg>
+      </div>
+      <h3 class="mb-2 text-lg font-semibold text-gray-900 dark:text-white">No Transactions Found</h3>
+      <p class="mb-6 max-w-md text-sm text-gray-500 dark:text-gray-400">
+        Start tracking your finances by adding your first transaction or importing data from a JSON file.
+      </p>
+      <button (click)="openDrawer()"
+        class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-6 py-3 text-sm font-semibold text-black shadow-sm hover:bg-primary-700 transition-colors">
+        <fa-icon [icon]="faPlus"></fa-icon>
+        <span>Add Your First Transaction</span>
+      </button>
     </div>
-    <h3 class="mb-2 text-lg font-semibold text-gray-900 dark:text-white">No Transactions Found</h3>
-    <p class="mb-6 max-w-md text-sm text-gray-500 dark:text-gray-400">
-      Start tracking your finances by adding your first transaction or importing data from a JSON file.
-    </p>
-    <button (click)="openDrawer()"
-            class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-6 py-3 text-sm font-semibold text-black shadow-sm hover:bg-primary-700 transition-colors">
-      <fa-icon [icon]="faPlus"></fa-icon>
-      <span>Add Your First Transaction</span>
-    </button>
-  </div>
+  }
 
   <!-- Transactions List: Desktop (Table) -->
-  <div *ngIf="allTransactions.length > 0" class="hidden md:block overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-    <table class="w-full text-left text-sm text-gray-500 dark:text-gray-400">
-      <thead class="bg-gray-50 text-xs uppercase text-gray-700 dark:bg-gray-700 dark:text-gray-400">
-        <tr>
-          <th scope="col" class="px-6 py-3">Date</th>
-          <th scope="col" class="px-6 py-3">Description</th>
-          <th scope="col" class="px-6 py-3">Category</th>
-          <th scope="col" class="px-6 py-3">Wallet</th>
-          <th scope="col" class="px-6 py-3">Amount</th>
-          <th scope="col" class="px-6 py-3">Type</th>
-          <th scope="col" class="px-6 py-3">Actions</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-        <tr *ngFor="let transaction of transactions"
-            class="bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700">
-          <td class="px-6 py-4 whitespace-nowrap">{{transaction.date | date}}</td>
-          <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">{{transaction.description}}</td>
-          <td class="px-6 py-4">
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
-              {{transaction.category}}
-            </span>
-          </td>
-          <td class="px-6 py-4">
-            <span class="text-gray-500 dark:text-gray-400">
-              {{transaction.wallet?.name || 'Default'}}
-            </span>
-          </td>
+  @if (allTransactions.length > 0) {
+    <div class="hidden md:block overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+      <table class="w-full text-left text-sm text-gray-500 dark:text-gray-400">
+        <thead class="bg-gray-50 text-xs uppercase text-gray-700 dark:bg-gray-700 dark:text-gray-400">
+          <tr>
+            <th scope="col" class="px-6 py-3">Date</th>
+            <th scope="col" class="px-6 py-3">Description</th>
+            <th scope="col" class="px-6 py-3">Category</th>
+            <th scope="col" class="px-6 py-3">Wallet</th>
+            <th scope="col" class="px-6 py-3">Amount</th>
+            <th scope="col" class="px-6 py-3">Type</th>
+            <th scope="col" class="px-6 py-3">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+          @for (transaction of transactions; track transaction) {
+            <tr
+              class="bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700">
+              <td class="px-6 py-4 whitespace-nowrap">{{transaction.date | date}}</td>
+              <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">{{transaction.description}}</td>
+              <td class="px-6 py-4">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                  {{transaction.category}}
+                </span>
+              </td>
+              <td class="px-6 py-4">
+                <span class="text-gray-500 dark:text-gray-400">
+                  {{transaction.wallet?.name || 'Default'}}
+                </span>
+              </td>
           <td class="px-6 py-4 font-semibold" [ngClass]="{
             'text-green-600 dark:text-green-400': transaction.type === 'income',
             'text-red-600 dark:text-red-400': transaction.type === 'expense'
           }">{{transaction.amount | appCurrency}}</td>
-          <td class="px-6 py-4 capitalize">{{transaction.type}}</td>
-          <td class="px-6 py-4">
-            <div class="flex gap-3">
-              <button (click)="openDrawer(transaction)"
-                      class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
-                <fa-icon [icon]="faPencil"></fa-icon>
-              </button>
-              <button (click)="deleteTransaction(transaction.id)"
-                      class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors">
-                <fa-icon [icon]="faTrash"></fa-icon>
-              </button>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+              <td class="px-6 py-4 capitalize">{{transaction.type}}</td>
+              <td class="px-6 py-4">
+                <div class="flex gap-3">
+                  <button (click)="openDrawer(transaction)"
+                    [attr.aria-label]="'Edit transaction: ' + transaction.description"
+                    class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
+                    <fa-icon [icon]="faPencil"></fa-icon>
+                  </button>
+                  <button (click)="deleteTransaction(transaction.id)"
+                    [attr.aria-label]="'Delete transaction: ' + transaction.description"
+                    class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors">
+                    <fa-icon [icon]="faTrash"></fa-icon>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
 
   <!-- Transactions List: Mobile (Cards) -->
-  <div *ngIf="allTransactions.length > 0" class="md:hidden space-y-4">
-    <div *ngFor="let transaction of transactions" 
-         class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700">
-      <div class="flex justify-between items-start mb-3">
-        <div>
-          <h3 class="font-semibold text-gray-900 dark:text-white line-clamp-1">{{transaction.description}}</h3>
-          <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{transaction.date | date:'mediumDate'}}</p>
-        </div>
+  <div class="md:hidden space-y-4">
+    @for (transaction of transactions; track transaction) {
+      <div
+        class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700">
+        <div class="flex justify-between items-start mb-3">
+          <div>
+            <h3 class="font-semibold text-gray-900 dark:text-white line-clamp-1">{{transaction.description}}</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{transaction.date | date:'mediumDate'}}</p>
+          </div>
         <span class="font-bold whitespace-nowrap" [ngClass]="{
           'text-green-600 dark:text-green-400': transaction.type === 'income',
           'text-red-600 dark:text-red-400': transaction.type === 'expense'
         }">{{transaction.amount | appCurrency}}</span>
-      </div>
-      
-      <div class="flex items-center gap-2 mb-4">
-        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
-          {{transaction.category}}
-        </span>
-        <span class="text-xs text-gray-400">•</span>
-        <span class="text-xs text-gray-500 dark:text-gray-400">{{transaction.wallet?.name || 'Default Wallet'}}</span>
-      </div>
-
-      <div class="flex items-center justify-between border-t border-gray-100 dark:border-gray-700 pt-3 mt-3">
-        <span class="text-xs font-medium uppercase tracking-wider text-gray-400">{{transaction.type}}</span>
-        <div class="flex gap-4">
-          <button (click)="openDrawer(transaction)"
-                  class="flex items-center gap-1 text-sm font-medium text-blue-600 dark:text-blue-400">
-            <fa-icon [icon]="faPencil" class="text-xs"></fa-icon> Edit
-          </button>
-          <button (click)="deleteTransaction(transaction.id)"
-                  class="flex items-center gap-1 text-sm font-medium text-red-600 dark:text-red-400">
-            <fa-icon [icon]="faTrash" class="text-xs"></fa-icon> Delete
-          </button>
+        </div>
+        <div class="flex items-center gap-2 mb-4">
+          <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+            {{transaction.category}}
+          </span>
+          <span class="text-xs text-gray-400">•</span>
+          <span class="text-xs text-gray-500 dark:text-gray-400">{{transaction.wallet?.name || 'Default Wallet'}}</span>
+        </div>
+        <div class="flex items-center justify-between border-t border-gray-100 dark:border-gray-700 pt-3 mt-3">
+          <span class="text-xs font-medium uppercase tracking-wider text-gray-400">{{transaction.type}}</span>
+          <div class="flex gap-4">
+            <button (click)="openDrawer(transaction)"
+              class="flex items-center gap-1 text-sm font-medium text-blue-600 dark:text-blue-400">
+              <fa-icon [icon]="faPencil" class="text-xs"></fa-icon> Edit
+            </button>
+            <button (click)="deleteTransaction(transaction.id)"
+              class="flex items-center gap-1 text-sm font-medium text-red-600 dark:text-red-400">
+              <fa-icon [icon]="faTrash" class="text-xs"></fa-icon> Delete
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    }
   </div>
 
   <!-- Pagination -->
-  <div *ngIf="allTransactions.length > 0" class="flex items-center justify-between py-4">
-    <div class="text-sm text-gray-700 dark:text-gray-300">
-      Showing <span class="font-medium">{{transactions.length}}</span> of <span class="font-medium">{{filteredTransactions.length}}</span> transactions
+  @if (allTransactions.length > 0) {
+    <div class="flex items-center justify-between py-4">
+      <div class="text-sm text-gray-700 dark:text-gray-300">
+        Showing <span class="font-medium">{{transactions.length}}</span> of <span class="font-medium">{{filteredTransactions.length}}</span> transactions
+      </div>
+      <div class="flex items-center space-x-2">
+        <button
+          (click)="goToPage(currentPage - 1)"
+          [disabled]="currentPage === 1"
+          aria-label="Previous page"
+          class="inline-flex items-center justify-center rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
+          [class.opacity-50]="currentPage === 1"
+          >
+          <fa-icon [icon]="faChevronLeft"></fa-icon>
+        </button>
+        <span class="text-sm text-gray-700 dark:text-gray-300">
+          Page {{currentPage}} of {{totalPages}}
+        </span>
+        <button
+          (click)="goToPage(currentPage + 1)"
+          [disabled]="currentPage === totalPages"
+          aria-label="Next page"
+          class="inline-flex items-center justify-center rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
+          [class.opacity-50]="currentPage === totalPages"
+          >
+          <fa-icon [icon]="faChevronRight"></fa-icon>
+        </button>
+      </div>
     </div>
-    <div class="flex items-center space-x-2">
-      <button
-        (click)="goToPage(currentPage - 1)"
-        [disabled]="currentPage === 1"
-        class="inline-flex items-center justify-center rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
-        [class.opacity-50]="currentPage === 1"
-      >
-        <fa-icon [icon]="faChevronLeft"></fa-icon>
-      </button>
-
-      <span class="text-sm text-gray-700 dark:text-gray-300">
-        Page {{currentPage}} of {{totalPages}}
-      </span>
-
-      <button
-        (click)="goToPage(currentPage + 1)"
-        [disabled]="currentPage === totalPages"
-        class="inline-flex items-center justify-center rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
-        [class.opacity-50]="currentPage === totalPages"
-      >
-        <fa-icon [icon]="faChevronRight"></fa-icon>
-      </button>
-    </div>
-  </div>
+  }
 
   <!-- Side Drawer -->
   <app-side-drawer
     [isOpen]="isDrawerOpen"
     [title]="selectedTransaction ? 'Edit Transaction' : 'New Transaction'"
     [icon]="selectedTransaction ? faEdit : faPlus"
-    (close)="closeDrawer()">
+    (closed)="closeDrawer()">
 
     <div class="h-full flex flex-col">
-       <!-- Tab Navigation (only for adding new) -->
-       <div *ngIf="!selectedTransaction" class="mb-8 p-1 bg-gray-100/50 dark:bg-gray-800/50 rounded-2xl flex">
-        <button (click)="switchTab('manual')"
-           [class]="activeTab === 'manual' ? 'bg-white dark:bg-gray-700 shadow-sm text-primary-600 dark:text-primary-400' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'"
-           class="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-200">
-          <fa-icon [icon]="faEdit"></fa-icon>
-          Manual
-        </button>
-        <button (click)="switchTab('upload')"
-           [class]="activeTab === 'upload' ? 'bg-white dark:bg-gray-700 shadow-sm text-primary-600 dark:text-primary-400' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'"
-           class="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-200">
-          <fa-icon [icon]="faUpload"></fa-icon>
-          Import JSON
-        </button>
-      </div>
+      <!-- Tab Navigation (only for adding new) -->
+      @if (!selectedTransaction) {
+        <div class="mb-8 p-1 bg-gray-100/50 dark:bg-gray-800/50 rounded-2xl flex">
+          <button (click)="switchTab('manual')"
+            [class]="activeTab === 'manual' ? 'bg-white dark:bg-gray-700 shadow-sm text-brand-600 dark:text-brand-400' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'"
+            class="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-200">
+            <fa-icon [icon]="faEdit"></fa-icon>
+            Manual
+          </button>
+          <button (click)="switchTab('upload')"
+            [class]="activeTab === 'upload' ? 'bg-white dark:bg-gray-700 shadow-sm text-brand-600 dark:text-brand-400' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'"
+            class="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-200">
+            <fa-icon [icon]="faUpload"></fa-icon>
+            Import JSON
+          </button>
+        </div>
+      }
 
       <!-- Manual Entry Form -->
-      <form *ngIf="activeTab === 'manual' || selectedTransaction" [formGroup]="transactionForm" (ngSubmit)="onSubmit()" class="space-y-6">
-        <!-- Type Selection -->
-        <div class="p-1 bg-gray-100/50 dark:bg-gray-800/50 rounded-2xl flex">
-          <button type="button"
-                  (click)="transactionForm.patchValue({type: 'expense'})"
-                  [class]="transactionForm.get('type')?.value === 'expense' ? 'bg-white dark:bg-gray-700 shadow-sm text-red-500' : 'text-gray-500'"
-                  class="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all duration-200">
-            Expense
-          </button>
-          <button type="button"
-                  (click)="transactionForm.patchValue({type: 'income'})"
-                  [class]="transactionForm.get('type')?.value === 'income' ? 'bg-white dark:bg-gray-700 shadow-sm text-green-500' : 'text-gray-500'"
-                  class="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all duration-200">
-            Income
-          </button>
-        </div>
-
-        <!-- Amount -->
-        <div class="space-y-1.5">
-          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
-            Amount
-          </label>
-          <div class="relative group">
-            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 font-bold group-focus-within:text-primary-500">
-              {{currencyService.getActiveCurrency()}}
-            </div>
-            <input type="number"
-                   formControlName="amount"
-                   class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 pl-14 px-4 py-4 text-2xl font-bold text-gray-900 dark:text-white transition-all duration-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 placeholder-0.00"
-                   placeholder="0.00">
+      @if (activeTab === 'manual' || selectedTransaction) {
+        <form [formGroup]="transactionForm" (ngSubmit)="onSubmit()" class="space-y-6">
+          <!-- Type Selection -->
+          <div class="p-1 bg-gray-100/50 dark:bg-gray-800/50 rounded-2xl flex">
+            <button type="button"
+              (click)="transactionForm.patchValue({type: 'expense'})"
+              [class]="transactionForm.get('type')?.value === 'expense' ? 'bg-white dark:bg-gray-700 shadow-sm text-red-500' : 'text-gray-500'"
+              class="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all duration-200">
+              Expense
+            </button>
+            <button type="button"
+              (click)="transactionForm.patchValue({type: 'income'})"
+              [class]="transactionForm.get('type')?.value === 'income' ? 'bg-white dark:bg-gray-700 shadow-sm text-green-500' : 'text-gray-500'"
+              class="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all duration-200">
+              Income
+            </button>
           </div>
-        </div>
-
-        <!-- Wallet and Category -->
-        <div class="grid grid-cols-2 gap-4">
+          <!-- Amount -->
           <div class="space-y-1.5">
-            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
-              Wallet
+            <label for="tx-form-amount" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
+              Amount
             </label>
             <div class="relative group">
-              <select formControlName="walletId"
-                      class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all duration-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 appearance-none">
-                <option value="">Select Wallet</option>
-                <option *ngFor="let wallet of wallets" [value]="wallet.id">{{wallet.name}}</option>
-              </select>
-              <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400">
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
+              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 font-bold group-focus-within:text-brand-500">
+                {{currencyService.getActiveCurrency()}}
+              </div>
+              <input type="number"
+                id="tx-form-amount"
+                formControlName="amount"
+                class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 pl-14 px-4 py-4 text-2xl font-bold text-gray-900 dark:text-white transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 placeholder-0.00"
+                placeholder="0.00">
+            </div>
+          </div>
+          <!-- Wallet and Category -->
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div class="space-y-1.5">
+              <label for="tx-form-wallet" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
+                Wallet
+              </label>
+              <div class="relative group">
+                <select id="tx-form-wallet" formControlName="walletId"
+                  class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 appearance-none">
+                  <option value="">Select Wallet</option>
+                  @for (wallet of wallets; track wallet) {
+                    <option [value]="wallet.id">{{wallet.name}}</option>
+                  }
+                </select>
+                <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                  <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <div class="space-y-1.5">
+              <label for="tx-form-category" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
+                Category
+              </label>
+              <div class="relative group">
+                <select id="tx-form-category" formControlName="category"
+                  class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 appearance-none">
+                  <option value="">Select Category</option>
+                  @for (category of filteredCategories; track category) {
+                    <option [value]="category._id">{{category.name}}</option>
+                  }
+                </select>
+                <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                  <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </div>
               </div>
             </div>
           </div>
-
+          <!-- Date -->
           <div class="space-y-1.5">
-            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
-              Category
+            <label for="tx-form-date" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
+              Date
             </label>
-            <div class="relative group">
-              <select formControlName="category"
-                      class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all duration-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 appearance-none">
-                <option value="">Select Category</option>
-                <option *ngFor="let category of filteredCategories" [value]="category._id">{{category.name}}</option>
-              </select>
-              <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400">
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
+            <input type="date"
+              id="tx-form-date"
+              formControlName="date"
+              class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10">
+            </div>
+            <!-- Description -->
+            <div class="space-y-1.5">
+              <label for="tx-form-description" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
+                Description
+              </label>
+              <textarea id="tx-form-description" formControlName="description"
+                rows="3"
+                class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 placeholder-What was this for? resize-none"
+              placeholder="What was this for?"></textarea>
+            </div>
+            <!-- Actions -->
+            <div class="pt-6 flex gap-4">
+              <button type="button"
+                (click)="closeDrawer()"
+                class="flex-1 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 active:scale-95">
+                Cancel
+              </button>
+              <button type="submit"
+                [disabled]="!transactionForm.valid || isLoading"
+                class="flex-[2] rounded-2xl bg-brand-500 px-6 py-4 text-sm font-bold text-white shadow-lg shadow-brand-500/20 hover:bg-brand-600 hover:shadow-brand-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95 flex items-center justify-center gap-2">
+                @if (isLoading) {
+                  <fa-icon class="animate-spin" [icon]="faRefresh"></fa-icon>
+                }
+                @if (!isLoading) {
+                  <fa-icon [icon]="selectedTransaction ? faEdit : faPlus"></fa-icon>
+                }
+                {{isLoading ? 'Processing...' : (selectedTransaction ? 'Update Transaction' : 'Save Transaction')}}
+              </button>
+            </div>
+          </form>
+        }
+
+        <!-- JSON Upload Form -->
+        @if (activeTab === 'upload' && !selectedTransaction) {
+          <div class="space-y-8">
+            <div class="group relative bg-gray-50/50 dark:bg-gray-800/30 rounded-3xl p-10 border-2 border-dashed border-gray-200 dark:border-gray-800 hover:border-brand-500 transition-all duration-300">
+              <div class="text-center">
+                <div class="w-16 h-16 bg-white dark:bg-gray-800 rounded-2xl shadow-sm flex items-center justify-center mx-auto mb-6 transition-transform duration-300 group-hover:-translate-y-1">
+                  <fa-icon [icon]="faFileUpload" class="text-gray-400 text-2xl group-hover:text-brand-500"></fa-icon>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Import Transactions</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-8 max-w-[200px] mx-auto leading-relaxed">
+                  Upload your transaction JSON file.
+                </p>
+                @if (jsonError) {
+                  <div class="mb-6 p-4 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 text-red-600 dark:text-red-400 rounded-2xl text-sm font-medium">
+                    {{ jsonError }}
+                  </div>
+                }
+                <label for="json-upload-transactions" class="inline-flex items-center justify-center gap-3 rounded-2xl bg-white dark:bg-gray-800 border-2 border-brand-500 px-8 py-3.5 text-sm font-bold text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/10 cursor-pointer shadow-sm transition-all duration-200 active:scale-95">
+                  <fa-icon [icon]="faUpload"></fa-icon>
+                  {{ selectedFile ? 'Change File' : 'Select JSON' }}
+                  <input type="file" id="json-upload-transactions" accept=".json" class="hidden" (change)="onFileSelected($event)">
+                </label>
+                @if (selectedFile) {
+                  <p class="mt-4 text-xs font-bold text-brand-500 bg-brand-50 dark:bg-brand-900/10 py-1.5 px-3 rounded-full inline-block">
+                    {{ selectedFile.name }}
+                  </p>
+                }
               </div>
             </div>
-          </div>
-        </div>
-
-        <!-- Date -->
-        <div class="space-y-1.5">
-          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
-            Date
-          </label>
-          <input type="date"
-                 formControlName="date"
-                 class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all duration-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10">
-        </div>
-
-        <!-- Description -->
-        <div class="space-y-1.5">
-          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
-            Description
-          </label>
-          <textarea formControlName="description"
-                    rows="3"
-                    class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all duration-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 placeholder-What was this for? resize-none"
-                    placeholder="What was this for?"></textarea>
-        </div>
-
-        <!-- Actions -->
-        <div class="pt-6 flex gap-4">
-          <button type="button"
-                  (click)="closeDrawer()"
-                  class="flex-1 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 active:scale-95">
-            Cancel
-          </button>
-          <button type="submit"
-                  [disabled]="!transactionForm.valid || isLoading"
-                  class="flex-[2] rounded-2xl bg-primary-500 px-6 py-4 text-sm font-bold text-black shadow-lg shadow-primary-500/20 hover:bg-primary-600 hover:shadow-primary-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95 flex items-center justify-center gap-2">
-            <fa-icon *ngIf="isLoading" class="animate-spin" [icon]="faRefresh"></fa-icon>
-            <fa-icon *ngIf="!isLoading" [icon]="selectedTransaction ? faEdit : faPlus"></fa-icon>
-            {{isLoading ? 'Processing...' : (selectedTransaction ? 'Update Transaction' : 'Save Transaction')}}
-          </button>
-        </div>
-      </form>
-
-      <!-- JSON Upload Form -->
-      <div *ngIf="activeTab === 'upload' && !selectedTransaction" class="space-y-8">
-        <div class="group relative bg-gray-50/50 dark:bg-gray-800/30 rounded-3xl p-10 border-2 border-dashed border-gray-200 dark:border-gray-800 hover:border-primary-500 transition-all duration-300">
-          <div class="text-center">
-            <div class="w-16 h-16 bg-white dark:bg-gray-800 rounded-2xl shadow-sm flex items-center justify-center mx-auto mb-6 transition-transform duration-300 group-hover:-translate-y-1">
-              <fa-icon [icon]="faFileUpload" class="text-gray-400 text-2xl group-hover:text-primary-500"></fa-icon>
+            @if (jsonPreview) {
+              <div class="bg-white dark:bg-gray-900/30 rounded-3xl border border-gray-100 dark:border-gray-800 overflow-hidden animate-slide-up">
+                <div class="px-6 py-4 border-b border-gray-50 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/20 flex justify-between items-center">
+                  <h4 class="text-sm font-bold text-gray-900 dark:text-white">Previewing {{ jsonPreview.length }} Items</h4>
+                </div>
+                <div class="max-h-60 overflow-y-auto custom-scrollbar">
+                  <table class="w-full text-left text-sm">
+                    <tbody class="divide-y divide-gray-50 dark:divide-gray-800">
+                      @for (tx of jsonPreview; track tx) {
+                        <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
+                          <td class="px-6 py-4">
+                            <div class="font-bold text-gray-900 dark:text-white">{{ tx.description }}</div>
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-gray-400 mt-0.5">{{ tx.category }}</div>
+                          </td>
+                          <td class="px-6 py-4 text-right font-bold" [class.text-red-500]="tx.type === 'expense'" [class.text-green-500]="tx.type === 'income'">
+                            {{ tx.amount | appCurrency }}
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            }
+            <div class="flex gap-4">
+              <button type="button"
+                (click)="closeDrawer()"
+                class="flex-1 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 active:scale-95">
+                Cancel
+              </button>
+              <button type="button"
+                [disabled]="!selectedFile || isLoading || jsonError"
+                (click)="importTransactions()"
+                class="flex-[2] rounded-2xl bg-brand-500 px-6 py-4 text-sm font-bold text-white shadow-lg shadow-brand-500/20 hover:bg-brand-600 hover:shadow-brand-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95 flex items-center justify-center gap-2">
+                @if (isLoading) {
+                  <fa-icon class="animate-spin" [icon]="faRefresh"></fa-icon>
+                }
+                @if (!isLoading) {
+                  <fa-icon [icon]="faFileImport"></fa-icon>
+                }
+                {{isLoading ? 'Importing...' : 'Start Import'}}
+              </button>
             </div>
-            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Import Transactions</h3>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mb-8 max-w-[200px] mx-auto leading-relaxed">
-              Upload your transaction JSON file.
-            </p>
-
-            <div *ngIf="jsonError" class="mb-6 p-4 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 text-red-600 dark:text-red-400 rounded-2xl text-sm font-medium">
-              {{ jsonError }}
-            </div>
-
-            <label for="json-upload-transactions" class="inline-flex items-center justify-center gap-3 rounded-2xl bg-white dark:bg-gray-800 border-2 border-primary-500 px-8 py-3.5 text-sm font-bold text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/10 cursor-pointer shadow-sm transition-all duration-200 active:scale-95">
-              <fa-icon [icon]="faUpload"></fa-icon>
-              {{ selectedFile ? 'Change File' : 'Select JSON' }}
-              <input type="file" id="json-upload-transactions" accept=".json" class="hidden" (change)="onFileSelected($event)">
-            </label>
-
-            <p *ngIf="selectedFile" class="mt-4 text-xs font-bold text-primary-500 bg-primary-50 dark:bg-primary-900/10 py-1.5 px-3 rounded-full inline-block">
-              {{ selectedFile.name }}
-            </p>
           </div>
-        </div>
-
-         <div *ngIf="jsonPreview" class="bg-white dark:bg-gray-900/30 rounded-3xl border border-gray-100 dark:border-gray-800 overflow-hidden animate-slide-up">
-          <div class="px-6 py-4 border-b border-gray-50 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/20 flex justify-between items-center">
-            <h4 class="text-sm font-bold text-gray-900 dark:text-white">Previewing {{ jsonPreview.length }} Items</h4>
-          </div>
-          <div class="max-h-60 overflow-y-auto custom-scrollbar">
-            <table class="w-full text-left text-sm">
-              <tbody class="divide-y divide-gray-50 dark:divide-gray-800">
-                <tr *ngFor="let tx of jsonPreview" class="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
-                  <td class="px-6 py-4">
-                    <div class="font-bold text-gray-900 dark:text-white">{{ tx.description }}</div>
-                    <div class="text-[10px] font-bold uppercase tracking-wider text-gray-400 mt-0.5">{{ tx.category }}</div>
-                  </td>
-                  <td class="px-6 py-4 text-right font-bold" [class.text-red-500]="tx.type === 'expense'" [class.text-green-500]="tx.type === 'income'">
-                    {{ tx.amount | appCurrency }}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="flex gap-4">
-          <button type="button"
-                  (click)="closeDrawer()"
-                  class="flex-1 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 active:scale-95">
-            Cancel
-          </button>
-          <button type="button"
-                  [disabled]="!selectedFile || isLoading || jsonError"
-                  (click)="importTransactions()"
-                  class="flex-[2] rounded-2xl bg-primary-500 px-6 py-4 text-sm font-bold text-black shadow-lg shadow-primary-500/20 hover:bg-primary-600 hover:shadow-primary-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95 flex items-center justify-center gap-2">
-            <fa-icon *ngIf="isLoading" class="animate-spin" [icon]="faRefresh"></fa-icon>
-            <fa-icon *ngIf="!isLoading" [icon]="faFileImport"></fa-icon>
-            {{isLoading ? 'Importing...' : 'Start Import'}}
-          </button>
-        </div>
+        }
       </div>
-    </div>
-  </app-side-drawer>
-</div>
+    </app-side-drawer>
+  </div>

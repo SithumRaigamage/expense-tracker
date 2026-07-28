@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -15,6 +16,8 @@ import { CurrencyService } from '../../../core/services/currency.service';
 import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
 import { ExcelExportService } from '../../../services/excel-export.service';
 import { SideDrawerComponent } from '../../../shared/components/side-drawer/side-drawer.component';
+import { NotificationService } from '../../../shared/services/notification.service';
+import { DialogService } from '../../../shared/services/dialog.service';
 
 interface Category {
   _id: string;
@@ -29,6 +32,17 @@ interface Category {
   templateUrl: './transactions.component.html',
 })
 export class TransactionsComponent implements OnInit {
+  private fb = inject(FormBuilder);
+  private transactionService = inject(TransactionService);
+  private walletService = inject(WalletService);
+  private route = inject(ActivatedRoute);
+  currencyService = inject(CurrencyService);
+  private excelExportService = inject(ExcelExportService);
+  private readonly notifications = inject(NotificationService);
+  private readonly dialogs = inject(DialogService);
+
+  private readonly destroyRef = inject(DestroyRef);
+
   faPlus = faPlus;
   faPencil = faPencil;
   faTrash = faTrash;
@@ -74,14 +88,7 @@ export class TransactionsComponent implements OnInit {
   jsonPreview: Transaction[] | null = null;
   jsonError: string | null = null;
 
-  constructor(
-    private fb: FormBuilder,
-    private transactionService: TransactionService,
-    private walletService: WalletService,
-    private route: ActivatedRoute,
-    public currencyService: CurrencyService,
-    private excelExportService: ExcelExportService
-  ) {
+  constructor() {
     this.transactionForm = this.createForm();
     this.filterForm = this.createFilterForm();
   }
@@ -91,30 +98,25 @@ export class TransactionsComponent implements OnInit {
     this.loadCategories();
     this.loadWallets();
 
-    // Also load categories after a short delay to ensure auth is ready
-    setTimeout(() => {
-      this.loadCategories();
-    }, 1000);
-
     // Reset category when type changes
-    this.transactionForm.get('type')?.valueChanges.subscribe(() => {
+    this.transactionForm.get('type')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.transactionForm.get('category')?.setValue('');
     });
 
     // Auto-determine wallet when category changes
-    this.transactionForm.get('category')?.valueChanges.subscribe((categoryId) => {
+    this.transactionForm.get('category')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((categoryId) => {
       if (categoryId) {
         this.onCategoryChange(categoryId);
       }
     });
 
     // Subscribe to filter changes
-    this.filterForm.valueChanges.subscribe(() => {
+    this.filterForm.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.applyFilters();
     });
 
     // Handle query params
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
       if (params['walletType'] === 'emergencyfund') {
         const checkWallets = () => {
           const emergencyWallet = this.wallets.find(w => w.type === 'emergencyfund');
@@ -140,7 +142,7 @@ export class TransactionsComponent implements OnInit {
 
   private loadTransactions() {
     this.isLoading = true;
-    this.transactionService.getAllTransactions().subscribe({
+    this.transactionService.getAllTransactions().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (transactions) => {
         this.allTransactions = transactions;
         this.filteredTransactions = [...this.allTransactions];
@@ -156,14 +158,11 @@ export class TransactionsComponent implements OnInit {
   }
 
   private loadCategories() {
-    this.transactionService.getCategories().subscribe({
+    this.transactionService.getCategories().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (categories) => {
-        console.log('Categories received in component:', categories);
-        console.log('Sample category structure:', categories[0]);
         this.categories = categories;
         // If no categories loaded, try to refresh
         if (categories.length === 0) {
-          console.log('No categories found, refreshing...');
           this.transactionService.refreshCategories();
         }
       },
@@ -187,7 +186,7 @@ export class TransactionsComponent implements OnInit {
   }
 
   private loadWallets() {
-    this.walletService.wallets$.subscribe(wallets => {
+    this.walletService.wallets$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(wallets => {
       this.wallets = wallets.filter(w => w.isActive !== false);
     });
   }
@@ -290,9 +289,11 @@ export class TransactionsComponent implements OnInit {
           })
         : this.transactionService.addTransaction(formValue);
 
-      operation.subscribe({
-        next: (transaction) => {
-          console.log('Transaction saved:', transaction);
+      operation.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+        next: () => {
+          this.notifications.success(
+            this.selectedTransaction ? 'Transaction updated.' : 'Transaction added.'
+          );
           this.closeDrawer();
           this.isLoading = false;
         },
@@ -324,9 +325,11 @@ export class TransactionsComponent implements OnInit {
     }
 
     const reader = new FileReader();
-    reader.onload = (e: any) => {
+    reader.onload = (e: ProgressEvent<FileReader>) => {
       try {
-        const json = JSON.parse(e.target.result);
+        // A null result parses to a SyntaxError, which the catch below already
+        // reports as an invalid file.
+        const json = JSON.parse(String(e.target?.result ?? ''));
         this.processJsonData(json);
       } catch (error) {
         console.error('Error parsing JSON:', error);
@@ -341,7 +344,9 @@ export class TransactionsComponent implements OnInit {
     reader.readAsText(file);
   }
 
-  processJsonData(data: any) {
+  // The argument comes straight from a user-supplied file, so it is unknown
+  // until these checks have run over it.
+  processJsonData(data: unknown) {
     // Validate the JSON structure
     if (!Array.isArray(data)) {
       this.jsonError = 'Invalid JSON format. Expected an array of transactions.';
@@ -351,35 +356,40 @@ export class TransactionsComponent implements OnInit {
     const validTransactions: Transaction[] = [];
     const errors: string[] = [];
 
-    data.forEach((item: any, index: number) => {
-      if (!item.description) {
+    data.forEach((entry: unknown, index: number) => {
+      const item = (entry ?? {}) as Record<string, unknown>;
+      const description = typeof item['description'] === 'string' ? item['description'] : '';
+      const type = item['type'];
+      const label = description || index;
+
+      if (!description) {
         errors.push(`Transaction at index ${index} is missing a description`);
       }
 
-      if (!item.type || !['income', 'expense'].includes(item.type)) {
-        errors.push(`Transaction "${item.description || index}" has an invalid type`);
+      if (typeof type !== 'string' || !['income', 'expense'].includes(type)) {
+        errors.push(`Transaction "${label}" has an invalid type`);
       }
 
-      if (item.amount === undefined || isNaN(Number(item.amount))) {
-        errors.push(`Transaction "${item.description || index}" has an invalid amount`);
+      if (item['amount'] === undefined || isNaN(Number(item['amount']))) {
+        errors.push(`Transaction "${label}" has an invalid amount`);
       }
 
-      if (!item.category) {
-        errors.push(`Transaction "${item.description || index}" is missing a category`);
+      if (!item['category']) {
+        errors.push(`Transaction "${label}" is missing a category`);
       }
 
-      if (!item.date) {
-        errors.push(`Transaction "${item.description || index}" is missing a date`);
+      if (!item['date']) {
+        errors.push(`Transaction "${label}" is missing a date`);
       }
 
       if (!errors.length) {
         validTransactions.push({
           id: '', // Will be assigned by server
-          description: item.description,
-          type: item.type,
-          amount: Number(item.amount),
-          category: item.category,
-          date: new Date(item.date),
+          description,
+          type: type as Transaction['type'],
+          amount: Number(item['amount']),
+          category: String(item['category']),
+          date: new Date(item['date'] as string | number),
           walletId: '' // Will be determined by server during bulk import
         });
       }
@@ -407,9 +417,8 @@ export class TransactionsComponent implements OnInit {
     this.errorMessage = '';
 
     // Use the bulkAddTransactions method
-    this.transactionService.bulkAddTransactions(this.jsonPreview).subscribe({
+    this.transactionService.bulkAddTransactions(this.jsonPreview).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (result) => {
-        console.log(`Successfully imported ${result.successCount} transactions`);
         if (result.failedCount > 0 && result.failedTransactions) {
           // Create a more detailed message about the failures
           const failureDetails = result.failedTransactions
@@ -417,11 +426,11 @@ export class TransactionsComponent implements OnInit {
             .join('\n');
 
           // Use a simple alert with details
-          alert(`Successfully imported ${result.successCount} transactions.\n\n${result.failedCount} transaction(s) failed to import:\n${failureDetails}`);
+          this.notifications.error(`Imported ${result.successCount}. ${result.failedCount} failed: ${failureDetails}`);
         } else if (result.failedCount > 0) {
-          alert(`${result.successCount} transactions imported successfully. ${result.failedCount} transactions failed to import.`);
+          this.notifications.error(`Imported ${result.successCount} transactions; ${result.failedCount} failed.`);
         } else {
-          alert(`${result.successCount} transactions imported successfully!`);
+          this.notifications.success(`Imported ${result.successCount} transactions.`);
         }
         // Refresh the transactions list with a small delay to ensure backend processing is complete
         setTimeout(() => {
@@ -451,17 +460,18 @@ export class TransactionsComponent implements OnInit {
   }
 
   deleteTransaction(id: string | number) {
-    if (confirm('Are you sure you want to delete this transaction?')) {
-      this.transactionService.deleteTransaction(id).subscribe({
-        next: () => {
-          console.log('Transaction deleted successfully');
-        },
+    this.dialogs.confirmDelete('transaction').pipe(takeUntilDestroyed(this.destroyRef)).subscribe(confirmed => {
+      if (!confirmed) {
+        return;
+      }
+
+      this.transactionService.deleteTransaction(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+        next: () => this.notifications.success('Transaction deleted.'),
         error: (error) => {
-          console.error('Error deleting transaction:', error);
-          this.errorMessage = error.message || 'Failed to delete transaction';
+          this.notifications.error(error?.message || 'Could not delete that transaction.');
         }
       });
-    }
+    });
   }
 
   exportTransactions() {
@@ -476,7 +486,6 @@ export class TransactionsComponent implements OnInit {
   }
 
   getCategoriesByType(type: 'income' | 'expense'): Category[] {
-    console.log('Getting categories by type:', type, 'Available categories:', this.categories);
     return this.categories.filter(cat => cat.type === type);
   }
 
@@ -503,42 +512,8 @@ export class TransactionsComponent implements OnInit {
     };
 
     const filtered = this.categories.filter(cat => getCategoryType(cat) === type);
-    console.log(`Filtered categories for ${type}:`, filtered);
-    console.log('Category type determination:', this.categories.map(cat => ({
-      name: cat.name,
-      originalType: cat.type,
-      determinedType: getCategoryType(cat),
-      matches: getCategoryType(cat) === type
-    })));
 
     return filtered;
-  }
-
-  // Debug method to check categories
-  debugCategories() {
-    console.log('=== CATEGORY DEBUG INFO ===');
-    console.log('Total categories:', this.categories.length);
-    console.log('All categories:', this.categories);
-    console.log('Form type value:', this.transactionForm.get('type')?.value);
-    console.log('Current transaction type:', this.currentTransactionType);
-    console.log('Filtered categories:', this.filteredCategories);
-    console.log('Income categories:', this.categories.filter(c => c.type === 'income'));
-    console.log('Expense categories:', this.categories.filter(c => c.type === 'expense'));
-    console.log('=== END DEBUG ===');
-  }
-
-  // Force refresh categories from server
-  forceRefreshCategories() {
-    console.log('Force refreshing categories...');
-    this.transactionService.forceRefreshCategories().subscribe({
-      next: (categories: Category[]) => {
-        console.log('Categories refreshed:', categories);
-        this.categories = categories;
-      },
-      error: (error: any) => {
-        console.error('Error refreshing categories:', error);
-      }
-    });
   }
 
   // Helper method to format date for input
@@ -636,25 +611,16 @@ export class TransactionsComponent implements OnInit {
     this.applyFilters();
   }
 
-  // Manual method to create categories if they don't exist
-  createCategoriesIfNeeded() {
-    console.log('Manual trigger: Creating categories...');
-    this.isLoading = true;
-    this.transactionService.createCategories().subscribe({
-      next: (categories) => {
-        console.log('Categories created via manual trigger:', categories);
-        this.categories = categories;
-        this.isLoading = false;
-      },
-      error: (error) => {
-        console.error('Error creating categories manually:', error);
-        this.errorMessage = 'Failed to create categories';
-        this.isLoading = false;
-      }
-    });
-  }
-
   // --- Custom Dropdown Methods ---
+
+  // Each dropdown has a transparent backdrop that closes it on click; Escape is
+  // the keyboard equivalent.
+  @HostListener('document:keydown.escape')
+  onEscape() {
+    this.isTypeOpen = false;
+    this.isCategoryOpen = false;
+    this.isWalletOpen = false;
+  }
 
   toggleTypeDropdown() {
     this.isTypeOpen = !this.isTypeOpen;

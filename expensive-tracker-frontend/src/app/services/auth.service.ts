@@ -1,8 +1,9 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Observable, tap, catchError, throwError, map, of } from 'rxjs';
+import { BehaviorSubject, Observable, tap, catchError, throwError, map } from 'rxjs';
 import { TokenService } from '../core/services/token.service';
+import { environment } from '../../environments/environment';
 
 interface ApiResponse<T> {
   success: boolean;
@@ -31,63 +32,56 @@ interface AuthResponse {
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:3001/api/v1/users';
+  private http = inject(HttpClient);
+  private router = inject(Router);
+  private tokenService = inject(TokenService);
+
+  private apiUrl = `${environment.apiUrl}/users`;
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
-  constructor(
-    private http: HttpClient,
-    private router: Router,
-    private tokenService: TokenService
-  ) {
+  constructor() {
     this.checkToken();
   }
 
   private checkToken(): void {
-    const token = this.tokenService.getToken();
+    const hasSession = this.tokenService.hasSession();
     const userData = this.getUserFromStorage();
 
-    // If we have both token and user data in localStorage, initialize auth state
-    if (token && userData) {
-      this.currentUserSubject.next(userData);
-
-      // Verify token in the background to ensure it's still valid
-      this.verifyToken().subscribe({
-        next: (response) => {
-          if (response.success) {
-            this.currentUserSubject.next(response.data.user);
-            // Update stored user data if needed
-            this.saveUserToStorage(response.data.user);
-          } else {
-            this.logout();
-          }
-        },
-        error: () => {
-          this.logout();
-        }
-      });
-    } else if (token) {
-      // If we have only token but no user data, try to get user data
-      this.verifyToken().subscribe({
-        next: (response) => {
-          if (response.success) {
-            this.currentUserSubject.next(response.data.user);
-            this.saveUserToStorage(response.data.user);
-          } else {
-            this.logout();
-          }
-        },
-        error: () => {
-          this.logout();
-        }
-      });
+    // The cookie itself is unreadable from here, so the cached user plus the
+    // session flag are the optimistic starting state; /verify settles it.
+    if (!hasSession) {
+      return;
     }
-  }  register(userData: { name: string; email: string; password: string }): Observable<AuthResponse> {
+
+    // Show the cached user straight away so the shell doesn't flash empty, then
+    // let the server have the final word. (The two branches this replaced —
+    // "session and user" versus "session only" — ran identical bodies.)
+    if (userData) {
+      this.currentUserSubject.next(userData);
+    }
+
+    this.verifyToken().subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.currentUserSubject.next(response.data.user);
+          this.saveUserToStorage(response.data.user);
+        } else {
+          this.logout();
+        }
+      },
+      error: () => {
+        this.logout();
+      }
+    });
+  }
+
+  register(userData: { name: string; email: string; password: string }): Observable<AuthResponse> {
     return this.http.post<ApiResponse<AuthResponse>>(`${this.apiUrl}/register`, userData)
       .pipe(
         map(response => response.data),
         tap(data => {
-          this.tokenService.saveToken(data.token);
+          this.tokenService.markSignedIn();
           this.saveUserToStorage(data.user);
           this.currentUserSubject.next(data.user);
         }),
@@ -100,7 +94,7 @@ export class AuthService {
       .pipe(
         map(response => response.data),
         tap(data => {
-          this.tokenService.saveToken(data.token);
+          this.tokenService.markSignedIn();
           this.saveUserToStorage(data.user);
           this.currentUserSubject.next(data.user);
         }),
@@ -108,8 +102,20 @@ export class AuthService {
       );
   }
 
+  /**
+   * Ends the session. Only the server can delete an httpOnly cookie, so the
+   * local clear-out is paired with a logout call; the local half runs either
+   * way so a failed request can't strand the user in a signed-in-looking shell.
+   */
   logout(): void {
-    this.tokenService.removeToken();
+    this.http.post(`${this.apiUrl}/logout`, {}).subscribe({
+      next: () => this.clearSession(),
+      error: () => this.clearSession()
+    });
+  }
+
+  private clearSession(): void {
+    this.tokenService.markSignedOut();
     localStorage.removeItem('user');
     this.currentUserSubject.next(null);
     this.router.navigate(['/login']);
@@ -132,10 +138,6 @@ export class AuthService {
       );
   }
 
-  getToken(): string | null {
-    return this.tokenService.getToken();
-  }
-
   private saveUserToStorage(user: User): void {
     localStorage.setItem('user', JSON.stringify(user));
   }
@@ -145,7 +147,7 @@ export class AuthService {
     if (userData) {
       try {
         return JSON.parse(userData);
-      } catch (e) {
+      } catch {
         return null;
       }
     }
@@ -153,8 +155,7 @@ export class AuthService {
   }
 
   isAuthenticated(): boolean {
-    const token = this.tokenService.getToken();
-    return !!token;
+    return this.tokenService.hasSession();
   }
 
   getCurrentUser(): User | null {
@@ -166,10 +167,10 @@ export class AuthService {
     return !!(currentUser && currentUser.role === 'admin');
   }
 
-  private handleError(error: any): Observable<never> {
+  private handleError(error: HttpErrorResponse | Error): Observable<never> {
     let errorMessage = 'An error occurred';
 
-    if (error.error?.error) {
+    if (error instanceof HttpErrorResponse && error.error?.error) {
       errorMessage = error.error.error;
     } else if (error.message) {
       errorMessage = error.message;

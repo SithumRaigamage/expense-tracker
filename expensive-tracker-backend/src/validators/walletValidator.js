@@ -1,13 +1,16 @@
 const { body, param, validationResult } = require('express-validator');
-const { WALLET_TYPES, CURRENCIES } = require('../config/constants');
+const { CURRENCIES } = require('../config/constants');
 
 // Validation middleware to handle errors
 const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
+    // Surface the actual reasons in `error`. It used to say "Validation failed"
+    // with the useful text buried in `details`, so the UI showed users a message
+    // that told them nothing about which field was wrong.
     return res.status(400).json({
       success: false,
-      error: 'Validation failed',
+      error: errors.array().map(e => e.msg).join(', '),
       details: errors.array()
     });
   }
@@ -97,6 +100,16 @@ const validateWalletUpdate = [
     .optional()
     .isBoolean()
     .withMessage('isActive must be a boolean'),
+
+  body('targetAmount')
+    .optional({ nullable: true })
+    .isFloat({ min: 0 })
+    .withMessage('Target amount cannot be negative'),
+
+  body('monthlyTarget')
+    .optional({ nullable: true })
+    .isFloat({ min: 0 })
+    .withMessage('Monthly target cannot be negative'),
   
   handleValidationErrors
 ];

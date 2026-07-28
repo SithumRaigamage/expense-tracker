@@ -1,6 +1,6 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { CommonModule } from '@angular/common';
+
 import { DropdownComponent } from '../../../../shared/components/dropdown/dropdown.component';
 import { AuthService } from '../../../../services/auth.service';
 import { Subscription } from 'rxjs';
@@ -25,13 +25,14 @@ interface User {
   selector: 'app-user-dropdown',
   standalone: true,
   imports: [
-    CommonModule,
     RouterModule,
     DropdownComponent
-  ],
+],
   templateUrl: './user-dropdown.component.html'
 })
 export class UserDropdownComponent implements OnInit, OnDestroy {
+  private authService = inject(AuthService);
+
   isOpen = false;
   currentUser: User | null = null;
   private userSubscription: Subscription = new Subscription();
@@ -42,8 +43,6 @@ export class UserDropdownComponent implements OnInit, OnDestroy {
       route: '/settings'
     }
   ];
-
-  constructor(private authService: AuthService) { }
 
   ngOnInit(): void {
     // Subscribe to current user changes

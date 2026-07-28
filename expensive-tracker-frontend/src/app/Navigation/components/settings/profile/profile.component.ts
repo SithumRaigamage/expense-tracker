@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject } from '@angular/core';
+
 import { RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -9,21 +9,26 @@ import { User } from '../../../../core/models/User';
 import { SettingsService } from '../../../../services/settings.service';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { finalize } from 'rxjs/operators';
+import { NotificationService } from '../../../../shared/services/notification.service';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     ReactiveFormsModule,
     RouterModule,
     FontAwesomeModule,
     SideDrawerComponent
-  ],
+],
   templateUrl: './profile.component.html',
 })
 export class ProfileComponent implements OnInit {
+  private settingsService = inject(SettingsService);
+  private sanitizer = inject(DomSanitizer);
+  private fb = inject(FormBuilder);
+  private readonly notifications = inject(NotificationService);
+
   user: User | null = null;
   isOpen = false;
   formData: Partial<User> = {};
@@ -31,12 +36,12 @@ export class ProfileComponent implements OnInit {
   previewImage: SafeUrl | null = null;
   passwordForm: FormGroup;
   emailForm: FormGroup;
-  isLoading: boolean = false;
-  isSaving: boolean = false;
-  isPasswordChanging: boolean = false;
-  isEmailChanging: boolean = false;
-  uploadProgress: number = 0;
-  imageError: boolean = false;
+  isLoading = false;
+  isSaving = false;
+  isPasswordChanging = false;
+  isEmailChanging = false;
+  uploadProgress = 0;
+  imageError = false;
 
   // Password visibility
   hideCurrent = true;
@@ -59,11 +64,7 @@ export class ProfileComponent implements OnInit {
 
   readonly MASKED_PASSWORD = '●●●●●●●●●●';
 
-  constructor(
-    private settingsService: SettingsService,
-    private sanitizer: DomSanitizer,
-    private fb: FormBuilder
-  ) {
+  constructor() {
     // Initialize password form
     this.passwordForm = this.fb.group({
       currentPassword: ['', [Validators.required]],
@@ -100,7 +101,6 @@ export class ProfileComponent implements OnInit {
           }
 
           this.user = user;
-          console.log('User profile loaded:', user);
 
           // Set masked password in forms
           this.passwordForm.patchValue({ currentPassword: this.MASKED_PASSWORD });
@@ -123,12 +123,10 @@ export class ProfileComponent implements OnInit {
     if (user.profileImage || user.avatar) {
       // Try to load the profile image first
       if (user.profileImage) {
-        console.log('Testing profile image URL:', user.profileImage);
 
         const img = new Image();
         img.crossOrigin = 'anonymous'; // Try with CORS
         img.onload = () => {
-          console.log('Profile image loaded successfully');
           // Image loaded successfully with crossOrigin, nothing else to do
         };
         img.onerror = () => {
@@ -136,14 +134,12 @@ export class ProfileComponent implements OnInit {
 
           // If profile image fails and we have an avatar, try to use that instead
           if (user.avatar && user.profileImage !== user.avatar) {
-            console.log('Profile image failed to load, falling back to avatar');
             user.profileImage = user.avatar;
           }
         };
         img.src = user.profileImage;
       } else if (user.avatar) {
         // No profile image but we have an avatar, set it as profile image
-        console.log('No profile image found, using avatar instead:', user.avatar);
         user.profileImage = user.avatar;
       }
     }
@@ -182,54 +178,25 @@ export class ProfileComponent implements OnInit {
     return 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNTYgMjU2Ij48cmVjdCB3aWR0aD0iMjU2IiBoZWlnaHQ9IjI1NiIgZmlsbD0iI2U1ZTdlYiIvPjxjaXJjbGUgY3g9IjEyOCIgY3k9Ijk2IiByPSI2NCIgZmlsbD0iI2E1YTVhNSIvPjxwYXRoIGQ9Ik0yMTYgMjQwSDQwYzAtNDQuMiAzNS44LTgwIDgwLTgwSDEzNmM0NC4yIDAgODAgMzUuOCA4MCA4MHoiIGZpbGw9IiNhNWE1YTUiLz48L3N2Zz4=';
   }
 
-  // Handle image loading errors
+  /**
+   * Falls back to the inline default avatar when the profile image won't load.
+   *
+   * This used to special-case `localhost:3001` and retry the same URL with a
+   * cache-busting query string. A retry that also failed re-entered this handler
+   * with the host still matching, so it retried again — an unbounded loop
+   * hammering the server for an image that was never going to load. The CORS
+   * headers it was working around are set on /uploads by the API itself now.
+   */
   handleImageError(event: Event): void {
-    console.log('Image failed to load, replacing with default avatar');
     this.imageError = true;
     const imgElement = event.target as HTMLImageElement;
-    console.error('Image failed to load from URL:', imgElement.src);
+    const fallback = this.getDefaultAvatarUrl();
 
-    // If the failure is due to CORS with a localhost URL, try to work around it by using a proxy
-    if (imgElement.src.includes('localhost:3001')) {
-      // Try with a proxy or alternative approach
-      const originalUrl = imgElement.src;
-
-      // Create a new img element to test if this is a CORS issue
-      const testImg = new Image();
-      testImg.crossOrigin = 'anonymous'; // Try with CORS
-
-      testImg.onload = () => {
-        // If it loads with crossOrigin, use that
-        console.log('Image loaded successfully with crossOrigin');
-        imgElement.crossOrigin = 'anonymous';
-        imgElement.src = originalUrl + (originalUrl.includes('?') ? '&' : '?') + 'cors=' + new Date().getTime();
-      };
-
-      testImg.onerror = () => {
-        // If the CORS approach fails, use a data URL if possible
-        // This is a fallback but has limitations
-        if (this.user?.avatar === imgElement.src && this.user?.profileImage) {
-          console.log('Trying profileImage as alternative');
-          imgElement.src = this.user.profileImage;
-        } else {
-          // As a last resort, use the default avatar
-          imgElement.src = this.getDefaultAvatarUrl();
-        }
-      };
-
-      // Test with crossOrigin
-      testImg.crossOrigin = 'anonymous';
-      testImg.src = originalUrl;
-    } else {
-      // For non-localhost URLs or other errors, use the default avatar
-      imgElement.src = this.getDefaultAvatarUrl();
+    // The fallback is an inline data URI, so it cannot fail — but guard anyway
+    // rather than rely on that to terminate the handler.
+    if (imgElement.src !== fallback) {
+      imgElement.src = fallback;
     }
-  }
-
-  // Handle successful image loading
-  onImageLoaded(event: Event): void {
-    const imgElement = event.target as HTMLImageElement;
-    console.log('Image successfully loaded from URL:', imgElement.src);
   }
 
   onFileSelected(event: Event): void {
@@ -237,11 +204,10 @@ export class ProfileComponent implements OnInit {
     if (input.files && input.files[0]) {
       const file = input.files[0];
       if (this.isValidImageFile(file)) {
-        console.log(`Selected image: ${file.name}, type: ${file.type}, size: ${file.size} bytes`);
         this.selectedImage = file;
         this.createImagePreview(file);
       } else {
-        alert('Please select a valid image file (PNG, JPG, or JPEG)');
+        this.notifications.error('Please choose a PNG or JPG image.');
         // Reset input so user can try again
         input.value = '';
       }
@@ -258,7 +224,7 @@ export class ProfileComponent implements OnInit {
     }
 
     if (file.size > maxSizeInBytes) {
-      alert(`File is too large. Maximum size is 5MB. Your file is ${(file.size / (1024 * 1024)).toFixed(2)}MB`);
+      this.notifications.error(`That image is ${(file.size / (1024 * 1024)).toFixed(1)} MB. The maximum is 5 MB.`);
       return false;
     }
 
@@ -267,28 +233,19 @@ export class ProfileComponent implements OnInit {
 
   private createImagePreview(file: File): void {
     const reader = new FileReader();
-    reader.onload = (e: any) => {
-      this.previewImage = this.sanitizer.bypassSecurityTrustUrl(e.target.result);
-      console.log('Preview image created');
+    reader.onload = (e: ProgressEvent<FileReader>) => {
+      const dataUrl = typeof e.target?.result === 'string' ? e.target.result : '';
+      this.previewImage = this.sanitizer.bypassSecurityTrustUrl(dataUrl);
     };
     reader.onerror = (e) => {
       console.error('Error creating image preview:', e);
-      alert('Error creating image preview. Please try another image.');
+      this.notifications.error('Could not preview that image. Please try another.');
     };
     reader.readAsDataURL(file);
   }
 
   onSave(): void {
     this.isSaving = true;
-    console.log('Save button clicked');
-
-    // Verify we have a valid token
-    const token = localStorage.getItem('token');
-    if (!token) {
-      this.showNotification('You must be logged in. Please log in and try again.', 'error');
-      this.isSaving = false;
-      return;
-    }
 
     // Check if backend is reachable before attempting to save
     this.checkBackendConnection();
@@ -361,9 +318,12 @@ export class ProfileComponent implements OnInit {
     }
   }
 
-  // Simple notification method - in a real app, you'd use a notification service
   private showNotification(message: string, type: 'success' | 'error'): void {
-    alert(message);
+    if (type === 'error') {
+      this.notifications.error(message);
+    } else {
+      this.notifications.success(message);
+    }
   }
 
   // Add a method to check if the backend server is reachable
@@ -371,7 +331,6 @@ export class ProfileComponent implements OnInit {
     // Check if the backend server is reachable first
     this.settingsService.checkServerConnection().subscribe({
       next: () => {
-        console.log('Backend server is reachable, proceeding with save');
         // If we have a selected image, proceed with the save operation
         if (this.selectedImage) {
           this.saveWithImage();
@@ -385,7 +344,7 @@ export class ProfileComponent implements OnInit {
       error: (error) => {
         console.error('Backend connection check failed:', error);
         this.isSaving = false;
-        this.showNotification('Cannot connect to the server. Please make sure the backend server is running at http://localhost:3001 and try again.', 'error');
+        this.showNotification('Could not reach the server. Check your connection and try again.', 'error');
       }
     });
   }
@@ -415,14 +374,14 @@ export class ProfileComponent implements OnInit {
     try {
       // First append the image file with the correct field name
       formData.append('profileImage', this.selectedImage!);
-      console.log('Selected image appended to form data:', this.selectedImage!.name);
 
       // Add other form data fields to the formData
-      Object.keys(this.formData).forEach(key => {
-        if ((this.formData as any)[key] !== undefined && (this.formData as any)[key] !== null) {
+      // Object.entries carries the value along, so the field does not need to be
+      // read back through an index signature Partial<User> does not have.
+      Object.entries(this.formData).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
           // Convert any object values to strings for FormData
-          formData.append(key, String((this.formData as any)[key]));
-          console.log(`Added form data: ${key} = ${(this.formData as any)[key]}`);
+          formData.append(key, String(value));
         }
       });
 
@@ -430,28 +389,14 @@ export class ProfileComponent implements OnInit {
       if (this.formData.firstName && this.formData.lastName) {
         const fullName = `${this.formData.firstName} ${this.formData.lastName}`;
         formData.append('name', fullName);
-        console.log(`Added name to form data: ${fullName}`);
       }
-
-      console.log('Uploading profile with image...');
-
-      // Debug formData contents
-      formData.forEach((value, key) => {
-        if (key !== 'profileImage') {
-          console.log(`FormData contains: ${key} = ${value}`);
-        } else {
-          console.log(`FormData contains file: ${key}`);
-        }
-      });
 
       this.settingsService.updateUserProfileWithImage(formData).pipe(
         finalize(() => {
           this.isSaving = false;
-          console.log('Upload completed');
         })
       ).subscribe({
         next: (user) => {
-          console.log('Profile updated successfully', user);
           this.user = user;
           this.isOpen = false;
           this.selectedImage = null;
@@ -461,7 +406,6 @@ export class ProfileComponent implements OnInit {
 
           // Set the user data including the profile image and refresh
           if (user.profileImage) {
-            console.log('Setting profile image URL:', user.profileImage);
             // Force browser to reload the image by appending a timestamp
             user.profileImage = `${user.profileImage}?t=${new Date().getTime()}`;
           }
@@ -491,19 +435,16 @@ export class ProfileComponent implements OnInit {
       ...this.formData
     };
 
-    console.log('Updating profile without image:', updatedUser);
 
     // If firstName and lastName are provided but name is not, construct the name
     if (this.formData.firstName && this.formData.lastName) {
       updatedUser.name = `${this.formData.firstName} ${this.formData.lastName}`;
-      console.log(`Setting name: ${updatedUser.name}`);
     }
 
     this.settingsService.updateUserProfile(updatedUser).pipe(
       finalize(() => this.isSaving = false)
     ).subscribe({
       next: (user) => {
-        console.log('Profile updated successfully:', user);
         this.user = user;
         this.isOpen = false;
         this.showNotification('Profile updated successfully!', 'success');

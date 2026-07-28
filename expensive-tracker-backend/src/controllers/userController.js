@@ -2,6 +2,7 @@ const asyncHandler = require('express-async-handler');
 const UserService = require('../services/userService');
 const { successResponse, createdResponse } = require('../utils/responseFormatter');
 const { BadRequestError } = require('../utils/errors');
+const { setAuthCookie, clearAuthCookie } = require('../utils/authCookie');
 
 /**
  * @desc    Register a new user
@@ -18,7 +19,11 @@ const register = asyncHandler(async (req, res) => {
 
   const result = await UserService.register(req.body);
 
-  createdResponse(res, result);
+  // The token rides in an httpOnly cookie; it is deliberately not echoed in the
+  // body, so nothing on the page can read or store it.
+  setAuthCookie(res, result.token);
+
+  createdResponse(res, { user: result.user });
 });
 
 /**
@@ -35,7 +40,9 @@ const login = asyncHandler(async (req, res) => {
 
   const result = await UserService.login(email, password);
 
-  successResponse(res, result, 200);
+  setAuthCookie(res, result.token);
+
+  successResponse(res, { user: result.user }, 200);
 });
 
 /**
@@ -44,9 +51,9 @@ const login = asyncHandler(async (req, res) => {
  * @access  Private
  */
 const logout = asyncHandler(async (req, res) => {
-  // In a stateless JWT system, logout is handled client-side
-  // Optional: Implement token blacklisting here
-  
+  // Now that the browser can't touch the cookie, logout has to happen here.
+  clearAuthCookie(res);
+
   successResponse(res, {}, 200, 'Successfully logged out');
 });
 

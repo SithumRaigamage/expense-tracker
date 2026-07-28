@@ -5,6 +5,8 @@ import { Wallet } from '../core/models/Wallet';
 import { Metric } from '../core/models/Metric';
 import { AuthService } from './auth.service';
 import { CurrencyService } from '../core/services/currency.service';
+import { toUserMessage } from '../core/utils/http-error';
+import { environment } from '../../environments/environment';
 import {
   faMoneyBillWave,
   faBuildingColumns,
@@ -31,11 +33,51 @@ interface ApiResponse<T> {
   count?: number;
 }
 
+/**
+ * What the API actually sends back. Mongo documents carry `_id`; the app's
+ * Wallet model uses `id`, and every read here normalises between the two.
+ */
+type ApiWallet = Omit<Wallet, 'id'> & { id?: string; _id?: string };
+
+/** Aggregates returned by /wallets/stats. */
+export interface WalletStats {
+  totalBalance: number;
+  walletCount: number;
+  byType?: Record<string, number>;
+}
+
+/** Sankey-style flow returned by /wallets/flow. */
+export interface ExpenseFlowNode {
+  name: string;
+  color?: string;
+}
+
+export interface ExpenseFlowLink {
+  source: string;
+  target: string;
+  value: number;
+  color?: string;
+}
+
+export interface ExpenseFlow {
+  nodes: ExpenseFlowNode[];
+  links: ExpenseFlowLink[];
+}
+
+/** Shape of the transfer endpoint's payload. */
+export interface TransferResult {
+  fromWallet: Wallet;
+  toWallet: Wallet;
+  amount: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class WalletService {
-  private apiUrl = 'http://localhost:3001/api/v1/wallets';
+  private http = inject(HttpClient);
+
+  private apiUrl = `${environment.apiUrl}/wallets`;
   private wallets = new BehaviorSubject<Wallet[]>([]);
   private error = new BehaviorSubject<string | null>(null);
   private loading = new BehaviorSubject<boolean>(false);
@@ -48,7 +90,7 @@ export class WalletService {
   private authService = inject(AuthService);
   private currencyService = inject(CurrencyService);
 
-  constructor(private http: HttpClient) {
+  constructor() {
     // Subscribe to the current user to get the user ID
     this.authService.currentUser$.subscribe(user => {
       this.currentUserId = user?.id || null;
@@ -61,13 +103,11 @@ export class WalletService {
     });
   }
 
+  // The interceptor handles credentials for every request; this only carries
+  // the content type now.
   private getHttpOptions() {
-    const token = this.authService.getToken();
     return {
-      headers: new HttpHeaders({
-        'Content-Type': 'application/json',
-        'Authorization': token ? `Bearer ${token}` : ''
-      })
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' })
     };
   }
 
@@ -81,25 +121,14 @@ export class WalletService {
     this.loading.next(true);
     this.error.next(null);
 
-    this.http.get<ApiResponse<Wallet[]>>(this.apiUrl, this.getHttpOptions())
+    this.http.get<ApiResponse<ApiWallet[]>>(this.apiUrl, this.getHttpOptions())
       .pipe(
         map(response => response.data.map(wallet => ({
-          ...wallet,
-          id: wallet.id || (wallet as any)._id, // Handle both _id and id
+          ...this.normaliseWallet(wallet),
           user: wallet.user || this.currentUserId || '' // Ensure user ID is present as string
         }))),
         catchError(error => {
-          console.error('Error loading wallets:', error);
-          let errorMessage = 'Failed to connect to the server. Please check if the backend is running.';
-
-          if (error.status === 401) {
-            errorMessage = 'You are not authorized. Please login again.';
-          } else if (error.status === 404) {
-            errorMessage = 'Wallets endpoint not found.';
-          } else if (error.status === 0) {
-            errorMessage = 'Cannot connect to the server. Please check if the backend is running on http://localhost:3001';
-          }
-
+          const errorMessage = toUserMessage(error, 'Failed to connect to the server. Please check if the backend is running.');
           this.error.next(errorMessage);
           return throwError(() => error);
         })
@@ -164,30 +193,15 @@ export class WalletService {
       user: this.currentUserId
     };
 
-    return this.http.post<ApiResponse<Wallet>>(this.apiUrl, walletWithUser, this.getHttpOptions())
+    return this.http.post<ApiResponse<ApiWallet>>(this.apiUrl, walletWithUser, this.getHttpOptions())
       .pipe(
-        map(response => ({
-          ...response.data,
-          id: response.data.id || (response.data as any)._id
-        })),
+        map(response => this.normaliseWallet(response.data)),
         tap(wallet => {
           const currentWallets = this.wallets.value;
           this.wallets.next([...currentWallets, wallet]);
         }),
         catchError(error => {
-          console.error('Error adding wallet:', error);
-          let errorMessage = 'Failed to add wallet. Please try again.';
-
-          if (error.status === 401) {
-            errorMessage = 'You are not authorized. Please login again.';
-          } else if (error.status === 400) {
-            if (error.error?.error?.includes('already exists')) {
-              errorMessage = 'A wallet with this name already exists.';
-            } else {
-              errorMessage = 'Invalid wallet data. Please check your input.';
-            }
-          }
-
+          const errorMessage = toUserMessage(error, 'Failed to add wallet. Please try again.');
           throw new Error(errorMessage);
         })
       );
@@ -198,15 +212,13 @@ export class WalletService {
       return throwError(() => new Error('Not authenticated. Please log in.'));
     }
 
-    // Remove user field to prevent changing ownership
-    const { user, ...dataToUpdate } = walletData;
+    // Remove user field to prevent changing ownership. The binding is unused by
+    // design — destructuring it is what keeps it out of dataToUpdate.
+    const { user: _user, ...dataToUpdate } = walletData;
 
-    return this.http.put<ApiResponse<Wallet>>(`${this.apiUrl}/${id}`, dataToUpdate, this.getHttpOptions())
+    return this.http.put<ApiResponse<ApiWallet>>(`${this.apiUrl}/${id}`, dataToUpdate, this.getHttpOptions())
       .pipe(
-        map(response => ({
-          ...response.data,
-          id: response.data.id || (response.data as any)._id
-        })),
+        map(response => this.normaliseWallet(response.data)),
         tap(updatedWallet => {
           const currentWallets = this.wallets.value;
           const updatedWallets = currentWallets.map(w =>
@@ -215,21 +227,7 @@ export class WalletService {
           this.wallets.next(updatedWallets);
         }),
         catchError(error => {
-          console.error('Error updating wallet:', error);
-          let errorMessage = 'Failed to update wallet. Please try again.';
-
-          if (error.status === 401) {
-            errorMessage = 'You are not authorized. Please login again.';
-          } else if (error.status === 404) {
-            errorMessage = 'Wallet not found.';
-          } else if (error.status === 400) {
-            if (error.error?.error?.includes('already exists')) {
-              errorMessage = 'A wallet with this name already exists.';
-            } else {
-              errorMessage = 'Invalid wallet data. Please check your input.';
-            }
-          }
-
+          const errorMessage = toUserMessage(error, 'Failed to update wallet. Please try again.');
           throw new Error(errorMessage);
         })
       );
@@ -240,7 +238,7 @@ export class WalletService {
       return throwError(() => new Error('Not authenticated. Please log in.'));
     }
 
-    return this.http.delete<ApiResponse<any>>(`${this.apiUrl}/${id}`, this.getHttpOptions())
+    return this.http.delete<ApiResponse<unknown>>(`${this.apiUrl}/${id}`, this.getHttpOptions())
       .pipe(
         map(() => void 0),
         tap(() => {
@@ -249,15 +247,7 @@ export class WalletService {
           this.wallets.next(filteredWallets);
         }),
         catchError(error => {
-          console.error('Error deleting wallet:', error);
-          let errorMessage = 'Failed to delete wallet. Please try again.';
-
-          if (error.status === 401) {
-            errorMessage = 'You are not authorized. Please login again.';
-          } else if (error.status === 404) {
-            errorMessage = 'Wallet not found.';
-          }
-
+          const errorMessage = toUserMessage(error, 'Failed to delete wallet. Please try again.');
           throw new Error(errorMessage);
         })
       );
@@ -280,15 +270,7 @@ export class WalletService {
           this.wallets.next(filteredWallets);
         }),
         catchError(error => {
-          console.error('Error bulk deleting wallets:', error);
-          let errorMessage = 'Failed to delete wallets. Please try again.';
-
-          if (error.status === 401) {
-            errorMessage = 'You are not authorized. Please login again.';
-          } else if (error.status === 400) {
-            errorMessage = 'Invalid wallet IDs provided.';
-          }
-
+          const errorMessage = toUserMessage(error, 'Failed to delete wallets. Please try again.');
           throw new Error(errorMessage);
         })
       );
@@ -299,11 +281,10 @@ export class WalletService {
       return throwError(() => new Error('Not authenticated. Please log in.'));
     }
 
-    return this.http.patch<ApiResponse<Wallet>>(`${this.apiUrl}/${id}/restore`, { userId: this.currentUserId }, this.getHttpOptions())
+    return this.http.patch<ApiResponse<ApiWallet>>(`${this.apiUrl}/${id}/restore`, { userId: this.currentUserId }, this.getHttpOptions())
       .pipe(
         map(response => ({
-          ...response.data,
-          id: response.data.id || (response.data as any)._id,
+          ...this.normaliseWallet(response.data),
           user: response.data.user || this.currentUserId || ''
         })),
         tap(restoredWallet => {
@@ -311,21 +292,7 @@ export class WalletService {
           this.wallets.next([...currentWallets, restoredWallet]);
         }),
         catchError(error => {
-          console.error('Error restoring wallet:', error);
-          let errorMessage = 'Failed to restore wallet. Please try again.';
-
-          if (error.status === 401) {
-            errorMessage = 'You are not authorized. Please login again.';
-          } else if (error.status === 404) {
-            errorMessage = 'Deleted wallet not found.';
-          } else if (error.status === 400) {
-            if (error.error?.error?.includes('already exists')) {
-              errorMessage = 'A wallet with this name already exists. Please rename the existing wallet first.';
-            } else {
-              errorMessage = 'Cannot restore this wallet.';
-            }
-          }
-
+          const errorMessage = toUserMessage(error, 'Failed to restore wallet. Please try again.');
           throw new Error(errorMessage);
         })
       );
@@ -339,7 +306,7 @@ export class WalletService {
   bulkAddWallets(wallets: Omit<Wallet, 'id' | 'user'>[]): Observable<{
     successCount: number;
     failedCount: number;
-    failedWallets?: Array<{name: string; error: string}>;
+    failedWallets?: {name: string; error: string}[];
   }> {
     if (!this.currentUserId) {
       return throwError(() => new Error('Not authenticated. Please log in.'));
@@ -352,13 +319,13 @@ export class WalletService {
     return new Observable<{
       successCount: number;
       failedCount: number;
-      failedWallets?: Array<{name: string; error: string}>;
+      failedWallets?: {name: string; error: string}[];
     }>(observer => {
       let successCount = 0;
       let failedCount = 0;
       let completed = 0;
       const total = wallets.length;
-      const failedWalletsList: Array<{name: string; error: string}> = [];
+      const failedWalletsList: {name: string; error: string}[] = [];
 
       wallets.forEach(wallet => {
         const walletWithUser = {
@@ -412,30 +379,39 @@ export class WalletService {
    * @param description Optional description
    * @returns Observable with transfer result
    */
-  transferFunds(fromWalletId: string, toWalletId: string, amount: number, description?: string): Observable<any> {
+  transferFunds(fromWalletId: string, toWalletId: string, amount: number, description?: string): Observable<ApiResponse<TransferResult>> {
     if (!this.currentUserId) {
       return throwError(() => new Error('Not authenticated. Please log in.'));
     }
 
     const transferData = { fromWalletId, toWalletId, amount, description };
 
-    return this.http.post<ApiResponse<any>>(`${this.apiUrl}/transfer`, transferData, this.getHttpOptions())
+    return this.http.post<ApiResponse<TransferResult>>(`${this.apiUrl}/transfer`, transferData, this.getHttpOptions())
       .pipe(
         tap(() => this.refreshWallets()),
         catchError(error => {
           console.error('Error transferring funds:', error);
-          let errorMessage = error.error?.error || 'Failed to transfer funds. Please try again.';
+          const errorMessage = error.error?.error || 'Failed to transfer funds. Please try again.';
           throw new Error(errorMessage);
         })
       );
   }
 
-  getWalletStats(): Observable<any> {
+  /**
+   * Collapse the API's `_id`/`id` split into the model's `id`. A record with
+   * neither is already unusable — nothing can be edited or deleted without an
+   * id — so it falls through as an empty string rather than throwing mid-stream.
+   */
+  private normaliseWallet(wallet: ApiWallet): Wallet {
+    return { ...wallet, id: wallet.id || wallet._id || '' };
+  }
+
+  getWalletStats(): Observable<WalletStats> {
     if (!this.currentUserId) {
       return throwError(() => new Error('Not authenticated. Please log in.'));
     }
 
-    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/stats`, this.getHttpOptions())
+    return this.http.get<ApiResponse<WalletStats>>(`${this.apiUrl}/stats`, this.getHttpOptions())
       .pipe(
         map(response => response.data),
         catchError(error => {
@@ -445,12 +421,12 @@ export class WalletService {
       );
   }
 
-  getExpenseFlow(): Observable<any> {
+  getExpenseFlow(): Observable<ExpenseFlow> {
     if (!this.currentUserId) {
       return throwError(() => new Error('Not authenticated. Please log in.'));
     }
 
-    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/flow`, this.getHttpOptions())
+    return this.http.get<ApiResponse<ExpenseFlow>>(`${this.apiUrl}/flow`, this.getHttpOptions())
       .pipe(
         map(response => response.data),
         catchError(error => {
@@ -479,7 +455,6 @@ export class WalletService {
       map(wallets => {
         if (!wallets.length) return [];
         
-        const primaryCurrency = wallets[0].primaryCurrency || 'LKR';
         const types = [...new Set(wallets.map(w => w.type))];
         
         return types.map(type => {

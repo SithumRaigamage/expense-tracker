@@ -1,5 +1,7 @@
+const mongoose = require('mongoose');
 const ProductBudget = require('../models/ProductBudget');
-const { NotFoundError } = require('../utils/errors');
+const Wallet = require('../models/Wallet');
+const { NotFoundError, BadRequestError } = require('../utils/errors');
 
 /**
  * Service layer for product budget operations
@@ -13,7 +15,7 @@ class ProductBudgetService {
    */
   static async createProductBudget(budgetData, userId) {
     budgetData.user = userId;
-    return await ProductBudget.create(budgetData);
+    return ProductBudget.create(budgetData);
   }
 
   /**
@@ -30,7 +32,7 @@ class ProductBudgetService {
       filter.isActive = query.isActive === 'true';
     }
 
-    return await ProductBudget.find(filter).sort({ createdAt: -1 });
+    return ProductBudget.find(filter).sort({ createdAt: -1 });
   }
 
   /**
@@ -102,12 +104,117 @@ class ProductBudgetService {
       { savedAmount },
       { new: true, runValidators: true }
     );
-    
+
     if (!budget) {
       throw new NotFoundError('Product budget not found');
     }
-    
+
     return budget;
+  }
+
+  /**
+   * Move money from a wallet into a savings goal.
+   *
+   * The browser used to do this as two independent writes — debit the wallet,
+   * then credit the goal, and try to undo the debit if the credit failed. A
+   * closed tab or a dropped connection between them left the money deducted and
+   * nowhere, with no record of where it went. The debit also wrote a balance the
+   * client had computed from a possibly stale read, so a concurrent transaction
+   * was silently overwritten.
+   *
+   * Both halves happen here in one transaction, against balances read inside it.
+   *
+   * @param {string} budgetId - Product budget ID
+   * @param {string} userId - User ID
+   * @param {string} walletId - Wallet to draw the contribution from
+   * @param {number} amount - Requested contribution
+   * @returns {Promise<Object>} The updated budget, wallet balance and applied amount
+   */
+  static async contribute(budgetId, userId, walletId, amount) {
+    const requested = Number(amount);
+
+    if (!Number.isFinite(requested) || requested <= 0) {
+      throw new BadRequestError('Contribution amount must be greater than zero');
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(walletId)) {
+      throw new BadRequestError('A valid wallet is required');
+    }
+
+    // Standalone MongoDB rejects transactions ("Transaction numbers are only
+    // allowed on a replica set…"), so fall back to sequential writes there —
+    // same approach walletService.transferFunds already takes.
+    let session = null;
+    try {
+      session = await mongoose.startSession();
+      await session.startTransaction();
+      await mongoose.connection.db.command({ ping: 1 }, { session });
+    } catch {
+      if (session) {
+        try {
+          await session.abortTransaction();
+        } catch {
+          // Ignore abort errors
+        }
+        await session.endSession();
+      }
+      session = null;
+    }
+
+    const sessionOptions = session ? { session } : {};
+
+    try {
+      const budget = await ProductBudget.findOne({ _id: budgetId, user: userId }, null, sessionOptions);
+      if (!budget) {
+        throw new NotFoundError('Product budget not found');
+      }
+
+      const wallet = await Wallet.findOne({ _id: walletId, user: userId, isActive: true }, null, sessionOptions);
+      if (!wallet) {
+        throw new NotFoundError('Wallet not found');
+      }
+
+      const remaining = Math.max(budget.targetAmount - budget.savedAmount, 0);
+      if (remaining === 0) {
+        throw new BadRequestError('This goal is already fully funded');
+      }
+
+      // Clamp server-side. The client caps the input too, but that check runs
+      // against numbers it fetched earlier and cannot be trusted on its own.
+      const applied = Math.min(requested, remaining);
+
+      if (wallet.balance < applied) {
+        throw new BadRequestError('Insufficient funds in the selected wallet');
+      }
+
+      wallet.balance -= applied;
+      budget.savedAmount += applied;
+
+      await wallet.save(sessionOptions);
+      await budget.save(sessionOptions);
+
+      if (session) {
+        await session.commitTransaction();
+        session.endSession();
+      }
+
+      return {
+        budget,
+        walletBalance: wallet.balance,
+        appliedAmount: applied,
+        isFullyFunded: budget.savedAmount >= budget.targetAmount
+      };
+    } catch (error) {
+      if (session) {
+        try {
+          await session.abortTransaction();
+        } catch {
+          // Ignore abort errors
+        }
+        session.endSession();
+      }
+      throw error;
+    }
   }
 
   /**
