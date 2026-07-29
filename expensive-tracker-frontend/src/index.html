@@ -12,6 +12,17 @@
   <link rel="icon" type="image/png" sizes="256x256" href="favicon.png">
   <link rel="icon" type="image/x-icon" sizes="16x16 32x32 48x48" href="favicon.ico">
   <link rel="apple-touch-icon" sizes="180x180" href="assets/images/apple-touch-icon.png">
+  <!--
+    Apple's install path. On macOS Sonoma and later, Safari's "Add to Dock"
+    reads the web app manifest for everything, so these are belt-and-braces for
+    that and load-bearing on iOS, where Safari still leans on the meta tags.
+    Without apple-mobile-web-app-title the icon is labelled with the <title>,
+    which here would read "Dashboard · Expensify".
+  -->
+  <meta name="apple-mobile-web-app-title" content="Expensify">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="theme-color" content="#ffffff">
   <!--
     Applies the stored theme before first paint. Angular bootstraps after the
