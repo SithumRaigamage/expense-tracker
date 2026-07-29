@@ -1,8 +1,8 @@
 <div class="grid grid-cols-12 gap-4 md:gap-6">
   <!-- Feedback Categories -->
   <div class="col-span-12">
-    <div class="bg-white rounded-lg shadow-sm p-6">
-      <h2 class="text-xl font-semibold text-gray-800 mb-6">Share Your Feedback</h2>
+    <div class="card p-6">
+      <h2 class="text-xl font-semibold text-primary mb-6">Share Your Feedback</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         @for (category of categories; track category) {
           <button
@@ -13,9 +13,9 @@
             class="p-4 text-left border border-gray-200 rounded-lg hover:border-blue-500 transition-colors">
             <div class="flex items-center gap-3 mb-2">
               <fa-icon [icon]="category.icon" class="text-blue-500"></fa-icon>
-              <h3 class="font-medium text-gray-800">{{ category.title }}</h3>
+              <h3 class="font-medium text-primary">{{ category.title }}</h3>
             </div>
-            <p class="text-sm text-gray-600">{{ category.description }}</p>
+            <p class="text-sm text-secondary">{{ category.description }}</p>
           </button>
         }
       </div>
@@ -24,10 +24,10 @@
 
   <!-- Feedback Form -->
   <div class="col-span-12">
-    <form [formGroup]="feedbackForm" (ngSubmit)="submitFeedback()" class="bg-white rounded-lg shadow-sm p-6 space-y-6">
+    <form [formGroup]="feedbackForm" (ngSubmit)="submitFeedback()" class="card p-6 space-y-6">
       <!-- Title -->
       <div>
-        <label for="feedback-title" class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+        <label for="feedback-title" class="block text-sm font-medium text-secondary mb-1">Title</label>
         <input id="feedback-title" type="text" formControlName="title"
           class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="Brief summary of your feedback">
@@ -35,7 +35,7 @@
 
       <!-- Description -->
       <div>
-        <label for="feedback-description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+        <label for="feedback-description" class="block text-sm font-medium text-secondary mb-1">Description</label>
         <textarea id="feedback-description" formControlName="description" rows="4"
           class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         placeholder="Please provide detailed feedback..."></textarea>
@@ -43,7 +43,7 @@
 
       <!-- Sentiment Rating -->
       <fieldset class="min-w-0">
-        <legend class="block text-sm font-medium text-gray-700 mb-3">How do you feel about this?</legend>
+        <legend class="block text-sm font-medium text-secondary mb-3">How do you feel about this?</legend>
         <!-- gap-6 across five labelled options is 95px wider than a 375px
              screen; wrap and tighten the gap so it fits on a phone. -->
         <div class="flex flex-wrap items-center gap-x-4 gap-y-2 sm:gap-6">
@@ -55,7 +55,7 @@
               [class.ring-2]="feedbackForm.get('sentiment')?.value === option.value"
               class="flex flex-col items-center p-2 rounded-lg hover:bg-gray-50">
               <span class="text-2xl">{{ option.emoji }}</span>
-              <span class="text-xs text-gray-600 mt-1">{{ option.label }}</span>
+              <span class="text-xs text-secondary mt-1">{{ option.label }}</span>
             </button>
           }
         </div>
@@ -63,7 +63,7 @@
 
       <!-- Star Rating -->
       <fieldset class="min-w-0">
-        <legend class="block text-sm font-medium text-gray-700 mb-3">Rate your overall experience</legend>
+        <legend class="block text-sm font-medium text-secondary mb-3">Rate your overall experience</legend>
         <div class="flex items-center gap-1">
           @for (i of [1,2,3,4,5]; track i) {
             <button
@@ -78,24 +78,12 @@
         </div>
       </fieldset>
 
-      <!-- File Attachments -->
-      <div>
-        <h4 class="block text-sm font-medium text-gray-700 mb-1">Attachments</h4>
-        <div class="flex items-center gap-2">
-          <label class="cursor-pointer px-4 py-2 border border-gray-200 rounded-lg hover:border-blue-500 transition-colors">
-            <input type="file" multiple class="hidden" (change)="onFileSelected($event)">
-            <div class="flex items-center gap-2">
-              <fa-icon [icon]="attachmentIcon" class="text-gray-400"></fa-icon>
-              <span class="text-sm text-gray-600">Add files</span>
-            </div>
-          </label>
-          @if (feedbackForm.get('attachments')?.value?.length) {
-            <div class="text-sm text-gray-500">
-              {{ feedbackForm.get('attachments')?.value?.length }} file(s) selected
-            </div>
-          }
-        </div>
-      </div>
+      <!--
+        The "Attachments" picker has been removed. It collected files into the
+        form, but the feedback endpoint takes JSON with no file field and the
+        request is not multipart — so anything attached here was silently
+        dropped on submit. Re-add it alongside an upload endpoint, not before.
+      -->
 
       <!-- Device Info (hidden) -->
       <input type="hidden" formControlName="deviceInfo">
@@ -103,7 +91,7 @@
       <!-- Submit Button -->
       <button type="submit"
         [disabled]="isSubmitting"
-        class="w-full md:w-auto px-6 py-2.5 bg-brand-500 text-white font-semibold rounded-lg transition hover:bg-brand-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 disabled:opacity-50 disabled:cursor-not-allowed">
+        class="w-full md:w-auto px-6 py-2.5 bg-brand-600 text-white font-semibold rounded-lg transition hover:bg-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 disabled:opacity-50 disabled:cursor-not-allowed">
         {{ isSubmitting ? 'Sending…' : 'Submit Feedback' }}
       </button>
     </form>

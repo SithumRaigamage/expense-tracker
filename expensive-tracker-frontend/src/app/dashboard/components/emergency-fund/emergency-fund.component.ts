@@ -92,6 +92,14 @@ export class EmergencyFundComponent implements OnInit, OnDestroy {
     return this.emergencyWalletId !== null;
   }
 
+  /**
+   * Show every Nth date on the balance chart's x-axis, targeting ~6 labels.
+   * At least 1, so a fund with a handful of transactions labels them all.
+   */
+  private get axisLabelStep(): number {
+    return Math.max(1, Math.ceil(this.transactions.length / 6));
+  }
+
   // Pagination
   currentPage = 1;
   pageSize = 10;
@@ -129,7 +137,7 @@ export class EmergencyFundComponent implements OnInit, OnDestroy {
           show: false
         },
         background: 'transparent',
-        fontFamily: 'Inter, sans-serif',
+        fontFamily: 'Outfit, sans-serif',
       },
       dataLabels: {
         enabled: false
@@ -139,21 +147,31 @@ export class EmergencyFundComponent implements OnInit, OnDestroy {
         width: 2
       },
       xaxis: {
-        categories: this.transactions.map(t => this.formatDate(t.date)),
-        // One label per transaction turned the axis into an unreadable smear
-        // once real history existed. Show a handful of evenly spaced dates and
-        // let ApexCharts drop any that would still collide.
-        tickAmount: 6,
+        /*
+          One category per transaction — 88 on a real fund — so the axis can
+          never show them all. The thinning happens here rather than in a label
+          formatter: ApexCharts does not populate the formatter's index argument
+          for a category axis, so a formatter cannot tell which label it is on.
+          Blanked entries keep their slot, so the surviving labels stay aligned
+          with their data points.
+        */
+        categories: this.transactions.map((t, i) =>
+          i % this.axisLabelStep === 0 ? this.formatDate(t.date) : ''
+        ),
         labels: {
-          rotate: -45,
+          // Horizontal: `rotate: -45` tilted the dates and the panel's fixed
+          // height clipped them against its bottom edge.
+          rotate: 0,
           rotateAlways: false,
-          hideOverlappingLabels: true,
-          trim: true,
+          hideOverlappingLabels: false,
+          trim: false,
           style: {
             colors: this.COLORS.textMuted,
             fontSize: '12px',
             fontWeight: '500',
-            fontFamily: 'Inter, sans-serif'
+            // Was Inter, which is not loaded — the axis fell back to a system
+            // face while the rest of the app renders in Outfit.
+            fontFamily: 'Outfit, sans-serif'
           }
         },
         axisBorder: {
@@ -169,7 +187,7 @@ export class EmergencyFundComponent implements OnInit, OnDestroy {
             colors: [this.COLORS.textMuted],
             fontSize: '12px',
             fontWeight: '500',
-            fontFamily: 'Inter, sans-serif'
+            fontFamily: 'Outfit, sans-serif'
           },
           formatter: (value) => {
             const currency = this.currencyService.getActiveCurrency();
@@ -202,7 +220,7 @@ export class EmergencyFundComponent implements OnInit, OnDestroy {
         theme: 'light',
         style: {
           fontSize: '12px',
-          fontFamily: 'Inter, sans-serif',
+          fontFamily: 'Outfit, sans-serif',
         },
         y: {
           formatter: (val) => {

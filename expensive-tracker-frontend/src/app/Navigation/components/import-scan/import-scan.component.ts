@@ -79,6 +79,21 @@ export class ImportScanComponent implements OnInit {
     this.activeTab = tab;
   }
 
+  /**
+   * True while the receipt tab has nothing to show beside the uploader.
+   *
+   * Both the wallet row and the receipt panel are two-column grids whose second
+   * cell only renders once there is something to put in it — the default
+   * category (import tab only) and the scan result. Until then those columns
+   * were empty, so the select and the drop zone sat in the left half of a
+   * 1024px page with a dead strip down the right. In this state the page
+   * narrows to a single centred column instead; it widens again as soon as
+   * there is a second column to fill.
+   */
+  get isFocusedUpload(): boolean {
+    return this.activeTab === 'receipt' && !this.scanResult;
+  }
+
   // ================= Receipt =================
   onReceiptSelected(event: Event): void {
     const input = event.target as HTMLInputElement;

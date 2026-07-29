@@ -1,6 +1,9 @@
-import { Component, inject } from '@angular/core';
+import { Component, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, ValidatorFn } from '@angular/forms';
+import { FeedbackService } from '../../../../services/feedback.service';
+import { NotificationService } from '../../../../shared/services/notification.service';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {
   faEnvelope,
@@ -40,7 +43,26 @@ type FormGroupConfig = Record<string, [string, ValidatorFn[]]>;
   templateUrl: './support.component.html'
 })
 export class SupportComponent {
-  private fb = inject(FormBuilder);
+  private readonly fb = inject(FormBuilder);
+  private readonly feedback = inject(FeedbackService);
+  private readonly notifications = inject(NotificationService);
+  private readonly destroyRef = inject(DestroyRef);
+
+  /** Disables the submit button and swaps its label while the post is in flight. */
+  isSubmitting = false;
+
+  /**
+   * Maps this form's categories onto the ones the feedback API accepts
+   * (feature | bug | ui | performance). Without it the endpoint rejects every
+   * submission with "Category must be one of: …" — which is what it did the
+   * first time this form was actually allowed to post.
+   */
+  private static readonly API_CATEGORY: Record<string, string> = {
+    general: 'ui',
+    technical: 'bug',
+    billing: 'ui',
+    feature: 'feature'
+  };
 
   // Icons
   emailIcon = faEnvelope;
@@ -50,6 +72,15 @@ export class SupportComponent {
   chatIcon = faComments;
   searchIcon = faSearch;
 
+  /*
+    "Live Chat" and "Phone Support" have been removed. Neither exists in this
+    build — there is no chat channel and the number was +1 (555) 123-4567, a
+    reserved fictional prefix. Listing a support line that nobody answers is
+    worse than listing none, so the two real routes are what remain.
+
+    The email address is still a placeholder; swap it for the real inbox before
+    this page goes live.
+  */
   contactOptions: ContactOption[] = [
     {
       icon: this.emailIcon,
@@ -57,19 +88,9 @@ export class SupportComponent {
       description: 'support@expensetracker.com'
     },
     {
-      icon: this.chatIcon,
-      title: 'Live Chat',
-      description: 'Available during business hours'
-    },
-    {
-      icon: this.phoneIcon,
-      title: 'Phone Support',
-      description: '+1 (555) 123-4567'
-    },
-    {
       icon: this.ticketIcon,
       title: 'Support Ticket',
-      description: 'Create a ticket below'
+      description: 'Use the form below'
     }
   ];
 
@@ -79,11 +100,11 @@ export class SupportComponent {
     { day: 'Sunday', hours: 'Closed' }
   ];
 
+  // Live Chat and Phone Support are gone from here too — they were still being
+  // quoted response times after being removed from the contact list above.
   responseTimes = [
     { channel: 'Email Support', time: '24-48 hours' },
-    { channel: 'Live Chat', time: 'Real-time during business hours' },
-    { channel: 'Support Ticket', time: '24-72 hours' },
-    { channel: 'Phone Support', time: 'Available during business hours' }
+    { channel: 'Support Ticket', time: '24-72 hours' }
   ];
 
   formFields: FormField[] = [
@@ -150,9 +171,48 @@ export class SupportComponent {
     this.supportForm = this.fb.group(group);
   }
 
-  submitSupportRequest() {
-    if (this.supportForm.valid) {
-      // Implement API call to submit support request
+  /**
+   * Sends the request to the API.
+   *
+   * The body of this method was a single `// Implement API call` comment, so
+   * the form validated, cleared nothing, reported nothing, and threw the user's
+   * message away. It posts to the same `/feedback` endpoint the Feedback page
+   * uses — a support ticket is feedback with a category — and now tells the
+   * user whether it worked.
+   */
+  submitSupportRequest(): void {
+    if (this.supportForm.invalid) {
+      this.supportForm.markAllAsTouched();
+      return;
     }
+
+    const { name, email, subject, category, priority, message } = this.supportForm.value;
+    this.isSubmitting = true;
+
+    this.feedback
+      .submit({
+        category: SupportComponent.API_CATEGORY[category] ?? 'ui',
+        title: subject,
+        // Name and email ride along in the body so support can reply; the
+        // endpoint stores a free-text description.
+        description: [message, '', `— ${name} <${email}>`, priority ? `Priority: ${priority}` : '']
+          .filter(Boolean)
+          .join('\n'),
+        // The API validates sentiment as 1-5; 3 is the neutral midpoint, which
+        // is the honest value for a support request nobody rated.
+        sentiment: 3
+      })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.isSubmitting = false;
+          this.notifications.success('We have your request — support will reply by email.');
+          this.supportForm.reset();
+        },
+        error: (err: Error) => {
+          this.isSubmitting = false;
+          this.notifications.error(err.message);
+        }
+      });
   }
 }

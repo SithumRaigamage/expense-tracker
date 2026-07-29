@@ -1,0 +1,126 @@
+# Production web server for the Angular build.
+#
+# Processed by the nginx image's envsubst step at container start, which is why
+# this is a .template. Only ${BACKEND_ORIGIN} is substituted — NGINX_ENVSUBST_FILTER
+# in docker-compose.yml restricts it to BACKEND_*, so nginx's own $uri, $host and
+# friends survive untouched.
+
+# .webmanifest is not in nginx's bundled mime.types. Without this the manifest is
+# served as application/octet-stream and browsers can refuse to install the app.
+types {
+    application/manifest+json  webmanifest;
+}
+
+server {
+    listen 80;
+    server_name _;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Gzip
+    gzip on;
+    gzip_http_version 1.1;
+    gzip_disable      "MSIE [1-6]\.";
+    gzip_min_length   1100;
+    gzip_vary         on;
+    gzip_proxied      expired no-cache no-store private auth;
+    gzip_types        text/plain text/css application/json application/javascript application/x-javascript text/xml application/xml application/xml+rss text/javascript application/manifest+json;
+    gzip_comp_level   6;
+
+    # Security headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    # connect-src is 'self' only: the API is reached through the /api proxy
+    # below, so it is same-origin. The previous value allowed http://localhost:3001
+    # and :3000, which did nothing in production and would have been blocked as
+    # mixed content on an https page anyway.
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://images.unsplash.com; connect-src 'self'; worker-src 'self'; manifest-src 'self'; frame-ancestors 'self'; base-uri 'self'" always;
+
+    # ------------------------------------------------------------------
+    # API
+    # ------------------------------------------------------------------
+    # environment.prod.ts calls a RELATIVE /api/v1, so the API must answer on
+    # this same origin. Without this block `try_files` below swallowed every API
+    # request and returned index.html with a 200 — the app looked like it loaded
+    # and then failed on every single request.
+    #
+    # Same-origin is also what the session cookie requires: it is
+    # SameSite=Strict, so a browser will not attach it to a cross-origin call.
+    location /api/ {
+        proxy_pass         ${BACKEND_ORIGIN};
+        proxy_http_version 1.1;
+        proxy_set_header   Host              $host;
+        proxy_set_header   X-Real-IP         $remote_addr;
+        proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+        # The backend sets `secure` on the session cookie in production; it needs
+        # to know the original request was https even though this hop is http.
+        proxy_set_header   X-Forwarded-Proto $scheme;
+        proxy_set_header   Upgrade           $http_upgrade;
+        proxy_set_header   Connection        "upgrade";
+        proxy_read_timeout 60s;
+
+        # Never cache API responses at the edge. These are per-user balances.
+        add_header Cache-Control "no-store" always;
+    }
+
+    # ------------------------------------------------------------------
+    # Service worker — must never be cached
+    # ------------------------------------------------------------------
+    # ngsw.json is the version manifest and ngsw-worker.js is the worker itself.
+    # If either is served stale, an installed client can never discover that a
+    # new build exists. These two rules come BEFORE the long-lived asset rule
+    # below, which otherwise matched ngsw-worker.js via its .js extension and
+    # pinned it for a year.
+    location = /ngsw.json {
+        add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+        expires -1;
+    }
+
+    location = /ngsw-worker.js {
+        add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+        expires -1;
+    }
+
+    location = /safety-worker.js {
+        add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+        expires -1;
+    }
+
+    # index.html carries the references to the hashed bundles, so a stale copy
+    # pins the whole app to an old build.
+    location = /index.html {
+        add_header Cache-Control "no-cache" always;
+        expires -1;
+    }
+
+    location = /manifest.webmanifest {
+        add_header Cache-Control "no-cache" always;
+        expires -1;
+    }
+
+    # ------------------------------------------------------------------
+    # Static assets
+    # ------------------------------------------------------------------
+    # Angular fingerprints these filenames, so a year is safe — a new build
+    # produces new names rather than new contents at the same name.
+    location ~* \.(?:jpg|jpeg|png|gif|ico|svg|css|js|woff2?|ttf|otf)$ {
+        expires 1y;
+        add_header Cache-Control "public, max-age=31536000, immutable" always;
+        access_log off;
+    }
+
+    # ------------------------------------------------------------------
+    # Angular client-side routes
+    # ------------------------------------------------------------------
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # No `error_page 500 502 503 504 /50x.html` here. An Angular build contains
+    # no 50x.html, so nginx failed to open it and answered 404 instead — which
+    # turned "the backend is unreachable" into "that endpoint does not exist"
+    # and sent anyone debugging a deployment down the wrong path entirely.
+    # nginx's built-in 502 page is unhelpful but at least it is truthful.
+}

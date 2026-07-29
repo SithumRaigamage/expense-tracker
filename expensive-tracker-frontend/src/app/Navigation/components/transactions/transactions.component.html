@@ -1,17 +1,18 @@
-<div class="p-4 sm:p-6">
+<!-- The shell already pads <main>; a second page-level inset stacked on top of it. -->
+<div>
   <!-- Header -->
   <!-- Header -->
   <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-    <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Transactions</h1>
+    <h1 class="text-2xl font-semibold text-primary dark:text-white">Transactions</h1>
     <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
       <button (click)="exportTransactions()"
-        class="flex-1 sm:flex-none inline-flex justify-center items-center gap-2 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm"
+        class="flex-1 sm:flex-none inline-flex justify-center items-center gap-2 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700 px-4 py-2.5 text-sm font-medium text-secondary dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm"
         [disabled]="allTransactions.length === 0">
         <fa-icon [icon]="faDownload"></fa-icon>
         Export
       </button>
       <button (click)="openDrawer()"
-        class="flex-1 sm:flex-none inline-flex justify-center items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium hover:bg-brand-600 transition-colors shadow-sm">
+        class="flex-1 sm:flex-none inline-flex justify-center items-center gap-2 rounded-xl gradient-brand px-4 py-2.5 text-sm font-semibold text-white shadow-theme-md shadow-brand-500/25 transition-all duration-200 hover:shadow-theme-lg active:scale-95">
         <fa-icon [icon]="faPlus"></fa-icon>
         Add Transaction
       </button>
@@ -35,10 +36,10 @@
   <!-- Filter Section -->
   <div class="mb-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
     <div class="flex items-center mb-4">
-      <h3 class="text-lg font-medium text-gray-900 dark:text-white mr-2">
+      <h3 class="text-lg font-medium text-primary dark:text-white mr-2">
         <fa-icon [icon]="faFilter"></fa-icon> Filters
       </h3>
-      <button (click)="resetFilters()" class="text-xs text-gray-500 hover:text-gray-700">
+      <button (click)="resetFilters()" class="text-xs text-tertiary hover:text-gray-700">
         Reset
       </button>
     </div>
@@ -46,7 +47,7 @@
     <form [formGroup]="filterForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
       <!-- Start Date -->
       <div>
-        <label for="tx-filter-start-date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label for="tx-filter-start-date" class="block text-sm font-medium text-secondary dark:text-gray-300 mb-1">
           Start Date
         </label>
         <input
@@ -59,7 +60,7 @@
 
       <!-- End Date -->
       <div>
-        <label for="tx-filter-end-date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label for="tx-filter-end-date" class="block text-sm font-medium text-secondary dark:text-gray-300 mb-1">
           End Date
         </label>
         <input
@@ -72,7 +73,7 @@
 
       <!-- Type -->
       <div>
-        <span id="tx-filter-type-label" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <span id="tx-filter-type-label" class="block text-sm font-medium text-secondary dark:text-gray-300 mb-1">
           Type
         </span>
         <div class="relative">
@@ -85,18 +86,18 @@
             <span class="block truncate">
               {{ filterForm.get('type')?.value ? (filterForm.get('type')?.value | titlecase) : 'All Types' }}
             </span>
-            <svg aria-hidden="true" class="w-4 h-4 text-gray-500 transition-transform duration-200" [class.rotate-180]="isTypeOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            <svg aria-hidden="true" class="w-4 h-4 text-tertiary transition-transform duration-200" [class.rotate-180]="isTypeOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
           </button>
 
           @if (isTypeOpen) {
             <div class="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
-              <button type="button" (click)="selectType('')" class="text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left cursor-pointer select-none relative py-2 pl-3 pr-9">
+              <button type="button" (click)="selectType('')" class="text-primary dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left cursor-pointer select-none relative py-2 pl-3 pr-9">
                 <span [class.font-semibold]="!filterForm.get('type')?.value" class="block truncate">All Types</span>
               </button>
-              <button type="button" (click)="selectType('income')" class="text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left cursor-pointer select-none relative py-2 pl-3 pr-9">
+              <button type="button" (click)="selectType('income')" class="text-primary dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left cursor-pointer select-none relative py-2 pl-3 pr-9">
                 <span [class.font-semibold]="filterForm.get('type')?.value === 'income'" class="block truncate">Income</span>
               </button>
-              <button type="button" (click)="selectType('expense')" class="text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left cursor-pointer select-none relative py-2 pl-3 pr-9">
+              <button type="button" (click)="selectType('expense')" class="text-primary dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left cursor-pointer select-none relative py-2 pl-3 pr-9">
                 <span [class.font-semibold]="filterForm.get('type')?.value === 'expense'" class="block truncate">Expense</span>
               </button>
             </div>
@@ -109,7 +110,7 @@
 
       <!-- Category -->
       <div>
-        <span id="tx-filter-category-label" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <span id="tx-filter-category-label" class="block text-sm font-medium text-secondary dark:text-gray-300 mb-1">
           Category
         </span>
         <div class="relative">
@@ -122,16 +123,16 @@
             <span class="block truncate">
               {{ filterForm.get('category')?.value || 'All Categories' }}
             </span>
-            <svg aria-hidden="true" class="w-4 h-4 text-gray-500 transition-transform duration-200" [class.rotate-180]="isCategoryOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            <svg aria-hidden="true" class="w-4 h-4 text-tertiary transition-transform duration-200" [class.rotate-180]="isCategoryOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
           </button>
 
           @if (isCategoryOpen) {
             <div class="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
-              <button type="button" (click)="selectCategory('')" class="text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left cursor-pointer select-none relative py-2 pl-3 pr-9">
+              <button type="button" (click)="selectCategory('')" class="text-primary dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left cursor-pointer select-none relative py-2 pl-3 pr-9">
                 <span [class.font-semibold]="!filterForm.get('category')?.value" class="block truncate">All Categories</span>
               </button>
               @for (category of categories; track category) {
-                <button type="button" (click)="selectCategory(category.name)" class="text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left cursor-pointer select-none relative py-2 pl-3 pr-9">
+                <button type="button" (click)="selectCategory(category.name)" class="text-primary dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left cursor-pointer select-none relative py-2 pl-3 pr-9">
                   <span [class.font-semibold]="filterForm.get('category')?.value === category.name" class="block truncate">{{category.name}}</span>
                 </button>
               }
@@ -145,7 +146,7 @@
 
       <!-- Wallet -->
       <div>
-        <span id="tx-filter-wallet-label" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <span id="tx-filter-wallet-label" class="block text-sm font-medium text-secondary dark:text-gray-300 mb-1">
           Wallet
         </span>
         <div class="relative">
@@ -158,16 +159,16 @@
             <span class="block truncate">
               {{ getWalletName(filterForm.get('wallet')?.value) }}
             </span>
-            <svg aria-hidden="true" class="w-4 h-4 text-gray-500 transition-transform duration-200" [class.rotate-180]="isWalletOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            <svg aria-hidden="true" class="w-4 h-4 text-tertiary transition-transform duration-200" [class.rotate-180]="isWalletOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
           </button>
 
           @if (isWalletOpen) {
             <div class="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
-              <button type="button" (click)="selectWallet('')" class="text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left cursor-pointer select-none relative py-2 pl-3 pr-9">
+              <button type="button" (click)="selectWallet('')" class="text-primary dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left cursor-pointer select-none relative py-2 pl-3 pr-9">
                 <span [class.font-semibold]="!filterForm.get('wallet')?.value" class="block truncate">All Wallets</span>
               </button>
               @for (wallet of wallets; track wallet) {
-                <button type="button" (click)="selectWallet(wallet.id)" class="text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left cursor-pointer select-none relative py-2 pl-3 pr-9">
+                <button type="button" (click)="selectWallet(wallet.id)" class="text-primary dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left cursor-pointer select-none relative py-2 pl-3 pr-9">
                   <span [class.font-semibold]="filterForm.get('wallet')?.value === wallet.id" class="block truncate">{{wallet.name}}</span>
                 </button>
               }
@@ -181,12 +182,12 @@
 
       <!-- Search -->
       <div>
-        <label for="tx-filter-search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label for="tx-filter-search" class="block text-sm font-medium text-secondary dark:text-gray-300 mb-1">
           Search
         </label>
         <div class="relative">
           <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-            <fa-icon [icon]="faSearch" class="text-gray-400"></fa-icon>
+            <fa-icon [icon]="faSearch" class="text-tertiary"></fa-icon>
           </div>
           <input
             id="tx-filter-search"
@@ -204,11 +205,11 @@
   @if (allTransactions.length === 0 && !isLoading) {
     <div class="flex flex-col items-center justify-center py-16 text-center">
       <div class="mb-4 rounded-full bg-gray-100 p-6 dark:bg-gray-800">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-tertiary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
         </svg>
       </div>
-      <h3 class="mb-2 text-lg font-semibold text-gray-900 dark:text-white">No Transactions Found</h3>
+      <h3 class="mb-2 text-lg font-semibold text-primary dark:text-white">No Transactions Found</h3>
       <p class="mb-6 max-w-md text-sm text-gray-500 dark:text-gray-400">
         Start tracking your finances by adding your first transaction or importing data from a JSON file.
       </p>
@@ -222,58 +223,77 @@
 
   <!-- Transactions List: Desktop (Table) -->
   @if (allTransactions.length > 0) {
-    <div class="hidden md:block overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-      <table class="w-full text-left text-sm text-gray-500 dark:text-gray-400">
-        <thead class="bg-gray-50 text-xs uppercase text-gray-700 dark:bg-gray-700 dark:text-gray-400">
-          <tr>
-            <th scope="col" class="px-6 py-3">Date</th>
-            <th scope="col" class="px-6 py-3">Description</th>
-            <th scope="col" class="px-6 py-3">Category</th>
-            <th scope="col" class="px-6 py-3">Wallet</th>
-            <th scope="col" class="px-6 py-3">Amount</th>
-            <th scope="col" class="px-6 py-3">Type</th>
-            <th scope="col" class="px-6 py-3">Actions</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-          @for (transaction of transactions; track transaction) {
-            <tr
-              class="bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700">
-              <td class="px-6 py-4 whitespace-nowrap">{{transaction.date | date}}</td>
-              <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">{{transaction.description}}</td>
-              <td class="px-6 py-4">
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
-                  {{transaction.category}}
-                </span>
-              </td>
-              <td class="px-6 py-4">
-                <span class="text-gray-500 dark:text-gray-400">
-                  {{transaction.wallet?.name || 'Default'}}
-                </span>
-              </td>
-          <td class="px-6 py-4 font-semibold" [ngClass]="{
-            'text-green-600 dark:text-green-400': transaction.type === 'income',
-            'text-red-600 dark:text-red-400': transaction.type === 'expense'
-          }">{{transaction.amount | appCurrency}}</td>
-              <td class="px-6 py-4 capitalize">{{transaction.type}}</td>
-              <td class="px-6 py-4">
-                <div class="flex gap-3">
-                  <button (click)="openDrawer(transaction)"
-                    [attr.aria-label]="'Edit transaction: ' + transaction.description"
-                    class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
-                    <fa-icon [icon]="faPencil"></fa-icon>
-                  </button>
-                  <button (click)="deleteTransaction(transaction.id)"
-                    [attr.aria-label]="'Delete transaction: ' + transaction.description"
-                    class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors">
-                    <fa-icon [icon]="faTrash"></fa-icon>
-                  </button>
-                </div>
-              </td>
+    <!--
+      Amount and Actions are right-aligned now. A money column read left-aligned
+      against ragged descriptions, which is the one alignment that makes figures
+      hard to compare; the global `tabular-nums` rule on td/th does the rest.
+    -->
+    <div class="card hidden overflow-hidden md:block">
+      <div class="custom-scrollbar overflow-x-auto">
+        <table class="w-full text-left text-sm text-secondary">
+          <thead class="border-x-0 border-t-0 border-b text-xs uppercase tracking-[0.06em] text-tertiary surface-2">
+            <tr>
+              <th scope="col" class="px-6 py-3.5 font-semibold">Date</th>
+              <th scope="col" class="px-6 py-3.5 font-semibold">Description</th>
+              <th scope="col" class="px-6 py-3.5 font-semibold">Category</th>
+              <th scope="col" class="px-6 py-3.5 font-semibold">Wallet</th>
+              <th scope="col" class="px-6 py-3.5 text-right font-semibold">Amount</th>
+              <th scope="col" class="px-6 py-3.5 font-semibold">Type</th>
+              <th scope="col" class="px-6 py-3.5 text-right font-semibold">Actions</th>
             </tr>
-          }
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            @for (transaction of transactions; track transaction.id) {
+              <tr class="group border-x-0 border-b-0 border-t transition-colors duration-150 hover:surface-2">
+                <td class="whitespace-nowrap px-6 py-4 text-tertiary">{{transaction.date | date}}</td>
+                <td class="px-6 py-4 font-medium text-primary">{{transaction.description}}</td>
+                <td class="px-6 py-4">
+                  <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium surface-3 text-secondary">
+                    {{transaction.category}}
+                  </span>
+                </td>
+                <td class="px-6 py-4 text-tertiary">
+                  {{transaction.wallet?.name || 'Default'}}
+                </td>
+                <!-- The harsh red/green pair is softened one step and given a
+                     sign, so direction reads without relying on colour alone. -->
+                <td class="whitespace-nowrap px-6 py-4 text-right font-semibold" [ngClass]="{
+                  'text-success-700 dark:text-success-400': transaction.type === 'income',
+                  'text-error-600 dark:text-error-400': transaction.type === 'expense'
+                }">
+                  {{ transaction.type === 'income' ? '+' : '−' }}{{transaction.amount | appCurrency}}
+                </td>
+                <td class="px-6 py-4 capitalize text-secondary">{{transaction.type}}</td>
+                <td class="px-6 py-4">
+                  <!--
+                    Revealed on hover, but restored by focus-within so keyboard
+                    users can still reach them, and always shown on touch devices
+                    where there is no hover at all.
+                  -->
+                  <div class="flex justify-end gap-1 opacity-0 transition-opacity duration-200
+                              group-hover:opacity-100 group-focus-within:opacity-100
+                              [@media(hover:none)]:opacity-100">
+                    <button (click)="openDrawer(transaction)"
+                      [attr.aria-label]="'Edit transaction: ' + transaction.description"
+                      class="grid h-8 w-8 place-items-center rounded-lg text-tertiary transition-colors
+                             hover:bg-brand-50 hover:text-brand-700 active:scale-95
+                             dark:hover:bg-brand-500/10 dark:hover:text-brand-400">
+                      <fa-icon [icon]="faPencil"></fa-icon>
+                    </button>
+                    <button (click)="deleteTransaction(transaction.id)"
+                      [attr.aria-label]="'Delete transaction: ' + transaction.description"
+                      class="grid h-8 w-8 place-items-center rounded-lg text-tertiary transition-colors
+                             hover:bg-error-50 hover:text-error-600 active:scale-95
+                             dark:hover:bg-error-500/10 dark:hover:text-error-400">
+                      <fa-icon [icon]="faTrash"></fa-icon>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
     </div>
   }
 
@@ -284,7 +304,7 @@
         class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700">
         <div class="flex justify-between items-start mb-3">
           <div>
-            <h3 class="font-semibold text-gray-900 dark:text-white line-clamp-1">{{transaction.description}}</h3>
+            <h3 class="font-semibold text-primary dark:text-white line-clamp-1">{{transaction.description}}</h3>
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{transaction.date | date:'mediumDate'}}</p>
           </div>
         <span class="font-bold whitespace-nowrap" [ngClass]="{
@@ -293,14 +313,14 @@
         }">{{transaction.amount | appCurrency}}</span>
         </div>
         <div class="flex items-center gap-2 mb-4">
-          <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+          <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-secondary dark:bg-gray-700 dark:text-gray-300">
             {{transaction.category}}
           </span>
-          <span class="text-xs text-gray-400">•</span>
+          <span class="text-xs text-tertiary">•</span>
           <span class="text-xs text-gray-500 dark:text-gray-400">{{transaction.wallet?.name || 'Default Wallet'}}</span>
         </div>
         <div class="flex items-center justify-between border-t border-gray-100 dark:border-gray-700 pt-3 mt-3">
-          <span class="text-xs font-medium uppercase tracking-wider text-gray-400">{{transaction.type}}</span>
+          <span class="text-xs font-medium uppercase tracking-wider text-tertiary">{{transaction.type}}</span>
           <div class="flex gap-4">
             <button (click)="openDrawer(transaction)"
               class="flex items-center gap-1 text-sm font-medium text-blue-600 dark:text-blue-400">
@@ -319,7 +339,7 @@
   <!-- Pagination -->
   @if (allTransactions.length > 0) {
     <div class="flex items-center justify-between py-4">
-      <div class="text-sm text-gray-700 dark:text-gray-300">
+      <div class="text-sm text-secondary dark:text-gray-300">
         Showing <span class="font-medium">{{transactions.length}}</span> of <span class="font-medium">{{filteredTransactions.length}}</span> transactions
       </div>
       <div class="flex items-center space-x-2">
@@ -332,7 +352,7 @@
           >
           <fa-icon [icon]="faChevronLeft"></fa-icon>
         </button>
-        <span class="text-sm text-gray-700 dark:text-gray-300">
+        <span class="text-sm text-secondary dark:text-gray-300">
           Page {{currentPage}} of {{totalPages}}
         </span>
         <button
@@ -358,15 +378,15 @@
     <div class="h-full flex flex-col">
       <!-- Tab Navigation (only for adding new) -->
       @if (!selectedTransaction) {
-        <div class="mb-8 p-1 bg-gray-100/50 dark:bg-gray-800/50 rounded-2xl flex">
+        <div class="mb-8 flex rounded-2xl border border-subtle p-1 surface-2">
           <button (click)="switchTab('manual')"
-            [class]="activeTab === 'manual' ? 'bg-white dark:bg-gray-700 shadow-sm text-brand-600 dark:text-brand-400' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'"
+            [class]="activeTab === 'manual' ? 'surface-1 shadow-theme-xs text-brand-700 dark:text-brand-300' : 'text-secondary hover:text-primary'"
             class="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-200">
             <fa-icon [icon]="faEdit"></fa-icon>
             Manual
           </button>
           <button (click)="switchTab('upload')"
-            [class]="activeTab === 'upload' ? 'bg-white dark:bg-gray-700 shadow-sm text-brand-600 dark:text-brand-400' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'"
+            [class]="activeTab === 'upload' ? 'surface-1 shadow-theme-xs text-brand-700 dark:text-brand-300' : 'text-secondary hover:text-primary'"
             class="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-200">
             <fa-icon [icon]="faUpload"></fa-icon>
             Import JSON
@@ -377,72 +397,83 @@
       <!-- Manual Entry Form -->
       @if (activeTab === 'manual' || selectedTransaction) {
         <form [formGroup]="transactionForm" (ngSubmit)="onSubmit()" class="space-y-6">
-          <!-- Type Selection -->
-          <div class="p-1 bg-gray-100/50 dark:bg-gray-800/50 rounded-2xl flex">
+          <!--
+            Type selection. The active pill used text-red-500 / text-green-500
+            on a dark-mode `bg-gray-700` chip, which measured 2.7:1 — the worst
+            contrast anywhere in the app. Both states now use the semantic
+            ramps, which are tuned per theme.
+          -->
+          <div class="flex rounded-2xl border border-subtle p-1 surface-2">
             <button type="button"
               (click)="transactionForm.patchValue({type: 'expense'})"
-              [class]="transactionForm.get('type')?.value === 'expense' ? 'bg-white dark:bg-gray-700 shadow-sm text-red-500' : 'text-gray-500'"
-              class="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all duration-200">
+              [attr.aria-pressed]="transactionForm.get('type')?.value === 'expense'"
+              [class]="transactionForm.get('type')?.value === 'expense'
+                ? 'surface-1 shadow-theme-xs text-error-700 dark:text-error-400'
+                : 'text-secondary hover:text-primary'"
+              class="flex-1 rounded-xl py-2.5 text-sm font-bold transition-all duration-200">
               Expense
             </button>
             <button type="button"
               (click)="transactionForm.patchValue({type: 'income'})"
-              [class]="transactionForm.get('type')?.value === 'income' ? 'bg-white dark:bg-gray-700 shadow-sm text-green-500' : 'text-gray-500'"
-              class="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all duration-200">
+              [attr.aria-pressed]="transactionForm.get('type')?.value === 'income'"
+              [class]="transactionForm.get('type')?.value === 'income'
+                ? 'surface-1 shadow-theme-xs text-success-700 dark:text-success-400'
+                : 'text-secondary hover:text-primary'"
+              class="flex-1 rounded-xl py-2.5 text-sm font-bold transition-all duration-200">
               Income
             </button>
           </div>
           <!-- Amount -->
           <div class="space-y-1.5">
-            <label for="tx-form-amount" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
+            <label for="tx-form-amount" class="block text-sm font-semibold text-secondary dark:text-gray-300 ml-1">
               Amount
             </label>
             <div class="relative group">
-              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 font-bold group-focus-within:text-brand-500">
+              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-tertiary font-bold group-focus-within:text-brand-500">
                 {{currencyService.getActiveCurrency()}}
               </div>
               <input type="number"
                 id="tx-form-amount"
                 formControlName="amount"
-                class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 pl-14 px-4 py-4 text-2xl font-bold text-gray-900 dark:text-white transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 placeholder-0.00"
+                class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 pl-14 px-4 py-4 text-2xl font-bold text-primary dark:text-white transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 placeholder-0.00"
                 placeholder="0.00">
             </div>
           </div>
           <!-- Wallet and Category -->
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div class="space-y-1.5">
-              <label for="tx-form-wallet" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
+              <label for="tx-form-wallet" class="block text-sm font-semibold text-secondary dark:text-gray-300 ml-1">
                 Wallet
               </label>
               <div class="relative group">
                 <select id="tx-form-wallet" formControlName="walletId"
-                  class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 appearance-none">
+                  class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-primary dark:text-white transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 appearance-none">
                   <option value="">Select Wallet</option>
                   @for (wallet of wallets; track wallet) {
                     <option [value]="wallet.id">{{wallet.name}}</option>
                   }
                 </select>
                 <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                  <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400">
+                  <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-tertiary">
                     <polyline points="6 9 12 15 18 9"></polyline>
                   </svg>
                 </div>
               </div>
             </div>
             <div class="space-y-1.5">
-              <label for="tx-form-category" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
+              <label for="tx-form-category" class="block text-sm font-semibold text-secondary dark:text-gray-300 ml-1">
                 Category
               </label>
               <div class="relative group">
                 <select id="tx-form-category" formControlName="category"
-                  class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 appearance-none">
+                  class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-primary dark:text-white transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 appearance-none">
                   <option value="">Select Category</option>
                   @for (category of filteredCategories; track category) {
                     <option [value]="category._id">{{category.name}}</option>
                   }
                 </select>
                 <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                  <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400">
+                  <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-tertiary">
                     <polyline points="6 9 12 15 18 9"></polyline>
                   </svg>
                 </div>
@@ -451,34 +482,34 @@
           </div>
           <!-- Date -->
           <div class="space-y-1.5">
-            <label for="tx-form-date" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
+            <label for="tx-form-date" class="block text-sm font-semibold text-secondary dark:text-gray-300 ml-1">
               Date
             </label>
             <input type="date"
               id="tx-form-date"
               formControlName="date"
-              class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10">
+              class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-primary dark:text-white transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10">
             </div>
             <!-- Description -->
             <div class="space-y-1.5">
-              <label for="tx-form-description" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
+              <label for="tx-form-description" class="block text-sm font-semibold text-secondary dark:text-gray-300 ml-1">
                 Description
               </label>
               <textarea id="tx-form-description" formControlName="description"
                 rows="3"
-                class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-gray-900 dark:text-white transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 placeholder-What was this for? resize-none"
+                class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-primary dark:text-white transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 placeholder-What was this for? resize-none"
               placeholder="What was this for?"></textarea>
             </div>
             <!-- Actions -->
             <div class="pt-6 flex gap-4">
               <button type="button"
                 (click)="closeDrawer()"
-                class="flex-1 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 active:scale-95">
+                class="flex-1 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-6 py-4 text-sm font-bold text-secondary dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 active:scale-95">
                 Cancel
               </button>
               <button type="submit"
                 [disabled]="!transactionForm.valid || isLoading"
-                class="flex-[2] rounded-2xl bg-brand-500 px-6 py-4 text-sm font-bold text-white shadow-lg shadow-brand-500/20 hover:bg-brand-600 hover:shadow-brand-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95 flex items-center justify-center gap-2">
+                class="flex-[2] rounded-2xl bg-brand-600 px-6 py-4 text-sm font-bold text-white shadow-lg shadow-brand-500/20 hover:bg-brand-700 hover:shadow-brand-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95 flex items-center justify-center gap-2">
                 @if (isLoading) {
                   <fa-icon class="animate-spin" [icon]="faRefresh"></fa-icon>
                 }
@@ -497,9 +528,9 @@
             <div class="group relative bg-gray-50/50 dark:bg-gray-800/30 rounded-3xl p-10 border-2 border-dashed border-gray-200 dark:border-gray-800 hover:border-brand-500 transition-all duration-300">
               <div class="text-center">
                 <div class="w-16 h-16 bg-white dark:bg-gray-800 rounded-2xl shadow-sm flex items-center justify-center mx-auto mb-6 transition-transform duration-300 group-hover:-translate-y-1">
-                  <fa-icon [icon]="faFileUpload" class="text-gray-400 text-2xl group-hover:text-brand-500"></fa-icon>
+                  <fa-icon [icon]="faFileUpload" class="text-tertiary text-2xl group-hover:text-brand-500"></fa-icon>
                 </div>
-                <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Import Transactions</h3>
+                <h3 class="text-lg font-bold text-primary dark:text-white mb-2">Import Transactions</h3>
                 <p class="text-sm text-gray-500 dark:text-gray-400 mb-8 max-w-[200px] mx-auto leading-relaxed">
                   Upload your transaction JSON file.
                 </p>
@@ -508,13 +539,13 @@
                     {{ jsonError }}
                   </div>
                 }
-                <label for="json-upload-transactions" class="inline-flex items-center justify-center gap-3 rounded-2xl bg-white dark:bg-gray-800 border-2 border-brand-500 px-8 py-3.5 text-sm font-bold text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/10 cursor-pointer shadow-sm transition-all duration-200 active:scale-95">
+                <label for="json-upload-transactions" class="inline-flex items-center justify-center gap-3 rounded-2xl bg-white dark:bg-gray-800 border-2 border-brand-500 px-8 py-3.5 text-sm font-bold text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/10 cursor-pointer shadow-sm transition-all duration-200 active:scale-95 dark:text-brand-400">
                   <fa-icon [icon]="faUpload"></fa-icon>
                   {{ selectedFile ? 'Change File' : 'Select JSON' }}
                   <input type="file" id="json-upload-transactions" accept=".json" class="hidden" (change)="onFileSelected($event)">
                 </label>
                 @if (selectedFile) {
-                  <p class="mt-4 text-xs font-bold text-brand-500 bg-brand-50 dark:bg-brand-900/10 py-1.5 px-3 rounded-full inline-block">
+                  <p class="mt-4 text-xs font-bold text-brand-600 bg-brand-50 dark:bg-brand-900/10 py-1.5 px-3 rounded-full inline-block dark:text-brand-400">
                     {{ selectedFile.name }}
                   </p>
                 }
@@ -523,7 +554,7 @@
             @if (jsonPreview) {
               <div class="bg-white dark:bg-gray-900/30 rounded-3xl border border-gray-100 dark:border-gray-800 overflow-hidden animate-slide-up">
                 <div class="px-6 py-4 border-b border-gray-50 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/20 flex justify-between items-center">
-                  <h4 class="text-sm font-bold text-gray-900 dark:text-white">Previewing {{ jsonPreview.length }} Items</h4>
+                  <h4 class="text-sm font-bold text-primary dark:text-white">Previewing {{ jsonPreview.length }} Items</h4>
                 </div>
                 <div class="max-h-60 overflow-y-auto custom-scrollbar">
                   <table class="w-full text-left text-sm">
@@ -531,8 +562,8 @@
                       @for (tx of jsonPreview; track tx) {
                         <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
                           <td class="px-6 py-4">
-                            <div class="font-bold text-gray-900 dark:text-white">{{ tx.description }}</div>
-                            <div class="text-[10px] font-bold uppercase tracking-wider text-gray-400 mt-0.5">{{ tx.category }}</div>
+                            <div class="font-bold text-primary dark:text-white">{{ tx.description }}</div>
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-tertiary mt-0.5">{{ tx.category }}</div>
                           </td>
                           <td class="px-6 py-4 text-right font-bold" [class.text-red-500]="tx.type === 'expense'" [class.text-green-500]="tx.type === 'income'">
                             {{ tx.amount | appCurrency }}
@@ -547,13 +578,13 @@
             <div class="flex gap-4">
               <button type="button"
                 (click)="closeDrawer()"
-                class="flex-1 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 active:scale-95">
+                class="flex-1 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-6 py-4 text-sm font-bold text-secondary dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 active:scale-95">
                 Cancel
               </button>
               <button type="button"
                 [disabled]="!selectedFile || isLoading || jsonError"
                 (click)="importTransactions()"
-                class="flex-[2] rounded-2xl bg-brand-500 px-6 py-4 text-sm font-bold text-white shadow-lg shadow-brand-500/20 hover:bg-brand-600 hover:shadow-brand-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95 flex items-center justify-center gap-2">
+                class="flex-[2] rounded-2xl bg-brand-600 px-6 py-4 text-sm font-bold text-white shadow-lg shadow-brand-500/20 hover:bg-brand-700 hover:shadow-brand-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95 flex items-center justify-center gap-2">
                 @if (isLoading) {
                   <fa-icon class="animate-spin" [icon]="faRefresh"></fa-icon>
                 }

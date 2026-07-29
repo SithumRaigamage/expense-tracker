@@ -29,8 +29,16 @@ LABEL description="Production stage for Expensive Tracker Frontend"
 # Note: Angular 17+ outputs to dist/<project-name>/browser
 COPY --from=build /app/dist/expensive-tracker-frontend/browser /usr/share/nginx/html
 
-# Copy custom nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copy the nginx config as a TEMPLATE. The nginx image runs envsubst over
+# /etc/nginx/templates/*.template at startup and writes the result into
+# conf.d/, which is how ${BACKEND_ORIGIN} gets resolved per environment.
+# NGINX_ENVSUBST_FILTER (set in docker-compose.yml) limits substitution to
+# BACKEND_* so nginx's own $uri/$host variables are left alone.
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
+
+# Sensible default for `docker run` without compose; override in deployment.
+ENV BACKEND_ORIGIN=http://expense-tracker-backend:3001
+ENV NGINX_ENVSUBST_FILTER=BACKEND_
 
 # Expose port 80
 EXPOSE 80

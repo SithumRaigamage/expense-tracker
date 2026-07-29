@@ -1,107 +1,84 @@
-<header class="sticky top-0 flex w-full bg-white border-gray-200 dark:bg-gray-900 dark:border-gray-800 lg:border-b">
-  <div
-    class="flex flex-col items-center justify-between grow lg:h-20 lg:flex-row lg:px-5"
-    >
-    <div
-      class="flex items-center justify-between w-full gap-2 px-3 py-2 border-b border-gray-200 sm:gap-4 lg:h-full lg:justify-normal lg:border-b-0 lg:px-0 lg:py-0"
-      >
-      <button
-        class="items-center justify-center w-10 h-10 text-gray-500 border-gray-200 rounded-lg z-99999 lg:flex lg:h-11 lg:w-11 lg:border"
-        (click)="handleToggle()"
-        [attr.aria-label]="isMobileOpen ? 'Close navigation menu' : 'Open navigation menu'"
-        [attr.aria-expanded]="isMobileOpen"
-        aria-controls="app-sidebar"
-        >
-        @if (isMobileOpen) {
-          <svg
-            aria-hidden="true"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            >
-            <path
-              fill-rule="evenodd"
-              clip-rule="evenodd"
-              d="M6.21967 7.28131C5.92678 6.98841 5.92678 6.51354 6.21967 6.22065C6.51256 5.92775 6.98744 5.92775 7.28033 6.22065L11.999 10.9393L16.7176 6.22078C17.0105 5.92789 17.4854 5.92788 17.7782 6.22078C18.0711 6.51367 18.0711 6.98855 17.7782 7.28144L13.0597 12L17.7782 16.7186C18.0711 17.0115 18.0711 17.4863 17.7782 17.7792C17.4854 18.0721 17.0105 18.0721 16.7176 17.7792L11.999 13.0607L7.28033 17.7794C6.98744 18.0722 6.51256 18.0722 6.21967 17.7794C5.92678 17.4865 5.92678 17.0116 6.21967 16.7187L10.9384 12L6.21967 7.28131Z"
-              fill="currentColor"
-              />
-          </svg>
-        } @else {
-          <svg
-            aria-hidden="true"
-            width="16"
-            height="12"
-            viewBox="0 0 16 12"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            >
-            <path
-              fill-rule="evenodd"
-              clip-rule="evenodd"
-              d="M0.583252 1C0.583252 0.585788 0.919038 0.25 1.33325 0.25H14.6666C15.0808 0.25 15.4166 0.585786 15.4166 1C15.4166 1.41421 15.0808 1.75 14.6666 1.75L1.33325 1.75C0.919038 1.75 0.583252 1.41422 0.583252 1ZM0.583252 11C0.583252 10.5858 0.919038 10.25 1.33325 10.25L14.6666 10.25C15.0808 10.25 15.4166 10.5858 15.4166 11C15.4166 11.4142 15.0808 11.75 14.6666 11.75L1.33325 11.75C0.919038 11.75 0.583252 11.4142 0.583252 11ZM1.33325 5.25C0.919038 5.25 0.583252 5.58579 0.583252 6C0.583252 6.41421 0.919038 6.75 1.33325 6.75L7.99992 6.75C8.41413 6.75 8.74992 6.41421 8.74992 6C8.74992 5.58579 8.41413 5.25 7.99992 5.25L1.33325 5.25Z"
-              fill="currentColor"
-              />
-          </svg>
-        }
-      </button>
+<!--
+  Sticky frosted bar. `backdrop-filter` is deliberately confined to persistent
+  chrome like this rather than applied per card — it is a per-frame GPU cost,
+  and a page full of frosted panels is where glassmorphism starts dropping frames.
+-->
+<header class="glass sticky top-0 z-30 w-full border-x-0 border-t-0 border-b">
+  <div class="mx-auto flex h-16 w-full max-w-[1600px] items-center gap-3 px-4 md:h-20 md:gap-4 md:px-6 2xl:px-8">
 
-      <a routerLink="/" class="lg:hidden flex items-center gap-2">
-        <img src="assets/images/logo.svg" alt="Expensify"
-          class="w-8 h-8 rounded-lg shadow-lg shadow-brand-500/20" width="32" height="32">
-        <span class="text-lg font-bold tracking-tight text-gray-900 dark:text-white">
-          Expensify
-        </span>
-      </a>
+    <!--
+      One control, two jobs: it collapses the rail on desktop and opens the
+      overlay on mobile, so the accessible name has to say which one it will do.
+    -->
+    <button
+      type="button"
+      (click)="handleToggle()"
+      [attr.aria-label]="isMobileOpen ? 'Close navigation menu' : (isSidebarExpanded ? 'Collapse navigation' : 'Expand navigation')"
+      [attr.aria-expanded]="isMobileOpen || isSidebarExpanded"
+      aria-controls="app-sidebar"
+      class="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-gray-200 bg-white/70
+             text-gray-500 transition-all duration-200 hover:border-gray-300 hover:bg-white
+             hover:text-gray-800 active:scale-95 dark:border-white/10 dark:bg-white/5
+             dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-gray-100 md:h-11 md:w-11">
+      <!-- Three bars that fold into a cross. Animating the bars rather than
+           swapping two icons keeps the control reading as a single object. -->
+      <span class="relative block h-4 w-[18px]" aria-hidden="true">
+        <span class="absolute left-0 block h-[1.5px] w-full rounded-full bg-current transition-all duration-300 ease-[var(--ease-out-quint)]"
+          [class.top-0]="!isMobileOpen"
+          [class.top-1.5]="isMobileOpen"
+          [class.rotate-45]="isMobileOpen"></span>
+        <span class="absolute left-0 top-1.5 block h-[1.5px] w-full rounded-full bg-current transition-all duration-200"
+          [class.opacity-0]="isMobileOpen"
+          [class.scale-x-50]="isMobileOpen"></span>
+        <span class="absolute left-0 block h-[1.5px] rounded-full bg-current transition-all duration-300 ease-[var(--ease-out-quint)]"
+          [class.bottom-0]="!isMobileOpen"
+          [class.w-2/3]="!isMobileOpen"
+          [class.top-1.5]="isMobileOpen"
+          [class.w-full]="isMobileOpen"
+          [class.-rotate-45]="isMobileOpen"></span>
+      </span>
+    </button>
 
-      <button
-        (click)="toggleApplicationMenu()"
-        [attr.aria-label]="isApplicationMenuOpen ? 'Hide account options' : 'Show account options'"
-        [attr.aria-expanded]="isApplicationMenuOpen"
-        aria-controls="header-application-menu"
-        class="flex items-center justify-center w-10 h-10 text-gray-700 rounded-lg z-99999 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 lg:hidden"
-        >
-        <svg
-          aria-hidden="true"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          >
-          <path
-            fill-rule="evenodd"
-            clip-rule="evenodd"
-            d="M5.99902 10.4951C6.82745 10.4951 7.49902 11.1667 7.49902 11.9951V12.0051C7.49902 12.8335 6.82745 13.5051 5.99902 13.5051C5.1706 13.5051 4.49902 12.8335 4.49902 12.0051V11.9951C4.49902 11.1667 5.1706 10.4951 5.99902 10.4951ZM17.999 10.4951C18.8275 10.4951 19.499 11.1667 19.499 11.9951V12.0051C19.499 12.8335 18.8275 13.5051 17.999 13.5051C17.1706 13.5051 16.499 12.8335 16.499 12.0051V11.9951C16.499 11.1667 17.1706 10.4951 17.999 10.4951ZM13.499 11.9951C13.499 11.1667 12.8275 10.4951 11.999 10.4951C11.1706 10.4951 10.499 11.1667 10.499 11.9951V12.0051C10.499 12.8335 11.1706 13.5051 11.999 13.5051C12.8275 13.5051 13.499 12.8335 13.499 12.0051V11.9951Z"
-            fill="currentColor"
-            />
-        </svg>
-      </button>
+    <!-- Brand, phone only — the sidebar carries it from lg up. -->
+    <a routerLink="/" class="flex items-center gap-2 lg:hidden">
+      <img src="assets/images/logo.svg" alt=""
+        class="h-8 w-8 rounded-lg shadow-lg shadow-brand-500/20" width="32" height="32">
+      <span class="text-lg font-bold tracking-tight text-primary">Expensify</span>
+    </a>
+
+    <!--
+      The route's own title, so each screen identifies itself in the chrome.
+      aria-hidden because every page still owns the real <h1>; exposing this too
+      would announce the same title twice.
+    -->
+    <div class="hidden min-w-0 flex-1 lg:block" aria-hidden="true">
+      @if (pageTitle()) {
+        <h2 class="truncate text-xl font-semibold tracking-tight text-primary">
+          {{ pageTitle() }}
+        </h2>
+      }
     </div>
-    <div
-      id="header-application-menu"
-      [ngClass]="{
-        flex: isApplicationMenuOpen,
-        hidden: !isApplicationMenuOpen,
-      }"
-      class="items-center justify-between w-full gap-4 px-5 py-4 lg:flex shadow-theme-md lg:h-full lg:justify-end lg:px-0 lg:py-0 lg:shadow-none"
-      >
-      <!--
-        A notification dropdown used to sit here, commented out. It was three
-        hardcoded alerts ("Emergency fund target is below threshold") with avatars
-        that were never in the repo, wired to nothing, so it has been deleted
-        rather than left looking like a feature.
 
-        app-theme-toggle-button is still commented out below and still does not
-        work: it is React JSX that Angular never binds, and nothing in the app
-        ever puts the `dark` class on <html>, so every dark: rule in the
-        templates is currently inert.
+    <!-- Pushes the controls right on the breakpoints where the title is hidden. -->
+    <div class="flex-1 lg:hidden"></div>
+
+    <!--
+      These previously sat behind a kebab toggle on mobile, which buried the
+      currency switcher and the account menu two taps deep. They are small
+      enough to stay visible; only the currency switcher drops off the very
+      narrowest screens.
+    -->
+    <div class="flex shrink-0 items-center gap-2 md:gap-3">
+      <!--
+        Held back to `sm` (640px). The `2xsm` breakpoint is 375px, so on a
+        standard iPhone the switcher appeared at exactly the width where the
+        cluster no longer fits and pushed the header 15px past the viewport.
+        Currency also lives in Settings, so nothing is unreachable on a phone.
       -->
-      <div class="flex items-center gap-2 2xsm:gap-3">
+      <div class="hidden sm:block">
         <app-currency-switcher></app-currency-switcher>
       </div>
-      <!-- User Area -->
+      <app-theme-toggle-button></app-theme-toggle-button>
       <app-user-dropdown></app-user-dropdown>
     </div>
   </div>

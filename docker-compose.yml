@@ -1,0 +1,78 @@
+# Full-stack deployment: database, API and web server on one network.
+#
+# The per-project compose files under expensive-tracker-backend/ and
+# expensive-tracker-frontend/ each declare their own network, so a frontend
+# started from its own file cannot resolve `expense-tracker-backend` and every
+# /api call fails. This file is what an actual deployment should use.
+#
+#   cp .env.example .env      # then edit it — JWT_SECRET must be changed
+#   docker compose up -d --build
+#
+# Serves plain HTTP on ${FRONTEND_PORT}. Put a TLS terminator in front of it
+# before exposing it to anyone: browsers refuse to install a PWA over http://,
+# and the session cookie is issued with `secure` when NODE_ENV=production, so it
+# will not be stored at all on a plain-http origin.
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: expense-tracker-db
+    restart: unless-stopped
+    # No published ports: only the API needs to reach it, and exposing 27017 to
+    # the host is how unauthenticated Mongo instances end up on the internet.
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - expense-tracker
+
+  backend:
+    build:
+      context: ./expensive-tracker-backend
+    image: expense-tracker-backend:latest
+    container_name: expense-tracker-backend
+    restart: unless-stopped
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - MONGODB_URI=mongodb://mongodb:27017/expense-tracker
+      - JWT_SECRET=${JWT_SECRET:?set JWT_SECRET in .env}
+      - JWT_EXPIRE=${JWT_EXPIRE:-30d}
+      # Same-origin in this topology: the browser only ever talks to the web
+      # container, which proxies /api onward.
+      - FRONTEND_URL=${PUBLIC_URL:-http://localhost:8080}
+    networks:
+      - expense-tracker
+
+  web:
+    build:
+      context: ./expensive-tracker-frontend
+    image: expense-tracker-frontend:latest
+    container_name: expense-tracker-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"
+    environment:
+      # nginx proxies /api here, keeping the UI and API on one origin — which
+      # the SameSite=Strict session cookie requires.
+      - BACKEND_ORIGIN=http://expense-tracker-backend:3001
+      - NGINX_ENVSUBST_FILTER=BACKEND_
+    networks:
+      - expense-tracker
+
+volumes:
+  mongo-data:
+
+networks:
+  expense-tracker:
+    driver: bridge

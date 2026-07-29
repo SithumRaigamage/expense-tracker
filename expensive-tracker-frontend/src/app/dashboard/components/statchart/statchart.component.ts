@@ -232,7 +232,7 @@ export class StatchartComponent implements OnInit {
         ...this.chartOptions.chart,
         type: chartType,
         height: 310,
-        fontFamily: 'Inter, sans-serif',
+        fontFamily: 'Outfit, sans-serif',
         toolbar: {
           show: false
         }

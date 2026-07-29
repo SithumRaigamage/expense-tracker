@@ -7,12 +7,15 @@ import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
 import { ProductBudgetService } from '../../../services/product-budget.service';
 import { ProductBudget } from '../../../core/models/ProductBudget';
 import { WalletService } from '../../../services/wallet.service';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
+import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
+import { faBullseye } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-budget-planner',
   templateUrl: './budget-planner.component.html',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, AppCurrencyPipe]
+  imports: [CommonModule, FormsModule, RouterModule, AppCurrencyPipe, EmptyStateComponent, SkeletonComponent]
 })
 export class BudgetPlannerComponent implements OnInit {
   private productBudgetService = inject(ProductBudgetService);
@@ -20,6 +23,7 @@ export class BudgetPlannerComponent implements OnInit {
 
   private readonly destroyRef = inject(DestroyRef);
 
+  readonly faBullseye = faBullseye;
   productgoals: ProductBudget[] = [];
   isLoading = true;
   error: string | null = null;

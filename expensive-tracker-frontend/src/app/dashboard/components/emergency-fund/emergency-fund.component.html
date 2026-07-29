@@ -1,6 +1,11 @@
-<div class="col-span-12 min-w-0">
+<!--
+  The stale `col-span-12` here was a leftover from when this component was
+  dropped straight into the dashboard grid. It now sits inside a <section> that
+  owns the column span, so the class did nothing but mislead.
+-->
+<div class="min-w-0">
   @if (!hasEmergencyWallet) {
-    <div class="rounded-2xl border border-gray-200 bg-white px-4 pb-6 pt-4 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6">
+    <div class="card px-4 pb-6 pt-4 sm:px-6">
       <app-empty-state
         [icon]="faShieldHalved"
         title="No emergency fund wallet"
@@ -9,7 +14,7 @@
         >
         <button type="button"
           (click)="navToAddFunds()"
-          class="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-600">
+          class="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-700">
           Create emergency fund
         </button>
       </app-empty-state>
@@ -17,11 +22,11 @@
   }
 
   @if (hasEmergencyWallet) {
-    <div class="min-w-0 rounded-2xl border border-gray-200 bg-white px-4 pb-6 pt-4 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6">
+    <div class="min-w-0 card px-4 pb-6 pt-4 sm:px-6">
       <!-- Header Section -->
       <div class="flex flex-col gap-2 mb-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
+          <h3 class="text-lg font-semibold text-primary dark:text-white/90">
             Emergency Fund
           </h3>
           <p class="text-sm text-gray-500 dark:text-gray-400">Track your emergency savings progress</p>
@@ -30,12 +35,12 @@
         <div class="flex flex-wrap items-center gap-3">
           @if (emergencyWalletId) {
             <button type="button" (click)="startEditingTargets()"
-              class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-gray-700 shadow-theme-xs transition hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03]">
+              class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-secondary shadow-theme-xs transition hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03]">
               Edit targets
             </button>
           }
           <button (click)="navToAddFunds()"
-            class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
+            class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-secondary shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
             <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -47,25 +52,25 @@
       </div>
 
       @if (isEditingTargets) {
-        <form class="mb-6 grid gap-4 rounded-xl border border-gray-200 bg-gray-50 p-4 sm:grid-cols-3 dark:border-gray-800 dark:bg-gray-800/50"
+        <form class="mb-6 grid gap-4 rounded-xl border border-gray-200 bg-gray-50 p-4 sm:grid-cols-3 dark:bg-gray-800/50"
           (ngSubmit)="saveTargets()">
           <div>
-            <label for="ef-target" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Target goal</label>
+            <label for="ef-target" class="block text-sm font-medium text-secondary dark:text-gray-300">Target goal</label>
             <input id="ef-target" type="number" min="1" step="any" [(ngModel)]="targetDraft" name="targetDraft"
-              class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
+              class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-primary focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
           </div>
           <div>
-            <label for="ef-monthly" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Monthly goal</label>
+            <label for="ef-monthly" class="block text-sm font-medium text-secondary dark:text-gray-300">Monthly goal</label>
             <input id="ef-monthly" type="number" min="0" step="any" [(ngModel)]="monthlyDraft" name="monthlyDraft"
-              class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
+              class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-primary focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
           </div>
           <div class="flex items-end gap-2">
             <button type="submit"
-              class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500">
+              class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500">
               Save
             </button>
             <button type="button" (click)="cancelEditingTargets()"
-              class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
+              class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-secondary transition hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
               Cancel
             </button>
           </div>
@@ -73,22 +78,31 @@
       }
 
       <!-- Summary Cards Row -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+      <!--
+        Tile row.
+
+        The label and its badge used to sit on one row with the badge `shrink-0`
+        and the label free to grow, so in a narrow column the label pushed the
+        badge past the tile edge — the MTD badge landed on top of the next tile's
+        heading. The label is `min-w-0` now so it yields first, the badge never
+        wraps mid-token, and the figure below can break rather than overflow.
+      -->
+      <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <!--
         Every badge below is computed from the fund's own transactions. They were
         previously the fixed strings "+25% MTD", "6 months" and "On Track", which
         read as findings about the user's money while being the same for everyone.
         A badge is now omitted entirely when there is nothing to report.
         -->
-        <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/50">
+        <div class="min-w-0 rounded-xl border border-subtle p-4 surface-2">
           <div class="flex items-start justify-between gap-2">
-            <p class="text-sm text-gray-500 dark:text-gray-400">Current Balance</p>
+            <p class="min-w-0 text-sm text-secondary">Current Balance</p>
             @if (monthToDateChange !== 0) {
               <span
-                class="inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                class="inline-flex shrink-0 items-center whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-medium"
               [class]="monthToDateChange > 0
-                ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-500'
-                : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-500'">
+                ? 'bg-success-100 text-success-800 dark:bg-success-500/15 dark:text-success-400'
+                : 'bg-error-100 text-error-800 dark:bg-error-500/15 dark:text-error-400'">
                 @if (monthToDatePercent !== null) {
                   {{ monthToDateChange > 0 ? '+' : '' }}{{ monthToDatePercent | number:'1.0-1' }}% MTD
                 } @else {
@@ -98,68 +112,68 @@
               </span>
             }
           </div>
-          <p class="text-lg font-semibold text-gray-900 dark:text-white mt-1">{{currentBalance | appCurrency}}</p>
+          <p data-numeric class="mt-1.5 break-words text-lg font-semibold text-primary">{{currentBalance | appCurrency}}</p>
         </div>
 
-        <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/50">
+        <div class="min-w-0 rounded-xl border border-subtle p-4 surface-2">
           <div class="flex items-start justify-between gap-2">
-            <p class="text-sm text-gray-500 dark:text-gray-400">Target Goal</p>
+            <p class="min-w-0 text-sm text-secondary">Target Goal</p>
             @if (hasReachedTarget) {
               <span
-                class="inline-flex shrink-0 items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-500">
+                class="inline-flex shrink-0 items-center whitespace-nowrap rounded-full bg-success-100 px-2 py-0.5 text-[11px] font-medium text-success-800 dark:bg-success-500/15 dark:text-success-400">
                 Reached
               </span>
             } @else if (monthsToTarget !== null) {
               <span
-                class="inline-flex shrink-0 items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-500">
+                class="inline-flex shrink-0 items-center whitespace-nowrap rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-medium text-blue-800 dark:bg-blue-500/15 dark:text-blue-400">
                 {{ monthsToTarget }} {{ monthsToTarget === 1 ? 'month' : 'months' }} to go
               </span>
             }
           </div>
           @if (targetGoal > 0) {
-            <p class="text-lg font-semibold text-gray-900 dark:text-white mt-1">{{targetGoal | appCurrency}}</p>
+            <p data-numeric class="mt-1.5 break-words text-lg font-semibold text-primary">{{targetGoal | appCurrency}}</p>
           }
           @if (targetGoal === 0) {
-            <p class="text-sm text-gray-400 dark:text-gray-500 mt-1 italic">No target goal set</p>
+            <p class="mt-1.5 text-sm italic text-tertiary">No target goal set</p>
           }
         </div>
 
-        <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/50">
+        <div class="min-w-0 rounded-xl border border-subtle p-4 surface-2">
           <div class="flex items-start justify-between gap-2">
-            <p class="text-sm text-gray-500 dark:text-gray-400">Monthly Goal</p>
+            <p class="min-w-0 text-sm text-secondary">Monthly Goal</p>
             @if (monthlySaveGoal > 0) {
               @if (monthlyGoalShortfall === 0) {
                 <span
-                  class="inline-flex shrink-0 items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-500">
+                  class="inline-flex shrink-0 items-center whitespace-nowrap rounded-full bg-success-100 px-2 py-0.5 text-[11px] font-medium text-success-800 dark:bg-success-500/15 dark:text-success-400">
                   Met this month
                 </span>
               } @else {
                 <span
-                  class="inline-flex shrink-0 items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500">
+                  class="inline-flex shrink-0 items-center whitespace-nowrap rounded-full bg-warning-100 px-2 py-0.5 text-[11px] font-medium text-warning-800 dark:bg-warning-500/15 dark:text-warning-400">
                   {{ monthlyGoalShortfall | appCurrency }} to go
                 </span>
               }
             }
           </div>
           @if (monthlySaveGoal > 0) {
-            <p class="text-lg font-semibold text-gray-900 dark:text-white mt-1">{{monthlySaveGoal | appCurrency}}</p>
+            <p data-numeric class="mt-1.5 break-words text-lg font-semibold text-primary">{{monthlySaveGoal | appCurrency}}</p>
           }
           @if (monthlySaveGoal === 0) {
-            <p class="text-sm text-gray-400 dark:text-gray-500 mt-1 italic">No monthly goal set</p>
+            <p class="mt-1.5 text-sm italic text-tertiary">No monthly goal set</p>
           }
         </div>
 
-        <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/50">
+        <div class="min-w-0 rounded-xl border border-subtle p-4 surface-2">
           <div class="flex items-start justify-between gap-2">
-            <p class="text-sm text-gray-500 dark:text-gray-400">Progress</p>
+            <p class="min-w-0 text-sm text-secondary">Progress</p>
             <span
-              class="inline-flex shrink-0 items-center rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-800 dark:bg-purple-900/30 dark:text-purple-500">
+              class="inline-flex shrink-0 items-center whitespace-nowrap rounded-full bg-brand-100 px-2 py-0.5 text-[11px] font-medium text-brand-700 dark:bg-brand-500/15 dark:text-brand-300">
               {{ progressPercent | number:'1.0-1' }}%
             </span>
           </div>
           <div class="mt-3">
             <div
-              class="relative h-3 w-full rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden"
+              class="relative h-2.5 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-white/10"
               role="progressbar"
               [attr.aria-valuenow]="progressPercent.toFixed(1)"
               aria-valuemin="0"
@@ -168,7 +182,7 @@
               >
               <span class="sr-only">Emergency fund progress: {{ progressPercent | number:'1.0-1' }}%</span>
               <div
-                class="absolute left-0 top-0 h-full rounded-full bg-purple-500 transition-all duration-500"
+                class="absolute left-0 top-0 h-full rounded-full gradient-brand transition-[width] duration-700 ease-[var(--ease-out-quint)]"
                 [style.width]="progressPercent + '%'"
                 style="min-width: 8px;"
               ></div>
@@ -180,49 +194,53 @@
       <!-- Content Grid -->
       <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
         <!-- Left: Transactions Table -->
-        <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/50 sm:p-6">
-          <div class="flex items-center justify-between mb-4">
-            <h4 class="font-medium text-gray-900 dark:text-white">Recent Transactions</h4>
-            <button (click)="navToAllTransactions()" class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+        <div class="min-w-0 rounded-xl border border-subtle p-4 surface-2 sm:p-6">
+          <!-- Both parts are nowrap: at a narrow column "Recent Transactions"
+               and "View All" each broke across two lines against each other. -->
+          <div class="mb-4 flex items-center justify-between gap-3">
+            <h4 class="truncate font-semibold text-primary">Recent Transactions</h4>
+            <button (click)="navToAllTransactions()"
+              class="shrink-0 whitespace-nowrap rounded-lg px-2 py-1 text-sm font-medium text-secondary transition-colors hover:text-primary">
               View All
             </button>
           </div>
-          <div class="min-w-0 max-w-full overflow-x-auto">
-            <table class="w-full min-w-[600px]">
+          <!--
+            The separate "Type" column has gone. It repeated what the amount's
+            colour already said ("Withdrawal" beside a red figure), and the
+            600px it forced meant "Running Balance" was clipped off the right of
+            this half-width panel with no visible scrollbar. The direction now
+            rides on the amount as a +/− sign, which does not depend on colour
+            alone, and the four remaining columns fit without scrolling.
+          -->
+          <div class="custom-scrollbar min-w-0 max-w-full overflow-x-auto">
+            <table class="w-full min-w-[420px]">
               <thead>
-                <tr class="border-y border-gray-100 dark:border-gray-800">
-                  <th class="py-3 px-4 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Date</th>
-                  <th class="py-3 px-4 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Category</th>
-                  <th class="py-3 px-4 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Amount</th>
-                  <th class="py-3 px-4 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Type</th>
-                  <th class="py-3 px-4 text-left text-sm font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">Running Balance</th>
+                <tr class="border-x-0 border-t-0 border-b">
+                  <th scope="col" class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-[0.06em] text-tertiary">Date</th>
+                  <th scope="col" class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-[0.06em] text-tertiary">Category</th>
+                  <th scope="col" class="px-3 py-3 text-right text-xs font-semibold uppercase tracking-[0.06em] text-tertiary">Amount</th>
+                  <th scope="col" class="whitespace-nowrap px-3 py-3 text-right text-xs font-semibold uppercase tracking-[0.06em] text-tertiary">Balance</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+              <tbody>
                 @for (transaction of paginatedTransactions; track transaction) {
-                  <tr>
-                    <td class="py-3 px-4">
-                      <span class="text-sm text-gray-900 dark:text-white whitespace-nowrap">{{formatDate(transaction.date)}}</span>
+                  <tr class="border-x-0 border-b-0 border-t transition-colors duration-150 hover:surface-3">
+                    <td class="px-3 py-3">
+                      <span class="whitespace-nowrap text-sm text-secondary">{{formatDate(transaction.date)}}</span>
                     </td>
-                    <td class="py-3 px-4">
-                      <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                    <td class="px-3 py-3">
+                      <span class="rounded-full px-2 py-0.5 text-xs font-medium surface-3 text-secondary">
                         {{transaction.category}}
                       </span>
                     </td>
-                    <td class="py-3 px-4">
-                      <span class="text-sm font-medium whitespace-nowrap"
-                        [ngClass]="transaction.type === 'deposit' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'">
-                        {{transaction.amount | appCurrency}}
+                    <td class="px-3 py-3 text-right">
+                      <span class="whitespace-nowrap text-sm font-semibold"
+                        [ngClass]="transaction.type === 'deposit' ? 'text-success-700 dark:text-success-400' : 'text-error-600 dark:text-error-400'">
+                        {{ transaction.type === 'deposit' ? '+' : '−' }}{{transaction.amount | appCurrency}}
                       </span>
                     </td>
-                    <td class="py-3 px-4">
-                      <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
-                        [ngClass]="transaction.type === 'deposit' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-500' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-500'">
-                        {{transaction.type | titlecase}}
-                      </span>
-                    </td>
-                    <td class="py-3 px-4 text-right sm:text-left">
-                      <span class="text-sm font-medium text-gray-900 dark:text-white whitespace-nowrap">
+                    <td class="px-3 py-3 text-right">
+                      <span class="whitespace-nowrap text-sm font-medium text-primary">
                         {{transaction.balance | appCurrency}}
                       </span>
                     </td>
@@ -234,7 +252,7 @@
 
           <!-- Pagination Controls -->
           @if (transactions.length > pageSize) {
-            <div class="flex flex-col gap-3 mt-4 pt-4 border-t border-gray-100 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex flex-col gap-3 mt-4 pt-4 border-t border-gray-100 sm:flex-row sm:items-center sm:justify-between">
               <p class="text-sm text-gray-500 dark:text-gray-400">
                 Showing <span class="font-medium">{{(currentPage - 1) * pageSize + 1}}</span> to
                 <span class="font-medium">{{Math.min(currentPage * pageSize, transactions.length)}}</span> of
@@ -245,18 +263,18 @@
                   (click)="prevPage()"
                   [disabled]="currentPage === 1"
                   aria-label="Previous page of emergency fund transactions"
-                  class="p-2 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03]"
+                  class="p-2 rounded-lg border border-gray-300 bg-white text-secondary hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03]"
                   >
                   <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
                 </button>
-                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <span class="text-sm font-medium text-secondary dark:text-gray-300">
                   Page {{currentPage}} of {{totalPages}}
                 </span>
                 <button
                   (click)="nextPage()"
                   [disabled]="currentPage === totalPages"
                   aria-label="Next page of emergency fund transactions"
-                  class="p-2 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03]"
+                  class="p-2 rounded-lg border border-gray-300 bg-white text-secondary hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03]"
                   >
                   <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
                 </button>
@@ -266,12 +284,10 @@
         </div>
 
         <!-- Right: Chart Section -->
-        <div class="h-[300px] sm:h-[400px] xl:h-[500px] flex flex-col rounded-xl border border-gray-200 bg-gray-50 p-6 dark:border-gray-800 dark:bg-gray-800/50 overflow-hidden">
-          <div class="flex items-center justify-between mb-4">
-            <h4 class="font-medium text-gray-900 dark:text-white">Balance History</h4>
-            <div class="flex items-center gap-2">
-              <span class="text-sm text-gray-500 dark:text-gray-400">Last 6 months</span>
-            </div>
+        <div class="flex h-[300px] min-w-0 flex-col overflow-hidden rounded-xl border border-subtle p-4 surface-2 sm:h-[400px] sm:p-6 xl:h-[500px]">
+          <div class="mb-4 flex items-center justify-between gap-3">
+            <h4 class="truncate font-semibold text-primary">Balance History</h4>
+            <span class="shrink-0 whitespace-nowrap text-sm text-tertiary">Last 6 months</span>
           </div>
           <apx-chart [series]="chartOptions.series!" [chart]="chartOptions.chart!" [xaxis]="chartOptions.xaxis!"
             [yaxis]="chartOptions.yaxis!" [dataLabels]="chartOptions.dataLabels!" [grid]="chartOptions.grid!"

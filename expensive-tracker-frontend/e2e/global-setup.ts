@@ -32,13 +32,26 @@ export default async function globalSetup() {
 
   const { data } = await response.json();
 
+  /*
+    The JWT now travels as an httpOnly cookie — the login response no longer
+    carries `data.token`, so the saved state was writing `undefined` into
+    localStorage and Playwright rejected every context with
+    "expected string, got undefined". Take the cookies the request context
+    collected instead, which is where the session actually lives.
+
+    `has_session` is the synchronous hint AuthGuard reads to decide whether to
+    render or bounce to /login; it grants nothing on its own (see
+    core/services/token.service.ts).
+  */
+  const { cookies } = await context.storageState();
+
   const state = {
-    cookies: [],
+    cookies,
     origins: [
       {
         origin: ORIGIN,
         localStorage: [
-          { name: 'token', value: data.token },
+          { name: 'has_session', value: 'true' },
           { name: 'user', value: JSON.stringify(data.user) }
         ]
       }

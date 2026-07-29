@@ -1,4 +1,4 @@
-import { Component, OnInit, DestroyRef, inject } from '@angular/core';
+import { Component, OnInit, DestroyRef, effect, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -10,6 +10,8 @@ import { WalletService, ExpenseFlow, ExpenseFlowLink, ExpenseFlowNode } from '..
 import { CurrencyService } from '../../../core/services/currency.service';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
+import { ThemeService } from '../../../core/services/theme.service';
+import { SegmentedControlComponent, SegmentOption } from '../../../shared/components/segmented-control/segmented-control.component';
 
 /**
  * The slices of echarts' tooltip callback params this component actually reads.
@@ -30,12 +32,13 @@ interface SunburstTooltipParams {
 @Component({
   selector: 'app-expense-breakdown',
   standalone: true,
-  imports: [CommonModule, RouterModule, FontAwesomeModule, NgxEchartsModule, EmptyStateComponent, SkeletonComponent],
+  imports: [CommonModule, RouterModule, FontAwesomeModule, NgxEchartsModule, EmptyStateComponent, SkeletonComponent, SegmentedControlComponent],
   templateUrl: './expense-breakdown.component.html',
 })
 export class ExpenseBreakdownComponent implements OnInit {
   private walletService = inject(WalletService);
   private currencyService = inject(CurrencyService);
+  private theme = inject(ThemeService);
 
   private readonly destroyRef = inject(DestroyRef);
 
@@ -46,6 +49,21 @@ export class ExpenseBreakdownComponent implements OnInit {
   sunburstOptions: EChartsOption = {};
   rawData?: ExpenseFlow;
   hasFlowData = false;
+
+  readonly breakdownViews: SegmentOption<'sankey' | 'sunburst'>[] = [
+    { value: 'sankey', label: 'Sankey' },
+    { value: 'sunburst', label: 'Sunburst' }
+  ];
+
+  constructor() {
+    // echarts paints label text into a canvas, so it cannot inherit the CSS
+    // theme. The charts are rebuilt whenever the resolved theme flips, which is
+    // what keeps their labels legible on both surfaces.
+    effect(() => {
+      this.theme.resolved();
+      if (this.rawData) this.updateCharts();
+    });
+  }
 
   ngOnInit() {
     this.walletService.getExpenseFlow().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
@@ -78,6 +96,12 @@ export class ExpenseBreakdownComponent implements OnInit {
     const currency = this.currencyService.getActiveCurrency();
     const convert = (val: number) => this.currencyService.convert(val, 'LKR', currency);
 
+    // Canvas text cannot read CSS custom properties, so the two label colours
+    // are resolved from the current theme here.
+    const isDark = this.theme.resolved() === 'dark';
+    const labelColor = isDark ? '#cbd5e1' : '#334155';
+    const labelStrong = isDark ? '#f1f5f9' : '#0f172a';
+
     // Sankey options
     const nodes = data.nodes.map((n: ExpenseFlowNode) => ({ name: n.name, itemStyle: { color: n.color } }));
     const links = data.links.map((l: ExpenseFlowLink) => ({
@@ -97,8 +121,6 @@ export class ExpenseBreakdownComponent implements OnInit {
           if (params.dataType === 'edge') {
             return `${params.data.source} → ${params.data.target}: ${currency} ${Number(params.data.value).toLocaleString()}`;
           }
-          // Node labels are hidden below, so this hover is the only way left to
-          // identify a node. Suppressing it too would leave them anonymous.
           return `${params.name}`;
         }
       },
@@ -107,10 +129,31 @@ export class ExpenseBreakdownComponent implements OnInit {
         data: nodes,
         links: links,
         emphasis: { focus: 'adjacency' },
-        nodeGap: 12,
-        nodeWidth: 12,
+        /*
+          Labels were switched off entirely ("Hide labels to prevent text
+          overlay"), which left a wall of anonymous coloured bars — the only way
+          to identify a flow was to hover every node in turn. The overlap they
+          were avoiding is a spacing problem, so it is solved with spacing:
+          a wider node gap, a taller canvas (see the template), and room
+          reserved on the right for the final column's labels. Long category
+          names truncate rather than collide, and the tooltip still gives the
+          full name.
+        */
+        nodeGap: 18,
+        nodeWidth: 14,
+        left: 8,
+        right: 132,
+        top: 16,
+        bottom: 16,
         label: {
-          show: false // Hide labels to prevent text overlay
+          show: true,
+          position: 'right',
+          color: labelColor,
+          fontSize: 11,
+          fontFamily: 'Outfit, sans-serif',
+          fontWeight: 500,
+          width: 120,
+          overflow: 'truncate'
         },
         lineStyle: { curveness: 0.5 }
       }]
@@ -134,10 +177,13 @@ export class ExpenseBreakdownComponent implements OnInit {
         radius: [0, '85%'],
         sort: undefined,
         emphasis: { focus: 'ancestor' },
+        // These two label colours were hardcoded to #111827 / #374151 — near
+        // black, and effectively invisible against the dark surface once the
+        // theme started working. They follow the theme now.
         levels: [
           {},
-          { r0: '0%', r: '30%', label: { rotate: 0, color: '#111827' } },
-          { r0: '30%', r: '85%', label: { rotate: 'radial', color: '#374151', fontSize: 12 } }
+          { r0: '0%', r: '30%', label: { rotate: 0, color: labelStrong, fontFamily: 'Outfit, sans-serif', fontWeight: 600 } },
+          { r0: '30%', r: '85%', label: { rotate: 'radial', color: labelColor, fontSize: 12, fontFamily: 'Outfit, sans-serif' } }
         ]
       }]
     } as EChartsOption;
