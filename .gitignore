@@ -1,0 +1,47 @@
+# Repository-wide ignores.
+#
+# Only expensive-tracker-backend/ had a .gitignore, so its .env was protected
+# while anything created elsewhere was not — including the root .env that
+# docker-compose.yml reads, which holds JWT_SECRET. A single `git add -A` would
+# have committed a production secret.
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+coverage/
+
+# Local databases and uploads
+*.sqlite
+*.sqlite3
+mongo-data/
+public/uploads/*
+!public/uploads/.gitkeep
+
+# Test artefacts
+/expensive-tracker-frontend/e2e/.auth/
+/expensive-tracker-frontend/e2e/screens/
+/expensive-tracker-frontend/test-results/
+/expensive-tracker-frontend/playwright-report/
+
+# Logs
+*.log
+npm-debug.log*
+logs/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
