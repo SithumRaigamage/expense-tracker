@@ -1,0 +1,61 @@
+<div class="card px-4 pb-5 pt-4 sm:px-6">
+  <!-- Header -->
+  <div class="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <h2 class="text-xl font-semibold text-primary dark:text-white">Financial Education</h2>
+
+    <div class="flex items-center gap-3">
+      <label for="dashboard-education-category" class="sr-only">Filter by topic</label>
+      <select id="dashboard-education-category"
+        [(ngModel)]="selectedCategory"
+        class="rounded-xl border border-subtle px-3 py-2 text-sm text-primary surface-1 transition-colors focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/20">
+        <option value="all">All topics</option>
+        @for (category of categories; track category) {
+          <option [value]="category">{{ category | titlecase }}</option>
+        }
+      </select>
+
+      <a routerLink="/financial-education"
+        class="whitespace-nowrap text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400">
+        View all →
+      </a>
+    </div>
+  </div>
+
+  <!-- Article previews -->
+  <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+    @for (article of previewArticles; track article.id) {
+      <a [routerLink]="['/financial-education', article.id]"
+        class="group flex flex-col rounded-lg border border-gray-200 p-4 transition-shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-700">
+        <div class="mb-2 flex flex-wrap items-center gap-2">
+          <span class="rounded-full px-2 py-1 text-xs font-medium" [class]="categoryClass(article.category)">
+            {{ article.category | titlecase }}
+          </span>
+          <span class="text-sm text-gray-500 dark:text-gray-400">{{ article.readingMinutes }} min read</span>
+          @if (progress.isRead(article.id)) {
+            <span class="ml-auto text-xs font-medium text-green-600 dark:text-green-400">✓ Read</span>
+          }
+        </div>
+
+        <h3 class="mb-2 text-lg font-medium text-primary group-hover:text-brand-600 dark:text-white">
+          {{ article.title }}
+        </h3>
+        <p class="mb-4 flex-1 text-sm text-gray-500 dark:text-gray-400">{{ article.summary }}</p>
+
+        <span class="text-sm font-medium text-brand-600 group-hover:text-brand-600 dark:text-brand-400">Read article →</span>
+      </a>
+    }
+  </div>
+
+  <!-- Glossary -->
+  <div class="mt-8">
+    <h3 class="mb-4 text-lg font-semibold text-primary dark:text-white">Financial Glossary</h3>
+    <dl class="grid grid-cols-1 gap-4 md:grid-cols-2">
+      @for (term of glossary; track term.term) {
+        <div class="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+          <dt class="mb-1 font-medium text-primary dark:text-white">{{ term.term }}</dt>
+          <dd class="text-sm text-gray-500 dark:text-gray-400">{{ term.definition }}</dd>
+        </div>
+      }
+    </dl>
+  </div>
+</div>

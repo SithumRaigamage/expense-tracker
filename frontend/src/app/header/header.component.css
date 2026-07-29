@@ -1,7 +1,0 @@
-@import "tailwindcss";
-
-/* Ensure header creates proper stacking context for dropdowns */
-header {
-  position: relative;
-  z-index: 50000;
-}

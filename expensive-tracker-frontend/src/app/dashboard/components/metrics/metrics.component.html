@@ -1,0 +1,90 @@
+<!--
+  Now a full-width band across the dashboard rather than a two-up column beside
+  the chart, which forced six cards into three tall rows and left the chart with
+  a screen of dead space beneath it.
+-->
+<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 sm:gap-5">
+  <!-- Loading: card-shaped placeholders so the grid does not jump when data lands -->
+  @if (isLoading) {
+    @for (placeholder of [1, 2, 3, 4, 5, 6]; track placeholder) {
+      <div class="card p-5">
+        <div class="flex items-start justify-between gap-3">
+          <div class="flex-1">
+            <app-skeleton width="6rem" height="0.875rem"></app-skeleton>
+            <div class="mt-3">
+              <app-skeleton width="9rem" height="1.75rem"></app-skeleton>
+            </div>
+          </div>
+          <app-skeleton width="2.75rem" height="2.75rem" rounded="xl"></app-skeleton>
+        </div>
+        <div class="mt-4">
+          <app-skeleton width="5rem" height="1.25rem" rounded="full"></app-skeleton>
+        </div>
+      </div>
+    }
+  }
+
+  @if (!isLoading && metrics.length === 0) {
+    <app-empty-state
+      [icon]="faWallet"
+      title="No balances to show"
+      message="Add a wallet and its balance will be summarised here by account type."
+      class="block sm:col-span-2 xl:col-span-3"
+      >
+      <a
+        routerLink="/wallets"
+        class="inline-flex items-center gap-2 rounded-xl gradient-brand px-4 py-2.5 text-sm font-semibold text-white shadow-theme-md transition-transform duration-200 hover:scale-[1.03] active:scale-95"
+        >
+        Create a wallet
+      </a>
+    </app-empty-state>
+  }
+
+  @for (metric of metrics; track metric.label; let i = $index) {
+    <!--
+      `--i` drives the staggered entrance from the parent grid's `stagger`
+      utility, so the band assembles left-to-right instead of snapping in.
+    -->
+    <div class="card group relative overflow-hidden p-5" [style.--i]="i">
+      <!-- Accent bar. Scales in from the left on hover, which reads as the card
+           acknowledging the pointer without moving any of the text. -->
+      <span aria-hidden="true"
+        class="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-gradient-to-r
+               transition-transform duration-500 ease-[var(--ease-out-quint)] group-hover:scale-x-100"
+        [class]="getMetricBar(metric.label)"></span>
+
+      <div class="flex items-start justify-between gap-3">
+        <p class="text-xs font-semibold uppercase tracking-[0.08em] text-tertiary">
+          {{metric.label}}
+        </p>
+        <div class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-transform duration-300 ease-[var(--ease-spring)] group-hover:scale-110"
+          [class]="getMetricTile(metric.label)">
+          <fa-icon [icon]="metric.icon" [class]="getMetricColor(metric.label)" class="text-lg"></fa-icon>
+        </div>
+      </div>
+
+      <!--
+        data-numeric switches on tabular figures, so a column of balances lines
+        up digit-for-digit and a value that changes doesn't shift its neighbours.
+      -->
+      <h4 data-numeric class="mt-3 text-2xl font-bold tracking-tight text-primary">
+        {{ metric.value | appCurrency : 'LKR' }}
+      </h4>
+
+      <div class="mt-4 flex items-center gap-2">
+        <app-badge
+          [color]="metric.trend === 'up' ? 'success' : 'error'"
+          variant="light"
+          size="sm"
+          class="font-medium"
+          >
+          <fa-icon [icon]="metric.trend === 'up' ? faArrowUp : faArrowDown"
+            class="mr-1 text-[10px]">
+          </fa-icon>
+          {{metric.percentage}}%
+        </app-badge>
+        <span class="text-xs text-tertiary">vs last period</span>
+      </div>
+    </div>
+  }
+</div>

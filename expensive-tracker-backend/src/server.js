@@ -1,6 +1,7 @@
 const app = require('./app');
 const connectDB = require('./config/database');
 const chalk = require('chalk');
+const logger = require('./utils/logger');
 
 const PORT = process.env.PORT || 3001;
 
@@ -20,18 +21,36 @@ connectDB();
 // Display banner
 displayBanner();
 
+// Opt-in: auto-generate recurring expenses on a schedule while the server runs.
+// Enable with ENABLE_RECURRING_SCHEDULER=true (see scripts/processRecurring.js
+// for the external-cron alternative).
+if (process.env.ENABLE_RECURRING_SCHEDULER === 'true') {
+  const { startRecurringScheduler } = require('./services/recurringScheduler');
+  startRecurringScheduler();
+}
+
 // Start server
 const server = app.listen(PORT, () => {
-  console.log(chalk.green.bold(`🚀 Server is running on port ${PORT}`));
-  console.log(chalk.blue(`📊 Environment: ${process.env.NODE_ENV || 'development'}`));
-  console.log(chalk.yellow(`💡 Health Check: http://localhost:${PORT}/health`));
-  console.log('');
+  logger.info(`Server is running on port ${PORT}`);
+  logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  logger.info(`Health Check: http://localhost:${PORT}/health`);
+  
+  // Also log to console with colors for development
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(chalk.green.bold(`🚀 Server is running on port ${PORT}`));
+    console.log(chalk.blue(`📊 Environment: ${process.env.NODE_ENV || 'development'}`));
+    console.log(chalk.yellow(`💡 Health Check: http://localhost:${PORT}/health`));
+    console.log('');
+  }
 });
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
-  console.log('Unhandled Promise Rejection. Shutting down...');
-  console.log(err.name, err.message);
+  logger.error('Unhandled Promise Rejection. Shutting down...', {
+    name: err.name,
+    message: err.message,
+    stack: err.stack
+  });
   server.close(() => {
     process.exit(1);
   });
@@ -39,8 +58,11 @@ process.on('unhandledRejection', (err) => {
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (err) => {
-  console.log('Uncaught Exception. Shutting down...');
-  console.log(err.name, err.message);
+  logger.error('Uncaught Exception. Shutting down...', {
+    name: err.name,
+    message: err.message,
+    stack: err.stack
+  });
   process.exit(1);
 });
 

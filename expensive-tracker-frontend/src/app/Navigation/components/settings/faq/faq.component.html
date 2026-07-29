@@ -1,0 +1,100 @@
+<div class="grid grid-cols-12 gap-4 md:gap-6">
+  <!-- Search and Filter Section -->
+  <div class="col-span-12">
+    <div class="card p-6">
+      <div class="flex flex-col md:flex-row gap-4">
+        <input
+          type="search"
+          aria-label="Search FAQs"
+          [(ngModel)]="searchTerm"
+          placeholder="Search FAQs..."
+          class="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+        <select
+          aria-label="Filter FAQs by category"
+          [(ngModel)]="selectedCategory"
+          class="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+          <option value="all">All Categories</option>
+          @for (category of categories; track category) {
+            <option>{{ category }}</option>
+          }
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAQ List -->
+  <div class="col-span-12">
+    <div class="card divide-y divide-[var(--border-subtle)] p-6">
+      <!--
+        Only categories that actually have a matching entry are rendered, and
+        each one lists its own entries. Previously the inner loop walked the
+        whole filtered list inside every heading, so one question showed up
+        under all five categories at once.
+      -->
+      @for (category of visibleCategories; track category) {
+        <section class="py-5 first:pt-0 last:pb-0">
+          <h2 class="mb-2 text-lg font-semibold text-primary">{{ category }}</h2>
+
+          <div class="divide-y divide-[var(--border-subtle)]">
+            @for (faq of faqsFor(category); track faq.question) {
+              <div>
+                <button
+                  type="button"
+                  (click)="faq.isOpen = !faq.isOpen"
+                  [attr.aria-expanded]="!!faq.isOpen"
+                  class="flex w-full items-center justify-between gap-4 py-4 text-left transition-colors hover:text-brand-600 dark:hover:text-brand-400"
+                  >
+                  <span class="font-medium text-primary">{{ faq.question }}</span>
+                  <svg aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    [class.rotate-180]="faq.isOpen"
+                    class="h-5 w-5 shrink-0 text-tertiary transition-transform duration-300 ease-[var(--ease-out-quint)]"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    >
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                @if (faq.isOpen) {
+                  <div class="pb-5 animate-fade-in">
+                    <p class="text-sm leading-relaxed text-secondary">{{ faq.answer }}</p>
+                    <div class="mt-4 flex items-center gap-2">
+                      <button
+                        type="button"
+                        (click)="voteFaq(faq, true)"
+                        class="inline-flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm text-secondary transition-colors hover:bg-success-50 hover:text-success-700 dark:hover:bg-success-500/10 dark:hover:text-success-400"
+                        >
+                        <fa-icon [icon]="thumbsUpIcon"></fa-icon>
+                        Helpful ({{ faq.helpfulVotes || 0 }})
+                      </button>
+                      <button
+                        type="button"
+                        (click)="voteFaq(faq, false)"
+                        class="inline-flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm text-secondary transition-colors hover:bg-error-50 hover:text-error-700 dark:hover:bg-error-500/10 dark:hover:text-error-400"
+                        >
+                        <fa-icon [icon]="thumbsDownIcon"></fa-icon>
+                        Not helpful ({{ faq.unhelpfulVotes || 0 }})
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </section>
+      }
+
+      <!-- A search that matches nothing previously left the card blank. -->
+      @if (hasNoResults) {
+        <app-empty-state
+          [icon]="faCircleQuestion"
+          title="No matching questions"
+          message="Try a different search term, or pick another category."
+        ></app-empty-state>
+      }
+    </div>
+  </div>
+</div>

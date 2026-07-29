@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Expensify">
+  <defs>
+    <linearGradient id="etBrand" x1="6" y1="2" x2="58" y2="62" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7592ff"/>
+      <stop offset=".5" stop-color="#465fff"/>
+      <stop offset="1" stop-color="#2a31d8"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="url(#etBrand)"/>
+  <g fill="none" stroke="#fff" stroke-opacity=".92" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M18.5 23 27.5 14.5 34 19.5 43.5 11"/>
+    <path d="M37.5 11h6v6"/>
+  </g>
+  <path d="M13 34a8 8 0 0 1 8-8h22a8 8 0 0 1 8 8v11a8 8 0 0 1-8 8H21a8 8 0 0 1-8-8z" fill="#fff"/>
+  <path d="M51 35.5h-8a4.5 4.5 0 0 0 0 9h8z" fill="#c2d6ff"/>
+  <circle cx="44.5" cy="40" r="2.5" fill="#2a31d8"/>
+</svg>

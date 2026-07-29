@@ -1,0 +1,29 @@
+# Frontend only. For a full deployment (MongoDB + API + web) use the
+# docker-compose.yml at the repository root instead — the frontend proxies /api
+# to the backend, so it needs the backend reachable on a shared network.
+services:
+  expensive-tracker-frontend:
+    image: expense-tracker-frontend:latest
+    container_name: expense-tracker-frontend
+    ports:
+      - "${FRONTEND_PORT:-4200}:80"
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      # Where nginx forwards /api. This was BACKEND_API_URL, which nothing ever
+      # read: nginx.conf had no /api block at all, so every API request fell
+      # through try_files and came back as index.html with a 200.
+      - BACKEND_ORIGIN=${BACKEND_ORIGIN:-http://expense-tracker-backend:3001}
+      # Restricts envsubst to BACKEND_* so nginx's own $uri/$host survive.
+      - NGINX_ENVSUBST_FILTER=BACKEND_
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/index.html"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - expense-tracker-network
+
+networks:
+  expense-tracker-network:
+    driver: bridge

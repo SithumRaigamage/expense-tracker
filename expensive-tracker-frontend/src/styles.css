@@ -1,0 +1,735 @@
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap")
+layer(base);
+
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+/* =============================================================================
+   DESIGN TOKENS
+   -----------------------------------------------------------------------------
+   Two layers, deliberately separated:
+
+   1. `@theme` below holds the *primitive* scale — raw colour ramps, type sizes,
+      shadows. These generate Tailwind utilities (`bg-brand-500`, `text-title-md`).
+      They do not change between light and dark.
+
+   2. The `:root` / `.dark` blocks further down hold *semantic* tokens
+      (`--surface-1`, `--text-primary`, `--border-subtle`). These DO flip with the
+      theme, which is what lets a component be written once instead of twice with
+      a `dark:` variant bolted onto every class.
+
+   New work should reach for the semantic layer. The primitive utilities and the
+   `dark:` variants remain because ~900 of them are already in the templates.
+============================================================================= */
+
+@theme {
+  --font-*: initial;
+  --font-outfit: Outfit, sans-serif;
+
+  --breakpoint-*: initial;
+  --breakpoint-2xsm: 375px;
+  --breakpoint-xsm: 425px;
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+  --breakpoint-3xl: 2000px;
+
+  /* Type scale. Display sizes carry tighter tracking — at 36px and up, default
+     letter-spacing reads loose and undermines the "one considered surface" feel. */
+  --text-title-2xl: 72px;
+  --text-title-2xl--line-height: 78px;
+  --text-title-2xl--letter-spacing: -0.035em;
+  --text-title-xl: 60px;
+  --text-title-xl--line-height: 66px;
+  --text-title-xl--letter-spacing: -0.032em;
+  --text-title-lg: 48px;
+  --text-title-lg--line-height: 54px;
+  --text-title-lg--letter-spacing: -0.03em;
+  --text-title-md: 36px;
+  --text-title-md--line-height: 42px;
+  --text-title-md--letter-spacing: -0.025em;
+  --text-title-sm: 30px;
+  --text-title-sm--line-height: 36px;
+  --text-title-sm--letter-spacing: -0.02em;
+  --text-theme-xl: 20px;
+  --text-theme-xl--line-height: 28px;
+  --text-theme-sm: 14px;
+  --text-theme-sm--line-height: 20px;
+  --text-theme-xs: 12px;
+  --text-theme-xs--line-height: 18px;
+
+  --color-current: currentColor;
+  --color-transparent: transparent;
+  --color-white: #ffffff;
+  --color-black: #0a0d14;
+
+  /* Brand — indigo with a violet bias, so the gradient pairs (brand → violet)
+     stay in the same family instead of reading as two unrelated hues. */
+  --color-brand-25: #f5f7ff;
+  --color-brand-50: #eef2ff;
+  --color-brand-100: #e0e7ff;
+  --color-brand-200: #c7d2fe;
+  --color-brand-300: #a5b4fc;
+  --color-brand-400: #818cf8;
+  --color-brand-500: #5b6cff;
+  --color-brand-600: #4451eb;
+  --color-brand-700: #363dc4;
+  --color-brand-800: #2e349e;
+  --color-brand-900: #2b317d;
+  --color-brand-950: #1b1d4d;
+
+  /* Accent — the second half of every brand gradient. */
+  --color-violet-25: #fbfaff;
+  --color-violet-50: #f5f3ff;
+  --color-violet-100: #ede9fe;
+  --color-violet-200: #ddd6fe;
+  --color-violet-300: #c4b5fd;
+  --color-violet-400: #a78bfa;
+  --color-violet-500: #8b5cf6;
+  --color-violet-600: #7c3aed;
+  --color-violet-700: #6d28d9;
+  --color-violet-800: #5b21b6;
+  --color-violet-900: #4c1d95;
+  --color-violet-950: #2e1065;
+
+  --color-blue-light-25: #f5fbff;
+  --color-blue-light-50: #f0f9ff;
+  --color-blue-light-100: #e0f2fe;
+  --color-blue-light-200: #b9e6fe;
+  --color-blue-light-300: #7cd4fd;
+  --color-blue-light-400: #36bffa;
+  --color-blue-light-500: #0ba5ec;
+  --color-blue-light-600: #0086c9;
+  --color-blue-light-700: #026aa2;
+  --color-blue-light-800: #065986;
+  --color-blue-light-900: #0b4a6f;
+  --color-blue-light-950: #062c41;
+
+  /* Neutrals carry a slight cool cast. A pure-grey dashboard beside a saturated
+     indigo reads muddy; the blue bias keeps the whole surface coherent. */
+  --color-gray-25: #fcfcfd;
+  --color-gray-50: #f8fafc;
+  --color-gray-100: #f1f5f9;
+  --color-gray-200: #e2e8f0;
+  --color-gray-300: #cbd5e1;
+  --color-gray-400: #94a3b8;
+  --color-gray-500: #64748b;
+  --color-gray-600: #475569;
+  --color-gray-700: #334155;
+  --color-gray-800: #1e293b;
+  --color-gray-900: #0f172a;
+  --color-gray-950: #080d1a;
+  --color-gray-dark: #131c2e;
+
+  --color-orange-25: #fffaf5;
+  --color-orange-50: #fff6ed;
+  --color-orange-100: #ffead5;
+  --color-orange-200: #fddcab;
+  --color-orange-300: #feb273;
+  --color-orange-400: #fd853a;
+  --color-orange-500: #fb6514;
+  --color-orange-600: #ec4a0a;
+  --color-orange-700: #c4320a;
+  --color-orange-800: #9c2a10;
+  --color-orange-900: #7e2410;
+  --color-orange-950: #511c10;
+
+  --color-success-25: #f6fef9;
+  --color-success-50: #ecfdf3;
+  --color-success-100: #d1fadf;
+  --color-success-200: #a6f4c5;
+  --color-success-300: #6ce9a6;
+  --color-success-400: #32d583;
+  --color-success-500: #12b76a;
+  --color-success-600: #039855;
+  --color-success-700: #027a48;
+  --color-success-800: #05603a;
+  --color-success-900: #054f31;
+  --color-success-950: #053321;
+
+  --color-error-25: #fffbfa;
+  --color-error-50: #fef3f2;
+  --color-error-100: #fee4e2;
+  --color-error-200: #fecdca;
+  --color-error-300: #fda29b;
+  --color-error-400: #f97066;
+  --color-error-500: #f04438;
+  --color-error-600: #d92d20;
+  --color-error-700: #b42318;
+  --color-error-800: #912018;
+  --color-error-900: #7a271a;
+  --color-error-950: #55160c;
+
+  --color-warning-25: #fffcf5;
+  --color-warning-50: #fffaeb;
+  --color-warning-100: #fef0c7;
+  --color-warning-200: #fedf89;
+  --color-warning-300: #fec84b;
+  --color-warning-400: #fdb022;
+  --color-warning-500: #f79009;
+  --color-warning-600: #dc6803;
+  --color-warning-700: #b54708;
+  --color-warning-800: #93370d;
+  --color-warning-900: #7a2e0e;
+  --color-warning-950: #4e1d09;
+
+  --color-theme-pink-500: #ee46bc;
+  --color-theme-purple-500: #7a5af8;
+
+  /* Elevation. Two-part shadows (a tight contact shadow plus a wide ambient one)
+     tinted with the neutral hue rather than pure black — black shadows on a cool
+     surface read as grime. */
+  --shadow-theme-xs: 0 1px 2px 0 rgb(15 23 42 / 0.04);
+  --shadow-theme-sm: 0 1px 2px -1px rgb(15 23 42 / 0.06),
+    0 1px 3px 0 rgb(15 23 42 / 0.05);
+  --shadow-theme-md: 0 2px 4px -2px rgb(15 23 42 / 0.06),
+    0 4px 10px -2px rgb(15 23 42 / 0.08);
+  --shadow-theme-lg: 0 4px 6px -4px rgb(15 23 42 / 0.05),
+    0 12px 24px -6px rgb(15 23 42 / 0.10);
+  --shadow-theme-xl: 0 8px 10px -6px rgb(15 23 42 / 0.05),
+    0 24px 48px -12px rgb(15 23 42 / 0.14);
+  --shadow-theme-2xl: 0 12px 16px -8px rgb(15 23 42 / 0.06),
+    0 40px 72px -16px rgb(15 23 42 / 0.18);
+
+  --shadow-focus-ring: 0 0 0 4px rgb(91 108 255 / 0.16);
+  --shadow-tooltip: 0 4px 6px -2px rgb(15 23 42 / 0.05),
+    0 12px 28px 0 rgb(15 23 42 / 0.12);
+
+  /* Motion. One easing vocabulary for the whole app.
+     `--ease-out-quint` for things entering (fast start, long settle),
+     `--ease-spring` for anything the user directly manipulated — it overshoots
+     ~3% which is what makes a press feel physical rather than linear. */
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --animate-rise: rise 0.5s var(--ease-out-quint) both;
+  --animate-fade-in: fade-in 0.3s var(--ease-out-quint) both;
+  --animate-scale-in: scale-in 0.2s var(--ease-out-quint) both;
+  --animate-shimmer: shimmer 1.6s infinite;
+  --animate-spin-slow: spin 3s linear infinite;
+
+  --z-index-1: 1;
+  --z-index-9: 9;
+  --z-index-99: 99;
+  --z-index-999: 999;
+  --z-index-9999: 9999;
+  --z-index-99999: 99999;
+  --z-index-999999: 999999;
+}
+
+/* =============================================================================
+   SEMANTIC LAYER — flips with the theme
+============================================================================= */
+
+:root {
+  --surface-page: var(--color-gray-50);
+  --surface-1: #ffffff;
+  --surface-2: var(--color-gray-50);
+  --surface-3: var(--color-gray-100);
+
+  --border-subtle: rgb(226 232 240 / 0.9);
+  --border-strong: var(--color-gray-300);
+
+  /*
+    Tertiary is gray-500, not gray-400. gray-400 (#94a3b8) on white is only
+    2.8:1 — it fails AA even at large sizes, and this token carries real labels
+    ("Saved", "Target date"), not decoration. gray-500 gives 4.9:1.
+  */
+  --text-primary: var(--color-gray-900);
+  --text-secondary: var(--color-gray-600);
+  --text-tertiary: var(--color-gray-500);
+
+  /* Glass. Kept deliberately opaque (78%) — a frosted panel that lets too much
+     through stops being a reading surface, which is the failure mode of most
+     glassmorphism. */
+  --glass-bg: rgb(255 255 255 / 0.78);
+  --glass-border: rgb(255 255 255 / 0.7);
+  --glass-blur: 20px;
+
+  /* Ambient light — the faint coloured wash behind the app shell. */
+  --ambient-a: rgb(91 108 255 / 0.09);
+  --ambient-b: rgb(139 92 246 / 0.07);
+
+  --shadow-elevated: var(--shadow-theme-lg);
+  color-scheme: light;
+}
+
+.dark {
+  --surface-page: #070b16;
+  --surface-1: #0f172a;
+  --surface-2: #131c2e;
+  --surface-3: #1e293b;
+
+  --border-subtle: rgb(255 255 255 / 0.08);
+  --border-strong: rgb(255 255 255 / 0.16);
+
+  /*
+    Both non-primary tints are one step lighter than the obvious choice, because
+    the obvious choice fails contrast. gray-500 (#64748b) against the #0f172a
+    card surface is about 3.4:1 — under the 4.5:1 AA floor for body text — which
+    is what tertiary used to be. These give ~10:1 and ~6.4:1 while keeping the
+    two levels visibly distinct.
+  */
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-tertiary: #94a3b8;
+
+  --glass-bg: rgb(15 23 42 / 0.72);
+  --glass-border: rgb(255 255 255 / 0.08);
+
+  --ambient-a: rgb(91 108 255 / 0.16);
+  --ambient-b: rgb(139 92 246 / 0.12);
+
+  /* Shadows barely register on a dark surface; depth there comes from a
+     top-edge highlight instead, applied by the `.card` utility. */
+  --shadow-elevated: 0 12px 32px -8px rgb(0 0 0 / 0.6);
+  color-scheme: dark;
+}
+
+@layer base {
+  /* Tailwind v4 defaults the border colour to currentColor; restore a neutral. */
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--border-subtle);
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply relative font-normal font-outfit z-1;
+    background-color: var(--surface-page);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Money should never reflow as digits change. Lining tabular figures keep
+     columns of currency aligned and stop a ticking total from jittering. */
+  th, td,
+  [data-numeric] {
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+
+  /* A single visible focus treatment everywhere, keyboard-only so pointer users
+     don't see rings on click. */
+  :focus-visible {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background: rgb(91 108 255 / 0.22);
+  }
+}
+
+/* =============================================================================
+   MOTION
+   -----------------------------------------------------------------------------
+   Every keyframe below is opacity/transform only, so animation runs on the
+   compositor and never triggers layout or paint.
+============================================================================= */
+
+@keyframes rise {
+  from { opacity: 0; transform: translate3d(0, 12px, 0); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+
+/* Staggered entrance for grids of cards. Applied via `.stagger` on the parent;
+   children rise in sequence so a dashboard assembles instead of snapping in. */
+@utility stagger {
+  & > * {
+    animation: var(--animate-rise);
+    animation-delay: calc(var(--stagger-step, 45ms) * var(--i, 0));
+  }
+}
+
+@utility stagger-i-* {
+  --i: --value(integer);
+}
+
+/*
+  The global reduced-motion contract.
+
+  Rather than asking every component to remember `motion-safe:`, anything that
+  slipped through is neutralised here — durations collapse to ~1ms rather than 0
+  so transitionend/animationend listeners still fire and nothing hangs waiting
+  for a callback that never comes.
+*/
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* =============================================================================
+   SURFACES
+============================================================================= */
+
+/*
+  The primary content surface. Depth is built from three cues rather than a
+  single drop shadow: a hairline border, an ambient shadow, and — in dark mode —
+  a 1px top highlight that mimics a light source above the panel. That highlight
+  is what stops dark cards reading as flat holes.
+*/
+@utility card {
+  background-color: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: 1rem;
+  box-shadow: var(--shadow-theme-sm);
+  transition: box-shadow 0.3s var(--ease-out-quint),
+    transform 0.3s var(--ease-out-quint),
+    border-color 0.3s var(--ease-out-quint);
+}
+
+.dark .card {
+  box-shadow: 0 1px 0 0 rgb(255 255 255 / 0.05) inset,
+    0 8px 24px -12px rgb(0 0 0 / 0.7);
+}
+
+/* Opt-in lift, for cards that are actually interactive. A card that rises on
+   hover but does nothing on click is a false affordance, so this is not on
+   `.card` by default. */
+@utility card-interactive {
+  cursor: pointer;
+
+  &:hover {
+    box-shadow: var(--shadow-elevated);
+    transform: translate3d(0, -3px, 0);
+    border-color: rgb(91 108 255 / 0.3);
+  }
+
+  &:active {
+    transform: translate3d(0, -1px, 0);
+    transition-duration: 0.1s;
+  }
+}
+
+/* Frosted panel, for surfaces that overlay content — headers, drawers, popovers.
+   `backdrop-filter` is expensive; it belongs on a handful of persistent
+   elements, never on a list of cards. */
+@utility glass {
+  background-color: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+}
+
+/* Ambient background wash. Fixed and pointer-transparent, sitting behind the
+   whole shell to give the flat page a sense of light direction. */
+@utility ambient-field {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(60rem 40rem at 12% -10%, var(--ambient-a), transparent 60%),
+    radial-gradient(50rem 36rem at 100% 0%, var(--ambient-b), transparent 55%);
+}
+
+/*
+  One step darker than the 500/500 pair it started as. White label text on
+  brand-500 measures 4.47:1 and on violet-500 only 3.9:1 — both under the 4.5:1
+  AA floor, and this gradient is the fill behind every primary button in the
+  app. 600/600 gives 6.4:1 and 5.6:1 while reading the same at a glance.
+*/
+@utility gradient-brand {
+  background-image: linear-gradient(
+    135deg,
+    var(--color-brand-600) 0%,
+    var(--color-violet-600) 100%
+  );
+}
+
+@utility text-gradient-brand {
+  background-image: linear-gradient(
+    135deg,
+    var(--color-brand-600) 0%,
+    var(--color-violet-500) 100%
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+/* Semantic text helpers, so components can stop pairing every colour with a
+   `dark:` twin. */
+@utility text-primary { color: var(--text-primary); }
+@utility text-secondary { color: var(--text-secondary); }
+@utility text-tertiary { color: var(--text-tertiary); }
+@utility surface-1 { background-color: var(--surface-1); }
+@utility surface-2 { background-color: var(--surface-2); }
+@utility surface-3 { background-color: var(--surface-3); }
+@utility border-subtle { border-color: var(--border-subtle); }
+
+/* =============================================================================
+   NAVIGATION
+============================================================================= */
+
+@utility menu-item {
+  @apply relative flex items-center w-full gap-3 px-3 py-2.5 font-medium rounded-xl text-theme-sm;
+  transition: background-color 0.2s var(--ease-out-quint),
+    color 0.2s var(--ease-out-quint);
+}
+
+/* The active pill is drawn as a pseudo-element rail on the left edge rather than
+   a border, so switching routes can animate it without shifting the label. */
+@utility menu-item-active {
+  @apply bg-brand-50 text-brand-700 font-semibold dark:bg-brand-500/12 dark:text-brand-300;
+
+  &::before {
+    content: "";
+    position: absolute;
+    left: -0.5rem;
+    top: 50%;
+    height: 1.25rem;
+    width: 3px;
+    border-radius: 9999px;
+    background: var(--color-brand-500);
+    transform: translateY(-50%);
+    animation: scale-in 0.25s var(--ease-spring) both;
+  }
+}
+
+@utility menu-item-inactive {
+  @apply text-gray-600 hover:bg-gray-100/80 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-100;
+}
+
+@utility menu-item-icon {
+  @apply text-gray-500 group-hover:text-gray-700 dark:text-gray-500 dark:group-hover:text-gray-300 transition-colors duration-200;
+}
+
+@utility menu-item-icon-active {
+  @apply text-brand-600 dark:text-brand-400;
+}
+
+@utility menu-item-icon-size {
+  & svg {
+    @apply size-[22px]!;
+  }
+}
+
+@utility menu-item-icon-inactive {
+  @apply text-gray-400 group-hover:text-gray-600 dark:text-gray-500 dark:group-hover:text-gray-300;
+}
+
+@utility menu-item-arrow {
+  @apply relative transition-transform duration-200;
+}
+
+@utility menu-item-arrow-active {
+  @apply rotate-180 text-brand-600 dark:text-brand-400;
+}
+
+@utility menu-item-arrow-inactive {
+  @apply text-gray-400 group-hover:text-gray-600 dark:text-gray-500 dark:group-hover:text-gray-300;
+}
+
+@utility menu-dropdown-item {
+  @apply relative flex items-center gap-3 rounded-lg px-3 py-2 text-theme-sm font-medium transition-colors duration-200;
+}
+
+@utility menu-dropdown-item-active {
+  @apply bg-brand-50 text-brand-700 dark:bg-brand-500/12 dark:text-brand-300;
+}
+
+@utility menu-dropdown-item-inactive {
+  @apply text-gray-600 hover:bg-gray-100/80 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-200;
+}
+
+@utility menu-dropdown-badge {
+  @apply block rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400;
+}
+
+@utility menu-dropdown-badge-active {
+  @apply bg-brand-100 dark:bg-brand-500/20;
+}
+
+@utility menu-dropdown-badge-inactive {
+  @apply bg-brand-50 group-hover:bg-brand-100 dark:bg-brand-500/10 dark:group-hover:bg-brand-500/20;
+}
+
+/* =============================================================================
+   SCROLLBARS
+============================================================================= */
+
+@utility no-scrollbar {
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@utility custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-gray-300) transparent;
+
+  &::-webkit-scrollbar {
+    @apply w-1.5 h-1.5;
+  }
+
+  &::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    @apply bg-gray-300/70 rounded-full dark:bg-gray-600/70 hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors;
+  }
+}
+
+@layer utilities {
+  /* Native date/time pickers ship their own icon; templates supply their own. */
+  input[type="date"]::-webkit-inner-spin-button,
+  input[type="time"]::-webkit-inner-spin-button,
+  input[type="date"]::-webkit-calendar-picker-indicator,
+  input[type="time"]::-webkit-calendar-picker-indicator {
+    display: none;
+    -webkit-appearance: none;
+  }
+}
+
+/* =============================================================================
+   VIEW TRANSITIONS
+   -----------------------------------------------------------------------------
+   Drives the router's cross-route animation (see `withViewTransitions` in
+   app.config.ts). Browsers without the API simply navigate instantly.
+============================================================================= */
+
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root) {
+    animation: fade-out-page 0.16s var(--ease-in-out-quart) both;
+  }
+
+  ::view-transition-new(root) {
+    animation: rise 0.32s var(--ease-out-quint) both;
+  }
+}
+
+/* The API animates a snapshot of the old page; skipping it under reduced motion
+   would still cross-fade, so it is explicitly disabled. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none !important;
+    mix-blend-mode: normal;
+  }
+}
+
+@keyframes fade-out-page {
+  to { opacity: 0; }
+}
+
+/* =============================================================================
+   APEXCHARTS
+   -----------------------------------------------------------------------------
+   ApexCharts renders its own DOM with inline defaults, so it has to be styled
+   from the global sheet. Everything here maps its chrome onto the tokens above.
+============================================================================= */
+
+.apexcharts-canvas {
+  --apex-text: var(--text-secondary);
+}
+
+.apexcharts-legend-text {
+  @apply pl-5! text-theme-xs! font-medium!;
+  color: var(--text-secondary) !important;
+}
+
+.apexcharts-text {
+  fill: var(--text-tertiary) !important;
+  font-family: Outfit, sans-serif !important;
+}
+
+.apexcharts-tooltip.apexcharts-theme-light,
+.apexcharts-tooltip.apexcharts-theme-dark {
+  border-radius: 0.75rem !important;
+  border: 1px solid var(--border-subtle) !important;
+  background: var(--glass-bg) !important;
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  box-shadow: var(--shadow-tooltip) !important;
+  padding: 0.25rem 0.125rem;
+  gap: 0.25rem;
+}
+
+.apexcharts-tooltip-title {
+  @apply mb-0! border-b-0! bg-transparent! p-0! text-[10px]! leading-4! font-semibold!;
+  color: var(--text-primary) !important;
+}
+
+.apexcharts-tooltip-series-group,
+.apexcharts-tooltip-y-group {
+  @apply p-0!;
+}
+
+.apexcharts-tooltip-text {
+  @apply text-theme-xs!;
+  color: var(--text-secondary) !important;
+}
+
+.apexcharts-tooltip-text-y-value {
+  @apply font-semibold!;
+  color: var(--text-primary) !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.apexcharts-tooltip-marker {
+  margin-right: 6px;
+  height: 8px;
+  width: 8px;
+  border-radius: 3px;
+}
+
+.apexcharts-gridline {
+  stroke: var(--border-subtle) !important;
+  stroke-dasharray: 4 !important;
+}
+
+.apexcharts-xaxis line,
+.apexcharts-yaxis line {
+  stroke: transparent !important;
+}

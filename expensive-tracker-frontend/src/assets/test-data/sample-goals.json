@@ -1,0 +1,37 @@
+[
+  {
+    "name": "New iPhone",
+    "imageUrl": "https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-15-pro-select-202309-6-7inch-naturaltitanium?wid=2560&hei=1440&fmt=p-jpg&qlt=80&.v=1693011871972",
+    "targetAmount": 1199.99,
+    "savedAmount": 300,
+    "targetDate": "2025-12-25"
+  },
+  {
+    "name": "Gaming Laptop",
+    "imageUrl": "https://m.media-amazon.com/images/I/71nz3cIcFOL._AC_UF1000,1000_QL80_.jpg",
+    "targetAmount": 1599.99,
+    "savedAmount": 550,
+    "targetDate": "2026-01-15"
+  },
+  {
+    "name": "Vacation to Bali",
+    "imageUrl": "https://a.cdn-hotels.com/gdcs/production40/d811/5e89ad90-8f10-11e8-b6b0-0242ac110007.jpg",
+    "targetAmount": 3500,
+    "savedAmount": 1200,
+    "targetDate": "2025-10-01"
+  },
+  {
+    "name": "Smart TV",
+    "imageUrl": "https://images.samsung.com/is/image/samsung/p6pim/levant/ua55cu7000uxzn/gallery/levant-crystal-uhd-cu7000-458967-ua55cu7000uxzn-536841177",
+    "targetAmount": 899.99,
+    "savedAmount": 250,
+    "targetDate": "2025-11-15"
+  },
+  {
+    "name": "Home Theater System",
+    "imageUrl": "https://www.lg.com/in/images/home-theaters/md07554363/gallery/LHD667-D-1.jpg",
+    "targetAmount": 799.99,
+    "savedAmount": 200,
+    "targetDate": "2026-02-10"
+  }
+]

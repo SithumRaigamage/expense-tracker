@@ -1,0 +1,79 @@
+<div class="grid grid-cols-12 gap-4 md:gap-6">
+  <!-- Search Bar -->
+  <div class="col-span-12">
+    <div class="card p-6">
+      <div class="relative">
+        <fa-icon [icon]="searchIcon" class="absolute left-3 top-3 text-tertiary"></fa-icon>
+        <input aria-label="Search issues or error codes"
+          type="search"
+          [(ngModel)]="searchTerm"
+          placeholder="Search issues or error codes..."
+          class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+      </div>
+    </div>
+  </div>
+
+  <!-- Common Issues -->
+  <div class="col-span-12">
+    <div class="card p-6 space-y-6">
+      <div class="flex items-center gap-2">
+        <fa-icon [icon]="bugIcon" class="text-secondary"></fa-icon>
+        <h2 class="text-xl font-semibold text-primary">Common Issues</h2>
+      </div>
+
+      <div class="space-y-4">
+        @for (issue of filteredIssues; track issue) {
+          <div class="border border-gray-100 rounded-lg p-4">
+            <!-- Issue Header -->
+            <div class="flex items-start justify-between mb-4">
+              <div>
+                <h3 class="font-medium text-primary">{{ issue.issue }}</h3>
+                <p class="text-sm text-secondary">{{ issue.category }}</p>
+              </div>
+              @if (issue.errorCode) {
+                <span
+                  class="flex items-center gap-1 text-sm font-mono bg-gray-100 px-2 py-1 rounded">
+                  <fa-icon [icon]="codeIcon" class="text-secondary"></fa-icon>
+                  {{ issue.errorCode }}
+                </span>
+              }
+            </div>
+            <!-- Severity Badge -->
+            <div class="mb-3">
+              <span [class]="'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ' + getSeverityColor(issue.severity)">
+                <fa-icon [icon]="alertIcon"></fa-icon>
+                {{ issue.severity | titlecase }} Priority
+              </span>
+            </div>
+            <!-- Solution Steps -->
+            <div class="mt-4">
+              <h4 class="font-medium text-secondary mb-2">Solution:</h4>
+              <ol class="list-decimal list-inside space-y-2 text-secondary">
+                @for (step of issue.solution; track step) {
+                  <li>{{ step }}</li>
+                }
+              </ol>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- System Status -->
+  <div class="col-span-12">
+    <div class="card p-6">
+      <h2 class="text-xl font-semibold text-primary mb-4">System Status</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="p-4 border border-gray-200 rounded-lg">
+          <div class="flex items-center justify-between">
+            <span class="text-secondary">API Services</span>
+            <span class="inline-block w-2 h-2 bg-green-500 rounded-full"></span>
+          </div>
+        </div>
+        <!-- Add more status indicators -->
+      </div>
+    </div>
+  </div>
+</div>

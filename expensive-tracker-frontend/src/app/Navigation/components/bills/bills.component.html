@@ -1,0 +1,286 @@
+<!-- The shell already pads <main>; a second page-level inset stacked on top of it. -->
+<div>
+  <!-- Header -->
+  <div class="mb-7 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight text-primary">Bills</h1>
+      <p class="mt-1 text-sm text-secondary">Recurring payments and what's due next.</p>
+    </div>
+    <div class="flex w-full flex-wrap items-center gap-2.5 sm:w-auto">
+      <button (click)="exportBills()"
+        class="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-subtle px-4 py-2.5
+               text-sm font-medium text-secondary surface-1 shadow-theme-xs transition-all duration-200
+               hover:text-primary hover:shadow-theme-sm active:scale-95 disabled:opacity-50 sm:flex-none"
+        [disabled]="bills.length === 0">
+        <fa-icon [icon]="faDownload"></fa-icon>
+        Export
+      </button>
+      <button (click)="openDrawer('add')"
+        class="inline-flex flex-1 items-center justify-center gap-2 rounded-xl gradient-brand px-4 py-2.5
+               text-sm font-semibold text-white shadow-theme-md shadow-brand-500/25 transition-all duration-200
+               hover:shadow-theme-lg hover:shadow-brand-500/35 active:scale-95 sm:flex-none">
+        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Add Bill
+      </button>
+    </div>
+  </div>
+
+  <!-- Bills List -->
+  <div class="space-y-4">
+    <!--
+      There was no empty branch here at all, so a user with no bills got a page
+      that rendered a heading and then nothing — no explanation and no way in
+      other than guessing at the header button.
+    -->
+    @if (bills.length === 0) {
+      <app-empty-state
+        [icon]="faFileInvoiceDollar"
+        title="No bills yet"
+        message="Add a recurring bill and Expensify will track what's due and when."
+        size="lg"
+        >
+        <button type="button" (click)="openDrawer('add')"
+          class="inline-flex items-center gap-2 rounded-xl gradient-brand px-4 py-2.5 text-sm font-semibold
+                 text-white shadow-theme-md transition-transform duration-200 hover:scale-[1.03] active:scale-95">
+          Add your first bill
+        </button>
+      </app-empty-state>
+    }
+
+    @for (bill of bills; track bill) {
+      <div
+        class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:bg-gray-800/50 sm:p-6">
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-12 md:gap-6 md:items-center">
+          <!-- Left: Bill Info -->
+          <div class="col-span-12 md:col-span-3 flex items-center gap-4 min-w-0">
+            <div class="h-10 w-10 flex-shrink-0 rounded-lg overflow-hidden bg-brand-50 dark:bg-brand-500/10 flex items-center justify-center">
+              @if (bill.iconUrl) {
+                <img [src]="bill.iconUrl" [alt]="bill.provider + ' logo'"
+                  class="h-full w-full object-cover" (error)="onIconError($event)">
+              } @else {
+                <span class="text-sm font-bold text-brand-600 dark:text-brand-400"
+                  aria-hidden="true">{{ bill.provider.charAt(0).toUpperCase() }}</span>
+              }
+            </div>
+            <div class="min-w-0">
+              <h4 class="truncate font-medium text-primary dark:text-white">{{bill.name}}</h4>
+              <p class="truncate text-sm text-gray-500 dark:text-gray-400">{{bill.provider}}</p>
+            </div>
+          </div>
+          <!-- Middle: Date and Amount -->
+          <div class="col-span-12 md:col-span-6 grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 min-w-0">
+            <div class="flex flex-col">
+              <span class="text-sm text-gray-500 dark:text-gray-400">Category</span>
+              <span class="font-medium text-primary dark:text-white">{{bill.category}}</span>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-sm text-gray-500 dark:text-gray-400">Due Date</span>
+              <span class="font-medium text-primary dark:text-white">{{formatDate(bill.dueDate)}}</span>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-sm text-gray-500 dark:text-gray-400">Amount</span>
+              <span class="font-medium text-primary dark:text-white">{{bill.amount | appCurrency}}</span>
+              <span class="mt-1 inline-flex w-fit items-center rounded-full px-2 py-0.5 text-xs font-semibold"
+                [class]="getStatusClass(bill.status)">{{ bill.status }}</span>
+            </div>
+          </div>
+          <!-- Right: Actions -->
+          <div class="col-span-12 md:col-span-3 flex items-center justify-start md:justify-end gap-2 border-t md:border-t-0 border-gray-100 pt-4 md:pt-0">
+            @if (bill.status !== 'Paid') {
+              <button type="button" (click)="payBill(bill)"
+                class="rounded-lg bg-brand-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
+                [attr.aria-label]="'Pay ' + bill.name">
+                Pay
+              </button>
+            }
+            <button type="button" (click)="openDrawer('edit', bill)"
+              [attr.aria-label]="'Edit ' + bill.name"
+              class="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:text-gray-400 dark:hover:bg-gray-700">
+              <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+            </button>
+            <button type="button" (click)="deleteBill(bill.id)"
+              [attr.aria-label]="'Delete ' + bill.name"
+              class="rounded-lg p-2 text-red-500 transition hover:bg-red-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500 dark:text-red-400 dark:hover:bg-red-900/20">
+              <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Side Drawer -->
+  <app-side-drawer
+    [isOpen]="isDrawerOpen"
+    [title]="drawerMode === 'add' ? 'Add New Bill' : 'Edit Bill'"
+    [icon]="drawerMode === 'add' ? faPlus : faEdit"
+    (closed)="closeDrawer()">
+
+    <form (ngSubmit)="submitForm()" class="space-y-6">
+      <!-- Bill Name -->
+      <div class="space-y-1.5">
+        <label for="bill-name" class="block text-sm font-semibold text-secondary dark:text-gray-300 ml-1">Bill Name</label>
+        <input id="bill-name" [(ngModel)]="currentBill.name"
+          name="name"
+          type="text"
+          class="w-full rounded-2xl border-gray-200 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-primary dark:text-white transition-all focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
+          placeholder="e.g. Electricity Bill">
+      </div>
+
+      <!-- Category & Provider -->
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div class="space-y-1.5">
+          <label for="bill-category" class="block text-sm font-semibold text-secondary dark:text-gray-300 ml-1">Category</label>
+          <select id="bill-category" [(ngModel)]="currentBill.category"
+            name="category"
+            class="w-full rounded-2xl border-gray-200 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-primary dark:text-white transition-all focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10">
+            <option value="">Select Category</option>
+            @for (category of categories; track category) {
+              <option [value]="category">
+                {{category}}
+              </option>
+            }
+          </select>
+        </div>
+        <div class="space-y-1.5">
+          <label for="bill-provider" class="block text-sm font-semibold text-secondary dark:text-gray-300 ml-1">Provider</label>
+          <input id="bill-provider" [(ngModel)]="currentBill.provider"
+            name="provider"
+            type="text"
+            class="w-full rounded-2xl border-gray-200 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-primary dark:text-white transition-all focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
+            placeholder="e.g. Utility Co.">
+        </div>
+      </div>
+
+      <!-- Amount -->
+      <div class="space-y-1.5">
+        <label for="bill-amount" class="block text-sm font-semibold text-secondary dark:text-gray-300 ml-1">Amount</label>
+        <div class="relative group">
+          <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-tertiary font-bold group-focus-within:text-brand-500">
+            {{currencyService.getActiveCurrency()}}
+          </div>
+          <input id="bill-amount" [(ngModel)]="currentBill.amount"
+            name="amount"
+            type="number"
+            class="w-full rounded-2xl border-gray-200 bg-white dark:bg-gray-900/50 pl-14 px-4 py-3.5 text-primary dark:text-white transition-all focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
+            placeholder="0.00">
+        </div>
+      </div>
+
+      <!-- Due Date -->
+      <div class="space-y-1.5">
+        <label for="bill-due-date" class="block text-sm font-semibold text-secondary dark:text-gray-300 ml-1">Due Date</label>
+        <input id="bill-due-date" [(ngModel)]="currentBill.dueDate"
+          name="dueDate"
+          type="date"
+          class="w-full rounded-2xl border-gray-200 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-primary dark:text-white transition-all focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10">
+        </div>
+
+        <!-- Icon URL -->
+        <div class="space-y-1.5">
+          <label for="bill-icon-url" class="block text-sm font-semibold text-secondary dark:text-gray-300 ml-1">Icon URL (Optional)</label>
+          <input id="bill-icon-url" [(ngModel)]="currentBill.iconUrl"
+            name="iconUrl"
+            type="text"
+            class="w-full rounded-2xl border-gray-200 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-primary dark:text-white transition-all focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
+            placeholder="https://example.com/icon.png">
+          </div>
+
+          <!-- Recurring Toggle -->
+          <div class="p-4 bg-gray-50/50 dark:bg-gray-800/20 rounded-2xl border border-gray-100">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-white dark:bg-gray-800 shadow-sm flex items-center justify-center">
+                  <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-brand-600 dark:text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-sm font-bold text-primary dark:text-white text-clip">Recurring Bill</p>
+                  <p class="text-[10px] text-gray-500 dark:text-gray-400 font-medium">Auto-renew this bill monthly</p>
+                </div>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" aria-label="Recurring bill: auto-renew this bill monthly" [(ngModel)]="currentBill.isSubscription" name="isSubscription" class="sr-only peer">
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-brand-500"></div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Payment Method (only for subscription) -->
+          @if (currentBill.isSubscription) {
+            <div class="space-y-1.5 animate-slide-down">
+              <label for="bill-autopay-wallet" class="block text-sm font-semibold text-secondary dark:text-gray-300 ml-1">Auto-pay Wallet</label>
+              <select id="bill-autopay-wallet" [(ngModel)]="currentBill.selectedWalletId"
+                name="selectedWalletId"
+                class="w-full rounded-2xl border-gray-200 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-primary dark:text-white transition-all focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10">
+                <option value="">Select a wallet</option>
+                @for (wallet of availableWallets; track wallet) {
+                  <option [value]="wallet.id">
+                    {{wallet.name}} ({{wallet.balance | appCurrency:wallet.currency}})
+                  </option>
+                }
+              </select>
+            </div>
+          }
+
+          <!-- Action Buttons -->
+          <div class="pt-6 flex gap-4">
+            <button type="button"
+              (click)="closeDrawer()"
+              class="flex-1 rounded-2xl border border-gray-200 bg-white dark:bg-gray-900/50 px-6 py-4 text-sm font-bold text-secondary dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 active:scale-95">
+              Cancel
+            </button>
+            <button type="submit"
+              class="flex-[2] rounded-2xl bg-brand-600 px-6 py-4 text-sm font-bold text-white shadow-lg shadow-brand-500/20 hover:bg-brand-700 hover:shadow-brand-500/30 transition-all duration-200 active:scale-95">
+              {{drawerMode === 'add' ? 'Create Bill' : 'Save Changes'}}
+            </button>
+          </div>
+        </form>
+      </app-side-drawer>
+
+      <!-- Add a new section for transaction history -->
+      <div class="mt-8">
+        <h2 class="mb-4 text-xl font-semibold text-primary">Payment History</h2>
+        <div class="space-y-4">
+          <!-- Same gap as the bills list above: an empty history rendered a
+               bare heading with nothing under it. -->
+          @if (transactions.length === 0) {
+            <app-empty-state
+              [icon]="faClockRotateLeft"
+              title="No payments recorded"
+              message="Once you mark a bill as paid, it will appear here with the date and amount."
+            ></app-empty-state>
+          }
+
+          @for (transaction of transactions; track transaction) {
+            <div
+              class="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+            <div class="flex justify-between items-center">
+              <div>
+                <h4 class="font-medium text-primary dark:text-white">{{transaction.billName}}</h4>
+                <p class="text-sm text-gray-500 dark:text-gray-400">{{transaction.provider}}</p>
+              </div>
+              <div class="text-right">
+                <p class="font-medium text-primary dark:text-white">
+                  {{transaction.amount | appCurrency}}
+                </p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                  {{formatDate(transaction.paidDate)}}
+                </p>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>

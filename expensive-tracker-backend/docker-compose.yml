@@ -1,0 +1,36 @@
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: expense-tracker-db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    restart: unless-stopped
+
+  expensive-tracker-backend:
+    image: expense-tracker-backend:latest
+    container_name: expense-tracker-backend
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - MONGODB_URI=mongodb://mongodb:27017/expense-tracker
+      # Never hardcode this. Supplied from the host environment or a .env file next
+      # to this compose file. Left empty here on purpose: an empty value makes the
+      # backend exit at boot with a clear message (see src/config/validateEnv.js),
+      # while a required-var syntax would also block `compose up mongodb` alone.
+      - "JWT_SECRET=${JWT_SECRET:-}"
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:4200}
+    depends_on:
+      - mongodb
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3001/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  mongo-data:

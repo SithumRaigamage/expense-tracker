@@ -1,0 +1,84 @@
+<div class="card flex h-full flex-col p-4 sm:p-6">
+  <!-- Header -->
+  <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <h3 class="text-lg font-semibold tracking-tight text-primary">Manage Wallets</h3>
+
+    <a
+      routerLink="/wallets"
+      class="inline-flex items-center gap-2 self-start rounded-xl border border-subtle px-3 py-2 text-xs
+             font-medium text-secondary surface-1 shadow-theme-xs transition-all duration-200
+             hover:text-primary hover:shadow-theme-sm active:scale-95 sm:self-auto">
+      <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+      Add Wallet
+    </a>
+  </div>
+
+  <div class="grid gap-3">
+    @for (wallet of wallets; track wallet.id) {
+      <!--
+        The whole row is the link now. It previously ended in a kebab button
+        with no click handler and no menu behind it — a control that looked
+        actionable and did nothing.
+      -->
+      <a
+        routerLink="/wallets"
+        [attr.aria-label]="'Manage ' + wallet.name"
+        class="group block min-w-0 rounded-xl border border-subtle p-4 surface-2 transition-all duration-200
+               hover:border-brand-500/30 hover:shadow-theme-sm">
+        <!-- min-w-0 all the way down: without it the balance and the name both
+             refuse to shrink and the row pushed a 320px viewport 40px wide. -->
+        <div class="flex min-w-0 items-center gap-3">
+          <span
+            [ngClass]="getWalletIconClass(wallet.type)"
+            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-transform
+                   duration-300 ease-[var(--ease-spring)] group-hover:scale-110">
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"></path>
+              <path d="M4 6v12c0 1.1.9 2 2 2h14v-4"></path>
+              <path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z"></path>
+            </svg>
+          </span>
+
+          <div class="min-w-0 flex-1">
+            <h4 class="truncate font-medium text-primary">{{ wallet.name }}</h4>
+            <p class="truncate text-xs text-tertiary">{{ getWalletTypeLabel(wallet.type) }}</p>
+          </div>
+
+          <!--
+            The balance moves up onto this row. It used to sit below in a
+            two-row block alongside a "Currency: LKR" line, which just repeated
+            the currency already printed in front of the amount.
+          -->
+          <span data-numeric class="min-w-0 truncate text-sm font-semibold text-primary">
+            {{ wallet.balance | appCurrency: wallet.currency }}
+          </span>
+        </div>
+      </a>
+    }
+
+    @if (wallets.length === 0) {
+      <!--
+        Was a hand-rolled empty state whose button pointed at `/add-wallet` — a
+        route that does not exist, so the one call to action here fell through
+        the router's catch-all and bounced the user back to the dashboard.
+      -->
+      <app-empty-state
+        [icon]="faWallet"
+        title="No wallets yet"
+        message="Create your first wallet to start tracking expenses."
+        >
+        <a
+          routerLink="/wallets"
+          class="inline-flex items-center gap-2 rounded-xl gradient-brand px-4 py-2.5 text-sm font-semibold
+                 text-white shadow-theme-md transition-transform duration-200 hover:scale-[1.03] active:scale-95">
+          Add your first wallet
+        </a>
+      </app-empty-state>
+    }
+  </div>
+</div>

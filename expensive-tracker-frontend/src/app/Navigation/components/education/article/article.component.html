@@ -1,0 +1,65 @@
+@if (article) {
+  <div class="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-8">
+    <a routerLink="/financial-education"
+      class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+      ← Back to all articles
+    </a>
+
+    <article class="mt-6">
+      <header class="border-b border-gray-200 pb-6 dark:border-gray-700">
+        <div class="mb-3 flex flex-wrap items-center gap-2">
+          <span class="rounded-full px-2 py-1 text-xs font-medium" [class]="categoryClass(article.category)">
+            {{ article.category | titlecase }}
+          </span>
+          <span class="rounded-full bg-gray-100 px-2 py-1 text-xs text-secondary dark:bg-gray-700 dark:text-gray-300">
+            {{ article.level | titlecase }}
+          </span>
+          <span class="text-xs text-gray-500 dark:text-gray-400">{{ article.readingMinutes }} min read</span>
+        </div>
+
+        <div class="flex items-start justify-between gap-4">
+          <h1 class="text-2xl font-semibold text-primary dark:text-white sm:text-3xl">{{ article.title }}</h1>
+          <button type="button"
+            (click)="toggleBookmark()"
+            [attr.aria-pressed]="isBookmarked"
+            [attr.aria-label]="isBookmarked ? 'Remove bookmark' : 'Bookmark this article'"
+            class="shrink-0 text-2xl leading-none transition-colors"
+            [class]="isBookmarked ? 'text-yellow-500' : 'text-gray-300 hover:text-yellow-500 dark:text-gray-600'">
+            ★
+          </button>
+        </div>
+
+        <p class="mt-3 text-secondary dark:text-gray-300">{{ article.summary }}</p>
+      </header>
+
+      <div class="mt-8 space-y-8">
+        @for (section of article.sections; track section.heading) {
+          <section>
+            <h2 class="mb-3 text-lg font-semibold text-primary dark:text-white">{{ section.heading }}</h2>
+            @for (paragraph of section.body; track paragraph) {
+              <p class="mb-3 leading-relaxed text-secondary dark:text-gray-300">{{ paragraph }}</p>
+            }
+          </section>
+        }
+      </div>
+
+      <footer class="mt-10 flex flex-col gap-4 border-t border-gray-200 pt-6 dark:border-gray-700 sm:flex-row sm:items-center sm:justify-between">
+        <button type="button"
+          (click)="toggleRead()"
+          class="rounded-lg px-4 py-2 text-sm font-medium transition-colors"
+          [class]="isRead
+            ? 'border border-green-500 text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-500/10'
+            : 'bg-blue-500 text-white hover:bg-blue-600'">
+          {{ isRead ? '✓ Marked as read' : 'Mark as read' }}
+        </button>
+
+        @if (nextArticle) {
+          <a [routerLink]="['/financial-education', nextArticle.id]"
+            class="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+            Next: {{ nextArticle.title }} →
+          </a>
+        }
+      </footer>
+    </article>
+  </div>
+}

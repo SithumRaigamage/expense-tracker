@@ -1,0 +1,165 @@
+<!-- Mirrors the sign-in screen exactly; see login.component.html for the notes on
+     what changed (hardcoded dark palette, animated blur blobs, dead sheen). -->
+<div class="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-12 sm:px-6">
+  <div class="ambient-field" aria-hidden="true"></div>
+
+  <div class="relative w-full max-w-md animate-rise">
+    <div class="card overflow-hidden p-7 shadow-theme-xl sm:p-9">
+      <div aria-hidden="true" class="absolute inset-x-0 top-0 h-1 gradient-brand"></div>
+
+      <div class="space-y-7">
+        <div class="text-center">
+          <div class="inline-flex h-16 w-16 items-center justify-center rounded-2xl gradient-brand p-0.5 shadow-theme-lg shadow-brand-500/25">
+            <div class="flex h-full w-full items-center justify-center rounded-[0.85rem] surface-1">
+              <svg aria-hidden="true" class="h-8 w-8 text-brand-600 dark:text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+              </svg>
+            </div>
+          </div>
+          <h1 class="mt-6 text-3xl font-bold tracking-tight text-primary">Create account</h1>
+          <p class="mt-2 text-sm text-secondary">
+            Join us to start your financial journey today
+          </p>
+        </div>
+
+        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="space-y-6">
+          @if (error) {
+            <div role="alert"
+              class="flex animate-shake items-start gap-3 rounded-2xl border border-error-200 bg-error-50 p-4
+                     text-error-700 dark:border-error-500/25 dark:bg-error-500/10 dark:text-error-300">
+              <svg aria-hidden="true" class="mt-0.5 h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+              </svg>
+              <span class="text-sm font-medium">{{ error }}</span>
+            </div>
+          }
+
+          <div class="space-y-5">
+            <div class="space-y-1.5">
+              <label for="register-name" class="ml-1 block text-xs font-bold uppercase tracking-[0.1em] text-tertiary">Full name</label>
+              <div class="group/input relative">
+                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-tertiary transition-colors group-focus-within/input:text-brand-500">
+                  <fa-icon [icon]="faUser"></fa-icon>
+                </div>
+                <input
+                  id="register-name"
+                  formControlName="name"
+                  type="text"
+                  autocomplete="name"
+                  placeholder="John Doe"
+                  [attr.aria-invalid]="nameErrors.required || nameErrors.minlength ? 'true' : null"
+                  [attr.aria-describedby]="nameErrors.required || nameErrors.minlength ? 'register-name-error' : null"
+                  [class]="nameErrors.required || nameErrors.minlength
+                    ? 'border-error-400 focus:border-error-500 focus:ring-error-500/20'
+                    : 'border-subtle focus:border-brand-500 focus:ring-brand-500/20'"
+                  class="block w-full rounded-2xl border py-3.5 pl-12 pr-4 text-primary surface-2 outline-none
+                         transition-all duration-200 placeholder:text-tertiary focus:ring-4"
+                  />
+              </div>
+              @if (nameErrors.required) {
+                <p id="register-name-error" class="ml-1 text-xs font-semibold text-error-600 dark:text-error-400">Full name is required</p>
+              }
+              @if (nameErrors.minlength) {
+                <p id="register-name-error" class="ml-1 text-xs font-semibold text-error-600 dark:text-error-400">Minimum 3 characters required</p>
+              }
+            </div>
+
+            <div class="space-y-1.5">
+              <label for="register-email" class="ml-1 block text-xs font-bold uppercase tracking-[0.1em] text-tertiary">Email address</label>
+              <div class="group/input relative">
+                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-tertiary transition-colors group-focus-within/input:text-brand-500">
+                  <fa-icon [icon]="faEnvelope"></fa-icon>
+                </div>
+                <input
+                  id="register-email"
+                  formControlName="email"
+                  type="email"
+                  autocomplete="email"
+                  placeholder="name@example.com"
+                  [attr.aria-invalid]="emailErrors.required || emailErrors.email ? 'true' : null"
+                  [attr.aria-describedby]="emailErrors.required || emailErrors.email ? 'register-email-error' : null"
+                  [class]="emailErrors.required || emailErrors.email
+                    ? 'border-error-400 focus:border-error-500 focus:ring-error-500/20'
+                    : 'border-subtle focus:border-brand-500 focus:ring-brand-500/20'"
+                  class="block w-full rounded-2xl border py-3.5 pl-12 pr-4 text-primary surface-2 outline-none
+                         transition-all duration-200 placeholder:text-tertiary focus:ring-4"
+                  />
+              </div>
+              @if (emailErrors.required) {
+                <p id="register-email-error" class="ml-1 text-xs font-semibold text-error-600 dark:text-error-400">Email is required</p>
+              }
+              @if (emailErrors.email) {
+                <p id="register-email-error" class="ml-1 text-xs font-semibold text-error-600 dark:text-error-400">Please enter a valid email</p>
+              }
+            </div>
+
+            <div class="space-y-1.5">
+              <label for="register-password" class="ml-1 block text-xs font-bold uppercase tracking-[0.1em] text-tertiary">Password</label>
+              <div class="group/input relative">
+                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-tertiary transition-colors group-focus-within/input:text-brand-500">
+                  <fa-icon [icon]="faLock"></fa-icon>
+                </div>
+                <input
+                  id="register-password"
+                  formControlName="password"
+                  [type]="showPassword ? 'text' : 'password'"
+                  autocomplete="new-password"
+                  placeholder="••••••••"
+                  [attr.aria-invalid]="passwordErrors.required || passwordErrors.minlength ? 'true' : null"
+                  [attr.aria-describedby]="passwordErrors.required || passwordErrors.minlength ? 'register-password-error' : null"
+                  [class]="passwordErrors.required || passwordErrors.minlength
+                    ? 'border-error-400 focus:border-error-500 focus:ring-error-500/20'
+                    : 'border-subtle focus:border-brand-500 focus:ring-brand-500/20'"
+                  class="block w-full rounded-2xl border py-3.5 pl-12 pr-12 text-primary surface-2 outline-none
+                         transition-all duration-200 placeholder:text-tertiary focus:ring-4"
+                  />
+                <button
+                  type="button"
+                  (click)="togglePasswordVisibility()"
+                  [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+                  [attr.aria-pressed]="showPassword"
+                  class="absolute inset-y-0 right-0 flex items-center pr-4 text-tertiary transition-colors hover:text-primary"
+                  >
+                  <fa-icon [icon]="showPassword ? faEyeSlash : faEye"></fa-icon>
+                </button>
+              </div>
+              @if (passwordErrors.required) {
+                <p id="register-password-error" class="ml-1 text-xs font-semibold text-error-600 dark:text-error-400">Password is required</p>
+              }
+              @if (passwordErrors.minlength) {
+                <p id="register-password-error" class="ml-1 text-xs font-semibold text-error-600 dark:text-error-400">At least 6 characters required</p>
+              }
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            [disabled]="loading"
+            class="group/btn relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-2xl
+                   gradient-brand px-8 py-4 text-sm font-bold text-white shadow-theme-lg shadow-brand-500/25
+                   transition-all duration-300 ease-[var(--ease-out-quint)] hover:shadow-theme-xl
+                   hover:shadow-brand-500/35 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+            <span aria-hidden="true"
+              class="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent
+                     transition-transform duration-700 ease-[var(--ease-out-quint)] group-hover/btn:translate-x-full"></span>
+            @if (loading) {
+              <fa-icon [icon]="faSpinner" class="animate-spin text-lg"></fa-icon>
+              <span class="relative">Creating account…</span>
+            } @else {
+              <span class="relative">Create my account</span>
+              <fa-icon [icon]="faArrowRight" class="relative transition-transform duration-300 group-hover/btn:translate-x-1"></fa-icon>
+            }
+          </button>
+
+          <p class="text-center text-sm text-secondary">
+            Already a member?
+            <a routerLink="/login" class="font-bold text-brand-600 transition-colors hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300">
+              Sign in here
+            </a>
+          </p>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

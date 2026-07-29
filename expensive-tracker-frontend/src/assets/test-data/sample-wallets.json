@@ -1,0 +1,51 @@
+[
+  {
+    "name": "Cash Wallet",
+    "type": "cash",
+    "balance": 15000.50,
+    "currency": "LKR",
+    "paymentMethod": ""
+  },
+  {
+    "name": "BOC Savings",
+    "type": "bank",
+    "balance": 150000.25,
+    "currency": "LKR",
+    "paymentMethod": "bank transfer"
+  },
+  {
+    "name": "VISA Credit Card",
+    "type": "credit",
+    "balance": 45000.00,
+    "currency": "LKR",
+    "paymentMethod": "card"
+  },
+  {
+    "name": "NSB Fixed Deposit",
+    "type": "savings",
+    "balance": 500000.00,
+    "currency": "LKR",
+    "paymentMethod": ""
+  },
+  {
+    "name": "Bitcoin Wallet",
+    "type": "crypto",
+    "balance": 25000.00,
+    "currency": "LKR",
+    "paymentMethod": "crypto exchange"
+  },
+  {
+    "name": "CSE Investments",
+    "type": "investment",
+    "balance": 750000.00,
+    "currency": "LKR",
+    "paymentMethod": "broker"
+  },
+  {
+    "name": "Home Loan",
+    "type": "loan",
+    "balance": -2000000.00,
+    "currency": "LKR",
+    "paymentMethod": "bank transfer"
+  }
+]

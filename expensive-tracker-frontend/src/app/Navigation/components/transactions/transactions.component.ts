@@ -1,0 +1,668 @@
+import { Component, OnInit, HostListener, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { CommonModule } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { TransactionService } from '../../../services/transaction.service';
+import { WalletService } from '../../../services/wallet.service';
+import { Wallet } from '../../../core/models/Wallet';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import {
+  faPlus, faPencil, faTrash, faUpload, faFileUpload, faFileImport,
+  faEdit, faRefresh, faFilter, faSearch, faChevronLeft, faChevronRight, faDownload
+} from '@fortawesome/free-solid-svg-icons';
+import { Transaction } from '../../../core/models/Transaction';
+import { CurrencyService } from '../../../core/services/currency.service';
+import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
+import { ExcelExportService } from '../../../services/excel-export.service';
+import { SideDrawerComponent } from '../../../shared/components/side-drawer/side-drawer.component';
+import { NotificationService } from '../../../shared/services/notification.service';
+import { DialogService } from '../../../shared/services/dialog.service';
+
+interface Category {
+  _id: string;
+  name: string;
+  type: 'income' | 'expense';
+}
+
+@Component({
+  selector: 'app-transactions',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule, FontAwesomeModule, AppCurrencyPipe, SideDrawerComponent],
+  templateUrl: './transactions.component.html',
+})
+export class TransactionsComponent implements OnInit {
+  private fb = inject(FormBuilder);
+  private transactionService = inject(TransactionService);
+  private walletService = inject(WalletService);
+  private route = inject(ActivatedRoute);
+  currencyService = inject(CurrencyService);
+  private excelExportService = inject(ExcelExportService);
+  private readonly notifications = inject(NotificationService);
+  private readonly dialogs = inject(DialogService);
+
+  private readonly destroyRef = inject(DestroyRef);
+
+  faPlus = faPlus;
+  faPencil = faPencil;
+  faTrash = faTrash;
+  faUpload = faUpload;
+  faFileUpload = faFileUpload;
+  faFileImport = faFileImport;
+  faEdit = faEdit;
+  faRefresh = faRefresh;
+  faFilter = faFilter;
+  faSearch = faSearch;
+  faChevronLeft = faChevronLeft;
+  faChevronRight = faChevronRight;
+  faDownload = faDownload;
+
+  // All loaded transactions
+  allTransactions: Transaction[] = [];
+  // Filtered transactions (before pagination)
+  filteredTransactions: Transaction[] = [];
+  // Displayed transactions (after pagination)
+  transactions: Transaction[] = [];
+  categories: Category[] = [];
+  isDrawerOpen = false;
+  selectedTransaction: Transaction | null = null;
+  transactionForm: FormGroup;
+  filterForm: FormGroup;
+  isLoading = false;
+  errorMessage = '';
+  activeTab: 'manual' | 'upload' = 'manual';
+  wallets: Wallet[] = [];
+
+  // Custom Dropdown States
+  isTypeOpen = false;
+  isCategoryOpen = false;
+  isWalletOpen = false;
+
+  // Pagination
+  currentPage = 1;
+  pageSize = 10;
+  totalPages = 1;
+
+  // File upload related properties
+  selectedFile: File | null = null;
+  jsonPreview: Transaction[] | null = null;
+  jsonError: string | null = null;
+
+  constructor() {
+    this.transactionForm = this.createForm();
+    this.filterForm = this.createFilterForm();
+  }
+
+  ngOnInit() {
+    this.loadTransactions();
+    this.loadCategories();
+    this.loadWallets();
+
+    // Reset category when type changes
+    this.transactionForm.get('type')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.transactionForm.get('category')?.setValue('');
+    });
+
+    // Auto-determine wallet when category changes
+    this.transactionForm.get('category')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((categoryId) => {
+      if (categoryId) {
+        this.onCategoryChange(categoryId);
+      }
+    });
+
+    // Subscribe to filter changes
+    this.filterForm.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.applyFilters();
+    });
+
+    // Handle query params
+    this.route.queryParams.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
+      if (params['walletType'] === 'emergencyfund') {
+        const checkWallets = () => {
+          const emergencyWallet = this.wallets.find(w => w.type === 'emergencyfund');
+          if (emergencyWallet) {
+            // Filter the list
+            this.filterForm.patchValue({ wallet: emergencyWallet.id });
+            
+            // If action is add, open the drawer
+            if (params['action'] === 'add') {
+              this.openDrawer();
+              this.transactionForm.get('walletId')?.setValue(emergencyWallet.id);
+              this.transactionForm.get('type')?.setValue('income');
+            }
+          } else if (this.wallets.length === 0) {
+            // Retry if wallets haven't loaded yet
+            setTimeout(checkWallets, 100);
+          }
+        };
+        checkWallets();
+      }
+    });
+  }
+
+  private loadTransactions() {
+    this.isLoading = true;
+    this.transactionService.getAllTransactions().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (transactions) => {
+        this.allTransactions = transactions;
+        this.filteredTransactions = [...this.allTransactions];
+        this.applyFilters();
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading transactions:', error);
+        this.errorMessage = 'Failed to load transactions';
+        this.isLoading = false;
+      }
+    });
+  }
+
+  private loadCategories() {
+    this.transactionService.getCategories().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (categories) => {
+        this.categories = categories;
+        // If no categories loaded, try to refresh
+        if (categories.length === 0) {
+          this.transactionService.refreshCategories();
+        }
+      },
+      error: (error) => {
+        console.error('Error loading categories:', error);
+        // Try to refresh categories on error
+        this.transactionService.refreshCategories();
+      }
+    });
+  }
+
+  createForm(): FormGroup {
+    return this.fb.group({
+      date: ['', Validators.required],
+      amount: ['', [Validators.required, Validators.min(0)]],
+      description: ['', Validators.required],
+      category: ['', Validators.required],
+      type: ['expense', Validators.required],
+      walletId: ['', Validators.required]
+    });
+  }
+
+  private loadWallets() {
+    this.walletService.wallets$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(wallets => {
+      this.wallets = wallets.filter(w => w.isActive !== false);
+    });
+  }
+
+  // Auto-determine wallet based on category selection
+  onCategoryChange(categoryId: string) {
+    const category = this.categories.find(c => c._id === categoryId);
+    if (!category) return;
+
+    const categoryName = category.name.toLowerCase();
+    const emergencyKeywords = ['health', 'medical', 'emergency', 'hospital', 'doctor'];
+    const isEmergency = emergencyKeywords.some(keyword => categoryName.includes(keyword));
+
+    if (isEmergency) {
+      const emergencyWallet = this.wallets.find(w => w.type === 'emergencyfund');
+      if (emergencyWallet) {
+        this.transactionForm.get('walletId')?.setValue(emergencyWallet.id);
+        return;
+      }
+    }
+
+    if (categoryName.includes('salary')) {
+      const bankWallet = this.wallets.find(w => w.type === 'bank');
+      if (bankWallet) {
+        this.transactionForm.get('walletId')?.setValue(bankWallet.id);
+        return;
+      }
+    }
+
+    // Default: if no wallet selected yet, pick first cash/bank
+    if (!this.transactionForm.get('walletId')?.value) {
+      const defaultWallet = this.wallets.find(w => w.type === 'cash' || w.type === 'bank');
+      if (defaultWallet) {
+        this.transactionForm.get('walletId')?.setValue(defaultWallet.id);
+      }
+    }
+  }
+
+  openDrawer(transaction?: Transaction) {
+    this.selectedTransaction = transaction || null;
+    if (transaction) {
+      // Find the category ID based on the category name
+      const category = this.categories.find(cat => cat.name === transaction.category);
+      const categoryId = category?._id || '';
+      
+      this.transactionForm.patchValue({
+        date: this.formatDateForInput(transaction.date),
+        amount: transaction.amount,
+        description: transaction.description,
+        category: categoryId,
+        type: transaction.type,
+        walletId: transaction.walletId
+      });
+    } else {
+      // Set today's date as default for new transactions
+      const today = new Date();
+      this.transactionForm.reset({ 
+        type: 'expense',
+        date: this.formatDateForInput(today)
+      });
+    }
+    this.isDrawerOpen = true;
+    this.activeTab = 'manual'; // Default to manual entry when opening drawer
+  }
+
+  closeDrawer() {
+    this.isDrawerOpen = false;
+    this.selectedTransaction = null;
+    this.transactionForm.reset({ type: 'expense' });
+    this.resetFileUpload();
+  }
+
+  switchTab(tab: 'manual' | 'upload') {
+    if (this.activeTab !== tab) {
+      this.activeTab = tab;
+
+      // Reset form data when switching tabs
+      if (tab === 'manual') {
+        this.resetFileUpload();
+      } else {
+        this.transactionForm.reset({ type: 'expense' });
+      }
+    }
+  }
+
+  onSubmit() {
+    if (this.transactionForm.valid) {
+      this.isLoading = true;
+      this.errorMessage = '';
+
+      const formValue = {
+        ...this.transactionForm.value,
+        date: new Date(this.transactionForm.value.date)
+      };
+
+      const operation = this.selectedTransaction
+        ? this.transactionService.updateTransaction({
+            ...this.selectedTransaction,
+            ...formValue
+          })
+        : this.transactionService.addTransaction(formValue);
+
+      operation.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+        next: () => {
+          this.notifications.success(
+            this.selectedTransaction ? 'Transaction updated.' : 'Transaction added.'
+          );
+          this.closeDrawer();
+          this.isLoading = false;
+        },
+        error: (error) => {
+          console.error('Error saving transaction:', error);
+          this.errorMessage = error.message || 'Failed to save transaction';
+          this.isLoading = false;
+        }
+      });
+    }
+  }
+
+  // File upload methods
+  onFileSelected(event: Event) {
+    const element = event.target as HTMLInputElement;
+    const file = element.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    this.selectedFile = file;
+    this.jsonError = null;
+    this.jsonPreview = null;
+
+    if (!file.name.endsWith('.json')) {
+      this.jsonError = 'Please select a valid JSON file';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e: ProgressEvent<FileReader>) => {
+      try {
+        // A null result parses to a SyntaxError, which the catch below already
+        // reports as an invalid file.
+        const json = JSON.parse(String(e.target?.result ?? ''));
+        this.processJsonData(json);
+      } catch (error) {
+        console.error('Error parsing JSON:', error);
+        this.jsonError = 'Invalid JSON format. Please check the file structure.';
+      }
+    };
+
+    reader.onerror = () => {
+      this.jsonError = 'Error reading file. Please try again.';
+    };
+
+    reader.readAsText(file);
+  }
+
+  // The argument comes straight from a user-supplied file, so it is unknown
+  // until these checks have run over it.
+  processJsonData(data: unknown) {
+    // Validate the JSON structure
+    if (!Array.isArray(data)) {
+      this.jsonError = 'Invalid JSON format. Expected an array of transactions.';
+      return;
+    }
+
+    const validTransactions: Transaction[] = [];
+    const errors: string[] = [];
+
+    data.forEach((entry: unknown, index: number) => {
+      const item = (entry ?? {}) as Record<string, unknown>;
+      const description = typeof item['description'] === 'string' ? item['description'] : '';
+      const type = item['type'];
+      const label = description || index;
+
+      if (!description) {
+        errors.push(`Transaction at index ${index} is missing a description`);
+      }
+
+      if (typeof type !== 'string' || !['income', 'expense'].includes(type)) {
+        errors.push(`Transaction "${label}" has an invalid type`);
+      }
+
+      if (item['amount'] === undefined || isNaN(Number(item['amount']))) {
+        errors.push(`Transaction "${label}" has an invalid amount`);
+      }
+
+      if (!item['category']) {
+        errors.push(`Transaction "${label}" is missing a category`);
+      }
+
+      if (!item['date']) {
+        errors.push(`Transaction "${label}" is missing a date`);
+      }
+
+      if (!errors.length) {
+        validTransactions.push({
+          id: '', // Will be assigned by server
+          description,
+          type: type as Transaction['type'],
+          amount: Number(item['amount']),
+          category: String(item['category']),
+          date: new Date(item['date'] as string | number),
+          walletId: '' // Will be determined by server during bulk import
+        });
+      }
+    });
+
+    if (errors.length) {
+      this.jsonError = `Found ${errors.length} issues in your data:\n${errors.slice(0, 3).join('\n')}${errors.length > 3 ? `\n...and ${errors.length - 3} more issues` : ''}`;
+      return;
+    }
+
+    if (validTransactions.length === 0) {
+      this.jsonError = 'No valid transactions found in the file.';
+      return;
+    }
+
+    this.jsonPreview = validTransactions;
+  }
+
+  importTransactions() {
+    if (!this.jsonPreview || this.isLoading) {
+      return;
+    }
+
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    // Use the bulkAddTransactions method
+    this.transactionService.bulkAddTransactions(this.jsonPreview).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (result) => {
+        if (result.failedCount > 0 && result.failedTransactions) {
+          // Create a more detailed message about the failures
+          const failureDetails = result.failedTransactions
+            .map(t => `• ${t.description}: ${t.error}`)
+            .join('\n');
+
+          // Use a simple alert with details
+          this.notifications.error(`Imported ${result.successCount}. ${result.failedCount} failed: ${failureDetails}`);
+        } else if (result.failedCount > 0) {
+          this.notifications.error(`Imported ${result.successCount} transactions; ${result.failedCount} failed.`);
+        } else {
+          this.notifications.success(`Imported ${result.successCount} transactions.`);
+        }
+        // Refresh the transactions list with a small delay to ensure backend processing is complete
+        setTimeout(() => {
+          this.transactionService.refreshTransactions();
+          this.loadTransactions();
+          // Apply filters to the refreshed data
+          setTimeout(() => {
+            this.applyFilters();
+          }, 300);
+        }, 500);
+
+        this.closeDrawer();
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error importing transactions:', error);
+        this.errorMessage = error.message || 'Failed to import transactions. Please try again.';
+        this.isLoading = false;
+      }
+    });
+  }
+
+  resetFileUpload() {
+    this.selectedFile = null;
+    this.jsonPreview = null;
+    this.jsonError = null;
+  }
+
+  deleteTransaction(id: string | number) {
+    this.dialogs.confirmDelete('transaction').pipe(takeUntilDestroyed(this.destroyRef)).subscribe(confirmed => {
+      if (!confirmed) {
+        return;
+      }
+
+      this.transactionService.deleteTransaction(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+        next: () => this.notifications.success('Transaction deleted.'),
+        error: (error) => {
+          this.notifications.error(error?.message || 'Could not delete that transaction.');
+        }
+      });
+    });
+  }
+
+  exportTransactions() {
+    if (this.allTransactions.length === 0) return;
+    
+    // We export filtered transactions or all transactions? 
+    // Usually user expects filtered data if filtered, but "export" usually means the current view.
+    // Let's export allTransactions but suggest filtered if needed.
+    // User said "export all data into a exceel sheet", let's export all.
+    const exportData = this.excelExportService.formatDataForExport(this.allTransactions);
+    this.excelExportService.exportToExcel(exportData, 'AllTransactions', 'Transactions');
+  }
+
+  getCategoriesByType(type: 'income' | 'expense'): Category[] {
+    return this.categories.filter(cat => cat.type === type);
+  }
+
+  // Getter for current transaction type
+  get currentTransactionType(): 'income' | 'expense' {
+    return this.transactionForm.get('type')?.value || 'expense';
+  }
+
+  // Getter for filtered categories
+  get filteredCategories(): Category[] {
+    const type = this.currentTransactionType;
+
+    // Helper function to determine category type if missing
+    const getCategoryType = (category: Category): 'income' | 'expense' => {
+      if (category.type) {
+        return category.type;
+      }
+
+      // Fallback: determine type based on category name
+      const incomeKeywords = ['salary', 'income', 'freelance', 'investment', 'bonus'];
+      const categoryName = category.name.toLowerCase();
+
+      return incomeKeywords.some(keyword => categoryName.includes(keyword)) ? 'income' : 'expense';
+    };
+
+    const filtered = this.categories.filter(cat => getCategoryType(cat) === type);
+
+    return filtered;
+  }
+
+  // Helper method to format date for input
+  private formatDateForInput(date: Date): string {
+    return date.toISOString().split('T')[0];
+  }
+
+  // Filter form creation
+  createFilterForm(): FormGroup {
+    return this.fb.group({
+      startDate: [''],
+      endDate: [''],
+      type: [''],
+      category: [''],
+      wallet: [''],
+      searchTerm: ['']
+    });
+  }
+
+  // Apply filters based on filter form values
+  applyFilters(): void {
+    // Start with all transactions
+    let filtered = [...this.allTransactions];
+    const filters = this.filterForm.value;
+
+    // Apply type filter
+    if (filters.type) {
+      filtered = filtered.filter(t => t.type === filters.type);
+    }
+
+    // Apply category filter
+    if (filters.category) {
+      filtered = filtered.filter(t => t.category === filters.category);
+    }
+
+    // Apply wallet filter
+    if (filters.wallet) {
+      filtered = filtered.filter(t => t.walletId === filters.wallet);
+    }
+
+    // Apply date range filter
+    if (filters.startDate) {
+      const startDate = new Date(filters.startDate);
+      filtered = filtered.filter(t => {
+        const transactionDate = t.date instanceof Date ? t.date : new Date(t.date);
+        return transactionDate >= startDate;
+      });
+    }
+
+    if (filters.endDate) {
+      const endDate = new Date(filters.endDate);
+      endDate.setHours(23, 59, 59, 999); // End of day
+      filtered = filtered.filter(t => {
+        const transactionDate = t.date instanceof Date ? t.date : new Date(t.date);
+        return transactionDate <= endDate;
+      });
+    }
+
+    // Apply search term filter
+    if (filters.searchTerm) {
+      const term = filters.searchTerm.toLowerCase();
+      filtered = filtered.filter(t =>
+        t.description.toLowerCase().includes(term) ||
+        t.category.toLowerCase().includes(term)
+      );
+    }
+
+    // Update filtered transactions and reset pagination
+    this.filteredTransactions = filtered;
+    this.currentPage = 1;
+    this.updatePagination();
+  }
+
+  // Update pagination based on current page and filtered transactions
+  updatePagination(): void {
+    this.totalPages = Math.ceil(this.filteredTransactions.length / this.pageSize);
+
+    // Update displayed transactions based on current page
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    this.transactions = this.filteredTransactions.slice(startIndex, endIndex);
+  }
+
+  // Navigate to a specific page
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+      this.updatePagination();
+    }
+  }
+
+  // Reset all filters
+  resetFilters(): void {
+    this.filterForm.reset();
+    this.applyFilters();
+  }
+
+  // --- Custom Dropdown Methods ---
+
+  // Each dropdown has a transparent backdrop that closes it on click; Escape is
+  // the keyboard equivalent.
+  @HostListener('document:keydown.escape')
+  onEscape() {
+    this.isTypeOpen = false;
+    this.isCategoryOpen = false;
+    this.isWalletOpen = false;
+  }
+
+  toggleTypeDropdown() {
+    this.isTypeOpen = !this.isTypeOpen;
+    if (this.isTypeOpen) {
+      this.isCategoryOpen = false;
+      this.isWalletOpen = false;
+    }
+  }
+
+  toggleCategoryDropdown() {
+    this.isCategoryOpen = !this.isCategoryOpen;
+    if (this.isCategoryOpen) {
+      this.isTypeOpen = false;
+      this.isWalletOpen = false;
+    }
+  }
+
+  toggleWalletDropdown() {
+    this.isWalletOpen = !this.isWalletOpen;
+    if (this.isWalletOpen) {
+      this.isTypeOpen = false;
+      this.isCategoryOpen = false;
+    }
+  }
+
+  selectType(type: string) {
+    this.filterForm.patchValue({ type });
+    this.isTypeOpen = false;
+  }
+
+  selectCategory(categoryName: string) {
+    this.filterForm.patchValue({ category: categoryName });
+    this.isCategoryOpen = false;
+  }
+
+  selectWallet(walletId: string) {
+    this.filterForm.patchValue({ wallet: walletId });
+    this.isWalletOpen = false;
+  }
+
+  getWalletName(id: string): string {
+    const w = this.wallets.find(wallet => wallet.id === id);
+    return w ? w.name : 'All Wallets';
+  }
+}

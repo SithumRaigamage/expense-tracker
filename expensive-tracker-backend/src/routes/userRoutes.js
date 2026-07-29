@@ -1,24 +1,45 @@
 const express = require('express');
 const router = express.Router();
+const {
+  register,
+  login,
+  logout,
+  getProfile,
+  updateProfile,
+  changePassword,
+  verifyToken
+} = require('../controllers/userController');
+const {
+  uploadProfileImage,
+  deleteProfileImage
+} = require('../controllers/profileController');
+const { protect } = require('../middleware/auth');
+const fileUpload = require('../middleware/fileUpload');
+const { authLimiter } = require('../middleware/rateLimiter');
+const {
+  validateRegister,
+  validateLogin,
+  validatePasswordChange
+} = require('../middleware/authValidators');
 
-// Import controller methods (to be created)
-// const {
-//   register,
-//   login,
-//   logout,
-//   getProfile,
-//   updateProfile,
-//   deleteAccount
-// } = require('../controllers/userController');
+// Public routes — rate limited and strictly validated: these are the only
+// endpoints an unauthenticated caller can reach.
+router.post('/register', authLimiter, validateRegister, register);
+router.post('/login', authLimiter, validateLogin, login);
 
-// Routes
-router.post('/register', (req, res) => res.json({ message: 'Register user' }));
-router.post('/login', (req, res) => res.json({ message: 'Login user' }));
-router.post('/logout', (req, res) => res.json({ message: 'Logout user' }));
+// Protected routes
+router.use(protect); // Apply auth middleware to all routes below
 
+router.post('/logout', logout);
+router.get('/verify', verifyToken);
 router.route('/profile')
-  .get((req, res) => res.json({ message: 'Get user profile' }))
-  .put((req, res) => res.json({ message: 'Update user profile' }))
-  .delete((req, res) => res.json({ message: 'Delete user account' }));
+  .get(getProfile)
+  .put(updateProfile);
+router.put('/change-password', validatePasswordChange, changePassword);
+
+// Profile image routes
+router.route('/profile/image')
+  .post(fileUpload.single('profileImage'), uploadProfileImage)
+  .delete(deleteProfileImage);
 
 module.exports = router;

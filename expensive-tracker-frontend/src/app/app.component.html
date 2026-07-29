@@ -1,0 +1,7 @@
+<router-outlet></router-outlet>
+
+<!-- Mounted once at the root so any service can raise feedback from anywhere. -->
+<app-toast></app-toast>
+
+<!-- Only renders once the service worker reports a newer build; inert in dev. -->
+<app-update-prompt></app-update-prompt>

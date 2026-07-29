@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Expensify</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Expensify — track spending across multiple wallets and currencies, and monitor savings goals.">
+  <!-- SVG first so the tab icon stays crisp at any density; the PNG and ICO cover
+       browsers that don't take SVG, and the bare /favicon.ico request. -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="icon" type="image/png" sizes="256x256" href="favicon.png">
+  <link rel="icon" type="image/x-icon" sizes="16x16 32x32 48x48" href="favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/images/apple-touch-icon.png">
+  <!--
+    Apple's install path. On macOS Sonoma and later, Safari's "Add to Dock"
+    reads the web app manifest for everything, so these are belt-and-braces for
+    that and load-bearing on iOS, where Safari still leans on the meta tags.
+    Without apple-mobile-web-app-title the icon is labelled with the <title>,
+    which here would read "Dashboard · Expensify".
+  -->
+  <meta name="apple-mobile-web-app-title" content="Expensify">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#ffffff">
+  <!--
+    Applies the stored theme before first paint. Angular bootstraps after the
+    document parses, so leaving this to ThemeService alone renders one light
+    frame and then snaps to dark — the flash is very visible on a dark desktop.
+    Kept inline and dependency-free for that reason; it must run synchronously.
+    Mirrors the storage key and resolution order in core/services/theme.service.ts.
+  -->
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem('expensify.theme');
+        var dark = stored === 'dark' || (stored !== 'light' &&
+          window.matchMedia('(prefers-color-scheme: dark)').matches);
+        if (dark) {
+          document.documentElement.classList.add('dark');
+          document.documentElement.style.colorScheme = 'dark';
+          document.querySelector('meta[name="theme-color"]')
+            .setAttribute('content', '#070b16');
+        }
+      } catch (e) { /* storage blocked — fall back to light */ }
+    })();
+  </script>
+  <link rel="manifest" href="manifest.webmanifest">
+</head>
+<body>
+  <app-root></app-root>
+  <noscript>Please enable JavaScript to continue using this application.</noscript>
+</body>
+</html>

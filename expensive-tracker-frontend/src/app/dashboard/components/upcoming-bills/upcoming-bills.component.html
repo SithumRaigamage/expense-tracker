@@ -1,0 +1,82 @@
+<div class="card flex h-full flex-col p-4 sm:p-6">
+  <!-- Header -->
+  <div class="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <h3 class="text-lg font-semibold text-primary">Upcoming Bills</h3>
+
+    <!--
+      Was a <button> with no (click) and no routerLink — it looked like the
+      widget's primary action and did nothing at all. It is a link to the Bills
+      page now, which is where a bill actually gets added.
+    -->
+    <a routerLink="/bills"
+      class="inline-flex items-center gap-2 self-start rounded-xl border border-subtle px-3 py-2 text-theme-sm
+             font-medium text-secondary surface-1 shadow-theme-xs transition-all duration-200
+             hover:text-primary hover:shadow-theme-sm active:scale-95 sm:self-auto">
+      <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+      Add Bill
+    </a>
+  </div>
+
+  <div class="space-y-3">
+    @for (bill of upcomingBills; track bill) {
+      <!--
+        The row ended in a kebab button with no handler and no menu behind it.
+        The whole row links to the Bills page instead, so the affordance is real.
+      -->
+      <a routerLink="/bills"
+        [attr.aria-label]="'Manage bill: ' + bill.name"
+        class="group grid grid-cols-1 items-center gap-4 rounded-xl border border-subtle p-4 surface-2
+               transition-all duration-200 hover:border-brand-500/30 hover:shadow-theme-sm
+               md:grid-cols-[minmax(0,1fr)_8rem_8rem_auto] md:gap-5">
+        <div class="flex min-w-0 items-center gap-3">
+          <span class="h-10 w-10 shrink-0 overflow-hidden rounded-xl">
+            <img [src]="bill.iconUrl" alt="" class="h-full w-full object-cover">
+          </span>
+          <div class="min-w-0">
+            <h4 class="truncate font-medium text-primary">{{bill.name}}</h4>
+            <p class="truncate text-xs text-tertiary">{{bill.provider}}</p>
+          </div>
+        </div>
+
+        <div class="min-w-0">
+          <span class="block text-xs text-tertiary">Due date</span>
+          <span class="block truncate font-medium text-primary">{{formatDate(bill.dueDate)}}</span>
+        </div>
+
+        <div class="min-w-0">
+          <span class="block text-xs text-tertiary">Amount</span>
+          <span data-numeric class="block truncate font-semibold text-primary">{{bill.amount | appCurrency}}</span>
+        </div>
+
+        <span [ngClass]="getStatusClass(bill.status)"
+          class="inline-flex shrink-0 items-center justify-self-start whitespace-nowrap rounded-full px-2.5 py-0.5
+                 text-xs font-medium md:justify-self-end">
+          {{bill.status}}
+        </span>
+      </a>
+    }
+
+    <!--
+      Was a hand-rolled empty state whose "Add Your First Bill" button was also
+      a dead <button> with no handler.
+    -->
+    @if (upcomingBills.length === 0) {
+      <app-empty-state
+        [icon]="faCalendarDays"
+        title="No upcoming bills"
+        message="Add your first bill and it will be tracked here as the due date approaches."
+        size="lg"
+        >
+        <a routerLink="/bills"
+          class="inline-flex items-center gap-2 rounded-xl gradient-brand px-4 py-2.5 text-sm font-semibold
+                 text-white shadow-theme-md transition-transform duration-200 hover:scale-[1.03] active:scale-95">
+          Add your first bill
+        </a>
+      </app-empty-state>
+    }
+  </div>
+</div>

@@ -1,0 +1,30 @@
+/*
+  Only the error shake lives here now.
+
+  This file also redefined `.shadow-2xl`, `.backdrop-blur-2xl` and `.group` —
+  all Tailwind utility names. Component styles are scoped, so those quietly
+  changed the meaning of standard utilities for this component only, which is
+  exactly the kind of thing that makes a design system stop being one. The
+  `.group` override in particular reshaped every hover group on the page at
+  narrow widths.
+*/
+
+:host {
+  display: block;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+.animate-shake {
+  animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+/* A form that jerks sideways is a poor way to report a failed sign-in to anyone
+   sensitive to motion; the message itself already carries the meaning. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-shake { animation: none; }
+}

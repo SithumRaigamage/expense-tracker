@@ -1,23 +1,32 @@
 const express = require('express');
 const router = express.Router();
+const {
+  getCategories,
+  getCategory,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+  createDefaultCategories
+} = require('../controllers/categoryController');
 
-// Import controller methods (to be created)
-// const {
-//   getCategories,
-//   getCategory,
-//   createCategory,
-//   updateCategory,
-//   deleteCategory
-// } = require('../controllers/categoryController');
+const { protect } = require('../middleware/auth');
+const { validateObjectId } = require('../middleware/validation');
+const { validateCategoryCreate, validateCategoryUpdate } = require('../validators/categoryValidator');
 
-// Routes
+// Apply auth middleware to all routes
+router.use(protect);
+
+// Special routes
+router.post('/defaults', createDefaultCategories);
+
+// Main CRUD routes
 router.route('/')
-  .get((req, res) => res.json({ message: 'Get all categories' }))
-  .post((req, res) => res.json({ message: 'Create category' }));
+  .get(getCategories)
+  .post(validateCategoryCreate, createCategory);
 
 router.route('/:id')
-  .get((req, res) => res.json({ message: `Get category ${req.params.id}` }))
-  .put((req, res) => res.json({ message: `Update category ${req.params.id}` }))
-  .delete((req, res) => res.json({ message: `Delete category ${req.params.id}` }));
+  .get(validateObjectId(), getCategory)
+  .put(validateObjectId(), validateCategoryUpdate, updateCategory)
+  .delete(validateObjectId(), deleteCategory);
 
 module.exports = router;

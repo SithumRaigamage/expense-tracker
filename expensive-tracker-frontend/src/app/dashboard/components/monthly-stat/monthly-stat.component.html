@@ -1,0 +1,46 @@
+<!--
+  `mt-5` was left over from the old stacked layout, where this widget sat under
+  the metrics column. It now shares a grid row with the trend chart, and the
+  stray margin pushed it out of alignment with its neighbour.
+-->
+<div class="card flex h-full flex-col overflow-hidden p-4 sm:p-6">
+  <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <!--
+      The tab group carried `w-full`, which let it squeeze the heading until
+      "Monthly transactions" wrapped onto two lines at this column width.
+    -->
+    <h3 class="text-lg font-semibold text-primary sm:whitespace-nowrap">
+      Monthly transactions
+    </h3>
+    <div class="shrink-0 sm:ml-auto">
+      <app-monthly-transaction-tab
+        (tabChanged)="onTabChanged($event)"
+      ></app-monthly-transaction-tab>
+    </div>
+  </div>
+
+  <!--
+    Was a hand-rolled empty state — its own inline SVG, heading and copy —
+    duplicating the shared component that the rest of the dashboard uses.
+    The nested "no data" branch inside the chart block below was unreachable:
+    it tested for an empty list inside a branch that only runs when the list
+    is non-empty.
+  -->
+  @if (transactions.length === 0 && !isLoading) {
+    <app-empty-state
+      [icon]="faChartColumn"
+      title="No transaction data"
+      message="Add transactions to see your monthly statistics and trends."
+      size="lg"
+    ></app-empty-state>
+  }
+
+  @if (transactions.length > 0) {
+    <div class="min-w-0 flex-1">
+      <app-chart
+        [chartType]="currentChartType"
+        [transactions]="transactions"
+      ></app-chart>
+    </div>
+  }
+</div>

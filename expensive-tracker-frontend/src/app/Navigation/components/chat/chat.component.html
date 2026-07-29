@@ -1,0 +1,99 @@
+<div class="mx-auto flex h-[calc(100vh-9rem)] max-w-3xl flex-col">
+
+  <!-- Header -->
+  <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 pb-4 dark:border-gray-800">
+    <div>
+      <h1 class="text-2xl font-semibold text-primary dark:text-white">Assistant</h1>
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        Ask about your spending, balances, and savings goals.
+      </p>
+    </div>
+    @if (messages.length) {
+      <button type="button" (click)="clearChat()"
+        class="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-secondary transition hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
+        Clear chat
+      </button>
+    }
+  </div>
+
+  <!-- Transcript -->
+  <div class="flex-1 space-y-4 overflow-y-auto py-6" role="log" aria-live="polite" aria-label="Conversation">
+    @if (!messages.length) {
+      <div class="mx-auto max-w-md py-10 text-center">
+        <p class="text-primary font-medium dark:text-white">What would you like to know?</p>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          The assistant can see your wallets, recent transactions and goals.
+        </p>
+        <div class="mt-5 flex flex-col gap-2">
+          @for (prompt of ['Where did most of my money go last month?', 'Am I on track for my savings goals?', 'Which category has grown the most?']; track prompt) {
+            <button type="button" (click)="userInput = prompt"
+              class="rounded-xl border border-gray-200 px-4 py-2.5 text-left text-sm text-secondary transition hover:border-brand-300 hover:bg-brand-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-brand-500/10">
+              {{ prompt }}
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+    @for (message of messages; track message.id) {
+      <div class="flex" [class.justify-end]="message.role === 'user'">
+        <div class="group max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed"
+          [class]="message.role === 'user'
+            ? 'bg-brand-600 text-white'
+            : 'bg-gray-100 text-primary dark:bg-gray-800 dark:text-gray-100'">
+          <p class="whitespace-pre-wrap">{{ message.content }}</p>
+
+          @if (message.isStreaming && !message.content) {
+            <span class="flex gap-1 py-1" aria-label="Thinking">
+              @for (dot of [0, 1, 2]; track dot) {
+                <span class="h-1.5 w-1.5 rounded-full bg-current opacity-40 motion-safe:animate-pulse"
+                  [style.animation-delay]="dot * 150 + 'ms'"></span>
+              }
+            </span>
+          }
+
+          @if (message.role === 'assistant' && !message.isStreaming) {
+            <button type="button" (click)="copyMessage(message)"
+              class="mt-2 text-xs font-medium text-gray-500 opacity-0 transition group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:text-gray-400"
+              aria-label="Copy this reply">
+              Copy
+            </button>
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Composer -->
+  <div class="border-t border-gray-200 pt-4 dark:border-gray-800">
+    @if (!isAvailable) {
+      <p class="rounded-xl bg-gray-100 px-4 py-3 text-sm text-secondary dark:bg-gray-800 dark:text-gray-300">
+        The assistant isn't configured on this server. Set <code class="font-mono text-xs">ANTHROPIC_API_KEY</code> to enable it.
+      </p>
+    } @else {
+      <form class="flex items-end gap-2" (ngSubmit)="sendMessage()">
+        <label for="chat-input" class="sr-only">Message</label>
+        <textarea id="chat-input" rows="1" [(ngModel)]="userInput" name="userInput"
+          (keydown.enter)="$event.preventDefault(); sendMessage()"
+          [disabled]="isLoading"
+          placeholder="Ask about your finances…"
+          class="flex-1 resize-none rounded-xl border border-gray-300 px-4 py-3 text-sm text-primary transition focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-brand-500 disabled:opacity-60 dark:border-gray-700 dark:bg-gray-900 dark:text-white"></textarea>
+
+        @if (isLoading) {
+          <button type="button" (click)="stop()"
+            class="rounded-xl border border-gray-300 px-4 py-3 text-sm font-semibold text-secondary transition hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:border-gray-700 dark:text-gray-300">
+            Stop
+          </button>
+        } @else {
+          <button type="submit" [disabled]="!userInput.trim()"
+            class="rounded-xl bg-brand-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 disabled:opacity-50 disabled:cursor-not-allowed">
+            Send
+          </button>
+        }
+      </form>
+      <p class="mt-2 text-xs text-gray-400 dark:text-gray-500">
+        The assistant can be wrong. Check anything important against your transactions.
+      </p>
+    }
+  </div>
+</div>

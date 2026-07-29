@@ -1,0 +1,482 @@
+<!-- The shell already pads <main>; a second page-level inset stacked on top of it. -->
+<div>
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+      <div>
+        <h2 class="text-2xl font-bold text-primary dark:text-white">Product Budget Goals</h2>
+        <p class="text-gray-500 dark:text-gray-400 mt-1">Track and manage your savings for future purchases</p>
+      </div>
+      <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+        <button (click)="exportBudget()"
+          class="flex-1 sm:flex-none inline-flex justify-center items-center gap-2 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700 px-5 py-2.5 text-sm font-medium text-secondary dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm"
+          [disabled]="goals.length === 0">
+          <fa-icon [icon]="faDownload"></fa-icon>
+          Export
+        </button>
+        <button (click)="openDrawer('add')"
+          class="flex-1 sm:flex-none inline-flex justify-center items-center gap-2 px-5 py-2.5 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors shadow-sm hover:shadow">
+          <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Add Goal
+        </button>
+      </div>
+    </div>
+
+    <!-- Filters and Search -->
+    <div
+      class="flex flex-col sm:flex-row gap-4 justify-between items-center bg-white dark:bg-gray-800/50 p-4 rounded-xl shadow-sm">
+      <!-- Search -->
+      <div class="relative w-full sm:w-64">
+        <input type="search" aria-label="Search goals" [(ngModel)]="searchQuery" (input)="applyFilters()" placeholder="Search goals..."
+          class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-secondary dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500/50">
+          <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-3 top-2.5 text-tertiary" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+      </div>
+
+      <!-- Sort and Filter Options -->
+      <div class="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+
+        <!-- Sort Dropdown -->
+        <div class="relative w-full sm:w-auto">
+          <button (click)="toggleSortDropdown()"
+            class="w-full sm:w-auto flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-secondary dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all shadow-sm">
+            <span class="text-sm font-medium">
+              {{ sortOption === 'progress' ? 'Sort by Progress' :
+              sortOption === 'amount' ? 'Sort by Amount' :
+              sortOption === 'date' ? 'Sort by Date' : 'Sort by Name' }}
+            </span>
+            <svg aria-hidden="true" class="w-4 h-4 text-tertiary transition-transform duration-200" [class.rotate-180]="isSortOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+          </button>
+
+          <!-- Dropdown Menu -->
+          @if (isSortOpen) {
+            <div class="absolute right-0 top-full mt-2 w-full sm:w-48 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-100">
+              <div class="py-1">
+                <button (click)="selectSort('progress')" class="w-full text-left px-4 py-2.5 text-sm text-secondary dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2">
+                  <span [class.opacity-0]="sortOption !== 'progress'" class="text-brand-600 dark:text-brand-400">✓</span> Progress
+                </button>
+                <button (click)="selectSort('amount')" class="w-full text-left px-4 py-2.5 text-sm text-secondary dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2">
+                  <span [class.opacity-0]="sortOption !== 'amount'" class="text-brand-600 dark:text-brand-400">✓</span> Amount
+                </button>
+                <button (click)="selectSort('date')" class="w-full text-left px-4 py-2.5 text-sm text-secondary dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2">
+                  <span [class.opacity-0]="sortOption !== 'date'" class="text-brand-600 dark:text-brand-400">✓</span> Date
+                </button>
+                <button (click)="selectSort('name')" class="w-full text-left px-4 py-2.5 text-sm text-secondary dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2">
+                  <span [class.opacity-0]="sortOption !== 'name'" class="text-brand-600 dark:text-brand-400">✓</span> Name
+                </button>
+              </div>
+            </div>
+          }
+
+          <!-- Backdrop for closing -->
+          @if (isSortOpen) {
+            <div aria-hidden="true" (click)="isSortOpen = false" class="fixed inset-0 z-40 bg-transparent cursor-default"></div>
+          }
+        </div>
+
+        <!-- Filter Dropdown -->
+        <div class="relative w-full sm:w-auto">
+          <button (click)="toggleFilterDropdown()"
+            class="w-full sm:w-auto flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-secondary dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all shadow-sm">
+            <span class="text-sm font-medium">
+              {{ filterOption === 'all' ? 'All Goals' :
+              filterOption === 'ongoing' ? 'Ongoing (< 100%)' : 'Completed (100%)' }}
+            </span>
+            <svg aria-hidden="true" class="w-4 h-4 text-tertiary transition-transform duration-200" [class.rotate-180]="isFilterOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+          </button>
+
+          <!-- Dropdown Menu -->
+          @if (isFilterOpen) {
+            <div class="absolute right-0 top-full mt-2 w-full sm:w-48 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-100">
+              <div class="py-1">
+                <button (click)="selectFilter('all')" class="w-full text-left px-4 py-2.5 text-sm text-secondary dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2">
+                  <span [class.opacity-0]="filterOption !== 'all'" class="text-brand-600 dark:text-brand-400">✓</span> All Goals
+                </button>
+                <button (click)="selectFilter('ongoing')" class="w-full text-left px-4 py-2.5 text-sm text-secondary dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2">
+                  <span [class.opacity-0]="filterOption !== 'ongoing'" class="text-brand-600 dark:text-brand-400">✓</span> Ongoing
+                </button>
+                <button (click)="selectFilter('completed')" class="w-full text-left px-4 py-2.5 text-sm text-secondary dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2">
+                  <span [class.opacity-0]="filterOption !== 'completed'" class="text-brand-600 dark:text-brand-400">✓</span> Completed
+                </button>
+              </div>
+            </div>
+          }
+
+          <!-- Backdrop for closing -->
+          @if (isFilterOpen) {
+            <div aria-hidden="true" (click)="isFilterOpen = false" class="fixed inset-0 z-40 bg-transparent cursor-default"></div>
+          }
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Goals Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    @if (goals.length === 0) {
+      <div class="col-span-full">
+        <app-empty-state
+          [icon]="faBullseye"
+          title="No budget goals yet"
+          message="Create a goal to track what you are saving towards and how close you are."
+          size="lg"
+          >
+          <button type="button" (click)="openDrawer('add')"
+            class="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-700">
+            Create your first goal
+          </button>
+        </app-empty-state>
+      </div>
+    }
+
+    <!-- No Results Message -->
+    @if (goals.length > 0 && filteredGoals.length === 0) {
+      <div class="col-span-full text-center py-12">
+        <div class="text-gray-500 dark:text-gray-400">
+          <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto mb-4 opacity-50" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <h3 class="text-xl font-medium mb-1">No goals found</h3>
+          <p class="mb-4">Try adjusting your search or filter criteria</p>
+          <button (click)="resetFilters()"
+            class="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+            Reset Filters
+          </button>
+        </div>
+      </div>
+    }
+
+    @for (goal of filteredGoals; track goal) {
+      <div
+        class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-5 border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-300 flex flex-col">
+        <!-- Card Header with Image -->
+        <div class="relative w-full pt-[80%] rounded-xl mb-4 overflow-hidden bg-gray-50 dark:bg-gray-700 group">
+          <img [src]="goal.imageUrl" [alt]="goal.name"
+            class="absolute inset-0 w-full h-full object-contain p-4 transition-transform duration-300 group-hover:scale-105"
+            onerror="this.src='https://images.unsplash.com/photo-1560393464-5c69a73c5770?w=100&h=100&fit=crop'">
+            <!-- Target Date Badge -->
+            <div
+              class="absolute bottom-3 right-3 bg-gray-800/80 text-white px-3 py-1 rounded-full text-xs backdrop-blur-sm">
+              Target: {{goal.targetDate | date:'mediumDate'}}
+            </div>
+          </div>
+          <!-- Product Name -->
+          <h3 class="text-lg font-semibold text-primary dark:text-white mb-3 line-clamp-2">{{goal.name}}</h3>
+          <!-- Progress Section -->
+          <div class="mt-auto">
+            <!-- Progress Bar with Animation -->
+            <div class="relative w-full h-3 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden mb-3">
+          <div class="absolute top-0 left-0 h-full transition-all duration-700 ease-out" [ngStyle]="{
+                 'width': (goal.savedAmount / goal.targetAmount) * 100 + '%',
+                 'background-color': getProgressColor((goal.savedAmount / goal.targetAmount) * 100)
+               }">
+            </div>
+          </div>
+          <!-- Progress Details -->
+          <div class="flex justify-between items-center mb-4">
+            <div>
+              <span class="font-medium text-primary dark:text-white">
+                {{(goal.savedAmount / goal.targetAmount) * 100 | number:'1.0-0'}}%
+              </span>
+              <span class="text-sm text-secondary dark:text-gray-400 ml-1">complete</span>
+            </div>
+            <div class="text-right">
+              <div class="text-sm font-medium text-primary dark:text-white">
+                {{goal.savedAmount | appCurrency}}
+              </div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">
+                of {{goal.targetAmount | appCurrency}}
+              </div>
+            </div>
+          </div>
+          <!-- Action Buttons -->
+          <div class="flex justify-between gap-2 pt-2 border-t border-gray-100 dark:border-gray-700">
+            <button (click)="openDrawer('edit', goal)"
+              class="flex-1 px-3 py-2 text-sm bg-transparent border border-blue-500 text-blue-500 rounded-lg hover:bg-blue-500 hover:text-white transition-colors">
+              <fa-icon [icon]="faEdit" class="mr-1"></fa-icon> Edit
+            </button>
+            <button (click)="openDrawer('addMoney', goal)"
+              class="flex-1 px-3 py-2 text-sm bg-transparent border border-green-500 text-green-500 rounded-lg hover:bg-green-500 hover:text-white transition-colors">
+              <fa-icon [icon]="faPlusCircle" class="mr-1"></fa-icon> Fund
+            </button>
+            <button (click)="deleteGoal(goal.id)"
+              [attr.aria-label]="'Delete goal: ' + goal.name"
+              class="w-10 h-10 flex items-center justify-center rounded-lg text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+              <fa-icon [icon]="faTrash"></fa-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Side Drawer -->
+  <app-side-drawer
+    [isOpen]="isDrawerOpen"
+    [title]="getDrawerTitle()"
+    [icon]="drawerMode === 'add' ? faPlus : (drawerMode === 'edit' ? faEdit : faPlusCircle)"
+    (closed)="closeDrawer()">
+
+    <div class="h-full flex flex-col">
+      <!-- Tab Navigation (only for adding new) -->
+      @if (drawerMode === 'add') {
+        <div class="mb-8 p-1 bg-gray-100/50 dark:bg-gray-800/50 rounded-2xl flex">
+          <button (click)="switchTab('manual')"
+            [class]="activeTab === 'manual' ? 'bg-white dark:bg-gray-700 shadow-sm text-brand-600 dark:text-brand-400' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'"
+            class="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-200">
+            <fa-icon [icon]="faEdit"></fa-icon>
+            Manual
+          </button>
+          <button (click)="switchTab('upload')"
+            [class]="activeTab === 'upload' ? 'bg-white dark:bg-gray-700 shadow-sm text-brand-600 dark:text-brand-400' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'"
+            class="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-200">
+            <fa-icon [icon]="faUpload"></fa-icon>
+            Import JSON
+          </button>
+        </div>
+      }
+
+      <!-- Manual Entry / Edit Form -->
+      @if (activeTab === 'manual' || drawerMode === 'edit' || drawerMode === 'addMoney') {
+        <div class="space-y-6">
+          <!-- Goal Form (Add/Edit) -->
+          @if (drawerMode === 'add' || drawerMode === 'edit') {
+            <!-- Image Section -->
+            <div class="space-y-3">
+              <h4 class="block text-sm font-semibold text-secondary dark:text-gray-300 ml-1">Cover Image</h4>
+              <!-- Image Preview / Placeholder -->
+              <div class="relative group h-40 rounded-3xl overflow-hidden bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-200 dark:border-gray-800 flex items-center justify-center transition-all duration-300 hover:border-brand-500">
+                @if (currentGoal.imageUrl) {
+                  <img [src]="currentGoal.imageUrl" alt="Selected cover for this goal" class="w-full h-full object-cover">
+                }
+                @if (!currentGoal.imageUrl) {
+                  <div class="text-center p-6">
+                    <div class="w-12 h-12 bg-white dark:bg-gray-700 rounded-2xl shadow-sm flex items-center justify-center mx-auto mb-3">
+                      <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-tertiary"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    </div>
+                    <p class="text-xs font-bold text-tertiary uppercase tracking-wider">No Image Selected</p>
+                  </div>
+                }
+                <!-- Loading Overlay -->
+                @if (isUploading) {
+                  <div class="absolute inset-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm flex items-center justify-center z-10">
+                    <fa-icon [icon]="faRefresh" class="animate-spin text-brand-600 text-2xl dark:text-brand-400"></fa-icon>
+                  </div>
+                }
+              </div>
+              <!-- Upload Controls -->
+              <div class="flex gap-2">
+                <button type="button"
+                  (click)="triggerFileInput()"
+                  class="flex-1 rounded-xl bg-gray-100 dark:bg-gray-800 py-3 text-xs font-bold text-secondary dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all active:scale-95">
+                  <fa-icon [icon]="faUpload" class="mr-2"></fa-icon>Upload Photo
+                </button>
+                <div class="relative flex-[2]">
+                  <input type="text"
+                    [(ngModel)]="currentGoal.imageUrl"
+                    aria-label="Cover image URL"
+                    placeholder="Or paste image URL"
+                    class="w-full rounded-xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3 text-xs text-primary dark:text-white transition-all focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10">
+                  </div>
+                  <input type="file" id="imageUpload" class="hidden" aria-label="Upload cover image" (change)="handleImageUpload($event)" accept="image/*">
+                </div>
+              </div>
+              <!-- Goal Name -->
+              <div class="space-y-1.5">
+                <label for="goal-name" class="block text-sm font-semibold text-secondary dark:text-gray-300 ml-1">Goal Name</label>
+                <input type="text"
+                  id="goal-name"
+                  [(ngModel)]="currentGoal.name"
+                  class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-primary dark:text-white transition-all focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
+                  placeholder="e.g. New MacBook Pro">
+              </div>
+              <!-- Amounts Grid -->
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div class="space-y-1.5">
+                  <label for="goal-target-amount" class="block text-sm font-semibold text-secondary dark:text-gray-300 ml-1">Target Amount</label>
+                  <input type="number"
+                    id="goal-target-amount"
+                    [(ngModel)]="currentGoal.targetAmount"
+                    class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-primary dark:text-white transition-all focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
+                    placeholder="0.00">
+                </div>
+                <div class="space-y-1.5">
+                  <label for="goal-initial-savings" class="block text-sm font-semibold text-secondary dark:text-gray-300 ml-1">Initial Savings</label>
+                  <input type="number"
+                    id="goal-initial-savings"
+                    [(ngModel)]="currentGoal.savedAmount"
+                    class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-primary dark:text-white transition-all focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
+                    placeholder="0.00">
+                </div>
+              </div>
+              <!-- Target Date -->
+              <div class="space-y-1.5">
+                <label for="goal-target-date" class="block text-sm font-semibold text-secondary dark:text-gray-300 ml-1">Target Date</label>
+                <input type="date"
+                  id="goal-target-date"
+                  [(ngModel)]="currentGoal.targetDate"
+                  class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3.5 text-primary dark:text-white transition-all focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10">
+                </div>
+                <div class="pt-6 flex gap-4">
+                  <button type="button"
+                    (click)="closeDrawer()"
+                    class="flex-1 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-6 py-4 text-sm font-bold text-secondary dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 active:scale-95">
+                    Cancel
+                  </button>
+                  <button (click)="submitForm()"
+                    [disabled]="!currentGoal.name || currentGoal.targetAmount <= 0"
+                    class="flex-[2] rounded-2xl bg-brand-600 px-6 py-4 text-sm font-bold text-white shadow-lg shadow-brand-500/20 hover:bg-brand-700 hover:shadow-brand-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95">
+                    {{ drawerMode === 'add' ? 'Create Goal' : 'Save Changes' }}
+                  </button>
+                </div>
+              }
+              <!-- Add Money Flow -->
+              @if (drawerMode === 'addMoney') {
+                <!-- Wallet Selection -->
+                <fieldset class="space-y-4 min-w-0">
+                  <legend class="block text-sm font-semibold text-secondary dark:text-gray-300 ml-1">Select Source Wallet</legend>
+                  <div class="grid grid-cols-1 gap-3">
+                    @for (wallet of availableWallets; track wallet) {
+                      <button
+                        (click)="selectWallet(wallet.id)"
+                        [class]="selectedWalletId === wallet.id ? 'border-brand-500 bg-brand-50/10 ring-4 ring-brand-500/10' : 'border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800'"
+                        class="text-left p-4 rounded-2xl border-2 transition-all duration-200 text-primary dark:text-white">
+                      <div class="flex justify-between items-center">
+                        <div>
+                          <div class="font-bold">{{wallet.name}}</div>
+                          <div class="text-xs font-bold text-tertiary mt-0.5 uppercase tracking-wider">{{wallet.type}}</div>
+                        </div>
+                        <div class="text-right">
+                          <div class="font-bold">{{wallet.balance | appCurrency:wallet.currency}}</div>
+                          <div class="text-[10px] font-bold text-tertiary uppercase tracking-wider">Available</div>
+                        </div>
+                      </div>
+                    </button>
+                  }
+                </div>
+              </fieldset>
+              <!-- Amount Input -->
+              @if (selectedWalletId) {
+                <div class="space-y-1.5">
+                  <label for="goal-contribution-amount" class="block text-sm font-semibold text-secondary dark:text-gray-300 ml-1">Contribution Amount</label>
+                  <div class="relative group">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-tertiary font-bold group-focus-within:text-brand-500">
+                      {{currencyService.getActiveCurrency()}}
+                    </div>
+                    <input type="number"
+                      id="goal-contribution-amount"
+                      [(ngModel)]="addAmount"
+                      class="w-full rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 pl-14 px-4 py-4 text-2xl font-bold text-primary dark:text-white transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
+                      placeholder="0.00">
+                  </div>
+                  <!-- Quick Suggestions -->
+                  <div class="flex gap-2 mt-3">
+                    <button (click)="setAmountPercentage(25)" class="flex-1 rounded-xl bg-gray-100 dark:bg-gray-800 py-2.5 text-xs font-bold text-secondary dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all">25%</button>
+                    <button (click)="setAmountPercentage(50)" class="flex-1 rounded-xl bg-gray-100 dark:bg-gray-800 py-2.5 text-xs font-bold text-secondary dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all">50%</button>
+                    <button (click)="setRemainingAmount()" class="flex-[2] rounded-xl bg-gray-100 dark:bg-gray-800 py-2.5 text-xs font-bold text-secondary dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all">Entire Balance</button>
+                  </div>
+                </div>
+              }
+              <div class="pt-6 flex gap-4">
+                <button type="button"
+                  (click)="closeDrawer()"
+                  class="flex-1 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-6 py-4 text-sm font-bold text-secondary dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 active:scale-95">
+                  Cancel
+                </button>
+                <button (click)="submitAddMoney()"
+                  [disabled]="!selectedWalletId || addAmount <= 0"
+                  class="flex-[2] rounded-2xl bg-brand-600 px-6 py-4 text-sm font-bold text-white shadow-lg shadow-brand-500/20 hover:bg-brand-700 hover:shadow-brand-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95">
+                  Confirm Deposit
+                </button>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- JSON Upload Form (only for add mode) -->
+        @if (activeTab === 'upload' && drawerMode === 'add') {
+          <div class="space-y-8">
+            <div class="group relative bg-gray-50/50 dark:bg-gray-800/30 rounded-3xl p-10 border-2 border-dashed border-gray-200 dark:border-gray-800 hover:border-brand-500 transition-all duration-300">
+              <div class="text-center">
+                <div class="w-16 h-16 bg-white dark:bg-gray-800 rounded-2xl shadow-sm flex items-center justify-center mx-auto mb-6 transition-transform duration-300 group-hover:-translate-y-1">
+                  <fa-icon [icon]="faFileUpload" class="text-tertiary text-2xl group-hover:text-brand-500"></fa-icon>
+                </div>
+                <h3 class="text-lg font-bold text-primary dark:text-white mb-2">Import Goals</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-8 max-w-[200px] mx-auto leading-relaxed">
+                  Upload your savings goals JSON file.
+                </p>
+                @if (jsonError) {
+                  <div class="mb-6 p-4 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 text-red-600 dark:text-red-400 rounded-2xl text-sm font-medium whitespace-pre-wrap">
+                    {{ jsonError }}
+                  </div>
+                }
+                <label for="json-upload-budget" class="inline-flex items-center justify-center gap-3 rounded-2xl bg-white dark:bg-gray-800 border-2 border-brand-500 px-8 py-3.5 text-sm font-bold text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/10 cursor-pointer shadow-sm transition-all duration-200 active:scale-95 dark:text-brand-400">
+                  <fa-icon [icon]="faUpload"></fa-icon>
+                  {{ selectedFile ? 'Change File' : 'Select JSON' }}
+                  <input type="file" id="json-upload-budget" accept=".json" class="hidden" (change)="onFileSelected($event)">
+                </label>
+                @if (selectedFile) {
+                  <p class="mt-4 text-xs font-bold text-brand-600 bg-brand-50 dark:bg-brand-900/10 py-1.5 px-3 rounded-full inline-block dark:text-brand-400">
+                    {{ selectedFile.name }}
+                  </p>
+                }
+              </div>
+            </div>
+            <!-- Preview -->
+            @if (jsonPreview) {
+              <div class="bg-white dark:bg-gray-900/30 rounded-3xl border border-gray-100 dark:border-gray-800 overflow-hidden animate-slide-up">
+                <div class="px-6 py-4 border-b border-gray-50 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/20 flex justify-between items-center">
+                  <h4 class="text-sm font-bold text-primary dark:text-white">Previewing {{ jsonPreview.length }} Items</h4>
+                </div>
+                <div class="max-h-60 overflow-auto custom-scrollbar">
+                  <table class="w-full text-left text-sm">
+                    <tbody class="divide-y divide-gray-50 dark:divide-gray-800">
+                      @for (goal of jsonPreview; track goal) {
+                        <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
+                          <td class="px-6 py-4">
+                            <div class="font-bold text-primary dark:text-white">{{ goal.name }}</div>
+                          </td>
+                          <td class="px-6 py-4 text-right font-bold text-brand-600 dark:text-brand-400">
+                            {{ goal.targetAmount | appCurrency }}
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            }
+            <div class="flex gap-4">
+              <button type="button"
+                (click)="closeDrawer()"
+                class="flex-1 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-6 py-4 text-sm font-bold text-secondary dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 active:scale-95">
+                Cancel
+              </button>
+              <button type="button"
+                [disabled]="!selectedFile || isLoading || jsonError"
+                (click)="importGoals()"
+                class="flex-[2] rounded-2xl bg-brand-600 px-6 py-4 text-sm font-bold text-white shadow-lg shadow-brand-500/20 hover:bg-brand-700 hover:shadow-brand-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95 flex items-center justify-center gap-2">
+                @if (isLoading) {
+                  <fa-icon class="animate-spin" [icon]="faRefresh"></fa-icon>
+                }
+                @if (!isLoading) {
+                  <fa-icon [icon]="faFileImport"></fa-icon>
+                }
+                {{isLoading ? 'Importing...' : 'Start Import'}}
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    </app-side-drawer>
+  </div>

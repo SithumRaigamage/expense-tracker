@@ -1,0 +1,44 @@
+<!--
+  Keyboard users otherwise tab through the entire sidebar — some twenty links —
+  on every navigation before reaching the page they just opened. Off-screen
+  until focused.
+-->
+<a href="#main-content"
+  class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[99999]
+         focus:rounded-xl focus:bg-brand-600 focus:px-4 focus:py-2.5 focus:text-sm
+         focus:font-semibold focus:text-white focus:shadow-theme-lg">
+  Skip to main content
+</a>
+
+<div class="relative flex min-h-screen">
+  <!-- Ambient wash behind everything. Fixed and pointer-transparent, so it is
+       painted once and never repaints on scroll. -->
+  <div class="ambient-field" aria-hidden="true"></div>
+
+  <!-- Sidebar handles its own fixed positioning and responsive width. -->
+  <app-sidebar></app-sidebar>
+
+  <!--
+    The left margin has to track the sidebar's own width, which collapses to
+    w-24 when the sidebar is not expanded. Hard-coding lg:ml-72 left twelve rems
+    of dead space beside the collapsed rail.
+  -->
+  <div class="relative z-1 flex min-w-0 flex-1 flex-col transition-[margin] duration-300 ease-[var(--ease-out-quint)]"
+    [class.lg:ml-72]="isSidebarExpanded"
+    [class.lg:ml-24]="!isSidebarExpanded">
+
+    <!-- The header is sticky and frosted; it sets its own stacking context. -->
+    <app-header></app-header>
+
+    <!--
+      Capped and centred so a dashboard row doesn't stretch to unreadable
+      three-foot lines on an ultra-wide display, while still filling a laptop.
+      tabindex="-1" makes this a valid target for the skip link above.
+    -->
+    <main id="main-content" tabindex="-1" class="w-full flex-1 focus:outline-none">
+      <div class="mx-auto w-full max-w-[1600px] p-4 md:p-6 2xl:p-8">
+        <router-outlet></router-outlet>
+      </div>
+    </main>
+  </div>
+</div>
