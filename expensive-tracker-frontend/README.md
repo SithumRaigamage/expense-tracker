@@ -2,6 +2,11 @@
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.1.6.
 
+> **Installing the app** — Expensify is a Progressive Web App and can be
+> installed on Windows, macOS, iOS and Android. See
+> **[INSTALL-PWA.md](./INSTALL-PWA.md)** for per-platform instructions, how
+> updates work, and how to test installation locally (`npm run pwa`).
+
 ## Development server
 
 To start a local development server, run:
