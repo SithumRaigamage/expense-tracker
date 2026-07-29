@@ -1,29 +1,35 @@
-<!-- Customization Toggle Button -->
-<!-- Icon-only below sm: a full-width pill sitting over the content is a lot of
-     screen to give up on a phone. The label stays as the accessible name. -->
+<!--
+  Customisation entry point.
+  Icon-only below sm: a full-width pill sitting over the content is a lot of
+  screen to give up on a phone. The label stays as the accessible name.
+-->
 <div class="fixed bottom-6 right-6 z-50 sm:bottom-8 sm:right-8">
   <button (click)="toggleDrawer()"
     aria-label="Customize dashboard"
     [attr.aria-expanded]="isCustomizing"
     aria-controls="dashboard-customize-drawer"
-    class="flex items-center gap-2 bg-brand-500 hover:bg-brand-600 text-white p-4 sm:px-4 sm:py-3 rounded-full shadow-lg transition-all hover:scale-105 group">
-    <fa-icon [icon]="faGear" [class.animate-spin-slow]="isCustomizing"></fa-icon>
-    <span class="hidden font-medium sm:inline">Customize Dashboard</span>
+    class="group flex items-center gap-2 rounded-full gradient-brand p-4 text-white shadow-theme-xl
+           shadow-brand-500/25 transition-transform duration-300 ease-[var(--ease-spring)]
+           hover:scale-105 active:scale-95 sm:px-5 sm:py-3.5">
+    <fa-icon [icon]="faGear"
+      class="transition-transform duration-500 ease-[var(--ease-out-quint)] group-hover:rotate-90"
+      [class.animate-spin-slow]="isCustomizing"></fa-icon>
+    <span class="hidden text-sm font-semibold sm:inline">Customize</span>
   </button>
 </div>
 
-<!-- Customization Drawer -->
+<!-- Customization drawer -->
 @if (isCustomizing) {
   <div
     aria-hidden="true"
-    class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] transition-opacity"
+    class="fixed inset-0 z-[60] bg-gray-950/50 backdrop-blur-sm animate-fade-in"
     (click)="toggleDrawer()">
   </div>
 }
 
 <!-- Clipping viewport: the closed drawer sits a full width off-screen and would
-otherwise let the page scroll sideways into empty space. -->
-<div class="fixed inset-0 overflow-hidden pointer-events-none z-[70]"
+     otherwise let the page scroll sideways into empty space. -->
+<div class="pointer-events-none fixed inset-0 z-[70] overflow-hidden"
   [attr.inert]="isCustomizing ? null : ''">
   <!-- The closed drawer is only translated off-screen, so without `inert` above
        its controls stay in the tab order and the accessibility tree. -->
@@ -31,51 +37,54 @@ otherwise let the page scroll sideways into empty space. -->
     role="dialog"
     aria-modal="true"
     aria-labelledby="dashboard-customize-title"
-    class="absolute inset-y-0 right-0 w-80 max-w-full pointer-events-auto bg-white shadow-2xl transform transition-transform duration-300 ease-in-out"
+    class="glass pointer-events-auto absolute inset-y-0 right-0 w-80 max-w-full border-y-0 border-r-0
+           shadow-theme-2xl transition-transform duration-300 ease-[var(--ease-out-quint)]"
     [class.translate-x-0]="isCustomizing"
     [class.translate-x-full]="!isCustomizing">
-    <div class="flex flex-col h-full">
-      <div class="p-6 border-b border-gray-200 flex justify-between items-center bg-gray-50 dark:bg-gray-800/50">
-        <h2 id="dashboard-customize-title" class="text-xl font-bold text-gray-900 flex items-center gap-2">
-          <fa-icon [icon]="faGear" class="text-brand-500"></fa-icon>
+    <div class="flex h-full flex-col">
+      <div class="flex items-center justify-between border-x-0 border-t-0 border-b p-6">
+        <h2 id="dashboard-customize-title" class="flex items-center gap-2.5 text-lg font-bold text-primary">
+          <span class="grid h-9 w-9 place-items-center rounded-xl bg-brand-50 text-brand-600 dark:bg-brand-500/12 dark:text-brand-400">
+            <fa-icon [icon]="faGear"></fa-icon>
+          </span>
           Customize
         </h2>
-        <button (click)="toggleDrawer()" aria-label="Close customize panel" class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors">
-          <fa-icon [icon]="faTimes" class="text-gray-500"></fa-icon>
+        <button (click)="toggleDrawer()" aria-label="Close customize panel"
+          class="grid h-9 w-9 place-items-center rounded-xl text-tertiary transition-colors
+                 hover:bg-gray-100 hover:text-primary active:scale-95 dark:hover:bg-white/10">
+          <fa-icon [icon]="faTimes"></fa-icon>
         </button>
       </div>
 
-      <div class="flex-1 overflow-y-auto p-6 space-y-4">
-        <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">
+      <div class="custom-scrollbar flex-1 space-y-2 overflow-y-auto p-6">
+        <p class="mb-5 text-sm text-secondary">
           Toggle the visibility of widgets to personalize your dashboard overview.
         </p>
 
-        @for (widget of widgets; track widget) {
+        @for (widget of widgets; track widget.id) {
           <button type="button"
             (click)="toggleWidget(widget.id)"
             [attr.aria-pressed]="widget.isVisible"
-            class="w-full text-left flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-all"
-           [ngClass]="{
-             'bg-brand-50 border-brand-200 dark:bg-brand-900/10 dark:border-brand-800/30': widget.isVisible,
-             'bg-white border-gray-200': !widget.isVisible
-           }">
-            <span class="font-medium"
-              [ngClass]="{
-                'text-brand-800 ': widget.isVisible,
-                'text-gray-700 ': !widget.isVisible
-              }">
+            class="flex w-full items-center justify-between gap-3 rounded-xl border p-3.5 text-left
+                   transition-all duration-200 active:scale-[0.98]"
+            [class]="widget.isVisible
+              ? 'border-brand-200 bg-brand-50/70 dark:border-brand-500/30 dark:bg-brand-500/10'
+              : 'border-subtle surface-2'">
+            <span class="text-sm font-medium"
+              [class]="widget.isVisible ? 'text-brand-700 dark:text-brand-300' : 'text-secondary'">
               {{widget.label}}
             </span>
             <fa-icon [icon]="widget.isVisible ? faEye : faEyeSlash"
-              [class.text-brand-600]="widget.isVisible"
-            [class.text-gray-400]="!widget.isVisible"></fa-icon>
+              [class]="widget.isVisible ? 'text-brand-600 dark:text-brand-400' : 'text-tertiary'"></fa-icon>
           </button>
         }
       </div>
 
-      <div class="p-6 border-t border-gray-200 dark:border-gray-700">
+      <div class="border-x-0 border-b-0 border-t p-6">
         <button (click)="resetWidgets()"
-          class="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+          class="flex w-full items-center justify-center gap-2 rounded-xl border border-subtle px-4 py-2.5
+                 text-sm font-medium text-secondary transition-colors hover:text-primary
+                 active:scale-[0.98]">
           <fa-icon [icon]="faArrowsRotate"></fa-icon>
           Reset to Default
         </button>
@@ -84,79 +93,85 @@ otherwise let the page scroll sideways into empty space. -->
   </div>
 </div>
 
-<!-- Main dashboard grid container -->
-<div class="grid grid-cols-12 gap-4 md:gap-6 p-4">
-  <!-- Top left section: Metrics and Monthly Statistics -->
-  @if (isVisible('metrics') || isVisible('monthlyStat')) {
-    <div
-      class="col-span-12 min-w-0 space-y-6 xl:col-span-6">
-      @if (isVisible('metrics')) {
-        <app-metrics></app-metrics>
-      }
-      @if (isVisible('monthlyStat')) {
-        <app-monthly-stat></app-monthly-stat>
-      }
-    </div>
+<!--
+  Dashboard grid.
+
+  The six metric cards were previously locked into the left half beside the
+  trend chart, which stacked them three rows deep and left a screenful of dead
+  space under the chart. Metrics are now a full-width band, and the two charts
+  share the row below at a 7/5 split — the trend line needs the width, the
+  monthly breakdown does not.
+
+  `stagger` sequences the widgets' entrance. It animates opacity and transform
+  only, and the global reduced-motion rule disables it outright.
+-->
+<!-- pb-24 reserves room for the fixed Customize button, which otherwise sat on
+     top of whatever widget happened to end the page. -->
+<div class="grid grid-cols-12 gap-4 stagger pb-24 md:gap-6">
+
+  @if (isVisible('metrics')) {
+    <section class="col-span-12 min-w-0" aria-label="Account balances" style="--i: 0">
+      <app-metrics></app-metrics>
+    </section>
   }
 
-  <!-- Full-width Statistics Chart -->
   @if (isVisible('statChart')) {
-    <div class="col-span-12 min-w-0 xl:col-span-6 xl:pr-6">
+    <section class="col-span-12 min-w-0 xl:col-span-7" style="--i: 1">
       <app-statchart></app-statchart>
-    </div>
+    </section>
   }
 
-  <!-- Expense Flow Analysis (Removed as it is redundant) -->
-  <!-- <div *ngIf="isVisible('expenseFlow')" class="col-span-12 pr-6">
-  <app-expense-flow></app-expense-flow>
-</div> -->
+  @if (isVisible('monthlyStat')) {
+    <section class="col-span-12 min-w-0 xl:col-span-5" style="--i: 2">
+      <app-monthly-stat></app-monthly-stat>
+    </section>
+  }
 
-<!-- Expense Breakdown (Tabbed: Sankey / Sunburst) -->
-@if (isVisible('expenseBreakdown')) {
-  <div class="col-span-12 xl:pr-6">
-    <app-expense-breakdown></app-expense-breakdown>
-  </div>
-}
+  @if (isVisible('expenseBreakdown')) {
+    <section class="col-span-12 min-w-0" style="--i: 3">
+      <app-expense-breakdown></app-expense-breakdown>
+    </section>
+  }
 
-<!-- Wallet Management -->
-@if (isVisible('wallets')) {
-  <div class="col-span-12 xl:col-span-5">
-    <app-manage-wallets></app-manage-wallets>
-  </div>
-}
+  @if (isVisible('recentTransactions')) {
+    <section class="col-span-12 min-w-0 xl:col-span-7" style="--i: 4">
+      <app-recent-transactions></app-recent-transactions>
+    </section>
+  }
 
-<!-- Recent Transactions List -->
-@if (isVisible('recentTransactions')) {
-  <div class="col-span-12 xl:col-span-7 xl:pr-6">
-    <app-recent-transactions></app-recent-transactions>
-  </div>
-}
+  @if (isVisible('wallets')) {
+    <section class="col-span-12 min-w-0 xl:col-span-5" style="--i: 5">
+      <app-manage-wallets></app-manage-wallets>
+    </section>
+  }
 
-<!-- Budget Planning Widget -->
-@if (isVisible('budgetPlanner')) {
-  <div class="col-span-12 xl:pr-6">
-    <app-budget-planner></app-budget-planner>
-  </div>
-}
+  @if (isVisible('budgetPlanner')) {
+    <section class="col-span-12 min-w-0" style="--i: 6">
+      <app-budget-planner></app-budget-planner>
+    </section>
+  }
 
-<!-- Upcoming Bills Calendar -->
-@if (isVisible('upcomingBills')) {
-  <div class="col-span-12 xl:pr-6">
-    <app-upcoming-bills></app-upcoming-bills>
-  </div>
-}
+  <!--
+    These two stay full width. Emergency Fund packs a four-across tile row and a
+    table beside a chart into its own layout, so at xl:col-span-6 the tiles
+    collapsed to ~150px: the MTD badge collided with "Target Goal" and the
+    balance overflowed its tile. Upcoming Bills keeps the row balanced.
+  -->
+  @if (isVisible('upcomingBills')) {
+    <section class="col-span-12 min-w-0" style="--i: 7">
+      <app-upcoming-bills></app-upcoming-bills>
+    </section>
+  }
 
-<!-- Emergency Fund Section -->
-@if (isVisible('emergencyFund')) {
-  <div class="col-span-12 min-w-0 xl:pr-6">
-    <app-emergency-fund></app-emergency-fund>
-  </div>
-}
+  @if (isVisible('emergencyFund')) {
+    <section class="col-span-12 min-w-0" style="--i: 8">
+      <app-emergency-fund></app-emergency-fund>
+    </section>
+  }
 
-<!-- Financial Education Section -->
-@if (isVisible('financialEducation')) {
-  <div class="col-span-12 xl:pr-6">
-    <app-financial-education></app-financial-education>
-  </div>
-}
+  @if (isVisible('financialEducation')) {
+    <section class="col-span-12 min-w-0" style="--i: 9">
+      <app-financial-education></app-financial-education>
+    </section>
+  }
 </div>

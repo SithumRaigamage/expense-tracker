@@ -1,11 +1,11 @@
 <div class="grid grid-cols-12 gap-4 md:gap-6">
   <!-- Header -->
   <div class="col-span-12 flex justify-between items-center">
-    <h1 class="text-xl font-bold text-gray-800">Release Notes</h1>
+    <h1 class="text-xl font-bold text-primary">Release Notes</h1>
     @if (isAdmin) {
       <button
         (click)="toggleForm()"
-        class="flex items-center gap-2 px-4 py-2 text-white bg-brand-500 rounded-lg hover:bg-brand-500/90 transition-colors">
+        class="flex items-center gap-2 px-4 py-2 text-white bg-brand-600 rounded-lg hover:bg-brand-500/90 transition-colors">
         <fa-icon [icon]="showForm ? trashIcon : plusIcon"></fa-icon>
         {{ showForm ? 'Cancel' : 'Add Release' }}
       </button>
@@ -13,13 +13,13 @@
   </div>  <!-- Admin Form -->
   @if (showForm && isAdmin) {
     <div class="col-span-12">
-      <div class="bg-white rounded-lg shadow-sm p-6">
+      <div class="card p-6">
         <h2 class="text-lg font-semibold mb-4">{{ editMode ? 'Edit' : 'Add New' }} Release Note</h2>
         <form [formGroup]="releaseForm" (ngSubmit)="onSubmit()" class="space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <!-- Version -->
             <div>
-              <label for="version" class="block text-sm font-medium text-gray-700">Version Number *</label>
+              <label for="version" class="block text-sm font-medium text-secondary">Version Number *</label>
               <input type="text"
                 id="version"
                 formControlName="version"
@@ -33,7 +33,7 @@
             </div>
             <!-- Date -->
             <div>
-              <label for="date" class="block text-sm font-medium text-gray-700">Release Date *</label>
+              <label for="date" class="block text-sm font-medium text-secondary">Release Date *</label>
               <input type="date"
                 id="date"
                 formControlName="date"
@@ -47,7 +47,7 @@
           </div>
           <!-- Features -->
           <div>
-            <label for="features" class="block text-sm font-medium text-gray-700">Features (one per line)</label>
+            <label for="features" class="block text-sm font-medium text-secondary">Features (one per line)</label>
             <textarea id="features"
               formControlName="features"
               rows="4"
@@ -56,7 +56,7 @@
           </div>
           <!-- Bug Fixes -->
           <div>
-            <label for="bugfixes" class="block text-sm font-medium text-gray-700">Bug Fixes (one per line)</label>
+            <label for="bugfixes" class="block text-sm font-medium text-secondary">Bug Fixes (one per line)</label>
             <textarea id="bugfixes"
               formControlName="bugfixes"
               rows="4"
@@ -65,7 +65,7 @@
           </div>
           <!-- Improvements -->
           <div>
-            <label for="improvements" class="block text-sm font-medium text-gray-700">Improvements (one per line)</label>
+            <label for="improvements" class="block text-sm font-medium text-secondary">Improvements (one per line)</label>
             <textarea id="improvements"
               formControlName="improvements"
               rows="4"
@@ -77,13 +77,13 @@
             <input type="checkbox"
               id="isPublished"
               formControlName="isPublished"
-              class="h-4 w-4 text-brand-500 focus:ring-brand-500 border-gray-300 rounded">
-            <label for="isPublished" class="ml-2 block text-sm text-gray-700">Publish immediately</label>
+              class="h-4 w-4 text-brand-600 focus:ring-brand-500 border-gray-300 rounded dark:text-brand-400">
+            <label for="isPublished" class="ml-2 block text-sm text-secondary">Publish immediately</label>
           </div>
           <div>
             <button type="submit"
               [disabled]="releaseForm.invalid || isLoading"
-              class="flex items-center gap-2 px-6 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-500/90 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed">
+              class="flex items-center gap-2 px-6 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-500/90 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed">
               <fa-icon [icon]="saveIcon"></fa-icon>
               {{ editMode ? 'Update' : 'Save' }} Release Note
             </button>
@@ -95,9 +95,9 @@
 
   <!-- Search Bar -->
   <div class="col-span-12">
-    <div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="card p-6">
       <div class="relative">
-        <fa-icon [icon]="searchIcon" class="absolute left-3 top-3 text-gray-400"></fa-icon>
+        <fa-icon [icon]="searchIcon" class="absolute left-3 top-3 text-tertiary"></fa-icon>
         <input aria-label="Search release notes"
           type="search"
           [(ngModel)]="searchTerm"
@@ -124,8 +124,8 @@
 
   <!-- Empty State -->
   @if (!isLoading && filteredReleases.length === 0) {
-    <div class="col-span-12 bg-white rounded-lg shadow-sm p-8 text-center">
-      <div class="text-gray-500">
+    <div class="col-span-12 card p-8 text-center">
+      <div class="text-tertiary">
         <p class="text-lg">No release notes found</p>
         @if (searchTerm) {
           <p class="mt-2">Try adjusting your search term</p>
@@ -140,7 +140,7 @@
   <!-- Release Notes List -->
   @if (!isLoading && filteredReleases.length > 0) {
     <div class="col-span-12">
-      <div class="bg-white rounded-lg shadow-sm p-6 space-y-6">
+      <div class="card p-6 space-y-6">
         <!-- Release Item -->
         @for (release of filteredReleases; track release) {
           <div
@@ -151,8 +151,8 @@
                 (click)="toggleRelease(release)"
                 [attr.aria-expanded]="release.isExpanded"
                 class="flex items-center gap-4 flex-1 cursor-pointer text-left">
-                <span class="font-medium text-gray-800">Version {{ release.version }}</span>
-                <span class="text-sm text-gray-500">{{ release.date | date:'mediumDate' }}</span>
+                <span class="font-medium text-primary">Version {{ release.version }}</span>
+                <span class="text-sm text-tertiary">{{ release.date | date:'mediumDate' }}</span>
                 <!-- Non-Admin chevron sits inside the toggle so the whole row
                      stays clickable; admins get theirs beside the action buttons. -->
                 @if (!isAdmin) {
@@ -173,12 +173,12 @@
                 <div class="flex items-center gap-2">
                   <button [attr.aria-label]="'Edit release note ' + release.version"
                     (click)="editReleaseNote(release); $event.stopPropagation()"
-                    class="p-2 text-gray-500 hover:text-brand-500 hover:bg-gray-100 rounded">
+                    class="p-2 text-tertiary hover:text-brand-500 hover:bg-gray-100 rounded">
                     <fa-icon [icon]="editIcon"></fa-icon>
                   </button>
                   <button [attr.aria-label]="'Delete release note ' + release.version"
                     (click)="deleteReleaseNote(release._id!); $event.stopPropagation()"
-                    class="p-2 text-gray-500 hover:text-red-500 hover:bg-gray-100 rounded">
+                    class="p-2 text-tertiary hover:text-red-500 hover:bg-gray-100 rounded">
                     <fa-icon [icon]="trashIcon"></fa-icon>
                   </button>
                   <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
@@ -198,11 +198,11 @@
                 <!-- New Features -->
                 @if (release.features.length) {
                   <div class="space-y-2">
-                    <h3 class="flex items-center gap-2 font-medium text-gray-700">
+                    <h3 class="flex items-center gap-2 font-medium text-secondary">
                       <fa-icon [icon]="rocketIcon" class="text-blue-500"></fa-icon>
                       New Features
                     </h3>
-                    <ul class="space-y-1 text-gray-600">
+                    <ul class="space-y-1 text-secondary">
                       @for (feature of release.features; track feature) {
                         <li class="flex items-start gap-2">
                           <span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-500"></span>
@@ -215,11 +215,11 @@
                 <!-- Bug Fixes -->
                 @if (release.bugfixes.length) {
                   <div class="space-y-2">
-                    <h3 class="flex items-center gap-2 font-medium text-gray-700">
+                    <h3 class="flex items-center gap-2 font-medium text-secondary">
                       <fa-icon [icon]="bugIcon" class="text-red-500"></fa-icon>
                       Bug Fixes
                     </h3>
-                    <ul class="space-y-1 text-gray-600">
+                    <ul class="space-y-1 text-secondary">
                       @for (bug of release.bugfixes; track bug) {
                         <li class="flex items-start gap-2">
                           <span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-red-500"></span>
@@ -232,11 +232,11 @@
                 <!-- Improvements -->
                 @if (release.improvements.length) {
                   <div class="space-y-2">
-                    <h3 class="flex items-center gap-2 font-medium text-gray-700">
+                    <h3 class="flex items-center gap-2 font-medium text-secondary">
                       <fa-icon [icon]="speedIcon" class="text-green-500"></fa-icon>
                       Improvements
                     </h3>
-                    <ul class="space-y-1 text-gray-600">
+                    <ul class="space-y-1 text-secondary">
                       @for (improvement of release.improvements; track improvement) {
                         <li class="flex items-start gap-2">
                           <span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-green-500"></span>

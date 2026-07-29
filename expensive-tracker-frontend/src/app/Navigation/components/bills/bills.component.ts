@@ -10,15 +10,16 @@ import { CurrencyService } from '../../../core/services/currency.service';
 import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
 import { ExcelExportService } from '../../../services/excel-export.service';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faDownload, faEdit, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faDownload, faEdit, faPlus, faFileInvoiceDollar, faClockRotateLeft } from '@fortawesome/free-solid-svg-icons';
 import { SideDrawerComponent } from '../../../shared/components/side-drawer/side-drawer.component';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { NotificationService } from '../../../shared/services/notification.service';
 import { DialogService } from '../../../shared/services/dialog.service';
 
 @Component({
   selector: 'app-bills',
   standalone: true,
-  imports: [FormsModule, AppCurrencyPipe, FontAwesomeModule, SideDrawerComponent],
+  imports: [FormsModule, AppCurrencyPipe, FontAwesomeModule, SideDrawerComponent, EmptyStateComponent],
   templateUrl: './bills.component.html',
 })
 export class BillsComponent implements OnInit {
@@ -39,6 +40,8 @@ export class BillsComponent implements OnInit {
   currentBill: Partial<Bill> = this.getEmptyBill();
   categories = ['Utilities', 'Subscription', 'Entertainment', 'Internet', 'Insurance'];
   faDownload = faDownload;
+  readonly faFileInvoiceDollar = faFileInvoiceDollar;
+  readonly faClockRotateLeft = faClockRotateLeft;
   faEdit = faEdit;
   faPlus = faPlus;
 

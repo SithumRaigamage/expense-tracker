@@ -92,7 +92,7 @@ export class ChartComponent implements OnChanges, OnInit {
           show: false
         },
         background: 'transparent',
-        fontFamily: 'Inter, sans-serif',
+        fontFamily: 'Outfit, sans-serif',
       },
       plotOptions: {
         bar: {
@@ -120,7 +120,7 @@ export class ChartComponent implements OnChanges, OnInit {
             colors: Array(12).fill(this.COLORS.textMuted),
             fontSize: '12px',
             fontWeight: '500',
-            fontFamily: 'Inter, sans-serif'
+            fontFamily: 'Outfit, sans-serif'
           }
         },
         axisBorder: {
@@ -136,7 +136,7 @@ export class ChartComponent implements OnChanges, OnInit {
             colors: [this.COLORS.textMuted],
             fontSize: '12px',
             fontWeight: '500',
-            fontFamily: 'Inter, sans-serif'
+            fontFamily: 'Outfit, sans-serif'
           },
           formatter: (value) => `LKR ${(value/1000).toFixed(0)}K`
         }
@@ -166,7 +166,7 @@ export class ChartComponent implements OnChanges, OnInit {
         theme: 'dark',
         style: {
           fontSize: '12px',
-          fontFamily: 'Inter, sans-serif',
+          fontFamily: 'Outfit, sans-serif',
         },
         y: {
           formatter: (val) => `LKR ${val.toLocaleString()}`
@@ -265,7 +265,7 @@ export class ChartComponent implements OnChanges, OnInit {
                colors: [this.COLORS.textMuted],
                fontSize: '12px',
                fontWeight: '500',
-               fontFamily: 'Inter, sans-serif'
+               fontFamily: 'Outfit, sans-serif'
             },
             formatter: (value) => `${currency} ${(value/1000).toFixed(0)}K`
           }
@@ -275,7 +275,7 @@ export class ChartComponent implements OnChanges, OnInit {
            theme: 'dark',
            style: {
              fontSize: '12px',
-             fontFamily: 'Inter, sans-serif',
+             fontFamily: 'Outfit, sans-serif',
            },
            y: {
              formatter: (val) => `${currency} ${val.toLocaleString()}`

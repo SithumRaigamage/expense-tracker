@@ -1,15 +1,20 @@
-<aside class="relative h-full z-50">
-  <!-- Mobile Backdrop -->
+<aside class="relative z-50 h-full">
+  <!-- Mobile backdrop -->
   @if (isMobileOpen) {
     <div
       aria-hidden="true"
-      class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-30 lg:hidden transition-opacity duration-300"
-    (click)="sidebarService.toggleMobile()"></div>
+      class="fixed inset-0 z-30 bg-gray-900/50 backdrop-blur-sm animate-fade-in lg:hidden"
+      (click)="sidebarService.toggleMobile()"></div>
   }
 
-  <!-- Sidebar -->
+  <!--
+    The rail expands on hover so a collapsed sidebar is still browsable, and on
+    focusin for the same reason — a keyboard user cannot hover, and without it
+    tabbing into a collapsed rail lands on unlabelled icons with no sub-menus.
+  -->
   <div id="app-sidebar"
-    class="fixed flex flex-col top-0 left-0 h-screen bg-white/90 backdrop-blur-xl dark:bg-gray-900/95 border-r border-gray-100 dark:border-gray-800 text-gray-900 transition-transform duration-300 ease-in-out z-40 shadow-sm"
+    class="fixed left-0 top-0 z-40 flex h-screen flex-col border-y-0 border-l-0 border-r glass
+           transition-[transform,width] duration-300 ease-[var(--ease-out-quint)]"
     [class.translate-x-0]="isMobileOpen"
     [class.-translate-x-full]="!isMobileOpen"
     [class.lg:translate-x-0]="true"
@@ -17,121 +22,155 @@
     [class.lg:w-72]="isExpanded || isHovered"
     [class.lg:w-24]="!isExpanded && !isHovered"
     (mouseenter)="!isExpanded && (isHovered = true)"
-    (mouseleave)="isHovered = false">
+    (mouseleave)="isHovered = false"
+    (focusin)="!isExpanded && (isHovered = true)"
+    (focusout)="onFocusOut($event)">
 
-    <!-- Logo Section -->
-    <div class="flex-shrink-0 h-20 flex items-center justify-center border-b border-gray-100 dark:border-gray-800/50">
-      <div class="flex items-center gap-3">
-        <img src="assets/images/logo.svg" alt="Expensify"
-          class="w-10 h-10 rounded-xl shadow-lg shadow-brand-500/20" width="40" height="40">
-        <span class="text-xl font-bold tracking-tight text-gray-900 dark:text-white" [class.hidden]="!isExpanded && !isHovered">
+    <!-- Logo -->
+    <div class="flex h-16 shrink-0 items-center border-x-0 border-t-0 border-b px-5 md:h-20">
+      <a routerLink="/dashboard" class="group flex min-w-0 items-center gap-3">
+        <span class="relative shrink-0">
+          <!-- Soft bloom behind the mark; blurred and pointer-transparent, it
+               gives the logo a light source without adding an image. -->
+          <span aria-hidden="true"
+            class="absolute -inset-1 rounded-2xl bg-gradient-to-br from-brand-500 to-violet-500
+                   opacity-25 blur-md transition-opacity duration-300 group-hover:opacity-45"></span>
+          <img src="assets/images/logo.svg" alt=""
+            class="relative h-10 w-10 rounded-xl transition-transform duration-300 group-hover:scale-105"
+            width="40" height="40">
+        </span>
+        <span class="truncate text-xl font-bold tracking-tight text-primary transition-opacity duration-200"
+          [class.lg:hidden]="!isExpanded && !isHovered">
           Expensify
         </span>
-      </div>
+      </a>
     </div>
 
-    <!-- Navigation Links -->
-    <nav aria-label="Main" class="flex-1 overflow-y-auto px-4 py-6 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-gray-700">
-      <div class="space-y-8">
-        <!-- Main Menu Items -->
+    <!-- Navigation -->
+    <nav aria-label="Main" class="custom-scrollbar flex-1 overflow-y-auto px-4 py-6">
+      <div class="space-y-7">
+
         <div class="space-y-1">
-          <h2 class="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 transition-opacity duration-200"
-            [class.opacity-0]="!isExpanded && !isHovered"
-            [class.text-center]="!isExpanded && !isHovered"
-            [class.hidden]="!isExpanded && !isHovered">
+          <!--
+            The section label collapses to a short rule when the rail is narrow,
+            rather than vanishing — it keeps the two groups visually separated
+            at any width. aria-hidden so the rule is never announced.
+          -->
+          <h2 class="mb-3 px-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-tertiary"
+            [class.lg:hidden]="!isExpanded && !isHovered">
             Dashboard
           </h2>
+          @if (!isExpanded && !isHovered) {
+            <div aria-hidden="true" class="mx-auto mb-3 hidden h-px w-8 bg-gray-200 dark:bg-white/10 lg:block"></div>
+          }
 
-          <!-- Navigation Items -->
-          @for (item of navItems; track item) {
+          @for (item of navItems; track item.path) {
             @if (!item.isLocked) {
-              <div class="relative group">
+              <div class="group/item relative">
                 <a [routerLink]="item.path"
                   routerLinkActive="menu-item-active"
                   #rla="routerLinkActive"
-                  class="menu-item menu-item-inactive mb-1">
-                  <!-- Icon -->
-                  <div class="menu-item-icon-size flex-shrink-0 flex items-center justify-center"
+                  [attr.aria-label]="(!isExpanded && !isHovered) ? item.name : null"
+                  [attr.aria-current]="rla.isActive ? 'page' : null"
+                  class="menu-item menu-item-inactive mb-0.5"
+                  [class.lg:justify-center]="!isExpanded && !isHovered">
+                  <span class="menu-item-icon-size flex shrink-0 items-center justify-center"
                     [class.menu-item-icon-active]="rla.isActive"
                     [class.menu-item-icon-inactive]="!rla.isActive">
                     <fa-icon [icon]="item.icon"></fa-icon>
-                  </div>
-                  <!-- Name and Badges Container -->
-                  <div class="flex-1 flex items-center justify-between min-w-0 overflow-hidden transition-all duration-200"
-                    [class.w-0]="!isExpanded && !isHovered"
-                    [class.opacity-0]="!isExpanded && !isHovered"
-                    [class.ml-0]="!isExpanded && !isHovered">
-                    <!-- Name -->
+                  </span>
+
+                  <span class="flex min-w-0 flex-1 items-center justify-between gap-2"
+                    [class.lg:hidden]="!isExpanded && !isHovered">
                     <span class="truncate">{{ item.name }}</span>
-                    <!-- Badges Container -->
-                    <div class="flex items-center gap-2 ml-2 flex-shrink-0">
-                      @if (item.isNew) {
-                        <span
-                          class="flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-brand-100 text-brand-600 rounded-full dark:bg-brand-500/20 dark:text-brand-400">
-                          NEW
-                        </span>
-                      }
-                    </div>
-                  </div>
+                    @if (item.isNew) {
+                      <span class="shrink-0 rounded-full bg-brand-100 px-2 py-0.5 text-[10px] font-bold
+                                   uppercase tracking-wider text-brand-700 dark:bg-brand-500/20 dark:text-brand-300">
+                        New
+                      </span>
+                    }
+                  </span>
                 </a>
+
+                <!-- Collapsed-rail tooltip. Shown on hover and on keyboard focus;
+                     aria-hidden because the link already carries the same name. -->
+                @if (!isExpanded && !isHovered) {
+                  <span aria-hidden="true"
+                    class="pointer-events-none absolute left-full top-1/2 z-50 ml-3 hidden -translate-y-1/2
+                           whitespace-nowrap rounded-lg bg-gray-900 px-2.5 py-1.5 text-xs font-medium
+                           text-white opacity-0 shadow-theme-lg transition-opacity duration-200
+                           group-hover/item:opacity-100 group-focus-within/item:opacity-100
+                           dark:bg-gray-700 lg:block">
+                    {{ item.name }}
+                  </span>
+                }
               </div>
             }
           }
         </div>
 
-        <!-- Others Section -->
         <div class="space-y-1">
-          <h2 class="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 transition-opacity duration-200"
-            [class.opacity-0]="!isExpanded && !isHovered"
-            [class.text-center]="!isExpanded && !isHovered"
-            [class.hidden]="!isExpanded && !isHovered">
+          <h2 class="mb-3 px-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-tertiary"
+            [class.lg:hidden]="!isExpanded && !isHovered">
             Management
           </h2>
+          @if (!isExpanded && !isHovered) {
+            <div aria-hidden="true" class="mx-auto mb-3 hidden h-px w-8 bg-gray-200 dark:bg-white/10 lg:block"></div>
+          }
 
-          @for (item of othersItems; track item) {
+          @for (item of othersItems; track item.path) {
             @if (shouldDisplayItem(item)) {
-              <div class="relative group">
-                <!-- Main Item -->
+              <div class="group/item relative">
                 <a [routerLink]="item.subItems ? null : item.path"
                   (click)="item.subItems && toggleSubNav(item, $event)"
                   [attr.role]="item.subItems ? 'button' : null"
                   [attr.aria-expanded]="item.subItems ? !!item.isOpen : null"
                   [attr.tabindex]="item.subItems ? 0 : null"
+                  [attr.aria-label]="(!isExpanded && !isHovered) ? item.name : null"
                   (keydown.enter)="item.subItems && toggleSubNav(item, $event)"
                   (keydown.space)="item.subItems && toggleSubNav(item, $event)"
                   [class.menu-item-active]="(!item.subItems && rlaOthers.isActive) || (item.subItems && item.isOpen)"
-                  class="menu-item menu-item-inactive mb-1 cursor-pointer"
+                  [class.lg:justify-center]="!isExpanded && !isHovered"
+                  class="menu-item menu-item-inactive mb-0.5 cursor-pointer"
                   #rlaOthers="routerLinkActive"
-                  [routerLinkActive]="item.subItems ? '' : 'active-link-dummy'"> <!-- Dummy class to trigger rlaOthers -->
-                  <!-- Icon -->
-                  <div class="menu-item-icon-size flex-shrink-0 flex items-center justify-center"
+                  [routerLinkActive]="item.subItems ? '' : 'active-link-dummy'">
+                  <span class="menu-item-icon-size flex shrink-0 items-center justify-center"
                     [class.menu-item-icon-active]="(!item.subItems && rlaOthers.isActive) || (item.subItems && item.isOpen)"
                     [class.menu-item-icon-inactive]="!((!item.subItems && rlaOthers.isActive) || (item.subItems && item.isOpen))">
                     <fa-icon [icon]="item.icon"></fa-icon>
-                  </div>
-                  <!-- Name and Content -->
-                  <div class="flex-1 flex items-center justify-between min-w-0 overflow-hidden transition-all duration-200"
-                    [class.w-0]="!isExpanded && !isHovered"
-                    [class.opacity-0]="!isExpanded && !isHovered"
-                    [class.ml-0]="!isExpanded && !isHovered">
+                  </span>
+
+                  <span class="flex min-w-0 flex-1 items-center justify-between gap-2"
+                    [class.lg:hidden]="!isExpanded && !isHovered">
                     <span class="truncate">{{ item.name }}</span>
                     @if (item.subItems) {
-                      <fa-icon
-                        [icon]="chevronRight"
-                        class="w-3 h-3 transition-transform duration-200 ml-2"
+                      <fa-icon [icon]="chevronRight"
+                        class="h-3 w-3 shrink-0 transition-transform duration-300 ease-[var(--ease-out-quint)]"
                         [class.rotate-90]="item.isOpen">
                       </fa-icon>
                     }
-                  </div>
+                  </span>
                 </a>
-                <!-- Sub Items -->
+
+                @if (!isExpanded && !isHovered) {
+                  <span aria-hidden="true"
+                    class="pointer-events-none absolute left-full top-1/2 z-50 ml-3 hidden -translate-y-1/2
+                           whitespace-nowrap rounded-lg bg-gray-900 px-2.5 py-1.5 text-xs font-medium
+                           text-white opacity-0 shadow-theme-lg transition-opacity duration-200
+                           group-hover/item:opacity-100 group-focus-within/item:opacity-100
+                           dark:bg-gray-700 lg:block">
+                    {{ item.name }}
+                  </span>
+                }
+
                 @if (item.subItems && item.isOpen && (isExpanded || isHovered)) {
-                  <div
-                    class="ml-4 mt-1 space-y-1 border-l border-gray-100 dark:border-gray-800 pl-3">
-                    @for (subItem of item.subItems; track subItem) {
+                  <div class="ml-[1.6rem] mt-1 space-y-0.5 border-y-0 border-r-0 border-l pl-3 animate-fade-in">
+                    @for (subItem of item.subItems; track subItem.path) {
                       @if (!subItem.isLocked) {
                         <a [routerLink]="subItem.path"
                           routerLinkActive="menu-dropdown-item-active"
+                          #subRla="routerLinkActive"
+                          [attr.aria-current]="subRla.isActive ? 'page' : null"
                           class="menu-dropdown-item menu-dropdown-item-inactive">
                           <span class="truncate">{{ subItem.name }}</span>
                         </a>
@@ -146,9 +185,26 @@
       </div>
     </nav>
 
-    <!-- Profile / Bottom Section -->
-    <div class="p-4 border-t border-gray-100 dark:border-gray-800/50 mt-auto">
-      <!-- Can add simple user profile summary here later if needed -->
+    <!--
+      Was an empty div with a "can add a profile summary here later" comment,
+      leaving a dead 4rem strip under the nav. It now holds the rail's own
+      collapse control, which previously lived only in the header.
+    -->
+    <div class="shrink-0 border-x-0 border-b-0 border-t p-3">
+      <button type="button"
+        (click)="sidebarService.toggleSidebar()"
+        [attr.aria-label]="isExpanded ? 'Collapse sidebar' : 'Expand sidebar'"
+        [attr.aria-expanded]="isExpanded"
+        aria-controls="app-sidebar"
+        class="hidden w-full items-center gap-3 rounded-xl px-3 py-2.5 text-theme-sm font-medium
+               text-gray-500 transition-colors duration-200 hover:bg-gray-100/80 hover:text-gray-900
+               dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-100 lg:flex"
+        [class.lg:justify-center]="!isExpanded && !isHovered">
+        <fa-icon [icon]="chevronRight"
+          class="shrink-0 transition-transform duration-300 ease-[var(--ease-out-quint)]"
+          [class.rotate-180]="isExpanded"></fa-icon>
+        <span [class.lg:hidden]="!isExpanded && !isHovered">Collapse</span>
+      </button>
     </div>
   </div>
 </aside>

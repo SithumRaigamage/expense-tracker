@@ -4,19 +4,23 @@ import { CommonModule } from '@angular/common';
 import { BillsService } from '../../../services/bill.service';
 import { Bill } from '../../../core/models/Bill';
 import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
+import { RouterModule } from '@angular/router';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
+import { faCalendarDays } from '@fortawesome/free-solid-svg-icons';
 
 
 @Component({
   selector: 'app-upcoming-bills',
   templateUrl: './upcoming-bills.component.html',
   standalone: true,
-  imports: [CommonModule, AppCurrencyPipe]
+  imports: [CommonModule, RouterModule, AppCurrencyPipe, EmptyStateComponent]
 })
 export class UpcomingBillsComponent implements OnInit {
   private billsService = inject(BillsService);
 
   private readonly destroyRef = inject(DestroyRef);
 
+  readonly faCalendarDays = faCalendarDays;
   upcomingBills: Bill[] = [];
 
   ngOnInit(): void {

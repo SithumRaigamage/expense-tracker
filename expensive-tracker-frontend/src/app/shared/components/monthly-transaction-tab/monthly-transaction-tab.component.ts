@@ -1,44 +1,38 @@
-import { Component, Output, EventEmitter } from '@angular/core';
-
+import { ChangeDetectionStrategy, Component, EventEmitter, Output } from '@angular/core';
+import { SegmentedControlComponent, SegmentOption } from '../segmented-control/segmented-control.component';
 
 type TabOption = 'income' | 'expense' | 'all';
 
+/**
+ * Income / Expense / All switch for the monthly chart. The pill markup and its
+ * active-state logic now come from the shared segmented control; this keeps the
+ * component's existing `tabChanged` output so callers are unaffected.
+ */
 @Component({
   selector: 'app-monthly-transaction-tab',
   standalone: true,
-  imports: [],
+  host: { class: 'block max-w-full min-w-0' },
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [SegmentedControlComponent],
   template: `
-    <div class="flex items-center gap-0.5 rounded-lg bg-gray-100 p-0.5 dark:bg-gray-900">
-      <button
-        (click)="setSelected('income')"
-        [class]="'px-3 py-2 font-medium w-full rounded-md text-theme-sm hover:text-gray-900 dark:hover:text-white ' + getButtonClass('income')"
-      >
-        Income
-      </button>
-      <button
-        (click)="setSelected('expense')"
-        [class]="'px-3 py-2 font-medium w-full rounded-md text-theme-sm hover:text-gray-900 dark:hover:text-white ' + getButtonClass('expense')"
-      >
-        Expense
-      </button>
-      <button
-        (click)="setSelected('all')"
-        [class]="'px-3 py-2 font-medium w-full rounded-md text-theme-sm hover:text-gray-900 dark:hover:text-white ' + getButtonClass('all')"
-      >
-        All
-      </button>
-    </div>
+    <app-segmented-control
+      [options]="options"
+      [selected]="selected"
+      ariaLabel="Transaction type"
+      (selectedChange)="setSelected($event)">
+    </app-segmented-control>
   `
 })
 export class MonthlyTransactionTabComponent {
   @Output() tabChanged = new EventEmitter<TabOption>();
+
   selected: TabOption = 'all';
 
-  getButtonClass(option: TabOption): string {
-    return this.selected === option
-      ? 'shadow-theme-xs text-gray-900 dark:text-white bg-white dark:bg-gray-800'
-      : 'text-gray-500 dark:text-gray-400';
-  }
+  readonly options: SegmentOption<TabOption>[] = [
+    { value: 'income', label: 'Income' },
+    { value: 'expense', label: 'Expense' },
+    { value: 'all', label: 'All' }
+  ];
 
   setSelected(option: TabOption): void {
     this.selected = option;

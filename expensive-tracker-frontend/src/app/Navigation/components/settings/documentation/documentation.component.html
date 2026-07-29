@@ -1,74 +1,64 @@
 <div class="grid grid-cols-12 gap-4 md:gap-6">
-  <!-- Documentation Header -->
+  <!--
+    The "Download PDF" button that sat here has been removed: there is no PDF in
+    the project and its click handler was an empty method, so it was a control
+    that looked like a download and did nothing.
+  -->
   <div class="col-span-12">
-    <div class="bg-white rounded-lg shadow-sm p-6">
-      <div class="flex justify-between items-center">
-        <h1 class="text-2xl font-semibold text-gray-800">Documentation</h1>
-        <button (click)="downloadPdf()"
-          class="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
-          <fa-icon [icon]="downloadIcon"></fa-icon>
-          Download PDF
-        </button>
-      </div>
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight text-primary">Documentation</h1>
+      <p class="mt-1 text-sm text-secondary">How the main parts of Expensify fit together.</p>
     </div>
   </div>
 
-  <!-- Documentation Sections -->
   <div class="col-span-12">
-    <div class="bg-white rounded-lg shadow-sm p-6 space-y-8">
-      <!-- Section Loop -->
-      @for (section of sections; track section) {
-        <div class="space-y-4">
-          <h2 class="text-xl font-semibold text-gray-800">{{ section.title }}</h2>
-          <!-- Content -->
-          <div class="prose max-w-none text-gray-600">
-            <p>{{ section.content }}</p>
-          </div>
-          <!-- Video Tutorial -->
-          @if (section.videoUrl) {
-            <div class="mt-4">
-              <h3 class="text-lg font-medium text-gray-700 mb-2 flex items-center gap-2">
-                <fa-icon [icon]="videoIcon"></fa-icon>
-                Video Tutorial
-              </h3>
-              <video
-                [src]="section.videoUrl"
-                controls
-                class="w-full rounded-lg border border-gray-200"
-              ></video>
-            </div>
+    <div class="card divide-y divide-[var(--border-subtle)] p-6">
+      <!--
+        The video player and screenshot grid are gone. Both pointed at
+        directories that do not exist (`assets/videos`, `assets/images/docs`),
+        so every section rendered an empty player stuck at 0:00 and a row of
+        broken-image icons.
+      -->
+      @for (section of sections; track section.title) {
+        <section class="py-6 first:pt-0 last:pb-0">
+          <h2 class="text-lg font-semibold text-primary">{{ section.title }}</h2>
+          <p class="mt-2 max-w-3xl text-sm leading-relaxed text-secondary">{{ section.content }}</p>
+
+          @if (section.route) {
+            <a [routerLink]="section.route"
+              class="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600 transition-colors hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300">
+              {{ section.routeLabel }}
+              <span aria-hidden="true">→</span>
+            </a>
           }
-          <!-- Screenshots -->
-          @if (section.screenshots?.length) {
-            <div class="mt-4 space-y-2">
-              <h3 class="text-lg font-medium text-gray-700">Screenshots</h3>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                @for (screenshot of section.screenshots; track screenshot) {
-                  <img
-                    [src]="screenshot"
-                    [alt]="section.title"
-                    class="rounded-lg border border-gray-200 w-full">
-                }
-              </div>
-            </div>
-          }
-          <hr class="border-gray-100">
-        </div>
+        </section>
       }
     </div>
   </div>
 
-  <!-- Quick Links -->
   <div class="col-span-12">
-    <div class="bg-white rounded-lg shadow-sm p-6">
-      <h2 class="text-xl font-semibold text-gray-800 mb-4">Quick Links</h2>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <a href="/help/faqs"
-          class="flex items-center gap-2 p-4 border border-gray-200 rounded-lg hover:border-blue-500">
-          <fa-icon [icon]="bookIcon"></fa-icon>
-          <span>Frequently Asked Questions</span>
+    <div class="card p-6">
+      <h2 class="mb-4 text-lg font-semibold text-primary">Quick links</h2>
+      <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
+        <!--
+          Was `href="/help/faqs"`, a full page reload that threw away the
+          Angular app and re-bootstrapped it. routerLink navigates in place.
+        -->
+        <a routerLink="/help/faqs"
+          class="flex items-center gap-2.5 rounded-xl border border-subtle p-4 text-sm font-medium text-secondary transition-all duration-200 hover:border-brand-500/40 hover:text-primary hover:shadow-theme-sm">
+          <fa-icon [icon]="bookIcon" class="text-brand-600 dark:text-brand-400"></fa-icon>
+          <span>Frequently asked questions</span>
         </a>
-        <!-- Add more quick links -->
+        <a routerLink="/help/troubleshooting"
+          class="flex items-center gap-2.5 rounded-xl border border-subtle p-4 text-sm font-medium text-secondary transition-all duration-200 hover:border-brand-500/40 hover:text-primary hover:shadow-theme-sm">
+          <fa-icon [icon]="bookIcon" class="text-brand-600 dark:text-brand-400"></fa-icon>
+          <span>Troubleshooting</span>
+        </a>
+        <a routerLink="/help/support"
+          class="flex items-center gap-2.5 rounded-xl border border-subtle p-4 text-sm font-medium text-secondary transition-all duration-200 hover:border-brand-500/40 hover:text-primary hover:shadow-theme-sm">
+          <fa-icon [icon]="bookIcon" class="text-brand-600 dark:text-brand-400"></fa-icon>
+          <span>Contact support</span>
+        </a>
       </div>
     </div>
   </div>

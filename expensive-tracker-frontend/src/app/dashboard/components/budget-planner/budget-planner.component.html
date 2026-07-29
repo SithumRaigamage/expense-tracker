@@ -1,21 +1,24 @@
-<div class="rounded-2xl border border-gray-200 bg-white px-4 pb-3 pt-4 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6">
+<div class="card px-4 pb-3 pt-4 sm:px-6">
   <!-- Header Section -->
   <div class="flex flex-col gap-2 mb-6 sm:flex-row sm:items-center sm:justify-between">
     <div>
-      <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
+      <h3 class="text-lg font-semibold text-primary dark:text-white/90">
         Budget Goals
       </h3>
     </div>
 
-    <div class="flex items-center gap-3">
-      <button (click)="refreshGoals()" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
-        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <div class="flex shrink-0 items-center gap-2">
+      <button (click)="refreshGoals()"
+        aria-label="Refresh budget goals"
+        class="inline-flex items-center gap-2 rounded-xl border border-subtle px-3 py-2 text-theme-sm font-medium text-secondary surface-1 shadow-theme-xs transition-all duration-200 hover:text-primary hover:shadow-theme-sm active:scale-95">
+        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M2.5 2v6h6M2.66 15.57a10 10 0 1 0 .57-8.38"/>
         </svg>
         Refresh
       </button>
-      <a [routerLink]="['/budget']" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
-        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <a [routerLink]="['/budget']"
+        class="inline-flex items-center gap-2 whitespace-nowrap rounded-xl border border-subtle px-3 py-2 text-theme-sm font-medium text-secondary surface-1 shadow-theme-xs transition-all duration-200 hover:text-primary hover:shadow-theme-sm active:scale-95">
+        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="12" y1="5" x2="12" y2="19"></line>
           <line x1="5" y1="12" x2="19" y2="12"></line>
         </svg>
@@ -24,27 +27,28 @@
     </div>
   </div>
 
-  <!-- Loading State -->
+  <!-- Loading: row-shaped placeholders, so the panel keeps its height rather
+       than collapsing to a centred spinner and then jumping. -->
   @if (isLoading) {
-    <div class="text-center py-12">
-      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-500 mx-auto mb-4"></div>
-      <p class="text-gray-600 dark:text-gray-400">Loading budget goals...</p>
+    <div class="space-y-4">
+      @for (row of [1, 2, 3]; track row) {
+        <div class="flex items-center gap-4 rounded-xl border border-subtle p-4 surface-2">
+          <app-skeleton width="3.5rem" height="3.5rem" rounded="xl"></app-skeleton>
+          <div class="flex-1 space-y-2">
+            <app-skeleton width="40%" height="1rem"></app-skeleton>
+            <app-skeleton width="70%" height="0.75rem"></app-skeleton>
+          </div>
+        </div>
+      }
     </div>
   }
 
-  <!-- Error State -->
   @if (error) {
-    <div class="text-center py-8 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-800/30 mb-4">
-      <div class="mx-auto w-16 h-16 text-red-500 mb-4">
-        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="12" y1="8" x2="12" y2="12"></line>
-          <line x1="12" y1="16" x2="12.01" y2="16"></line>
-        </svg>
-      </div>
-      <h3 class="text-red-700 font-medium dark:text-red-400 mb-2">{{error}}</h3>
-      <button (click)="refreshGoals()" class="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
-        Try Again
+    <div role="alert" class="mb-4 rounded-xl border border-error-200 bg-error-50 p-5 text-center dark:border-error-500/25 dark:bg-error-500/10">
+      <p class="font-medium text-error-700 dark:text-error-300">{{error}}</p>
+      <button (click)="refreshGoals()"
+        class="mt-4 rounded-xl bg-error-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-error-700 active:scale-95">
+        Try again
       </button>
     </div>
   }
@@ -54,78 +58,86 @@
     <div class="space-y-4">
       <!-- Goal Card -->
       @for (goal of productgoals; track goal) {
-        <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/50">
-          <div class="flex flex-col gap-6 lg:flex-row lg:items-center">
-            <!-- Left: Image and Basic Info -->
-            <div class="flex min-w-0 items-center gap-4 lg:min-w-[200px]">
-              <img [src]="goal.imageUrl" alt="Product image" class="h-16 w-16 rounded-lg object-cover shadow-sm"
-                onerror="this.src='https://images.unsplash.com/photo-1560393464-5c69a73c5770?w=100&h=100&fit=crop'">
-                <div>
-                  <h4 class="font-medium text-gray-900 dark:text-white">{{goal.name}}</h4>
-                  <p class="text-sm text-gray-500 dark:text-gray-400">Target: {{goal.targetAmount | appCurrency}}</p>
-                </div>
-              </div>
-              <!-- Middle: Progress Bar and Details -->
-              <div class="w-full min-w-0 flex-1">
-                <div class="flex flex-col gap-4 md:flex-row md:items-center">
-                  <!-- Progress Bar -->
-                  <div class="flex-1">
-                    <div class="flex justify-between text-sm mb-1">
-                      <span class="text-gray-500 dark:text-gray-400">Progress</span>
-                      <span class="font-medium text-gray-900 dark:text-white">{{calculateProgress(goal)}}%</span>
-                    </div>
-                    <div class="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-700">
-                      <div class="h-2 rounded-full transition-all duration-300"
-                        [ngClass]="getProgressColor(calculateProgress(goal))"
-                      [style.width]="calculateProgress(goal) + '%'"></div>
-                    </div>
-                  </div>
-                  <!-- Amount Details -->
-                  <div class="grid min-w-0 grid-cols-2 gap-4 sm:flex sm:gap-6">
-                    <div class="flex min-w-0 flex-col">
-                      <span class="text-sm text-gray-500 dark:text-gray-400">Saved</span>
-                      <span class="font-medium text-gray-900 dark:text-white">{{goal.savedAmount | appCurrency}}</span>
-                    </div>
-                    <div class="flex min-w-0 flex-col">
-                      <span class="text-sm text-gray-500 dark:text-gray-400">Remaining</span>
-                      <span class="font-medium text-gray-900 dark:text-white">{{(goal.targetAmount - goal.savedAmount) | appCurrency}}</span>
-                    </div>
-                    <div class="flex min-w-0 flex-col col-span-2 sm:col-span-1">
-                      <span class="text-sm text-gray-500 dark:text-gray-400">Target Date</span>
-                      <span class="font-medium text-gray-900 dark:text-white">{{formatDate(goal.targetDate)}}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <!-- Right: Actions -->
-              <div class="flex w-full min-w-0 items-center gap-3 lg:w-auto">
-                <a [routerLink]="['/budget']" class="flex-1 rounded-lg bg-brand-500 px-3 py-2 text-sm font-medium text-white hover:bg-brand-600 transition-colors text-center">
-                  Manage
-                </a>
-              </div>
+        <!--
+          One grid with fixed column tracks, rather than nested flex rows.
+          Previously each column sized itself to its own row's content, so
+          "Saved", "Remaining" and "Target Date" landed at a different x on
+          every row and the list read as misaligned.
+        -->
+        <!--
+          The horizontal layout is gated on `xl`, not `lg`. Breakpoints track the
+          viewport, but the sidebar takes 288px of it, so at a 1024px "laptop"
+          this row only had ~690px to place six columns in — it overflowed the
+          page by 250px. Below xl the card stacks: product and action on one
+          row, progress next, then the three figures side by side.
+        -->
+        <div class="grid grid-cols-1 items-center gap-4 rounded-xl border border-subtle p-4 surface-2
+                    xl:grid-cols-[15rem_minmax(5rem,1fr)_auto_auto] xl:gap-5">
+          <!-- Product -->
+          <div class="flex min-w-0 items-center gap-4">
+            <img [src]="goal.imageUrl" alt="" class="h-14 w-14 shrink-0 rounded-xl object-cover shadow-theme-sm"
+              onerror="this.src='https://images.unsplash.com/photo-1560393464-5c69a73c5770?w=100&h=100&fit=crop'">
+            <div class="min-w-0">
+              <h4 class="truncate font-semibold text-primary" [attr.title]="goal.name">{{goal.name}}</h4>
+              <p data-numeric class="truncate text-sm text-tertiary">Target: {{goal.targetAmount | appCurrency}}</p>
             </div>
           </div>
-        }
-        <!-- Empty State -->
+
+          <!-- Progress -->
+          <div class="min-w-0">
+            <div class="mb-1.5 flex justify-between text-sm">
+              <span class="text-tertiary">Progress</span>
+              <span data-numeric class="font-semibold text-primary">{{calculateProgress(goal)}}%</span>
+            </div>
+            <div class="h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-white/10"
+              role="progressbar"
+              [attr.aria-valuenow]="calculateProgress(goal)"
+              aria-valuemin="0" aria-valuemax="100"
+              [attr.aria-label]="'Progress towards ' + goal.name">
+              <div class="h-2 rounded-full transition-[width] duration-700 ease-[var(--ease-out-quint)]"
+                [ngClass]="getProgressColor(calculateProgress(goal))"
+                [style.width]="calculateProgress(goal) + '%'"></div>
+            </div>
+          </div>
+
+          <!-- The three figures share one sub-grid so they stay aligned with
+               each other whether the card is stacked or laid out in a row. -->
+          <div class="grid grid-cols-3 gap-3 xl:gap-5">
+            <div class="min-w-0 xl:w-28">
+              <span class="block text-xs text-tertiary">Saved</span>
+              <span data-numeric class="block truncate font-semibold text-primary">{{goal.savedAmount | appCurrency}}</span>
+            </div>
+            <div class="min-w-0 xl:w-28">
+              <span class="block text-xs text-tertiary">Remaining</span>
+              <span data-numeric class="block truncate font-semibold text-primary">{{(goal.targetAmount - goal.savedAmount) | appCurrency}}</span>
+            </div>
+            <div class="min-w-0 xl:w-24">
+              <span class="block text-xs text-tertiary">Target date</span>
+              <span class="block truncate font-semibold text-primary">{{formatDate(goal.targetDate)}}</span>
+            </div>
+          </div>
+
+          <a [routerLink]="['/budget']"
+            [attr.aria-label]="'Manage goal: ' + goal.name"
+            class="shrink-0 rounded-xl gradient-brand px-4 py-2 text-center text-sm font-semibold text-white
+                   shadow-theme-sm transition-transform duration-200 hover:scale-[1.03] active:scale-95">
+            Manage
+          </a>
+        </div>
+      }
+        <!-- Was a hand-rolled empty state; uses the shared component now. -->
         @if (productgoals.length === 0) {
-          <div class="text-center py-12">
-            <div class="mx-auto w-16 h-16 text-gray-400 mb-4">
-              <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="12" y1="8" x2="12" y2="16"></line>
-                <line x1="8" y1="12" x2="16" y2="12"></line>
-              </svg>
-            </div>
-            <h3 class="text-gray-900 font-medium dark:text-white mb-2">No budget goals yet</h3>
-            <p class="text-gray-500 dark:text-gray-400">Start planning your purchases by adding a goal</p>
-            <a [routerLink]="['/budget']" class="mt-6 inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 transition-colors">
-              <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-              </svg>
-              Create Your First Goal
+          <app-empty-state
+            [icon]="faBullseye"
+            title="No budget goals yet"
+            message="Start planning your purchases by adding a goal."
+            size="lg"
+            >
+            <a [routerLink]="['/budget']"
+              class="inline-flex items-center gap-2 rounded-xl gradient-brand px-4 py-2.5 text-sm font-semibold text-white shadow-theme-md transition-transform duration-200 hover:scale-[1.03] active:scale-95">
+              Create your first goal
             </a>
-          </div>
+          </app-empty-state>
         }
       </div>
     }

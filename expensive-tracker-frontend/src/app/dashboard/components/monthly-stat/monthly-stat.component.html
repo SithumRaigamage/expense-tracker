@@ -1,49 +1,46 @@
-<div class="card overflow-hidden p-4 sm:p-6 mt-5">
-  <div class="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center sm:justify-between">
-    <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
+<!--
+  `mt-5` was left over from the old stacked layout, where this widget sat under
+  the metrics column. It now shares a grid row with the trend chart, and the
+  stray margin pushed it out of alignment with its neighbour.
+-->
+<div class="card flex h-full flex-col overflow-hidden p-4 sm:p-6">
+  <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <!--
+      The tab group carried `w-full`, which let it squeeze the heading until
+      "Monthly transactions" wrapped onto two lines at this column width.
+    -->
+    <h3 class="text-lg font-semibold text-primary sm:whitespace-nowrap">
       Monthly transactions
     </h3>
-    <div class="flex items-start w-full gap-3 sm:justify-end">
+    <div class="shrink-0 sm:ml-auto">
       <app-monthly-transaction-tab
         (tabChanged)="onTabChanged($event)"
       ></app-monthly-transaction-tab>
     </div>
   </div>
 
-  <!-- Empty State -->
+  <!--
+    Was a hand-rolled empty state — its own inline SVG, heading and copy —
+    duplicating the shared component that the rest of the dashboard uses.
+    The nested "no data" branch inside the chart block below was unreachable:
+    it tested for an empty list inside a branch that only runs when the list
+    is non-empty.
+  -->
   @if (transactions.length === 0 && !isLoading) {
-    <div class="flex flex-col items-center justify-center py-12 text-center">
-      <div class="mb-4 rounded-full bg-gray-100 p-6 dark:bg-gray-800">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-        </svg>
-      </div>
-      <h3 class="mb-2 text-lg font-semibold text-gray-900 dark:text-white">No Transaction Data</h3>
-      <p class="max-w-md text-sm text-gray-500 dark:text-gray-400">
-        Add transactions to see your monthly statistics and trends.
-      </p>
-    </div>
+    <app-empty-state
+      [icon]="faChartColumn"
+      title="No transaction data"
+      message="Add transactions to see your monthly statistics and trends."
+      size="lg"
+    ></app-empty-state>
   }
 
-  <!-- Chart Content -->
   @if (transactions.length > 0) {
-    <div class="max-w-full">
-      <div class="w-full">
-        @if (!isLoading && transactions.length === 0) {
-          <app-empty-state
-            [icon]="faChartColumn"
-            title="No data available"
-            message="Record a few transactions and this month's income and spending will be plotted here."
-            size="lg"
-          ></app-empty-state>
-        }
-        @if (transactions.length > 0) {
-          <app-chart
-            [chartType]="currentChartType"
-            [transactions]="transactions"
-          ></app-chart>
-        }
-      </div>
+    <div class="min-w-0 flex-1">
+      <app-chart
+        [chartType]="currentChartType"
+        [transactions]="transactions"
+      ></app-chart>
     </div>
   }
 </div>

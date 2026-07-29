@@ -1,32 +1,57 @@
-<div class="max-w-5xl mx-auto p-4 sm:p-6">
-  <!-- Header -->
+<!--
+  The shell already pads <main>; a second page-level inset stacked on top of it.
+
+  The column narrows while there is only one thing on the page to look at (see
+  `isFocusedUpload`), so the uploader reads as a centred, focused task rather
+  than as content pinned to the left of a half-empty 1024px page. It widens back
+  to the full width once a scan result or the import table needs the room.
+-->
+<div class="mx-auto transition-[max-width] duration-300 ease-[var(--ease-out-quint)]"
+  [class.max-w-2xl]="isFocusedUpload"
+  [class.max-w-5xl]="!isFocusedUpload">
+  <!--
+    This screen predates the design system and was still on raw indigo and
+    light-only greys, so its border and label colours did not follow the theme.
+    It uses the brand ramp and semantic tokens now, like every other page.
+  -->
   <div class="mb-6">
-    <h1 class="text-2xl font-bold text-gray-800 flex items-center gap-3">
-      <fa-icon [icon]="faFileImport" class="text-indigo-600"></fa-icon>
+    <h1 class="flex items-center gap-3 text-2xl font-bold text-primary">
+      <fa-icon [icon]="faFileImport" class="text-brand-600 dark:text-brand-400"></fa-icon>
       Import &amp; Scan
     </h1>
-    <p class="text-gray-500 mt-1">Add expenses automatically — snap a receipt or import a bank statement / SMS alerts.</p>
+    <p class="mt-1 text-secondary">Add expenses automatically — snap a receipt or import a bank statement / SMS alerts.</p>
   </div>
 
   <!-- Main tabs -->
-  <div class="flex gap-2 mb-6 border-b border-gray-200">
+  <div class="mb-6 flex gap-2 border-x-0 border-t-0 border-b">
     <button (click)="setTab('receipt')"
-      [class]="activeTab === 'receipt' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
-      class="px-4 py-2 -mb-px border-b-2 font-medium flex items-center gap-2">
+      [attr.aria-pressed]="activeTab === 'receipt'"
+      [class]="activeTab === 'receipt'
+        ? 'border-brand-500 text-brand-600 dark:text-brand-400'
+        : 'border-transparent text-secondary hover:text-primary'"
+      class="-mb-px flex items-center gap-2 border-b-2 px-4 py-2.5 font-medium transition-colors duration-200">
       <fa-icon [icon]="faReceipt"></fa-icon> Receipt scan
     </button>
     <button (click)="setTab('import')"
-      [class]="activeTab === 'import' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
-      class="px-4 py-2 -mb-px border-b-2 font-medium flex items-center gap-2">
+      [attr.aria-pressed]="activeTab === 'import'"
+      [class]="activeTab === 'import'
+        ? 'border-brand-500 text-brand-600 dark:text-brand-400'
+        : 'border-transparent text-secondary hover:text-primary'"
+      class="-mb-px flex items-center gap-2 border-b-2 px-4 py-2.5 font-medium transition-colors duration-200">
       <fa-icon [icon]="faFileCsv"></fa-icon> Bank / SMS import
     </button>
   </div>
 
-  <!-- Shared: wallet + default category -->
-  <div class="grid sm:grid-cols-2 gap-4 mb-6">
+  <!--
+    Wallet + default category. Only splits into two columns on the import tab,
+    which is the only tab that renders the second field; on the receipt tab the
+    grid was reserving an empty half.
+  -->
+  <div class="grid gap-4 mb-6" [class.sm:grid-cols-2]="activeTab === 'import'">
     <div>
-      <label for="import-wallet" class="block text-sm font-medium text-gray-600 mb-1">Wallet</label>
-      <select id="import-wallet" [(ngModel)]="selectedWalletId" class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+      <label for="import-wallet" class="mb-1.5 block text-sm font-medium text-secondary">Wallet</label>
+      <select id="import-wallet" [(ngModel)]="selectedWalletId"
+        class="w-full rounded-xl border border-subtle px-3 py-2.5 text-primary surface-1 transition-colors focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/20">
         <option value="">Select a wallet…</option>
         @for (w of wallets; track w) {
           <option [value]="w.id">{{ w.name }} ({{ w.type }})</option>
@@ -35,8 +60,9 @@
     </div>
     @if (activeTab === 'import') {
       <div>
-        <label for="import-default-category" class="block text-sm font-medium text-gray-600 mb-1">Default category <span class="text-gray-400">(optional, for unmatched)</span></label>
-        <select id="import-default-category" [(ngModel)]="defaultCategoryId" class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+        <label for="import-default-category" class="mb-1.5 block text-sm font-medium text-secondary">Default category <span class="text-tertiary">(optional, for unmatched)</span></label>
+        <select id="import-default-category" [(ngModel)]="defaultCategoryId"
+          class="w-full rounded-xl border border-subtle px-3 py-2.5 text-primary surface-1 transition-colors focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/20">
           <option value="">None — skip unmatched</option>
           @for (c of categories; track c) {
             <option [value]="c._id">{{ c.name }}</option>
@@ -48,26 +74,31 @@
 
   <!-- ================= RECEIPT ================= -->
   @if (activeTab === 'receipt') {
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-      <div class="grid md:grid-cols-2 gap-6">
+    <div class="card p-6">
+      <!-- Second column only once a scan result exists to fill it. -->
+      <div class="grid gap-6" [class.md:grid-cols-2]="scanResult">
         <!-- Upload -->
         <div>
-          <label class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-6 cursor-pointer hover:border-indigo-400 transition">
-            <fa-icon [icon]="faCamera" class="text-3xl text-indigo-500 mb-2"></fa-icon>
-            <span class="text-sm text-gray-600">Click to choose a receipt photo</span>
+          <!-- group/drop so the icon can react to hover over the whole zone. -->
+          <label class="group/drop flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-subtle px-6 py-10 transition-colors duration-200 hover:border-brand-400 hover:bg-brand-500/[0.04]">
+            <span class="mb-3 grid h-14 w-14 place-items-center rounded-2xl bg-brand-50 text-brand-600 transition-transform duration-300 ease-[var(--ease-spring)] group-hover/drop:scale-110 dark:bg-brand-500/12 dark:text-brand-400">
+              <fa-icon [icon]="faCamera" class="text-2xl"></fa-icon>
+            </span>
+            <span class="text-sm font-medium text-primary">Click to choose a receipt photo</span>
+            <span class="mt-1 text-xs text-tertiary">PNG or JPG</span>
             <input type="file" accept="image/*" class="hidden" (change)="onReceiptSelected($event)" />
           </label>
           @if (receiptPreviewUrl) {
             <img [src]="receiptPreviewUrl" alt="Receipt preview"
-              class="mt-4 rounded-lg max-h-64 mx-auto object-contain border border-gray-100" />
+              class="mx-auto mt-4 max-h-64 rounded-xl border border-subtle object-contain" />
           }
           <button (click)="scanReceipt()" [disabled]="!receiptFile || scanning"
-            class="mt-4 w-full bg-indigo-600 text-white rounded-lg py-2.5 font-medium disabled:opacity-50 flex items-center justify-center gap-2">
+            class="mt-4 flex w-full items-center justify-center gap-2 rounded-xl gradient-brand py-3 font-semibold text-white shadow-theme-md shadow-brand-500/25 transition-all duration-200 hover:shadow-theme-lg hover:shadow-brand-500/35 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none">
             <fa-icon [icon]="scanning ? faSpinner : faReceipt" [class.fa-spin]="scanning"></fa-icon>
             {{ scanning ? 'Scanning…' : 'Scan receipt' }}
           </button>
           @if (receiptError) {
-            <p class="mt-2 text-sm text-red-600">{{ receiptError }}</p>
+            <p role="alert" class="mt-2 text-sm font-medium text-error-600 dark:text-error-400">{{ receiptError }}</p>
           }
         </div>
         <!-- Suggestion / editable form -->
@@ -80,27 +111,27 @@
                 <span>OCR isn't configured on the server (set <code>OCR_API_KEY</code>). The receipt was stored — fill the fields in manually.</span>
               </div>
             }
-            <h3 class="font-semibold text-gray-800">Review &amp; save</h3>
+            <h3 class="font-semibold text-primary">Review &amp; save</h3>
             <div>
-              <label for="scan-title" class="block text-xs font-medium text-gray-500 mb-1">Title</label>
+              <label for="scan-title" class="block text-xs font-medium text-tertiary mb-1">Title</label>
               <input id="scan-title" [(ngModel)]="scanResult.suggestion.title" type="text"
                 class="w-full rounded-lg border border-gray-300 px-3 py-2" placeholder="e.g. Grocery shopping" />
             </div>
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label for="scan-amount" class="block text-xs font-medium text-gray-500 mb-1">Amount</label>
+                <label for="scan-amount" class="block text-xs font-medium text-tertiary mb-1">Amount</label>
                 <input id="scan-amount" [(ngModel)]="scanResult.suggestion.amount" type="number" min="0" step="0.01"
                   class="w-full rounded-lg border border-gray-300 px-3 py-2" />
               </div>
               <div>
-                <label for="scan-date" class="block text-xs font-medium text-gray-500 mb-1">Date</label>
+                <label for="scan-date" class="block text-xs font-medium text-tertiary mb-1">Date</label>
                 <input id="scan-date" [ngModel]="scanResult.suggestion.date | date:'yyyy-MM-dd'"
                   (ngModelChange)="scanResult.suggestion.date = $event" type="date"
                   class="w-full rounded-lg border border-gray-300 px-3 py-2" />
               </div>
             </div>
             <div>
-              <label for="scan-category" class="block text-xs font-medium text-gray-500 mb-1">Category</label>
+              <label for="scan-category" class="block text-xs font-medium text-tertiary mb-1">Category</label>
               <select id="scan-category" [(ngModel)]="scanResult.suggestion.category" class="w-full rounded-lg border border-gray-300 px-3 py-2">
                 <option [ngValue]="null">Select a category…</option>
                 @for (c of categories; track c) {
@@ -108,7 +139,7 @@
                 }
               </select>
               @if (scanResult.suggestion.categoryName) {
-                <p class="text-xs text-gray-400 mt-1">
+                <p class="text-xs text-tertiary mt-1">
                   Auto-suggested: {{ scanResult.suggestion.categoryName }}
                 </p>
               }
@@ -133,16 +164,29 @@
 
   <!-- ================= IMPORT ================= -->
   @if (activeTab === 'import') {
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-      <!-- Mode switch -->
-      <div class="inline-flex rounded-lg bg-gray-100 p-1 mb-5">
-        <button (click)="setImportMode('file')" [class]="importMode === 'file' ? 'bg-white shadow text-indigo-600' : 'text-gray-500'" class="px-3 py-1.5 rounded-md text-sm font-medium flex items-center gap-2">
+    <div class="card p-6">
+      <!--
+        Mode switch. The container was `bg-gray-100` and the active pill
+        `bg-white` with no dark variants, so in dark mode this rendered as a
+        solid white block. It now matches the segmented control used elsewhere.
+      -->
+      <div role="group" aria-label="Import source" class="mb-5 inline-flex items-center gap-0.5 rounded-xl border border-subtle p-1 surface-2">
+        <button (click)="setImportMode('file')"
+          [attr.aria-pressed]="importMode === 'file'"
+          [class]="importMode === 'file' ? 'surface-1 text-primary shadow-theme-xs' : 'text-secondary hover:text-primary'"
+          class="flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-semibold transition-all duration-200 active:scale-95">
           <fa-icon [icon]="faFileCsv"></fa-icon> CSV file
         </button>
-        <button (click)="setImportMode('text')" [class]="importMode === 'text' ? 'bg-white shadow text-indigo-600' : 'text-gray-500'" class="px-3 py-1.5 rounded-md text-sm font-medium">
+        <button (click)="setImportMode('text')"
+          [attr.aria-pressed]="importMode === 'text'"
+          [class]="importMode === 'text' ? 'surface-1 text-primary shadow-theme-xs' : 'text-secondary hover:text-primary'"
+          class="whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-semibold transition-all duration-200 active:scale-95">
           Paste CSV
         </button>
-        <button (click)="setImportMode('sms')" [class]="importMode === 'sms' ? 'bg-white shadow text-indigo-600' : 'text-gray-500'" class="px-3 py-1.5 rounded-md text-sm font-medium flex items-center gap-2">
+        <button (click)="setImportMode('sms')"
+          [attr.aria-pressed]="importMode === 'sms'"
+          [class]="importMode === 'sms' ? 'surface-1 text-primary shadow-theme-xs' : 'text-secondary hover:text-primary'"
+          class="flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-semibold transition-all duration-200 active:scale-95">
           <fa-icon [icon]="faCommentSms"></fa-icon> SMS
         </button>
       </div>
@@ -150,20 +194,22 @@
       <div>
         @switch (importMode) {
           @case ('file') {
-            <label class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-6 cursor-pointer hover:border-indigo-400 transition">
-              <fa-icon [icon]="faFileCsv" class="text-3xl text-indigo-500 mb-2"></fa-icon>
-              <span class="text-sm text-gray-600">{{ csvFile ? csvFile.name : 'Click to choose a .csv statement' }}</span>
+            <label class="group/drop flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-subtle px-6 py-10 transition-colors duration-200 hover:border-brand-400 hover:bg-brand-500/[0.04]">
+              <span class="mb-3 grid h-14 w-14 place-items-center rounded-2xl bg-brand-50 text-brand-600 transition-transform duration-300 ease-[var(--ease-spring)] group-hover/drop:scale-110 dark:bg-brand-500/12 dark:text-brand-400">
+                <fa-icon [icon]="faFileCsv" class="text-2xl"></fa-icon>
+              </span>
+              <span class="text-sm font-medium text-primary">{{ csvFile ? csvFile.name : 'Click to choose a .csv statement' }}</span>
               <input type="file" accept=".csv,text/csv" class="hidden" (change)="onCsvSelected($event)" />
             </label>
           }
           @case ('text') {
-            <textarea [(ngModel)]="csvText" rows="6"
-              class="w-full rounded-lg border border-gray-300 px-3 py-2 font-mono text-sm"
+            <textarea [(ngModel)]="csvText" rows="6" aria-label="Paste CSV rows"
+              class="w-full rounded-xl border border-subtle px-3 py-2.5 font-mono text-sm text-primary surface-1 transition-colors placeholder:text-tertiary focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/20"
             placeholder="Date,Description,Amount&#10;12/01/2026,UBER RIDE,-1500.00&#10;25/01/2026,SALARY,150000.00"></textarea>
           }
           @case ('sms') {
-            <textarea [(ngModel)]="smsText" rows="6"
-              class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            <textarea [(ngModel)]="smsText" rows="6" aria-label="Paste SMS alerts, one per line"
+              class="w-full rounded-xl border border-subtle px-3 py-2.5 text-sm text-primary surface-1 transition-colors placeholder:text-tertiary focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/20"
             placeholder="One SMS per line, e.g.&#10;Your a/c is debited with LKR 1,500.00 at KEELLS on 12/01/2026"></textarea>
           }
         }
@@ -171,13 +217,13 @@
       <!-- Actions -->
       <div class="flex gap-3 mt-4">
         <button (click)="runImport(true)" [disabled]="importing"
-          class="flex-1 border border-indigo-600 text-indigo-600 rounded-lg py-2.5 font-medium disabled:opacity-50 flex items-center justify-center gap-2">
+          class="flex flex-1 items-center justify-center gap-2 rounded-xl border border-brand-500/50 py-3 font-semibold text-brand-600 transition-all duration-200 hover:bg-brand-50 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 dark:text-brand-400 dark:hover:bg-brand-500/10">
           @if (importing && lastRunWasPreview) {
             <fa-icon [icon]="faSpinner" class="fa-spin"></fa-icon>
             } Preview (dry run)
           </button>
           <button (click)="runImport(false)" [disabled]="importing"
-            class="flex-1 bg-indigo-600 text-white rounded-lg py-2.5 font-medium disabled:opacity-50 flex items-center justify-center gap-2">
+            class="flex flex-1 items-center justify-center gap-2 rounded-xl gradient-brand py-3 font-semibold text-white shadow-theme-md shadow-brand-500/25 transition-all duration-200 hover:shadow-theme-lg hover:shadow-brand-500/35 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none">
             @if (importing && !lastRunWasPreview) {
               <fa-icon [icon]="faSpinner" class="fa-spin"></fa-icon>
               } Import
@@ -192,7 +238,7 @@
           @if (summary) {
             <div class="mt-6">
               <div class="flex flex-wrap gap-3 mb-3 text-sm">
-                <span class="px-3 py-1 rounded-full bg-gray-100 text-gray-700">Total: {{ summary.total }}</span>
+                <span class="px-3 py-1 rounded-full bg-gray-100 text-secondary">Total: {{ summary.total }}</span>
                 <span class="px-3 py-1 rounded-full" [class]="statusClass(summary.dryRun ? 'preview' : 'created')">
                   {{ summary.dryRun ? 'Would import' : 'Created' }}: {{ summary.dryRun ? (summary.total - summary.unmatched - summary.duplicates) : summary.created }}
                 </span>
@@ -200,13 +246,13 @@
                 <span class="px-3 py-1 rounded-full" [class]="statusClass('unmatched')">Unmatched: {{ summary.unmatched }}</span>
               </div>
               @if (summary.dryRun) {
-                <div class="text-xs text-gray-500 mb-2">
+                <div class="text-xs text-tertiary mb-2">
                   This was a preview — nothing was saved. Click <strong>Import</strong> to commit.
                 </div>
               }
               <div class="overflow-x-auto border border-gray-100 rounded-lg">
                 <table class="w-full text-sm">
-                  <thead class="bg-gray-50 text-gray-500 text-left">
+                  <thead class="bg-gray-50 text-tertiary text-left">
                     <tr>
                       <th class="px-3 py-2">Description</th>
                       <th class="px-3 py-2">Date</th>
@@ -219,8 +265,8 @@
                     @for (r of summary.results; track r) {
                       <tr class="border-t border-gray-100">
                         <td class="px-3 py-2 max-w-xs truncate">{{ r.description }}</td>
-                        <td class="px-3 py-2 text-gray-500">{{ r.date ? (r.date | date:'mediumDate') : '—' }}</td>
-                        <td class="px-3 py-2 text-right" [class]="r.direction === 'credit' ? 'text-green-600' : 'text-gray-800'">
+                        <td class="px-3 py-2 text-tertiary">{{ r.date ? (r.date | date:'mediumDate') : '—' }}</td>
+                        <td class="px-3 py-2 text-right" [class]="r.direction === 'credit' ? 'text-green-600' : 'text-primary'">
                           {{ r.direction === 'credit' ? '+' : '-' }}{{ r.amount | number:'1.2-2' }}
                         </td>
                         <td class="px-3 py-2">{{ r.category || '—' }}</td>

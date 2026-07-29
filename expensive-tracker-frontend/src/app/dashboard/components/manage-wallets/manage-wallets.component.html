@@ -1,159 +1,84 @@
-<div class="card px-4 pb-3 pt-4 sm:px-6">
-  <!-- Header Section -->
-  <div
-    class="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center sm:justify-between"
-    >
-    <div>
-      <h3
-        class="text-lg font-bold tracking-tight text-gray-800 dark:text-white/90"
-        >
-        Manage Wallets
-      </h3>
-    </div>
+<div class="card flex h-full flex-col p-4 sm:p-6">
+  <!-- Header -->
+  <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <h3 class="text-lg font-semibold tracking-tight text-primary">Manage Wallets</h3>
 
-    <!-- Header Section Button -->
-    <div class="flex items-center gap-3">
-      <button
-        [routerLink]="['/wallets']"
-        class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50 hover:text-gray-900 transition-colors dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-        >
-        <svg aria-hidden="true"
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          >
-          <line x1="12" y1="5" x2="12" y2="19"></line>
-          <line x1="5" y1="12" x2="19" y2="12"></line>
-        </svg>
-        Add Wallet
-      </button>
-    </div>
+    <a
+      routerLink="/wallets"
+      class="inline-flex items-center gap-2 self-start rounded-xl border border-subtle px-3 py-2 text-xs
+             font-medium text-secondary surface-1 shadow-theme-xs transition-all duration-200
+             hover:text-primary hover:shadow-theme-sm active:scale-95 sm:self-auto">
+      <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+      Add Wallet
+    </a>
   </div>
 
-  <!-- Wallets Grid -->
   <div class="grid gap-3">
-    @for (wallet of wallets; track wallet) {
-      <div
-        class="rounded-xl border border-gray-100 bg-gray-50/50 p-4 dark:border-gray-700/50 dark:bg-gray-800/30 hover:bg-white dark:hover:bg-gray-800 transition-colors shadow-sm"
-        >
-        <div class="flex items-center justify-between mb-3">
-          <div class="flex items-center gap-3">
-            <div
-              [ngClass]="getWalletIconClass(wallet.type)"
-              class="flex h-10 w-10 items-center justify-center rounded-lg"
-              >
-              <svg aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                >
-                <path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"></path>
-                <path d="M4 6v12c0 1.1.9 2 2 2h14v-4"></path>
-                <path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z"></path>
-              </svg>
-            </div>
-            <div>
-              <h4 class="font-medium text-gray-900 dark:text-white">
-                {{ wallet.name }}
-              </h4>
-              <p class="text-sm text-gray-500 dark:text-gray-400">
-                {{ wallet.type }}
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            [attr.aria-label]="'Options for ' + wallet.name"
-            class="text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"
-            >
-            <svg aria-hidden="true"
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              >
-              <circle cx="12" cy="12" r="1"></circle>
-              <circle cx="12" cy="5" r="1"></circle>
-              <circle cx="12" cy="19" r="1"></circle>
+    @for (wallet of wallets; track wallet.id) {
+      <!--
+        The whole row is the link now. It previously ended in a kebab button
+        with no click handler and no menu behind it — a control that looked
+        actionable and did nothing.
+      -->
+      <a
+        routerLink="/wallets"
+        [attr.aria-label]="'Manage ' + wallet.name"
+        class="group block min-w-0 rounded-xl border border-subtle p-4 surface-2 transition-all duration-200
+               hover:border-brand-500/30 hover:shadow-theme-sm">
+        <!-- min-w-0 all the way down: without it the balance and the name both
+             refuse to shrink and the row pushed a 320px viewport 40px wide. -->
+        <div class="flex min-w-0 items-center gap-3">
+          <span
+            [ngClass]="getWalletIconClass(wallet.type)"
+            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-transform
+                   duration-300 ease-[var(--ease-spring)] group-hover:scale-110">
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"></path>
+              <path d="M4 6v12c0 1.1.9 2 2 2h14v-4"></path>
+              <path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z"></path>
             </svg>
-          </button>
-        </div>
-        <div class="space-y-1">
-          <div class="flex justify-between text-sm">
-            <span class="text-gray-500 dark:text-gray-400">Balance</span>
-            <span class="font-medium text-gray-900 dark:text-white">{{
-              wallet.balance | appCurrency: wallet.currency
-            }}</span>
+          </span>
+
+          <div class="min-w-0 flex-1">
+            <h4 class="truncate font-medium text-primary">{{ wallet.name }}</h4>
+            <p class="truncate text-xs text-tertiary">{{ getWalletTypeLabel(wallet.type) }}</p>
           </div>
-          <div class="flex justify-between text-sm">
-            <span class="text-gray-500 dark:text-gray-400">Currency</span>
-            <span class="font-medium text-gray-900 dark:text-white">{{
-              wallet.currency
-            }}</span>
-          </div>
+
+          <!--
+            The balance moves up onto this row. It used to sit below in a
+            two-row block alongside a "Currency: LKR" line, which just repeated
+            the currency already printed in front of the amount.
+          -->
+          <span data-numeric class="min-w-0 truncate text-sm font-semibold text-primary">
+            {{ wallet.balance | appCurrency: wallet.currency }}
+          </span>
         </div>
-      </div>
+      </a>
     }
 
-    <!-- Empty State -->
     @if (wallets.length === 0) {
-      <div class="col-span-full text-center py-8">
-        <div class="mx-auto w-16 h-16 text-gray-400 mb-4">
-          <svg aria-hidden="true"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            >
-            <path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"></path>
-            <path d="M4 6v12c0 1.1.9 2 2 2h14v-4"></path>
-            <path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z"></path>
-          </svg>
-        </div>
-        <h3 class="text-gray-900 font-medium dark:text-white">No wallets yet</h3>
-        <p class="text-gray-500 dark:text-gray-400 mt-1">
-          Create your first wallet to start tracking expenses
-        </p>
-        <!-- Empty State Button -->
-        <button
-          [routerLink]="['/add-wallet']"
-          class="mt-4 inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600"
-          >
-          <svg aria-hidden="true"
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            >
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-          Add Your First Wallet
-        </button>
-      </div>
+      <!--
+        Was a hand-rolled empty state whose button pointed at `/add-wallet` — a
+        route that does not exist, so the one call to action here fell through
+        the router's catch-all and bounced the user back to the dashboard.
+      -->
+      <app-empty-state
+        [icon]="faWallet"
+        title="No wallets yet"
+        message="Create your first wallet to start tracking expenses."
+        >
+        <a
+          routerLink="/wallets"
+          class="inline-flex items-center gap-2 rounded-xl gradient-brand px-4 py-2.5 text-sm font-semibold
+                 text-white shadow-theme-md transition-transform duration-200 hover:scale-[1.03] active:scale-95">
+          Add your first wallet
+        </a>
+      </app-empty-state>
     }
   </div>
 </div>

@@ -132,7 +132,7 @@ export class SidebarComponent implements OnInit {
       isNew: false,
       subItems: [
         { name: 'Profile', path: '/settings/profile', isLocked: false, isNew: false, isUpcoming: false },
-        { name: 'About & Support', path: '/settings/about & support', isLocked: false, isNew: false, isUpcoming: true },
+        { name: 'About & Support', path: '/settings/about & support', isLocked: true, isNew: false, isUpcoming: true },
       ]
     },
     {
@@ -246,6 +246,20 @@ export class SidebarComponent implements OnInit {
   onEscape(): void {
     if (this.isMobileOpen) {
       this.sidebarService.toggleMobile();
+    }
+  }
+
+  /**
+   * Collapses the hover-expansion once focus leaves the rail entirely.
+   *
+   * `focusout` fires on every move *within* the sidebar too, so the related
+   * target has to be checked — otherwise tabbing from one nav link to the next
+   * snaps the rail shut under the user mid-traversal.
+   */
+  onFocusOut(event: FocusEvent): void {
+    const next = event.relatedTarget as Node | null;
+    if (!next || !(event.currentTarget as HTMLElement).contains(next)) {
+      this.isHovered = false;
     }
   }
 

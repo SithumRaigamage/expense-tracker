@@ -1,92 +1,82 @@
-<div class="rounded-2xl border border-gray-200 bg-white px-4 pb-3 pt-4 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6">
-  <!-- Header Section -->
-  <div class="flex flex-col gap-2 mb-6 sm:flex-row sm:items-center sm:justify-between">
-    <div>
-      <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
-        Upcoming Bills
-      </h3>
-    </div>
+<div class="card flex h-full flex-col p-4 sm:p-6">
+  <!-- Header -->
+  <div class="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <h3 class="text-lg font-semibold text-primary">Upcoming Bills</h3>
 
-    <div class="flex items-center gap-3">
-      <button class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
-        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="12" y1="5" x2="12" y2="19"></line>
-          <line x1="5" y1="12" x2="19" y2="12"></line>
-        </svg>
-        Add Bill
-      </button>
-    </div>
+    <!--
+      Was a <button> with no (click) and no routerLink — it looked like the
+      widget's primary action and did nothing at all. It is a link to the Bills
+      page now, which is where a bill actually gets added.
+    -->
+    <a routerLink="/bills"
+      class="inline-flex items-center gap-2 self-start rounded-xl border border-subtle px-3 py-2 text-theme-sm
+             font-medium text-secondary surface-1 shadow-theme-xs transition-all duration-200
+             hover:text-primary hover:shadow-theme-sm active:scale-95 sm:self-auto">
+      <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+      Add Bill
+    </a>
   </div>
 
-  <!-- Bills List -->
-  <div class="space-y-4">
-    <!-- Bill Card -->
+  <div class="space-y-3">
     @for (bill of upcomingBills; track bill) {
-      <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/50 sm:p-6">
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-12 md:gap-6 md:items-center">
-          <!-- Left: Bill Info -->
-          <div class="col-span-12 md:col-span-3 flex items-center gap-4 min-w-0">
-            <div class="h-10 w-10 flex-shrink-0 rounded-lg overflow-hidden">
-              <img [src]="bill.iconUrl"
-                [alt]="bill.provider + ' logo'"
-                class="h-full w-full object-cover">
-            </div>
-            <div class="min-w-0">
-              <h4 class="truncate font-medium text-gray-900 dark:text-white">{{bill.name}}</h4>
-              <p class="text-sm text-gray-500 dark:text-gray-400">{{bill.provider}}</p>
-            </div>
-          </div>
-          <!-- Middle: Date and Amount -->
-          <div class="col-span-12 md:col-span-6 grid grid-cols-2 gap-6">
-            <div class="flex flex-col">
-              <span class="text-sm text-gray-500 dark:text-gray-400">Due Date</span>
-              <span class="font-medium text-gray-900 dark:text-white">{{formatDate(bill.dueDate)}}</span>
-            </div>
-            <div class="flex flex-col">
-              <span class="text-sm text-gray-500 dark:text-gray-400">Amount</span>
-              <span class="font-medium text-gray-900 dark:text-white">{{bill.amount | appCurrency}}</span>
-            </div>
-          </div>
-          <!-- Right: Status and Actions -->
-          <div class="col-span-12 md:col-span-3 flex items-center justify-between md:justify-end gap-4 border-t md:border-t-0 pt-4 md:pt-0 border-gray-100 dark:border-gray-800">
-            <span [ngClass]="getStatusClass(bill.status)" class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium">
-              {{bill.status}}
-            </span>
-            <button type="button"
-              [attr.aria-label]="'Options for ' + bill.name"
-              class="text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 p-1">
-              <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="1"></circle>
-                <circle cx="12" cy="5" r="1"></circle>
-                <circle cx="12" cy="19" r="1"></circle>
-              </svg>
-            </button>
+      <!--
+        The row ended in a kebab button with no handler and no menu behind it.
+        The whole row links to the Bills page instead, so the affordance is real.
+      -->
+      <a routerLink="/bills"
+        [attr.aria-label]="'Manage bill: ' + bill.name"
+        class="group grid grid-cols-1 items-center gap-4 rounded-xl border border-subtle p-4 surface-2
+               transition-all duration-200 hover:border-brand-500/30 hover:shadow-theme-sm
+               md:grid-cols-[minmax(0,1fr)_8rem_8rem_auto] md:gap-5">
+        <div class="flex min-w-0 items-center gap-3">
+          <span class="h-10 w-10 shrink-0 overflow-hidden rounded-xl">
+            <img [src]="bill.iconUrl" alt="" class="h-full w-full object-cover">
+          </span>
+          <div class="min-w-0">
+            <h4 class="truncate font-medium text-primary">{{bill.name}}</h4>
+            <p class="truncate text-xs text-tertiary">{{bill.provider}}</p>
           </div>
         </div>
-      </div>
+
+        <div class="min-w-0">
+          <span class="block text-xs text-tertiary">Due date</span>
+          <span class="block truncate font-medium text-primary">{{formatDate(bill.dueDate)}}</span>
+        </div>
+
+        <div class="min-w-0">
+          <span class="block text-xs text-tertiary">Amount</span>
+          <span data-numeric class="block truncate font-semibold text-primary">{{bill.amount | appCurrency}}</span>
+        </div>
+
+        <span [ngClass]="getStatusClass(bill.status)"
+          class="inline-flex shrink-0 items-center justify-self-start whitespace-nowrap rounded-full px-2.5 py-0.5
+                 text-xs font-medium md:justify-self-end">
+          {{bill.status}}
+        </span>
+      </a>
     }
 
-    <!-- Empty State -->
+    <!--
+      Was a hand-rolled empty state whose "Add Your First Bill" button was also
+      a dead <button> with no handler.
+    -->
     @if (upcomingBills.length === 0) {
-      <div class="text-center py-12">
-        <div class="mx-auto w-16 h-16 text-gray-400 mb-4">
-          <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-            <line x1="16" y1="2" x2="16" y2="6"></line>
-            <line x1="8" y1="2" x2="8" y2="6"></line>
-            <line x1="3" y1="10" x2="21" y2="10"></line>
-          </svg>
-        </div>
-        <h3 class="text-gray-900 font-medium dark:text-white mb-2">No upcoming bills</h3>
-        <p class="text-gray-500 dark:text-gray-400">Add your first bill to start tracking</p>
-        <button class="mt-6 inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 transition-colors">
-          <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-          Add Your First Bill
-        </button>
-      </div>
+      <app-empty-state
+        [icon]="faCalendarDays"
+        title="No upcoming bills"
+        message="Add your first bill and it will be tracked here as the due date approaches."
+        size="lg"
+        >
+        <a routerLink="/bills"
+          class="inline-flex items-center gap-2 rounded-xl gradient-brand px-4 py-2.5 text-sm font-semibold
+                 text-white shadow-theme-md transition-transform duration-200 hover:scale-[1.03] active:scale-95">
+          Add your first bill
+        </a>
+      </app-empty-state>
     }
   </div>
 </div>

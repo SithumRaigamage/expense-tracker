@@ -1,23 +1,25 @@
-<div class="rounded-2xl border border-gray-200 bg-white px-4 pb-3 pt-4 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6">
+<div class="card px-4 pb-3 pt-4 sm:px-6">
   <div class="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center sm:justify-between">
     <div>
-      <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
+      <h3 class="text-lg font-semibold text-primary dark:text-white/90">
         Recent Transactions
       </h3>
     </div>
 
-    <div class="flex items-center gap-3">
+    <div class="flex shrink-0 items-center gap-2">
       <button (click)="refreshTransactions()"
-        class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
-        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        aria-label="Refresh recent transactions"
+        class="inline-flex items-center gap-2 rounded-xl border border-subtle px-3 py-2 text-theme-sm font-medium text-secondary surface-1 shadow-theme-xs transition-all duration-200 hover:text-primary hover:shadow-theme-sm active:scale-95">
+        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M2.5 2v6h6M2.66 15.57a10 10 0 1 0 .57-8.38"/>
         </svg>
         Refresh
       </button>
       @if (transactions.length > 0) {
         <button (click)="toggleViewAll()"
-          class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
-          {{ showAll ? 'Show Less' : 'View All' }} ({{ transactions.length }})
+          [attr.aria-expanded]="showAll"
+          class="inline-flex items-center gap-2 whitespace-nowrap rounded-xl border border-subtle px-3 py-2 text-theme-sm font-medium text-secondary surface-1 shadow-theme-xs transition-all duration-200 hover:text-primary hover:shadow-theme-sm active:scale-95">
+          {{ showAll ? 'Show less' : 'View all' }} ({{ transactions.length }})
         </button>
       }
     </div>
@@ -47,7 +49,7 @@
       >
       <a
         routerLink="/transactions"
-        class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-600"
+        class="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-700"
         >
         Add your first transaction
       </a>
@@ -56,40 +58,39 @@
 
   <!-- Table view for desktop -->
   @if (!isLoading && transactions.length > 0) {
-    <div class="hidden md:block max-w-full overflow-x-auto">
+    <!--
+      Matches the Transactions page: the money column is right-aligned and
+      signed, and direction is carried by the sign as well as the colour. The
+      date no longer wraps onto a second line ("Jul 28," / "2026"), which was
+      making every row twice as tall as it needed to be.
+    -->
+    <div class="custom-scrollbar hidden max-w-full overflow-x-auto md:block">
       <table class="w-full">
         <thead>
-          <tr class="border-y border-gray-100 dark:border-gray-800">
-            <th class="py-3 px-4 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Description</th>
-            <th class="py-3 px-4 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Category</th>
-            <th class="py-3 px-4 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Date</th>
-            <th class="py-3 px-4 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Amount</th>
-            <th class="py-3 px-4 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Type</th>
+          <tr class="border-x-0 border-t-0 border-b">
+            <th scope="col" class="px-4 py-3 text-start text-theme-xs font-semibold uppercase tracking-[0.06em] text-tertiary">Description</th>
+            <th scope="col" class="px-4 py-3 text-start text-theme-xs font-semibold uppercase tracking-[0.06em] text-tertiary">Category</th>
+            <th scope="col" class="px-4 py-3 text-start text-theme-xs font-semibold uppercase tracking-[0.06em] text-tertiary">Date</th>
+            <th scope="col" class="px-4 py-3 text-end text-theme-xs font-semibold uppercase tracking-[0.06em] text-tertiary">Amount</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+        <tbody>
           @for (transaction of displayedTransactions; track transaction) {
-            <tr>
-              <td class="py-3 px-4">
-                <div class="flex items-center gap-3">
-                  <div class="min-w-0">
-                    <p class="font-medium text-gray-800 text-theme-sm dark:text-white/90">
-                      {{transaction.description}}
-                    </p>
-                  </div>
-                </div>
+            <tr class="border-x-0 border-b-0 border-t transition-colors duration-150 hover:surface-2">
+              <td class="px-4 py-3">
+                <p class="font-medium text-theme-sm text-primary">{{transaction.description}}</p>
               </td>
-              <td class="py-3 px-4 text-gray-500 text-theme-sm dark:text-gray-400">{{transaction.category}}</td>
-              <td class="py-3 px-4 text-gray-500 text-theme-sm dark:text-gray-400">{{formatDate(transaction.date)}}</td>
-              <td class="py-3 px-4 text-gray-500 text-theme-sm dark:text-gray-400">{{ transaction.amount | appCurrency : 'LKR' }}</td>
-              <td class="py-3 px-4">
-                <app-badge
-                  [color]="getBadgeColor(transaction.type)"
-                  variant="light"
-                  size="sm"
-                  >
-                  {{transaction.type | titlecase}}
-                </app-badge>
+              <td class="px-4 py-3">
+                <span class="rounded-full px-2 py-0.5 text-xs font-medium surface-3 text-secondary">
+                  {{transaction.category}}
+                </span>
+              </td>
+              <td class="whitespace-nowrap px-4 py-3 text-theme-sm text-tertiary">{{formatDate(transaction.date)}}</td>
+              <td class="whitespace-nowrap px-4 py-3 text-end text-theme-sm font-semibold"
+                [ngClass]="transaction.type === 'income'
+                  ? 'text-success-700 dark:text-success-400'
+                  : 'text-error-600 dark:text-error-400'">
+                {{ transaction.type === 'income' ? '+' : '−' }}{{ transaction.amount | appCurrency : 'LKR' }}
               </td>
             </tr>
           }
@@ -100,14 +101,13 @@
 
   <!-- Card view for mobile -->
   @if (!isLoading && transactions.length > 0) {
-    <div class="md:hidden space-y-4">
+    <div class="space-y-3 md:hidden">
       @for (transaction of displayedTransactions; track transaction) {
-        <div
-          class="p-4 rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-white/5">
-          <div class="flex justify-between items-start mb-2">
-            <div>
-              <p class="font-medium text-gray-900 dark:text-white">{{transaction.description}}</p>
-              <p class="text-xs text-gray-500 dark:text-gray-400">{{formatDate(transaction.date)}}</p>
+        <div class="rounded-xl border border-subtle p-4 surface-2">
+          <div class="mb-3 flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <p class="font-medium text-primary">{{transaction.description}}</p>
+              <p class="mt-0.5 text-xs text-tertiary">{{formatDate(transaction.date)}}</p>
             </div>
             <app-badge
               [color]="getBadgeColor(transaction.type)"
@@ -117,9 +117,14 @@
               {{transaction.type | titlecase}}
             </app-badge>
           </div>
-          <div class="flex justify-between items-center mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
-            <span class="text-sm text-gray-500 dark:text-gray-400">{{transaction.category}}</span>
-            <span class="font-bold text-gray-900 dark:text-white">{{ transaction.amount | appCurrency : 'LKR' }}</span>
+          <div class="flex items-center justify-between gap-3 border-x-0 border-b-0 border-t pt-3">
+            <span class="rounded-full px-2 py-0.5 text-xs font-medium surface-3 text-secondary">{{transaction.category}}</span>
+            <span class="whitespace-nowrap font-bold"
+              [ngClass]="transaction.type === 'income'
+                ? 'text-success-700 dark:text-success-400'
+                : 'text-error-600 dark:text-error-400'">
+              {{ transaction.type === 'income' ? '+' : '−' }}{{ transaction.amount | appCurrency : 'LKR' }}
+            </span>
           </div>
         </div>
       }

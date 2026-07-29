@@ -1,17 +1,17 @@
 <div class="grid grid-cols-12 gap-4 md:gap-6">
   <!-- Contact Options -->
   <div class="col-span-12">
-    <div class="bg-white rounded-lg shadow-sm p-6">
-      <h2 class="text-xl font-semibold text-gray-800 mb-6">{{ pageContent.title }}</h2>
+    <div class="card p-6">
+      <h2 class="text-xl font-semibold text-primary mb-6">{{ pageContent.title }}</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         @for (option of contactOptions; track option) {
           <div
             class="p-4 border border-gray-200 rounded-lg hover:border-blue-500 transition-colors">
             <div class="flex items-center gap-3 mb-2">
               <fa-icon [icon]="option.icon" class="text-blue-500"></fa-icon>
-              <h3 class="font-medium text-gray-800">{{ option.title }}</h3>
+              <h3 class="font-medium text-primary">{{ option.title }}</h3>
             </div>
-            <p class="text-sm text-gray-600">{{ option.description }}</p>
+            <p class="text-sm text-secondary">{{ option.description }}</p>
           </div>
         }
       </div>
@@ -20,16 +20,16 @@
 
   <!-- Support Hours & Response Times -->
   <div class="col-span-12 xl:col-span-4">
-    <div class="bg-white rounded-lg shadow-sm p-6 space-y-6">
+    <div class="card p-6 space-y-6">
       <!-- Support Hours -->
       <div>
-        <h2 class="text-xl font-semibold text-gray-800 mb-4">{{ pageContent.supportHoursTitle }}</h2>
+        <h2 class="text-xl font-semibold text-primary mb-4">{{ pageContent.supportHoursTitle }}</h2>
         <div class="space-y-3">
           @for (schedule of supportHours; track schedule) {
             <div
               class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
-              <span class="text-gray-600">{{ schedule.day }}</span>
-              <span class="font-medium text-gray-800">{{ schedule.hours }}</span>
+              <span class="text-secondary">{{ schedule.day }}</span>
+              <span class="font-medium text-primary">{{ schedule.hours }}</span>
             </div>
           }
         </div>
@@ -37,13 +37,13 @@
 
       <!-- Response Times -->
       <div>
-        <h2 class="text-xl font-semibold text-gray-800 mb-4">{{ pageContent.responseTimesTitle }}</h2>
+        <h2 class="text-xl font-semibold text-primary mb-4">{{ pageContent.responseTimesTitle }}</h2>
         <div class="space-y-3">
           @for (item of responseTimes; track item) {
             <div
               class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
-              <span class="text-gray-600">{{ item.channel }}</span>
-              <span class="font-medium text-gray-800">{{ item.time }}</span>
+              <span class="text-secondary">{{ item.channel }}</span>
+              <span class="font-medium text-primary">{{ item.time }}</span>
             </div>
           }
         </div>
@@ -53,31 +53,31 @@
 
   <!-- Support Form -->
   <div class="col-span-12 xl:col-span-8">
-    <div class="bg-white rounded-lg shadow-sm p-6">
-      <h2 class="text-xl font-semibold text-gray-800 mb-6">{{ pageContent.formTitle }}</h2>
+    <div class="card p-6">
+      <h2 class="text-xl font-semibold text-primary mb-6">{{ pageContent.formTitle }}</h2>
       <form [formGroup]="supportForm" (ngSubmit)="submitSupportRequest()" class="space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           @for (field of formFields; track field) {
             <div [class]="field.name === 'subject' || field.name === 'message' ? 'col-span-2' : ''">
-              <label [for]="'support-' + field.name" class="block text-sm font-medium text-gray-700 mb-1">{{ field.label }}</label>
+              <label [for]="'support-' + field.name" class="block text-sm font-medium text-secondary mb-1">{{ field.label }}</label>
               @switch (field.type) {
                 @case ('text') {
                   <input [type]="field.type"
                     [id]="'support-' + field.name"
                     [formControlName]="field.name"
-                    class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    class="w-full rounded-xl border border-subtle px-4 py-2.5 text-primary surface-1 transition-colors focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/20">
                 }
                 @case ('email') {
                   <input type="email"
                     [id]="'support-' + field.name"
                     [formControlName]="field.name"
-                    class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    class="w-full rounded-xl border border-subtle px-4 py-2.5 text-primary surface-1 transition-colors focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/20">
                 }
                 @case ('select') {
                   <select
                     [id]="'support-' + field.name"
                     [formControlName]="field.name"
-                    class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    class="w-full rounded-xl border border-subtle px-4 py-2.5 text-primary surface-1 transition-colors focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/20">
                     @for (option of field.options; track option) {
                       <option
                       [value]="option.value">{{ option.label }}</option>
@@ -89,17 +89,27 @@
                     [id]="'support-' + field.name"
                     [formControlName]="field.name"
                     rows="4"
-                  class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                  class="w-full rounded-xl border border-subtle px-4 py-2.5 text-primary surface-1 transition-colors focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/20"></textarea>
                 }
               }
             </div>
           }
         </div>
 
+        <!-- Reports progress now that the submit actually posts; it used to be
+             a plain button in front of an empty handler. -->
         <button type="submit"
-          [disabled]="!supportForm.valid"
-          class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50">
-          {{ pageContent.submitButton }}
+          [disabled]="!supportForm.valid || isSubmitting"
+          class="inline-flex items-center gap-2 rounded-xl gradient-brand px-6 py-2.5 text-sm font-semibold
+                 text-white shadow-theme-md shadow-brand-500/25 transition-all duration-200
+                 hover:shadow-theme-lg active:scale-95 disabled:cursor-not-allowed disabled:opacity-50
+                 disabled:shadow-none">
+          @if (isSubmitting) {
+            <span class="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+            Sending…
+          } @else {
+            {{ pageContent.submitButton }}
+          }
         </button>
       </form>
     </div>

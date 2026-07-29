@@ -144,19 +144,45 @@ export class WalletsComponent implements OnInit, OnDestroy {
     return this.walletService.getWalletTypeIcon(type);
   }
 
-  // Method to get wallet color based on type
+  /**
+   * Tile colour per wallet type.
+   *
+   * Every entry gained a dark twin — the light-only tints (`bg-green-100` and
+   * friends) rendered as bright blocks against the dark surface once the theme
+   * started working.
+   */
   getWalletColor(type: string): string {
     const colorMap: Record<string, string> = {
-      'cash': 'text-green-600 bg-green-100',
-      'bank': 'text-blue-600 bg-blue-100',
-      'credit': 'text-purple-600 bg-purple-100',
-      'savings': 'text-yellow-600 bg-yellow-100',
-      'crypto': 'text-orange-600 bg-orange-100',
-      'investment': 'text-indigo-600 bg-indigo-100',
-      'loan': 'text-red-600 bg-red-100',
-      'emergencyfund': 'text-rose-600 bg-rose-100'
+      'cash': 'text-emerald-600 bg-emerald-100 dark:text-emerald-400 dark:bg-emerald-500/15',
+      'bank': 'text-blue-600 bg-blue-100 dark:text-blue-400 dark:bg-blue-500/15',
+      'credit': 'text-violet-600 bg-violet-100 dark:text-violet-400 dark:bg-violet-500/15',
+      'savings': 'text-amber-600 bg-amber-100 dark:text-amber-400 dark:bg-amber-500/15',
+      'crypto': 'text-orange-600 bg-orange-100 dark:text-orange-400 dark:bg-orange-500/15',
+      'investment': 'text-sky-600 bg-sky-100 dark:text-sky-400 dark:bg-sky-500/15',
+      'loan': 'text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-500/15',
+      'emergencyfund': 'text-rose-600 bg-rose-100 dark:text-rose-400 dark:bg-rose-500/15'
     };
-    return colorMap[type] || 'text-gray-600 bg-gray-100';
+    return colorMap[type] || 'text-gray-600 bg-gray-100 dark:text-gray-400 dark:bg-white/10';
+  }
+
+  /**
+   * Human-readable name for a wallet type.
+   *
+   * The raw value was printed straight into the card, so the stored
+   * `emergencyfund` surfaced to users as "Emergencyfund".
+   */
+  getWalletTypeLabel(type: string): string {
+    const labels: Record<string, string> = {
+      cash: 'Cash',
+      bank: 'Bank',
+      credit: 'Credit',
+      savings: 'Savings',
+      crypto: 'Crypto',
+      investment: 'Investment',
+      loan: 'Loan',
+      emergencyfund: 'Emergency fund'
+    };
+    return labels[type] ?? type;
   }
 
   openDrawer(wallet?: Wallet) {

@@ -44,10 +44,17 @@ describe('HeaderComponent', () => {
     expect(component.isMobileOpen).toBeFalse();
   });
 
-  it('toggles the account menu', () => {
-    expect(component.isApplicationMenuOpen).toBeFalse();
+  it('tracks the sidebar service expanded state', () => {
+    expect(component.isSidebarExpanded).toBeTrue();
 
-    component.toggleApplicationMenu();
-    expect(component.isApplicationMenuOpen).toBeTrue();
+    sidebarService.toggleSidebar();
+    expect(component.isSidebarExpanded).toBeFalse();
   });
+
+  /*
+    The "toggles the account menu" test that lived here covered
+    `toggleApplicationMenu`/`isApplicationMenuOpen`, the kebab that hid the
+    currency switcher and account menu behind an extra tap on mobile. Those
+    controls are always visible now, so the toggle and its state are gone.
+  */
 });

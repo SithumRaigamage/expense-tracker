@@ -5,6 +5,24 @@ layer(base);
 
 @custom-variant dark (&:is(.dark *));
 
+/* =============================================================================
+   DESIGN TOKENS
+   -----------------------------------------------------------------------------
+   Two layers, deliberately separated:
+
+   1. `@theme` below holds the *primitive* scale — raw colour ramps, type sizes,
+      shadows. These generate Tailwind utilities (`bg-brand-500`, `text-title-md`).
+      They do not change between light and dark.
+
+   2. The `:root` / `.dark` blocks further down hold *semantic* tokens
+      (`--surface-1`, `--text-primary`, `--border-subtle`). These DO flip with the
+      theme, which is what lets a component be written once instead of twice with
+      a `dark:` variant bolted onto every class.
+
+   New work should reach for the semantic layer. The primitive utilities and the
+   `dark:` variants remain because ~900 of them are already in the templates.
+============================================================================= */
+
 @theme {
   --font-*: initial;
   --font-outfit: Outfit, sans-serif;
@@ -12,25 +30,32 @@ layer(base);
   --breakpoint-*: initial;
   --breakpoint-2xsm: 375px;
   --breakpoint-xsm: 425px;
-  --breakpoint-3xl: 2000px;
   --breakpoint-sm: 640px;
   --breakpoint-md: 768px;
   --breakpoint-lg: 1024px;
   --breakpoint-xl: 1280px;
   --breakpoint-2xl: 1536px;
+  --breakpoint-3xl: 2000px;
 
+  /* Type scale. Display sizes carry tighter tracking — at 36px and up, default
+     letter-spacing reads loose and undermines the "one considered surface" feel. */
   --text-title-2xl: 72px;
-  --text-title-2xl--line-height: 90px;
+  --text-title-2xl--line-height: 78px;
+  --text-title-2xl--letter-spacing: -0.035em;
   --text-title-xl: 60px;
-  --text-title-xl--line-height: 72px;
+  --text-title-xl--line-height: 66px;
+  --text-title-xl--letter-spacing: -0.032em;
   --text-title-lg: 48px;
-  --text-title-lg--line-height: 60px;
+  --text-title-lg--line-height: 54px;
+  --text-title-lg--letter-spacing: -0.03em;
   --text-title-md: 36px;
-  --text-title-md--line-height: 44px;
+  --text-title-md--line-height: 42px;
+  --text-title-md--letter-spacing: -0.025em;
   --text-title-sm: 30px;
-  --text-title-sm--line-height: 38px;
+  --text-title-sm--line-height: 36px;
+  --text-title-sm--letter-spacing: -0.02em;
   --text-theme-xl: 20px;
-  --text-theme-xl--line-height: 30px;
+  --text-theme-xl--line-height: 28px;
   --text-theme-sm: 14px;
   --text-theme-sm--line-height: 20px;
   --text-theme-xs: 12px;
@@ -39,20 +64,36 @@ layer(base);
   --color-current: currentColor;
   --color-transparent: transparent;
   --color-white: #ffffff;
-  --color-black: #101828;
+  --color-black: #0a0d14;
 
-  --color-brand-25: #f2f7ff;
-  --color-brand-50: #ecf3ff;
-  --color-brand-100: #dde9ff;
-  --color-brand-200: #c2d6ff;
-  --color-brand-300: #9cb9ff;
-  --color-brand-400: #7592ff;
-  --color-brand-500: #465fff;
-  --color-brand-600: #3641f5;
-  --color-brand-700: #2a31d8;
-  --color-brand-800: #252dae;
-  --color-brand-900: #262e89;
-  --color-brand-950: #161950;
+  /* Brand — indigo with a violet bias, so the gradient pairs (brand → violet)
+     stay in the same family instead of reading as two unrelated hues. */
+  --color-brand-25: #f5f7ff;
+  --color-brand-50: #eef2ff;
+  --color-brand-100: #e0e7ff;
+  --color-brand-200: #c7d2fe;
+  --color-brand-300: #a5b4fc;
+  --color-brand-400: #818cf8;
+  --color-brand-500: #5b6cff;
+  --color-brand-600: #4451eb;
+  --color-brand-700: #363dc4;
+  --color-brand-800: #2e349e;
+  --color-brand-900: #2b317d;
+  --color-brand-950: #1b1d4d;
+
+  /* Accent — the second half of every brand gradient. */
+  --color-violet-25: #fbfaff;
+  --color-violet-50: #f5f3ff;
+  --color-violet-100: #ede9fe;
+  --color-violet-200: #ddd6fe;
+  --color-violet-300: #c4b5fd;
+  --color-violet-400: #a78bfa;
+  --color-violet-500: #8b5cf6;
+  --color-violet-600: #7c3aed;
+  --color-violet-700: #6d28d9;
+  --color-violet-800: #5b21b6;
+  --color-violet-900: #4c1d95;
+  --color-violet-950: #2e1065;
 
   --color-blue-light-25: #f5fbff;
   --color-blue-light-50: #f0f9ff;
@@ -67,19 +108,21 @@ layer(base);
   --color-blue-light-900: #0b4a6f;
   --color-blue-light-950: #062c41;
 
+  /* Neutrals carry a slight cool cast. A pure-grey dashboard beside a saturated
+     indigo reads muddy; the blue bias keeps the whole surface coherent. */
   --color-gray-25: #fcfcfd;
-  --color-gray-50: #f9fafb;
-  --color-gray-100: #f2f4f7;
-  --color-gray-200: #e4e7ec;
-  --color-gray-300: #d0d5dd;
-  --color-gray-400: #98a2b3;
-  --color-gray-500: #667085;
-  --color-gray-600: #475467;
-  --color-gray-700: #344054;
-  --color-gray-800: #1d2939;
-  --color-gray-900: #101828;
-  --color-gray-950: #0c111d;
-  --color-gray-dark: #1a2231;
+  --color-gray-50: #f8fafc;
+  --color-gray-100: #f1f5f9;
+  --color-gray-200: #e2e8f0;
+  --color-gray-300: #cbd5e1;
+  --color-gray-400: #94a3b8;
+  --color-gray-500: #64748b;
+  --color-gray-600: #475569;
+  --color-gray-700: #334155;
+  --color-gray-800: #1e293b;
+  --color-gray-900: #0f172a;
+  --color-gray-950: #080d1a;
+  --color-gray-dark: #131c2e;
 
   --color-orange-25: #fffaf5;
   --color-orange-50: #fff6ed;
@@ -134,27 +177,40 @@ layer(base);
   --color-warning-950: #4e1d09;
 
   --color-theme-pink-500: #ee46bc;
-
   --color-theme-purple-500: #7a5af8;
 
-  --shadow-theme-md: 0px 4px 8px -2px rgba(16, 24, 40, 0.1),
-    0px 2px 4px -2px rgba(16, 24, 40, 0.06);
-  --shadow-theme-lg: 0px 12px 16px -4px rgba(16, 24, 40, 0.08),
-    0px 4px 6px -2px rgba(16, 24, 40, 0.03);
-  --shadow-theme-sm: 0px 1px 3px 0px rgba(16, 24, 40, 0.1),
-    0px 1px 2px 0px rgba(16, 24, 40, 0.06);
-  --shadow-theme-xs: 0px 1px 2px 0px rgba(16, 24, 40, 0.05);
-  --shadow-theme-xl: 0px 20px 24px -4px rgba(16, 24, 40, 0.08),
-    0px 8px 8px -4px rgba(16, 24, 40, 0.03);
-  --shadow-datepicker: -5px 0 0 #262d3c, 5px 0 0 #262d3c;
-  --shadow-focus-ring: 0px 0px 0px 4px rgba(70, 95, 255, 0.12);
-  --shadow-slider-navigation: 0px 1px 2px 0px rgba(16, 24, 40, 0.1),
-    0px 1px 3px 0px rgba(16, 24, 40, 0.1);
-  --shadow-tooltip: 0px 4px 6px -2px rgba(16, 24, 40, 0.05),
-    -8px 0px 20px 8px rgba(16, 24, 40, 0.05);
+  /* Elevation. Two-part shadows (a tight contact shadow plus a wide ambient one)
+     tinted with the neutral hue rather than pure black — black shadows on a cool
+     surface read as grime. */
+  --shadow-theme-xs: 0 1px 2px 0 rgb(15 23 42 / 0.04);
+  --shadow-theme-sm: 0 1px 2px -1px rgb(15 23 42 / 0.06),
+    0 1px 3px 0 rgb(15 23 42 / 0.05);
+  --shadow-theme-md: 0 2px 4px -2px rgb(15 23 42 / 0.06),
+    0 4px 10px -2px rgb(15 23 42 / 0.08);
+  --shadow-theme-lg: 0 4px 6px -4px rgb(15 23 42 / 0.05),
+    0 12px 24px -6px rgb(15 23 42 / 0.10);
+  --shadow-theme-xl: 0 8px 10px -6px rgb(15 23 42 / 0.05),
+    0 24px 48px -12px rgb(15 23 42 / 0.14);
+  --shadow-theme-2xl: 0 12px 16px -8px rgb(15 23 42 / 0.06),
+    0 40px 72px -16px rgb(15 23 42 / 0.18);
 
-  --drop-shadow-4xl: 0 35px 35px rgba(0, 0, 0, 0.25),
-    0 45px 65px rgba(0, 0, 0, 0.15);
+  --shadow-focus-ring: 0 0 0 4px rgb(91 108 255 / 0.16);
+  --shadow-tooltip: 0 4px 6px -2px rgb(15 23 42 / 0.05),
+    0 12px 28px 0 rgb(15 23 42 / 0.12);
+
+  /* Motion. One easing vocabulary for the whole app.
+     `--ease-out-quint` for things entering (fast start, long settle),
+     `--ease-spring` for anything the user directly manipulated — it overshoots
+     ~3% which is what makes a press feel physical rather than linear. */
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --animate-rise: rise 0.5s var(--ease-out-quint) both;
+  --animate-fade-in: fade-in 0.3s var(--ease-out-quint) both;
+  --animate-scale-in: scale-in 0.2s var(--ease-out-quint) both;
+  --animate-shimmer: shimmer 1.6s infinite;
+  --animate-spin-slow: spin 3s linear infinite;
 
   --z-index-1: 1;
   --z-index-9: 9;
@@ -165,41 +221,321 @@ layer(base);
   --z-index-999999: 999999;
 }
 
-/*
-  The default border color has changed to `currentColor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
+/* =============================================================================
+   SEMANTIC LAYER — flips with the theme
+============================================================================= */
 
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
-*/
+:root {
+  --surface-page: var(--color-gray-50);
+  --surface-1: #ffffff;
+  --surface-2: var(--color-gray-50);
+  --surface-3: var(--color-gray-100);
+
+  --border-subtle: rgb(226 232 240 / 0.9);
+  --border-strong: var(--color-gray-300);
+
+  /*
+    Tertiary is gray-500, not gray-400. gray-400 (#94a3b8) on white is only
+    2.8:1 — it fails AA even at large sizes, and this token carries real labels
+    ("Saved", "Target date"), not decoration. gray-500 gives 4.9:1.
+  */
+  --text-primary: var(--color-gray-900);
+  --text-secondary: var(--color-gray-600);
+  --text-tertiary: var(--color-gray-500);
+
+  /* Glass. Kept deliberately opaque (78%) — a frosted panel that lets too much
+     through stops being a reading surface, which is the failure mode of most
+     glassmorphism. */
+  --glass-bg: rgb(255 255 255 / 0.78);
+  --glass-border: rgb(255 255 255 / 0.7);
+  --glass-blur: 20px;
+
+  /* Ambient light — the faint coloured wash behind the app shell. */
+  --ambient-a: rgb(91 108 255 / 0.09);
+  --ambient-b: rgb(139 92 246 / 0.07);
+
+  --shadow-elevated: var(--shadow-theme-lg);
+  color-scheme: light;
+}
+
+.dark {
+  --surface-page: #070b16;
+  --surface-1: #0f172a;
+  --surface-2: #131c2e;
+  --surface-3: #1e293b;
+
+  --border-subtle: rgb(255 255 255 / 0.08);
+  --border-strong: rgb(255 255 255 / 0.16);
+
+  /*
+    Both non-primary tints are one step lighter than the obvious choice, because
+    the obvious choice fails contrast. gray-500 (#64748b) against the #0f172a
+    card surface is about 3.4:1 — under the 4.5:1 AA floor for body text — which
+    is what tertiary used to be. These give ~10:1 and ~6.4:1 while keeping the
+    two levels visibly distinct.
+  */
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-tertiary: #94a3b8;
+
+  --glass-bg: rgb(15 23 42 / 0.72);
+  --glass-border: rgb(255 255 255 / 0.08);
+
+  --ambient-a: rgb(91 108 255 / 0.16);
+  --ambient-b: rgb(139 92 246 / 0.12);
+
+  /* Shadows barely register on a dark surface; depth there comes from a
+     top-edge highlight instead, applied by the `.card` utility. */
+  --shadow-elevated: 0 12px 32px -8px rgb(0 0 0 / 0.6);
+  color-scheme: dark;
+}
+
 @layer base {
+  /* Tailwind v4 defaults the border colour to currentColor; restore a neutral. */
   *,
   ::after,
   ::before,
   ::backdrop,
   ::file-selector-button {
-    border-color: var(--color-gray-200, currentColor);
+    border-color: var(--border-subtle);
   }
+
   button:not(:disabled),
   [role="button"]:not(:disabled) {
     cursor: pointer;
   }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
   body {
-    @apply relative font-normal font-outfit z-1 bg-gray-50;
+    @apply relative font-normal font-outfit z-1;
+    background-color: var(--surface-page);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Money should never reflow as digits change. Lining tabular figures keep
+     columns of currency aligned and stop a ticking total from jittering. */
+  th, td,
+  [data-numeric] {
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+
+  /* A single visible focus treatment everywhere, keyboard-only so pointer users
+     don't see rings on click. */
+  :focus-visible {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background: rgb(91 108 255 / 0.22);
   }
 }
 
-@utility menu-item {
-  @apply relative flex items-center w-full gap-3 px-3 py-2.5 font-medium rounded-xl text-theme-sm transition-all duration-200 ease-in-out;
+/* =============================================================================
+   MOTION
+   -----------------------------------------------------------------------------
+   Every keyframe below is opacity/transform only, so animation runs on the
+   compositor and never triggers layout or paint.
+============================================================================= */
+
+@keyframes rise {
+  from { opacity: 0; transform: translate3d(0, 12px, 0); }
+  to   { opacity: 1; transform: none; }
 }
 
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+
+/* Staggered entrance for grids of cards. Applied via `.stagger` on the parent;
+   children rise in sequence so a dashboard assembles instead of snapping in. */
+@utility stagger {
+  & > * {
+    animation: var(--animate-rise);
+    animation-delay: calc(var(--stagger-step, 45ms) * var(--i, 0));
+  }
+}
+
+@utility stagger-i-* {
+  --i: --value(integer);
+}
+
+/*
+  The global reduced-motion contract.
+
+  Rather than asking every component to remember `motion-safe:`, anything that
+  slipped through is neutralised here — durations collapse to ~1ms rather than 0
+  so transitionend/animationend listeners still fire and nothing hangs waiting
+  for a callback that never comes.
+*/
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* =============================================================================
+   SURFACES
+============================================================================= */
+
+/*
+  The primary content surface. Depth is built from three cues rather than a
+  single drop shadow: a hairline border, an ambient shadow, and — in dark mode —
+  a 1px top highlight that mimics a light source above the panel. That highlight
+  is what stops dark cards reading as flat holes.
+*/
+@utility card {
+  background-color: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: 1rem;
+  box-shadow: var(--shadow-theme-sm);
+  transition: box-shadow 0.3s var(--ease-out-quint),
+    transform 0.3s var(--ease-out-quint),
+    border-color 0.3s var(--ease-out-quint);
+}
+
+.dark .card {
+  box-shadow: 0 1px 0 0 rgb(255 255 255 / 0.05) inset,
+    0 8px 24px -12px rgb(0 0 0 / 0.7);
+}
+
+/* Opt-in lift, for cards that are actually interactive. A card that rises on
+   hover but does nothing on click is a false affordance, so this is not on
+   `.card` by default. */
+@utility card-interactive {
+  cursor: pointer;
+
+  &:hover {
+    box-shadow: var(--shadow-elevated);
+    transform: translate3d(0, -3px, 0);
+    border-color: rgb(91 108 255 / 0.3);
+  }
+
+  &:active {
+    transform: translate3d(0, -1px, 0);
+    transition-duration: 0.1s;
+  }
+}
+
+/* Frosted panel, for surfaces that overlay content — headers, drawers, popovers.
+   `backdrop-filter` is expensive; it belongs on a handful of persistent
+   elements, never on a list of cards. */
+@utility glass {
+  background-color: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+}
+
+/* Ambient background wash. Fixed and pointer-transparent, sitting behind the
+   whole shell to give the flat page a sense of light direction. */
+@utility ambient-field {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(60rem 40rem at 12% -10%, var(--ambient-a), transparent 60%),
+    radial-gradient(50rem 36rem at 100% 0%, var(--ambient-b), transparent 55%);
+}
+
+/*
+  One step darker than the 500/500 pair it started as. White label text on
+  brand-500 measures 4.47:1 and on violet-500 only 3.9:1 — both under the 4.5:1
+  AA floor, and this gradient is the fill behind every primary button in the
+  app. 600/600 gives 6.4:1 and 5.6:1 while reading the same at a glance.
+*/
+@utility gradient-brand {
+  background-image: linear-gradient(
+    135deg,
+    var(--color-brand-600) 0%,
+    var(--color-violet-600) 100%
+  );
+}
+
+@utility text-gradient-brand {
+  background-image: linear-gradient(
+    135deg,
+    var(--color-brand-600) 0%,
+    var(--color-violet-500) 100%
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+/* Semantic text helpers, so components can stop pairing every colour with a
+   `dark:` twin. */
+@utility text-primary { color: var(--text-primary); }
+@utility text-secondary { color: var(--text-secondary); }
+@utility text-tertiary { color: var(--text-tertiary); }
+@utility surface-1 { background-color: var(--surface-1); }
+@utility surface-2 { background-color: var(--surface-2); }
+@utility surface-3 { background-color: var(--surface-3); }
+@utility border-subtle { border-color: var(--border-subtle); }
+
+/* =============================================================================
+   NAVIGATION
+============================================================================= */
+
+@utility menu-item {
+  @apply relative flex items-center w-full gap-3 px-3 py-2.5 font-medium rounded-xl text-theme-sm;
+  transition: background-color 0.2s var(--ease-out-quint),
+    color 0.2s var(--ease-out-quint);
+}
+
+/* The active pill is drawn as a pseudo-element rail on the left edge rather than
+   a border, so switching routes can animate it without shifting the label. */
 @utility menu-item-active {
-  @apply bg-brand-50 text-brand-600 shadow-sm dark:bg-brand-500/10 dark:text-brand-400 font-semibold;
+  @apply bg-brand-50 text-brand-700 font-semibold dark:bg-brand-500/12 dark:text-brand-300;
+
+  &::before {
+    content: "";
+    position: absolute;
+    left: -0.5rem;
+    top: 50%;
+    height: 1.25rem;
+    width: 3px;
+    border-radius: 9999px;
+    background: var(--color-brand-500);
+    transform: translateY(-50%);
+    animation: scale-in 0.25s var(--ease-spring) both;
+  }
 }
 
 @utility menu-item-inactive {
-  @apply text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-200;
+  @apply text-gray-600 hover:bg-gray-100/80 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-100;
 }
 
 @utility menu-item-icon {
@@ -237,11 +573,11 @@ layer(base);
 }
 
 @utility menu-dropdown-item-active {
-  @apply bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400;
+  @apply bg-brand-50 text-brand-700 dark:bg-brand-500/12 dark:text-brand-300;
 }
 
 @utility menu-dropdown-item-inactive {
-  @apply text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-200;
+  @apply text-gray-600 hover:bg-gray-100/80 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-200;
 }
 
 @utility menu-dropdown-badge {
@@ -255,15 +591,23 @@ layer(base);
 @utility menu-dropdown-badge-inactive {
   @apply bg-brand-50 group-hover:bg-brand-100 dark:bg-brand-500/10 dark:group-hover:bg-brand-500/20;
 }
+
+/* =============================================================================
+   SCROLLBARS
+============================================================================= */
+
 @utility no-scrollbar {
-  /* Chrome, Safari and Opera */
   &::-webkit-scrollbar {
     display: none;
   }
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
+
 @utility custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-gray-300) transparent;
+
   &::-webkit-scrollbar {
     @apply w-1.5 h-1.5;
   }
@@ -273,17 +617,12 @@ layer(base);
   }
 
   &::-webkit-scrollbar-thumb {
-    @apply bg-gray-200 rounded-full dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors;
+    @apply bg-gray-300/70 rounded-full dark:bg-gray-600/70 hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors;
   }
 }
 
-/* Card Utility */
-@utility card {
-  @apply bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm dark:shadow-none transition-shadow hover:shadow-md; 
-}
-
 @layer utilities {
-  /* For Remove Date Icon */
+  /* Native date/time pickers ship their own icon; templates supply their own. */
   input[type="date"]::-webkit-inner-spin-button,
   input[type="time"]::-webkit-inner-spin-button,
   input[type="date"]::-webkit-calendar-picker-indicator,
@@ -293,488 +632,104 @@ layer(base);
   }
 }
 
-.tableCheckbox:checked ~ span span {
-  @apply opacity-100;
-}
-.tableCheckbox:checked ~ span {
-  @apply border-brand-500 bg-brand-500;
+/* =============================================================================
+   VIEW TRANSITIONS
+   -----------------------------------------------------------------------------
+   Drives the router's cross-route animation (see `withViewTransitions` in
+   app.config.ts). Browsers without the API simply navigate instantly.
+============================================================================= */
+
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root) {
+    animation: fade-out-page 0.16s var(--ease-in-out-quart) both;
+  }
+
+  ::view-transition-new(root) {
+    animation: rise 0.32s var(--ease-out-quint) both;
+  }
 }
 
-/* third-party libraries CSS */
+/* The API animates a snapshot of the old page; skipping it under reduced motion
+   would still cross-fade, so it is explicitly disabled. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none !important;
+    mix-blend-mode: normal;
+  }
+}
+
+@keyframes fade-out-page {
+  to { opacity: 0; }
+}
+
+/* =============================================================================
+   APEXCHARTS
+   -----------------------------------------------------------------------------
+   ApexCharts renders its own DOM with inline defaults, so it has to be styled
+   from the global sheet. Everything here maps its chrome onto the tokens above.
+============================================================================= */
+
+.apexcharts-canvas {
+  --apex-text: var(--text-secondary);
+}
+
 .apexcharts-legend-text {
-  @apply text-gray-700! dark:text-gray-400!;
+  @apply pl-5! text-theme-xs! font-medium!;
+  color: var(--text-secondary) !important;
 }
 
 .apexcharts-text {
-  @apply fill-gray-700! dark:fill-gray-400!;
+  fill: var(--text-tertiary) !important;
+  font-family: Outfit, sans-serif !important;
 }
 
-.apexcharts-tooltip.apexcharts-theme-light {
-  @apply gap-1 rounded-lg! border-gray-200! p-3 shadow-theme-sm! dark:border-gray-800! dark:bg-gray-900!;
+.apexcharts-tooltip.apexcharts-theme-light,
+.apexcharts-tooltip.apexcharts-theme-dark {
+  border-radius: 0.75rem !important;
+  border: 1px solid var(--border-subtle) !important;
+  background: var(--glass-bg) !important;
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  box-shadow: var(--shadow-tooltip) !important;
+  padding: 0.25rem 0.125rem;
+  gap: 0.25rem;
+}
+
+.apexcharts-tooltip-title {
+  @apply mb-0! border-b-0! bg-transparent! p-0! text-[10px]! leading-4! font-semibold!;
+  color: var(--text-primary) !important;
+}
+
+.apexcharts-tooltip-series-group,
+.apexcharts-tooltip-y-group {
+  @apply p-0!;
+}
+
+.apexcharts-tooltip-text {
+  @apply text-theme-xs!;
+  color: var(--text-secondary) !important;
+}
+
+.apexcharts-tooltip-text-y-value {
+  @apply font-semibold!;
+  color: var(--text-primary) !important;
+  font-variant-numeric: tabular-nums;
 }
 
 .apexcharts-tooltip-marker {
   margin-right: 6px;
-  height: 6px;
-  width: 6px;
-}
-.apexcharts-legend-text {
-  @apply pl-5! text-gray-700! dark:text-gray-400!;
-}
-.apexcharts-tooltip-series-group {
-  @apply p-0!;
-}
-.apexcharts-tooltip-y-group {
-  @apply p-0!;
-}
-.apexcharts-tooltip-title {
-  @apply mb-0! border-b-0! bg-transparent! p-0! text-[10px]! leading-4! text-gray-800! dark:text-white/90!;
-}
-.apexcharts-tooltip-text {
-  @apply text-theme-xs! text-gray-700! dark:text-white/90!;
-}
-.apexcharts-tooltip-text-y-value {
-  @apply font-medium!;
+  height: 8px;
+  width: 8px;
+  border-radius: 3px;
 }
 
 .apexcharts-gridline {
-  @apply stroke-gray-100! dark:stroke-gray-800!;
-}
-#chartTwo .apexcharts-datalabels-group {
-  @apply -translate-y-24!;
-}
-#chartTwo .apexcharts-datalabels-group .apexcharts-text {
-  @apply fill-gray-800! font-semibold! dark:fill-white/90!;
+  stroke: var(--border-subtle) !important;
+  stroke-dasharray: 4 !important;
 }
 
-#chartDarkStyle .apexcharts-datalabels-group .apexcharts-text {
-  @apply fill-gray-800! font-semibold! dark:fill-white/90!;
-}
-
-#chartSixteen .apexcharts-legend {
-  @apply p-0! pl-6!;
-}
-
-.jvectormap-container {
-  @apply bg-gray-50! dark:bg-gray-900!;
-}
-.jvectormap-region.jvectormap-element {
-  @apply fill-gray-300! hover:fill-brand-500! dark:fill-gray-700! dark:hover:fill-brand-500!;
-}
-.jvectormap-marker.jvectormap-element {
-  @apply stroke-gray-200! dark:stroke-gray-800!;
-}
-.jvectormap-tip {
-  @apply bg-brand-500! border-none! px-2! py-1!;
-}
-.jvectormap-zoomin,
-.jvectormap-zoomout {
-  @apply hidden!;
-}
-
-.stocks-slider-outer .swiper-button-next:after,
-.stocks-slider-outer .swiper-button-prev:after {
-  @apply hidden;
-}
-
-.stocks-slider-outer .swiper-button-next,
-.stocks-slider-outer .swiper-button-prev {
-  @apply static! mt-0 h-8 w-9 rounded-full border dark:hover:bg-white/[0.05] border-gray-200 text-gray-700! transition hover:bg-gray-100 dark:border-white/[0.03] dark:bg-gray-800 dark:text-gray-400!  dark:hover:text-white/90!;
-}
-
-.stocks-slider-outer .swiper-button-next.swiper-button-disabled,
-.stocks-slider-outer .swiper-button-prev.swiper-button-disabled {
-  @apply bg-white opacity-50 dark:bg-gray-900;
-}
-
-.stocks-slider-outer .swiper-button-next svg,
-.stocks-slider-outer .swiper-button-prev svg {
-  @apply h-auto! w-auto!;
-}
-
-.flatpickr-wrapper {
-  @apply w-full;
-}
-.flatpickr-calendar {
-  @apply mt-2 bg-white! rounded-xl! p-5! border! border-gray-200! text-gray-500! dark:bg-gray-dark! dark:text-gray-400! dark:shadow-theme-xl! 2xsm:w-auto!;
-}
-
-.flatpickr-months .flatpickr-prev-month:hover svg,
-.flatpickr-months .flatpickr-next-month:hover svg {
-  @apply stroke-brand-500;
-}
-.flatpickr-calendar.arrowTop:before,
-.flatpickr-calendar.arrowTop:after {
-  @apply hidden;
-}
-
-.flatpickr-current-month {
-  @apply p-0!;
-}
-.flatpickr-current-month .cur-month,
-.flatpickr-current-month input.cur-year {
-  @apply h-auto! pt-0! text-lg! font-medium! text-gray-800! dark:text-white/90!;
-}
-
-.flatpickr-prev-month,
-.flatpickr-next-month {
-  @apply p-0!;
-}
-
-.flatpickr-weekdays {
-  @apply h-auto mt-6 mb-4 bg-transparent!;
-}
-
-.flatpickr-weekday {
-  @apply text-theme-sm! font-medium! text-gray-500! dark:text-gray-400! bg-transparent!;
-}
-
-.flatpickr-day {
-  @apply flex! items-center! text-theme-sm! font-medium! text-gray-800! dark:text-white/90! dark:hover:border-gray-300! dark:hover:bg-gray-900!;
-}
-.flatpickr-day.nextMonthDay,
-.flatpickr-day.prevMonthDay {
-  @apply text-gray-400!;
-}
-
-.flatpickr-months > .flatpickr-month {
-  background: none !important;
-}
-.flatpickr-month .flatpickr-current-month .flatpickr-monthDropdown-months {
-  background: none !important;
-  appearance: none;
-  background-image: none !important;
-  font-weight: 500;
-}
-.flatpickr-month
-  .flatpickr-current-month
-  .flatpickr-monthDropdown-months:focus {
-  outline: none !important;
-  border: 0 !important;
-}
-.flatpickr-months .flatpickr-prev-month,
-.flatpickr-months .flatpickr-next-month {
-  @apply top-7! dark:fill-white! dark:text-white! bg-transparent!;
-}
-.flatpickr-months .flatpickr-prev-month.flatpickr-prev-month,
-.flatpickr-months .flatpickr-next-month.flatpickr-prev-month {
-  @apply left-7!;
-}
-.flatpickr-months .flatpickr-prev-month.flatpickr-next-month,
-.flatpickr-months .flatpickr-next-month.flatpickr-next-month {
-  @apply right-7!;
-}
-.flatpickr-days {
-  @apply border-0!;
-}
-span.flatpickr-weekday,
-.flatpickr-months .flatpickr-month {
-  @apply dark:fill-white! dark:text-white! bg-none!;
-}
-.flatpickr-innerContainer {
-  @apply border-b-0!;
-}
-.flatpickr-months .flatpickr-month {
-  @apply bg-none!;
-}
-.flatpickr-day.inRange {
-  box-shadow: -5px 0 0 #f9fafb, 5px 0 0 #f9fafb !important;
-  @apply dark:shadow-datepicker!;
-}
-.flatpickr-day.inRange,
-.flatpickr-day.prevMonthDay.inRange,
-.flatpickr-day.nextMonthDay.inRange,
-.flatpickr-day.today.inRange,
-.flatpickr-day.prevMonthDay.today.inRange,
-.flatpickr-day.nextMonthDay.today.inRange,
-.flatpickr-day:hover,
-.flatpickr-day.prevMonthDay:hover,
-.flatpickr-day.nextMonthDay:hover,
-.flatpickr-day:focus,
-.flatpickr-day.prevMonthDay:focus,
-.flatpickr-day.nextMonthDay:focus {
-  @apply border-gray-50! bg-gray-50! dark:border-0! dark:border-white/5! dark:bg-white/5!;
-}
-.flatpickr-day.selected,
-.flatpickr-day.startRange,
-.flatpickr-day.selected,
-.flatpickr-day.endRange {
-  @apply text-white! dark:text-white!;
-}
-.flatpickr-day.selected,
-.flatpickr-day.startRange,
-.flatpickr-day.endRange,
-.flatpickr-day.selected.inRange,
-.flatpickr-day.startRange.inRange,
-.flatpickr-day.endRange.inRange,
-.flatpickr-day.selected:focus,
-.flatpickr-day.startRange:focus,
-.flatpickr-day.endRange:focus,
-.flatpickr-day.selected:hover,
-.flatpickr-day.startRange:hover,
-.flatpickr-day.endRange:hover,
-.flatpickr-day.selected.prevMonthDay,
-.flatpickr-day.startRange.prevMonthDay,
-.flatpickr-day.endRange.prevMonthDay,
-.flatpickr-day.selected.nextMonthDay,
-.flatpickr-day.startRange.nextMonthDay,
-.flatpickr-day.endRange.nextMonthDay {
-  background: #465fff;
-  @apply border-brand-500! bg-brand-500! hover:border-brand-500! hover:bg-brand-500!;
-}
-.flatpickr-day.selected.startRange + .endRange:not(:nth-child(7n + 1)),
-.flatpickr-day.startRange.startRange + .endRange:not(:nth-child(7n + 1)),
-.flatpickr-day.endRange.startRange + .endRange:not(:nth-child(7n + 1)) {
-  box-shadow: -10px 0 0 #465fff;
-}
-
-.flatpickr-months .flatpickr-prev-month svg,
-.flatpickr-months .flatpickr-next-month svg,
-.flatpickr-months .flatpickr-prev-month,
-.flatpickr-months .flatpickr-next-month {
-  @apply hover:fill-none!;
-}
-.flatpickr-months .flatpickr-prev-month:hover svg,
-.flatpickr-months .flatpickr-next-month:hover svg {
-  fill: none !important;
-}
-
-.flatpickr-calendar.static {
-  @apply right-0;
-}
-
-.fc .fc-view-harness {
-  @apply max-w-full overflow-x-auto custom-scrollbar;
-}
-.fc-dayGridMonth-view.fc-view.fc-daygrid {
-  @apply min-w-[718px];
-}
-.fc .fc-scrollgrid-section > * {
-  border-right-width: 0;
-  border-bottom-width: 0;
-}
-.fc .fc-scrollgrid {
-  border-left-width: 0;
-}
-.fc .fc-toolbar.fc-header-toolbar {
-  @apply flex-col gap-4 px-6 pt-6 sm:flex-row;
-}
-.fc-button-group {
-  @apply gap-2;
-}
-.fc-button-group .fc-button {
-  @apply flex h-10 w-10 items-center justify-center rounded-lg! border border-gray-200 bg-transparent hover:border-gray-200 hover:bg-gray-50 focus:shadow-none active:border-gray-200! active:bg-transparent! active:shadow-none! dark:border-gray-800 dark:hover:border-gray-800 dark:hover:bg-gray-900 dark:active:border-gray-800!;
-}
-
-.fc-button-group .fc-button.fc-prev-button:before {
-  @apply inline-block mt-1;
-  content: url("data:image/svg+xml,%3Csvg width='25' height='24' viewBox='0 0 25 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M16.0068 6L9.75684 12.25L16.0068 18.5' stroke='%23344054' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
-}
-.fc-button-group .fc-button.fc-next-button:before {
-  @apply inline-block mt-1;
-  content: url("data:image/svg+xml,%3Csvg width='25' height='24' viewBox='0 0 25 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9.50684 19L15.7568 12.75L9.50684 6.5' stroke='%23344054' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
-}
-.dark .fc-button-group .fc-button.fc-prev-button:before {
-  content: url("data:image/svg+xml,%3Csvg width='25' height='24' viewBox='0 0 25 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M16.0068 6L9.75684 12.25L16.0068 18.5' stroke='%2398A2B3' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
-}
-.dark .fc-button-group .fc-button.fc-next-button:before {
-  content: url("data:image/svg+xml,%3Csvg width='25' height='24' viewBox='0 0 25 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9.50684 19L15.7568 12.75L9.50684 6.5' stroke='%2398A2B3' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
-}
-.fc-button-group .fc-button .fc-icon {
-  @apply hidden;
-}
-.fc-addEventButton-button {
-  @apply rounded-lg! border-0! bg-brand-500! px-4! py-2.5! text-sm! font-medium! hover:bg-brand-600! focus:shadow-none!;
-}
-.fc-toolbar-title {
-  @apply text-lg! font-medium! text-gray-800 dark:text-white/90;
-}
-.fc-header-toolbar.fc-toolbar .fc-toolbar-chunk:last-child {
-  @apply rounded-lg bg-gray-100 p-0.5 dark:bg-gray-900;
-}
-.fc-header-toolbar.fc-toolbar .fc-toolbar-chunk:last-child .fc-button {
-  @apply h-auto! w-auto! rounded-md border-0! bg-transparent px-5! py-2! text-sm font-medium text-gray-500 hover:text-gray-700 focus:shadow-none! dark:text-gray-400;
-}
-.fc-header-toolbar.fc-toolbar
-  .fc-toolbar-chunk:last-child
-  .fc-button.fc-button-active {
-  @apply text-gray-900 bg-white dark:bg-gray-800 dark:text-white;
-}
-.fc-theme-standard th {
-  @apply border-x-0! border-t border-gray-200! bg-gray-50 text-left! dark:border-gray-800! dark:bg-gray-900;
-}
-.fc-theme-standard td,
-.fc-theme-standard .fc-scrollgrid {
-  @apply border-gray-200! dark:border-gray-800!;
-}
-.fc .fc-col-header-cell-cushion {
-  @apply px-5! py-4! text-sm font-medium uppercase text-gray-400;
-}
-.fc .fc-daygrid-day.fc-day-today {
-  @apply bg-transparent;
-}
-.fc .fc-daygrid-day {
-  @apply p-2;
-}
-.fc .fc-daygrid-day.fc-day-today .fc-scrollgrid-sync-inner {
-  @apply rounded-sm bg-gray-100 dark:bg-white/[0.03];
-}
-.fc .fc-daygrid-day-number {
-  @apply p-3! text-sm font-medium text-gray-700 dark:text-gray-400;
-}
-.fc .fc-daygrid-day-top {
-  @apply flex-row!;
-}
-.fc .fc-day-other .fc-daygrid-day-top {
-  opacity: 1;
-}
-.fc .fc-day-other .fc-daygrid-day-top .fc-daygrid-day-number {
-  @apply text-gray-400 dark:text-white/30;
-}
-.event-fc-color {
-  @apply rounded-lg py-2.5 pl-4 pr-3;
-}
-.event-fc-color .fc-event-title {
-  @apply p-0 text-sm font-normal text-gray-700;
-}
-.fc-daygrid-event-dot {
-  @apply w-1 h-5 ml-0 mr-3 border-none rounded-sm;
-}
-.fc-event {
-  @apply focus:shadow-none;
-}
-.fc-daygrid-event.fc-event-start {
-  @apply ml-3!;
-}
-.event-fc-color.fc-bg-success {
-  @apply border-success-50 bg-success-50;
-}
-.event-fc-color.fc-bg-danger {
-  @apply border-error-50 bg-error-50;
-}
-.event-fc-color.fc-bg-primary {
-  @apply border-brand-50 bg-brand-50;
-}
-.event-fc-color.fc-bg-warning {
-  @apply border-orange-50 bg-orange-50;
-}
-.event-fc-color.fc-bg-success .fc-daygrid-event-dot {
-  @apply bg-success-500;
-}
-.event-fc-color.fc-bg-danger .fc-daygrid-event-dot {
-  @apply bg-error-500;
-}
-.event-fc-color.fc-bg-primary .fc-daygrid-event-dot {
-  @apply bg-brand-500;
-}
-.event-fc-color.fc-bg-warning .fc-daygrid-event-dot {
-  @apply bg-orange-500;
-}
-.fc-direction-ltr .fc-timegrid-slot-label-frame {
-  @apply px-3 py-1.5 text-left text-sm font-medium text-gray-500 dark:text-gray-400;
-}
-.fc .fc-timegrid-axis-cushion {
-  @apply text-sm font-medium text-gray-500 dark:text-gray-400;
-}
-
-.input-date-icon::-webkit-inner-spin-button,
-.input-date-icon::-webkit-calendar-picker-indicator {
-  opacity: 0;
-  -webkit-appearance: none;
-}
-
-.swiper-button-prev svg,
-.swiper-button-next svg {
-  @apply h-auto! w-auto!;
-}
-
-.carouselTwo .swiper-button-next:after,
-.carouselTwo .swiper-button-prev:after,
-.carouselFour .swiper-button-next:after,
-.carouselFour .swiper-button-prev:after {
-  @apply hidden;
-}
-.carouselTwo .swiper-button-next.swiper-button-disabled,
-.carouselTwo .swiper-button-prev.swiper-button-disabled,
-.carouselFour .swiper-button-next.swiper-button-disabled,
-.carouselFour .swiper-button-prev.swiper-button-disabled {
-  @apply bg-white/60 opacity-100!;
-}
-.carouselTwo .swiper-button-next,
-.carouselTwo .swiper-button-prev,
-.carouselFour .swiper-button-next,
-.carouselFour .swiper-button-prev {
-  @apply h-10 w-10 rounded-full border-[0.5px] border-white/10 bg-white/90 text-gray-700! shadow-slider-navigation backdrop-blur-[10px];
-}
-
-.carouselTwo .swiper-button-prev,
-.carouselFour .swiper-button-prev {
-  @apply left-3! sm:left-4!;
-}
-
-.carouselTwo .swiper-button-next,
-.carouselFour .swiper-button-next {
-  @apply right-3! sm:right-4!;
-}
-
-.carouselThree .swiper-pagination,
-.carouselFour .swiper-pagination {
-  @apply bottom-3! left-1/2! inline-flex w-auto! -translate-x-1/2 items-center gap-1.5 rounded-[40px] border-[0.5px] border-white/10 bg-white/60 px-2 py-1.5 shadow-slider-navigation backdrop-blur-[10px] sm:bottom-5!;
-}
-
-.carouselThree .swiper-pagination-bullet,
-.carouselFour .swiper-pagination-bullet {
-  @apply m-0! h-2.5 w-2.5 bg-white opacity-100 shadow-theme-xs duration-200 ease-in-out;
-}
-
-.carouselThree .swiper-pagination-bullet-active,
-.carouselFour .swiper-pagination-bullet-active {
-  @apply w-6.5 rounded-xl;
-}
-
-.form-check-input:checked ~ span {
-  @apply border-[6px] border-brand-500 bg-brand-500 dark:border-brand-500;
-}
-
-.taskCheckbox:checked ~ .box span {
-  @apply opacity-100 bg-brand-500;
-}
-.taskCheckbox:checked ~ p {
-  @apply text-gray-400 line-through;
-}
-.taskCheckbox:checked ~ .box {
-  @apply border-brand-500 bg-brand-500 dark:border-brand-500;
-}
-
-.task {
-  transition: all 0.2s ease; /* Smooth transition for visual effects */
-}
-
-.task {
-  border-radius: 0.75rem;
-  box-shadow: 0px 1px 3px 0px rgba(16, 24, 40, 0.1),
-    0px 1px 2px 0px rgba(16, 24, 40, 0.06);
-  opacity: 0.8;
-  cursor: grabbing; /* Changes the cursor to indicate dragging */
-}
-
-.custom-calendar .fc-h-event {
-  background-color: transparent;
-  border: none;
-  color: black;
-}
-.fc.fc-media-screen {
-  @apply min-h-screen;
-}
-
-.simplebar-scrollbar::before {
-  @apply bg-gray-200! rounded-full! dark:bg-gray-700! opacity-100!;
-}
-
-.dark .simplebar-scrollbar::before {
-  @apply bg-gray-700!;
-}
-
-.simplebar-scrollbar.simplebar-visible:before {
-  @apply opacity-100;
+.apexcharts-xaxis line,
+.apexcharts-yaxis line {
+  stroke: transparent !important;
 }
