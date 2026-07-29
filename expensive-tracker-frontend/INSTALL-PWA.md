@@ -5,6 +5,7 @@ browser can be installed onto Windows, macOS, iOS and Android, where it opens in
 its own window with its own icon — no separate download, no app store, and no
 second codebase.
 
+- [0. Shipping this to a customer](#0-shipping-this-to-a-customer)
 - [1. What you get](#1-what-you-get)
 - [2. Before you install](#2-before-you-install)
 - [3. Install on Windows](#3-install-on-windows)
@@ -16,6 +17,92 @@ second codebase.
 - [9. Uninstalling](#9-uninstalling)
 - [10. Troubleshooting](#10-troubleshooting)
 - [11. For developers](#11-for-developers)
+
+---
+
+## 0. Shipping this to a customer
+
+### What the customer receives
+
+**A web address — not a file.** There is no `.exe`, no `.dmg`, no installer to
+email, and nothing to put in an app store. You host Expensify; the customer
+visits the URL once and installs it from their browser.
+
+Their side is three steps:
+
+1. Open the address you give them, e.g. `https://expensify.yourcompany.com`.
+2. Sign in.
+3. Install it — [Windows](#3-install-on-windows) ·
+   [macOS](#4-install-on-macos) · [iPhone/iPad](#5-install-on-iphone-or-ipad) ·
+   [Android](#6-install-on-android).
+
+From then on it behaves like any other application on their machine, and it
+updates itself ([section 8](#8-updating)) without them reinstalling anything.
+
+### What you have to do first
+
+The customer cannot install from your laptop. Three things must be true of the
+address you hand over, and **each one is a hard requirement, not a
+recommendation**:
+
+| Requirement | Why |
+|---|---|
+| Served over **`https://`** | Browsers refuse to install a PWA over plain `http://`. The session cookie is also issued `secure` in production, so it will not be stored at all on an http origin. |
+| UI and API on the **same origin** | The session cookie is `SameSite=Strict`. Serve the API from another domain and the browser will not attach it — every request arrives unauthenticated. |
+| A **stable public hostname** | The install is bound to the origin. Changing it later means every customer reinstalls. |
+
+### Deploying with Docker
+
+The repository root has a `docker-compose.yml` that brings up all three pieces
+— database, API and web server — on one network, with nginx proxying `/api` to
+the API so everything sits on a single origin.
+
+```bash
+cp .env.example .env
+#   Edit .env. JWT_SECRET is required and has no default:
+#   openssl rand -base64 48
+
+docker compose up -d --build
+```
+
+That publishes the app on `http://localhost:8080` (override with
+`FRONTEND_PORT`).
+
+> The per-project compose files under `expensive-tracker-backend/` and
+> `expensive-tracker-frontend/` are for working on one piece in isolation. They
+> declare separate networks, so a frontend started from its own file cannot
+> reach the backend and every API call fails. Use the root file to deploy.
+
+### Adding HTTPS
+
+The stack serves plain HTTP on purpose — terminate TLS in front of it. Any of
+these is fine:
+
+- **Caddy** — obtains and renews certificates automatically; least work.
+- **nginx or Traefik** with Let's Encrypt.
+- **A cloud load balancer** (AWS ALB, Cloud Run, Azure Front Door) with a
+  managed certificate.
+
+Whatever sits in front must forward `X-Forwarded-Proto: https`, which the
+bundled nginx already passes on to the API, and set `PUBLIC_URL` in `.env` to
+the address customers actually type.
+
+### Pre-flight checklist
+
+Before sending anyone the link:
+
+- [ ] `JWT_SECRET` is a freshly generated value, **not** the default committed
+      in `expensive-tracker-backend/.env`.
+- [ ] The site loads over `https://` with a valid certificate.
+- [ ] Signing in works, and reloading keeps you signed in.
+- [ ] `https://yoursite/manifest.webmanifest` returns JSON, not HTML.
+- [ ] DevTools → **Application → Manifest** reports no installability errors.
+- [ ] The install icon appears in Chrome's address bar.
+- [ ] `support@expensetracker.com` on the Contact Support page has been replaced
+      with a real inbox.
+- [ ] MongoDB is **not** published to the public internet — the root compose
+      file deliberately gives it no host port.
+- [ ] You have a backup schedule for the `mongo-data` volume.
 
 ---
 
