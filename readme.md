@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Angular-19.1.0-DD0031?style=for-the-badge&logo=angular&logoColor=white" alt="Angular"/>
+  <img src="https://img.shields.io/badge/Angular-21.2.18-DD0031?style=for-the-badge&logo=angular&logoColor=white" alt="Angular"/>
   <img src="https://img.shields.io/badge/Tailwind_CSS-4.0.14-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="TailwindCSS"/>
   <img src="https://img.shields.io/badge/Node.js-18.x-339933?style=for-the-badge&logo=node.js&logoColor=white" alt="Node.js"/>
   <img src="https://img.shields.io/badge/MongoDB-4.4+-47A248?style=for-the-badge&logo=mongodb&logoColor=white" alt="MongoDB"/>
@@ -59,8 +59,9 @@ A fixed, full-height, frosted-glass panel (`bg-white/90 backdrop-blur-xl`, dark 
 
 - **Logo block** — the app logo (a wallet under a rising trend line, on the brand indigo gradient) beside the wordmark **“Expensify”**.
 - **Collapse behaviour** — 288 px (`w-72`) when expanded, 96 px (`w-24`) when collapsed on desktop; hovering a collapsed sidebar temporarily expands it. On mobile it slides in over a blurred backdrop; clicking the backdrop or pressing **Escape** closes it.
-- **Section “Dashboard”** — Dashboard, Wallets, Transactions, Product Budget, Financial Education, Chat.
+- **Section “Dashboard”** — Dashboard, Wallets, Transactions, Import & Scan, Product Budget, Financial Education, Chat.
 - **Section “Management”** — Settings (expands to *Profile*, *About & Support*), Help Center (expands to *FAQs*, *Documentation*, *Contact Support*, *Troubleshooting*, *Release Notes*), Feedback.
+- **Note:** Bills & Payments (`/bills`) is a fully built route but currently has no sidebar entry — it's reachable only via links inside the Upcoming Bills dashboard widget or a direct URL.
 - Parent items with children toggle open with a rotating chevron; children render in an indented list with a left border. A `NEW` pill can render beside a top-level item, and items flagged `isLocked` are hidden entirely.
 
 ### Header (`app-header`)
@@ -72,7 +73,7 @@ Sticky, white, bordered on large screens.
 - **Kebab button (mobile)** — reveals the right-hand action cluster.
 - **Currency switcher** (`app-currency-switcher`) — a globe button showing the active code; the dropdown lists `USD, LKR, EUR, GBP, JPY, CAD, AUD, CHF, CNY, INR`. Selecting one rewrites every amount on screen and persists to `localStorage` + the user profile.
 - **User dropdown** (`app-user-dropdown`) — avatar (falls back to a default SVG on error), name and email, an *Account settings* link, and **Sign out**.
-- Two components exist but are currently commented out of the header template: `app-theme-toggle-button` and `app-notification-dropdown` (the latter has a full mock notification feed with priority dots and relative timestamps).
+- **Theme toggle** (`app-theme-toggle-button`) — live in the header since the design-system rebuild; switches light/dark app-wide via `ThemeService`, persisted under `expensify.theme`. The notification dropdown (`app-notification-dropdown`) that used to sit beside it — a mock feed with priority dots and relative timestamps — has been removed entirely, not just hidden.
 
 ---
 
@@ -161,6 +162,18 @@ Static curated cards (article/video, difficulty, duration) with a category filte
   - **Manual** — Date, Amount, Description, Type, Category (filtered to the chosen type) and Wallet. Choosing a category **auto-selects a sensible wallet**: health/medical/emergency-style categories jump to the emergency fund wallet, salary-style categories jump to a bank wallet, otherwise the first cash or bank wallet is used.
   - **Upload** — JSON import validated for description, type, amount, category and date, with an *“Previewing N Items”* summary and a per-row failure report.
 - Reads `?walletType=emergencyfund&action=add` to pre-filter the list and open the drawer as an income entry.
+
+## 📥 Import & Scan (`/import`)
+
+Undocumented in earlier revisions of this README but fully built and routed. Two tabs:
+
+- **Receipt** — upload a receipt photo, which is OCR'd server-side (OCR.space by default, configurable via `OCR_API_URL`/`OCR_API_KEY`) and parsed into a draft expense (amount, merchant, date); review and save it as a real transaction. Without an `OCR_API_KEY` the receipt is stored but fields aren't auto-extracted.
+- **Import**, in three modes:
+  - **File** — a bank-statement CSV, parsed and mapped to transactions.
+  - **Text** — paste CSV text directly.
+  - **SMS** — paste one or more bank transaction-alert SMS messages (debit/credit, amount, merchant, date); parsed heuristically, no external service involved.
+
+All three produce the same preview → per-row success/failure report pattern used elsewhere in the app, and let you pick a destination wallet and default category before committing.
 
 ## 🎯 Product Budget (`/budget`)
 
@@ -284,6 +297,9 @@ All routes are mounted under `/api/v1` and, unless noted, require a bearer token
 | `POST` | `/bills/:id/pay` | Pay a bill from a wallet in one transaction. |
 | `GET` | `/chat/status` | Whether the assistant is configured on this server. |
 | `POST` | `/chat` | Stream an assistant reply (SSE), grounded in your own data. |
+| `POST` | `/expenses/receipt/scan` | OCR a receipt image into a draft expense. |
+| `POST` | `/imports/bank` | Parse an uploaded bank-statement CSV (or a `csv` string body) into transactions. |
+| `POST` | `/imports/sms` | Parse bank transaction-alert SMS text into transactions. |
 | `GET` | `/health` | Liveness probe. |
 
 ### Domain constants
@@ -301,7 +317,7 @@ All routes are mounted under `/api/v1` and, unless noted, require a bearer token
 |-------|-----------|
 | **User** | name, firstName, lastName, email (unique), password (bcrypt, hidden), currency, avatar, profileImage, phone, bio, location, role, isActive, lastLogin, reset-token fields |
 | **Wallet** | name, type, balance, currency, paymentMethod, user, isActive |
-| **Expense** | title, amount, description, category → Category, wallet → Wallet, user, date, paymentMethod, receipt, tags, isRecurring, recurringFrequency |
+| **Expense** | title, amount, description, category → Category, wallet → Wallet, user, date, paymentMethod, receipt, tags, isRecurring, recurringFrequency — recurring rows are advanced by `recurringService.js`, run daily via an opt-in in-process scheduler (`ENABLE_RECURRING_SCHEDULER=true`) or on demand via `npm run recurring:run` for external cron |
 | **Category** | name (unique per user), description, icon, colour (hex), type, user, isActive |
 | **ProductBudget** | name, imageUrl, targetAmount, savedAmount, targetDate, user, isActive, plus virtual `progress` and `remainingAmount` |
 | **ReleaseNote** | version (unique), date, features[], bugfixes[], improvements[], isPublished |
@@ -319,6 +335,8 @@ All routes are mounted under `/api/v1` and, unless noted, require a bearer token
 - 🌊 **Financial Flow Analysis:** ECharts Sankey and Sunburst views of money moving from income through wallets into categories.
 - 🎯 **Product Budgets (Savings Goals):** Target vs saved tracking, colour-graded progress, wallet-funded contributions clamped to the remaining target, and cover images by URL or upload.
 - 🌍 **Automated Multi-Currency:** Live exchange rates with app-wide conversion from a single header switcher.
+- 📥 **Import & Scan:** Receipt-photo OCR, bank-statement CSV import, and bank SMS-alert parsing, all landing in the same reviewable draft-transaction flow.
+- 🔁 **Recurring Expenses:** Automatic generation of due occurrences, either in-process or via external cron.
 - 📊 **Dynamic Analytics:** Monthly statistics, monthly/quarterly/annual/multi-year trend charts, and an emergency-fund balance history.
 - 📤 **Data Portability:** Per-page Excel export plus a single multi-sheet full-account export.
 - 📝 **Release Repository:** Admin-controlled release notes and changelog tracking.
@@ -441,13 +459,20 @@ trivy image expense-tracker:2.0.0
 - [x] Real-time Financial Flow Visualization
 - [x] Customisable dashboard widgets
 - [x] Excel export (per-page and full account)
-- [/] AI-driven spending insights & predictions *(Chat UI built, model not yet wired)*
-- [ ] Persist Bills to MongoDB (currently an in-memory demo dataset)
-- [ ] Real content for Financial Education
-- [ ] Wire up the Feedback submission endpoint
-- [ ] Re-enable the theme toggle and notification centre in the header
+- [x] AI-driven spending insights & predictions *(Chat is live — SSE-streamed, grounded in the user's own data, served by `claude-opus-5`)*
+- [x] Persist Bills to MongoDB
+- [x] Real content for Financial Education *(six written articles + a glossary, compiled in — not yet CMS/admin-editable)*
+- [x] Wire up the Feedback submission endpoint
+- [x] Re-enable the theme toggle in the header *(dark mode now works app-wide)*
+- [x] Receipt OCR, bank-statement CSV import, and SMS-alert import *(`/import`, not previously listed here)*
+- [x] Recurring-expense automation *(in-process scheduler or external cron)*
+- [ ] Re-enable the notification centre in the header *(component has been removed since the design-system rebuild, not just commented out)*
+- [ ] Give Bills & Payments a sidebar nav entry *(currently reachable only from the Upcoming Bills dashboard widget or a direct URL)*
 - [ ] Automated financial report generation (PDF/Excel)
 - [ ] Push notifications for budget thresholds
+- [ ] Make Financial Education content admin-manageable instead of compiled-in
+- [ ] Fetch supported currencies from `/currency/supported` in the frontend instead of a hardcoded list (backend endpoint already exists)
+- [ ] Wire the Upcoming Bills reminder toggle to a real notification service (currently a no-op UI toggle)
 
 ---
 <p align="center">
