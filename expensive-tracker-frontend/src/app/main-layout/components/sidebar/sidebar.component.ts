@@ -105,6 +105,13 @@ export class SidebarComponent implements OnInit {
       isLocked: false
     },
     {
+      icon: faFileInvoiceDollar,
+      name: 'Bills & Payments',
+      path: '/bills',
+      isNew: false,
+      isLocked: false
+    },
+    {
       icon: faGraduationCap,
       name: 'Financial Education',
       path: '/financial-education',

@@ -18,15 +18,23 @@ The application currently provides a robust foundation for personal finance mana
 - **Monthly Net Savings**: High-level comparison of Income vs. Expenses.
 
 ### 🎯 Planning Tools
-- **Budget Planner**: Set and track monthly category-wise limits.
-- **Product Goals**: Save for specific items (Tech gadgets, travel, etc.).
+
+- **Product Goals (Budget Planner)**: Target-vs-saved tracking for named savings goals, funded directly from a wallet.
 - **Emergency Fund**: Dedicated module for building a financial safety net.
-- **Upcoming Bills**: Calendar view for recurring payments and dues.
+- **Upcoming Bills**: Recurring/one-off bill tracking with due-status pills and one-click pay-from-wallet.
+
+### 🤖 Automation & Intelligence (shipped)
+
+- **Import & Scan**: Receipt-photo OCR, bank-statement CSV import, and bank SMS-alert parsing — all landing in the same review-and-commit flow. (Was listed under Phase 2 below as future work; it's built and live at `/import`.)
+- **Recurring Expenses**: Automatic generation of due recurring transactions, in-process or via external cron.
+- **AI Financial Chat**: Streaming assistant answering from the user's real wallet/transaction/goal data, not generic advice.
 
 ### ⚙️ Utilities
-- **Excel Export**: Export transaction data for external analysis.
-- **Financial Education**: Integrated learning modules for financial literacy.
+
+- **Excel Export**: Per-page export plus a single multi-sheet full-account export.
+- **Financial Education**: Six written articles + glossary (compiled-in, not yet CMS-editable).
 - **Modern UI**: Dark/Light mode support with premium aesthetics.
+- **PWA**: Installable on desktop, macOS and iOS.
 
 ---
 
@@ -46,12 +54,7 @@ Focus on efficiency and immediate value additions.
 
 ## 📈 Phase 2: Deep Insights & Automation (Future)
 
-Leveraging data and tools for better financial outcomes.
-
-### 🤖 Automation & Intelligence
-- **Statement CSV Wizard**: Effortless mapping and import of bank CSV files.
-- **AI Financial Advisor**: Chat-based insights on spending habits (e.g., "How much did I spend on dining?").
-- **OCR Receipt Scanner**: Mobile-friendly receipt photo logging.
+Leveraging data and tools for better financial outcomes. (Statement import, AI chat, and OCR scanning — originally planned here — have already shipped; see Phase 0.)
 
 ### 💹 Advanced Forecasting
 - **Net Worth Snapshot**: Line chart tracking `Assets - Debts` over time.
@@ -65,7 +68,6 @@ Leveraging data and tools for better financial outcomes.
 Transforming the tracker into a holistic financial companion.
 
 - **Gamification**: "No Spend" day streaks and Achievement Badges.
-- **PWA Support**: Installable mobile application for on-the-go tracking.
 - **Debt Repayment Tool**: Snowball/Avalanche calculators for loan management.
 - **Financial Goals 2.0**: Shared family budgets and cooperative goal tracking.
 

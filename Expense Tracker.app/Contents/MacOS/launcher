@@ -1,0 +1,50 @@
+#!/bin/bash
+#
+# Expense Tracker launcher.
+#
+# Click this app (from the Dock, Applications, or Spotlight) to start the
+# backend + frontend and open the browser once they're ready — no terminal,
+# no remembering commands. It's a plain shell script wearing a .app bundle so
+# it stays diffable and versioned instead of being a compiled, opaque binary.
+#
+# It resolves the repo path relative to its own location, so this keeps
+# working if the repo gets cloned or moved anywhere else.
+
+set -uo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# .../Expense Tracker.app/Contents/MacOS -> repo root is three levels up.
+REPO_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+
+BACKEND_PORT="${BACKEND_PORT:-3001}"
+FRONTEND_PORT="${FRONTEND_PORT:-4200}"
+
+# Already running (e.g. you clicked the icon twice, or start.sh is up from
+# earlier)? Just bring the browser forward instead of launching a second copy,
+# which would only fail noisily on the port conflict.
+if curl -s -o /dev/null --max-time 1 "http://localhost:$BACKEND_PORT/health"; then
+  open "http://localhost:$FRONTEND_PORT"
+  exit 0
+fi
+
+# Run start.sh in a visible Terminal window: logs, errors, and Ctrl+C to stop
+# all behave exactly like running it by hand, which matters when something
+# goes wrong (Docker not running, port in use, etc.).
+osascript <<OSA
+tell application "Terminal"
+  activate
+  do script "cd \"$REPO_DIR\" && ./start.sh"
+end tell
+OSA
+
+# ng serve takes a while to compile on a cold start; poll and open the
+# browser the moment it actually responds instead of guessing a delay.
+(
+  for _ in $(seq 1 180); do
+    if curl -s -o /dev/null --max-time 1 "http://localhost:$FRONTEND_PORT"; then
+      open "http://localhost:$FRONTEND_PORT"
+      exit 0
+    fi
+    sleep 1
+  done
+) &
