@@ -405,12 +405,6 @@ host). Production builds swap the file via `fileReplacements` in `angular.json`.
 > ./start.sh --help     # all options
 > ```
 >
-> **On macOS**, `Expense Tracker.app` (repo root) wraps the same thing in a
-> clickable app — drag it onto the Dock and clicking it opens a Terminal
-> running `./start.sh`, then opens the browser automatically once the
-> frontend responds. Clicking it again while already running just refocuses
-> the browser instead of starting a second copy.
->
 > The same MongoDB bootstrap runs on `npm run dev` inside the backend, so that
 > works standalone too. Both go through `ensure-mongo.sh`, which starts the
 > `mongodb` service from `expensive-tracker-backend/docker-compose.yml` (container
@@ -421,6 +415,29 @@ host). Production builds swap the file via `fileReplacements` in `angular.json`.
 > otherwise from `expensive-tracker-backend/.env`. Any other value skips the
 > container so deployed environments keep using their own database. Pointing local
 > dev at Mongo Atlas or a local `mongod`? Set `SKIP_MONGO=1` (or pass `--no-mongo`).
+
+#### 🖱️ macOS: a one-click Dock launcher
+
+For daily use without opening a terminal at all, `Expense Tracker.app`
+(repo root) wraps `./start.sh` in a real, clickable app.
+
+1. In Finder, open the repo folder and find `Expense Tracker.app` at the root.
+2. Drag it onto the Dock (to the right of the divider, with your other apps).
+3. **First click only:** macOS will refuse to open it because it's an
+   unsigned local app — right-click (or Control-click) the icon and choose
+   **Open**, then confirm in the dialog. This is a one-time approval; every
+   click after this works normally.
+4. From then on, clicking the Dock icon:
+   - Opens a Terminal window running `./start.sh` — same logs, same
+     `Ctrl+C`-to-stop, same MongoDB bootstrap as running it by hand.
+   - Opens your browser to `http://localhost:4200` automatically, once the
+     frontend has actually finished compiling (it polls rather than
+     guessing a delay).
+   - If the app is already running, clicking again just brings the browser
+     tab forward instead of starting a second copy on the same ports.
+
+The launcher resolves the repo path relative to its own location, so it
+keeps working if you move or re-clone the repo — no path to edit.
 
 Prefer to run each service manually? Follow the steps below.
 
