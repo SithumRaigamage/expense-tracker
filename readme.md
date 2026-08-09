@@ -405,6 +405,12 @@ host). Production builds swap the file via `fileReplacements` in `angular.json`.
 > ./start.sh --help     # all options
 > ```
 >
+> **On macOS**, `Expense Tracker.app` (repo root) wraps the same thing in a
+> clickable app — drag it onto the Dock and clicking it opens a Terminal
+> running `./start.sh`, then opens the browser automatically once the
+> frontend responds. Clicking it again while already running just refocuses
+> the browser instead of starting a second copy.
+>
 > The same MongoDB bootstrap runs on `npm run dev` inside the backend, so that
 > works standalone too. Both go through `ensure-mongo.sh`, which starts the
 > `mongodb` service from `expensive-tracker-backend/docker-compose.yml` (container
