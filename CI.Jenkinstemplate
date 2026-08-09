@@ -18,8 +18,18 @@ pipeline {
         TRIVY_REPORT_NAME = 'trivy-report.html'
         
         // Sender and Receiver Emails for Notifications
-        SENDER_EMAIL = '{{SENDER_EMAIL}}' 
-        RECEIVER_EMAIL = '{{RECEIVER_EMAIL}}' 
+        SENDER_EMAIL = '{{SENDER_EMAIL}}'
+        RECEIVER_EMAIL = '{{RECEIVER_EMAIL}}'
+
+        // Container Registries. Both pushes use the image tagged in "Build Image";
+        // credentials are "Username with password" entries in Jenkins (Manage
+        // Jenkins > Credentials) — GHCR wants a GitHub PAT with write:packages
+        // scope as the password, Docker Hub wants an access token, not your
+        // account password.
+        GHCR_OWNER = '{{GHCR_OWNER}}'
+        GHCR_CREDENTIALS_ID = '{{GHCR_CREDENTIALS_ID}}'
+        DOCKERHUB_NAMESPACE = '{{DOCKERHUB_NAMESPACE}}'
+        DOCKERHUB_CREDENTIALS_ID = '{{DOCKERHUB_CREDENTIALS_ID}}'
     }
 
     tools {
@@ -32,6 +42,7 @@ pipeline {
         string(name: 'BRANCH', defaultValue: 'main', description: 'Branch to build')
         choice(name: 'ENVIRONMENT', choices: ['dev', 'qa', 'staging', 'prod'], description: 'Target Environment')
         booleanParam(name: 'SEND_EMAIL', defaultValue: true, description: 'Send email notifications?')
+        booleanParam(name: 'PUSH_TO_REGISTRY', defaultValue: true, description: 'Push the built image to GHCR and Docker Hub?')
     }
 
     stages {
@@ -137,11 +148,77 @@ pipeline {
                 }
             }
         }
+
+        // Stage to push the image built above to both GHCR and Docker Hub. The two
+        // pushes are independent of each other, so they run in parallel. Only the
+        // release-version tag goes out on non-prod builds; a floating :latest also
+        // goes out on prod so "latest" always means the last production release.
+        //
+        // Note on visibility: GHCR packages are private by default on first push —
+        // flip that in the package's own Settings on github.com if it should be
+        // public. Docker Hub's free tier only allows 1 private repo, so make sure
+        // the repo this pushes to is created as Public there (or is the one repo
+        // you want private) before this stage runs.
+        stage('Push Docker Image') {
+            when {
+                expression { params.PUSH_TO_REGISTRY }
+            }
+            steps {
+                script {
+                    def localImage = "${env.FINAL_IMAGE_NAME}:${params.RELEASE_VERSION}"
+                    def pushLatest = params.ENVIRONMENT == 'prod'
+
+                    parallel(
+                        'GHCR': {
+                            def remote = "ghcr.io/${env.GHCR_OWNER}/${env.FINAL_IMAGE_NAME}"
+                            withCredentials([usernamePassword(
+                                credentialsId: env.GHCR_CREDENTIALS_ID,
+                                usernameVariable: 'GHCR_USER',
+                                passwordVariable: 'GHCR_TOKEN'
+                            )]) {
+                                sh 'echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin'
+                            }
+                            sh "docker tag ${localImage} ${remote}:${params.RELEASE_VERSION}"
+                            sh "docker push ${remote}:${params.RELEASE_VERSION}"
+                            if (pushLatest) {
+                                sh "docker tag ${localImage} ${remote}:latest"
+                                sh "docker push ${remote}:latest"
+                            }
+                            sh 'docker logout ghcr.io || true'
+                            echo "Pushed to GHCR: ${remote}:${params.RELEASE_VERSION}"
+                        },
+                        'Docker Hub': {
+                            def remote = "${env.DOCKERHUB_NAMESPACE}/${env.FINAL_IMAGE_NAME}"
+                            withCredentials([usernamePassword(
+                                credentialsId: env.DOCKERHUB_CREDENTIALS_ID,
+                                usernameVariable: 'DOCKERHUB_USER',
+                                passwordVariable: 'DOCKERHUB_TOKEN'
+                            )]) {
+                                sh 'echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USER" --password-stdin'
+                            }
+                            sh "docker tag ${localImage} ${remote}:${params.RELEASE_VERSION}"
+                            sh "docker push ${remote}:${params.RELEASE_VERSION}"
+                            if (pushLatest) {
+                                sh "docker tag ${localImage} ${remote}:latest"
+                                sh "docker push ${remote}:latest"
+                            }
+                            sh 'docker logout || true'
+                            echo "Pushed to Docker Hub: ${remote}:${params.RELEASE_VERSION}"
+                        }
+                    )
+                }
+            }
+        }
     }
 
     // Post-build conditions to handle reporting, status notifications, and emails
     post {
         always {
+            // Belt-and-braces: if a push failed partway through, don't leave this
+            // shared agent logged into either registry for the next job that runs.
+            sh 'docker logout ghcr.io || true'
+            sh 'docker logout || true'
+
             // Archive the generated HTML report so it can be downloaded from the build
             archiveArtifacts artifacts: "${env.TRIVY_REPORT_NAME}", allowEmptyArchive: true
             
