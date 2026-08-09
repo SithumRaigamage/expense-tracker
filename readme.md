@@ -422,7 +422,12 @@ For daily use without opening a terminal at all, `Expense Tracker.app`
 (repo root) wraps `./start.sh` in a real, clickable app.
 
 1. In Finder, open the repo folder and find `Expense Tracker.app` at the root.
-2. Drag it onto the Dock (to the right of the divider, with your other apps).
+2. Drag it onto the Dock (to the right of the divider, with your other apps)
+   — it carries the same wallet-and-trend-line logo as the rest of the app,
+   so it doesn't just look like another blank terminal icon. If macOS shows
+   the generic icon at first, that's just Dock/Finder's icon cache; it
+   catches up within a few seconds, or immediately if you remove it from the
+   Dock and drag it back on.
 3. **First click only:** macOS will refuse to open it because it's an
    unsigned local app — right-click (or Control-click) the icon and choose
    **Open**, then confirm in the dialog. This is a one-time approval; every
