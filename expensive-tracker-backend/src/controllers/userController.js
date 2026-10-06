@@ -51,7 +51,9 @@ const login = asyncHandler(async (req, res) => {
  * @access  Private
  */
 const logout = asyncHandler(async (req, res) => {
-  // Now that the browser can't touch the cookie, logout has to happen here.
+  // Clearing the cookie only helps this browser. Revoking the token is what
+  // stops a copy of it from working anywhere else.
+  await UserService.revokeToken(req.auth);
   clearAuthCookie(res);
 
   successResponse(res, {}, 200, 'Successfully logged out');
@@ -91,9 +93,12 @@ const changePassword = asyncHandler(async (req, res) => {
     throw new BadRequestError('Please provide current password and new password');
   }
 
-  await UserService.changePassword(req.user.id, currentPassword, newPassword);
+  // Every other session is now invalid; re-issue this one so the user who just
+  // changed their password isn't signed out by it.
+  const token = await UserService.changePassword(req.user.id, currentPassword, newPassword);
+  setAuthCookie(res, token);
 
-  successResponse(res, {}, 200, 'Password updated successfully');
+  successResponse(res, {}, 200, 'Password updated successfully. You have been signed out on other devices.');
 });
 
 /**

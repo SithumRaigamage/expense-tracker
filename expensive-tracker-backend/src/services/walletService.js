@@ -322,13 +322,18 @@ class WalletService {
    * @returns {Promise<Object>} Object containing the two transaction records
    */
   static async transferFunds(userId, transferData) {
-    const { fromWalletId, toWalletId, amount, description } = transferData;
+    const { fromWalletId, toWalletId, description } = transferData;
 
-    if (fromWalletId === toWalletId) {
+    // The route validates this, but the service is also called internally, so
+    // it never trusts the type: arithmetic on a string amount concatenates.
+    // Rounded to cents so repeated transfers don't accumulate float residue.
+    const amount = Math.round(Number(transferData.amount) * 100) / 100;
+
+    if (String(fromWalletId) === String(toWalletId)) {
       throw new BadRequestError('Source and destination wallets must be different');
     }
 
-    if (amount <= 0) {
+    if (!Number.isFinite(amount) || amount <= 0) {
       throw new BadRequestError('Transfer amount must be greater than zero');
     }
 

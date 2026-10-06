@@ -15,6 +15,7 @@ const {
 } = require('../controllers/profileController');
 const { protect } = require('../middleware/auth');
 const fileUpload = require('../middleware/fileUpload');
+const { singleImage } = require('../middleware/fileUpload');
 const { authLimiter } = require('../middleware/rateLimiter');
 const {
   validateRegister,
@@ -39,7 +40,7 @@ router.put('/change-password', validatePasswordChange, changePassword);
 
 // Profile image routes
 router.route('/profile/image')
-  .post(fileUpload.single('profileImage'), uploadProfileImage)
+  .post(singleImage(fileUpload, 'profileImage'), uploadProfileImage)
   .delete(deleteProfileImage);
 
 module.exports = router;

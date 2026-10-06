@@ -1,6 +1,16 @@
 const asyncHandler = require('express-async-handler');
 const BillService = require('../services/billService');
 const { successResponse, createdResponse } = require('../utils/responseFormatter');
+const pick = require('../utils/pick');
+
+/**
+ * Fields a client may write on a bill. Payment state (`paidAt`,
+ * `lastPaidDate`) is set only by POST /bills/:id/pay.
+ */
+const BILL_FIELDS = [
+  'name', 'provider', 'category', 'amount', 'currency', 'dueDate',
+  'iconUrl', 'isSubscription', 'reminderSet', 'wallet'
+];
 
 /**
  * @desc    List the user's bills, soonest due first
@@ -28,7 +38,7 @@ const getBill = asyncHandler(async (req, res) => {
  * @access  Private
  */
 const createBill = asyncHandler(async (req, res) => {
-  const bill = await BillService.createBill(req.body, req.user.id);
+  const bill = await BillService.createBill(pick(req.body, BILL_FIELDS), req.user.id);
   createdResponse(res, bill);
 });
 
@@ -38,7 +48,7 @@ const createBill = asyncHandler(async (req, res) => {
  * @access  Private
  */
 const updateBill = asyncHandler(async (req, res) => {
-  const bill = await BillService.updateBill(req.params.id, req.user.id, req.body);
+  const bill = await BillService.updateBill(req.params.id, req.user.id, pick(req.body, BILL_FIELDS));
   successResponse(res, bill, 200, 'Bill updated successfully');
 });
 

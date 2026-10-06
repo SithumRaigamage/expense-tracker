@@ -8,7 +8,8 @@ module.exports = (req, res, next) => {
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
   res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  // No Access-Control-Allow-Credentials: browsers reject it alongside a
+  // wildcard origin, and these public images need no credentials anyway.
   
   // For image files, also set cache control headers for better performance
   if (req.path.match(/\.(jpg|jpeg|png|gif)$/i)) {

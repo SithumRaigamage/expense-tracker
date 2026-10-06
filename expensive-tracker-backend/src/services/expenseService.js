@@ -213,6 +213,16 @@ class ExpenseService {
     const amountChanged = updateData.amount !== undefined && updateData.amount !== oldExpense.amount;
     const walletChanged = updateData.wallet !== undefined && updateData.wallet.toString() !== oldExpense.wallet.toString();
 
+    // Check the destination wallet before touching any balance. Otherwise an
+    // unknown or foreign wallet id reverted the old balance and *then* failed,
+    // leaving the money removed from one wallet and added to none.
+    if (walletChanged) {
+      const newWallet = await Wallet.findOne({ _id: updateData.wallet, user: userId, isActive: true });
+      if (!newWallet) {
+        throw new NotFoundError('Wallet not found');
+      }
+    }
+
     if (amountChanged || walletChanged) {
       // Revert old balance
       const oldMultiplier = oldExpense.category.type === 'income' ? -1 : 1;

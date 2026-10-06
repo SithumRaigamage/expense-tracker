@@ -12,10 +12,19 @@ beforeEach(() => {
 });
 
 describe('UserService.generateToken', () => {
-  it('signs the user id with the configured secret', () => {
-    const token = UserService.generateToken('u1');
-    expect(jwt.sign).toHaveBeenCalledWith({ id: 'u1' }, 'test-secret', expect.objectContaining({ expiresIn: expect.any(String) }));
+  it('signs the user id and session version with a unique jti', () => {
+    const token = UserService.generateToken({ _id: 'u1', tokenVersion: 3 });
+    expect(jwt.sign).toHaveBeenCalledWith(
+      { id: 'u1', tv: 3 },
+      'test-secret',
+      expect.objectContaining({ expiresIn: expect.any(Number), jwtid: expect.any(String) })
+    );
     expect(token).toBe('signed.jwt.token');
+  });
+
+  it('treats a user without a tokenVersion as version 0', () => {
+    UserService.generateToken({ _id: 'u1' });
+    expect(jwt.sign).toHaveBeenCalledWith({ id: 'u1', tv: 0 }, 'test-secret', expect.any(Object));
   });
 });
 

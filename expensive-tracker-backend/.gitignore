@@ -111,4 +111,6 @@ Thumbs.db
 
 # File uploads
 public/uploads/*
+# Private receipt images (see src/config/storage.js)
+storage/
 !public/uploads/.gitkeep

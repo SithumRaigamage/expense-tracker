@@ -154,7 +154,7 @@ export class ProfileComponent implements OnInit {
         phone: this.user.phone || '',
         bio: this.user.bio || '',
         location: this.user.location || '',
-        role: this.user.role || '',
+        occupation: this.user.occupation || '',
       };
 
       // Reset the image preview and selection

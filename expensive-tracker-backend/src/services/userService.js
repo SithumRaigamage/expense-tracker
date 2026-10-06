@@ -1,5 +1,8 @@
+const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const RevokedToken = require('../models/RevokedToken');
+const { tokenLifetimeSeconds } = require('../utils/authCookie');
 const { 
   BadRequestError, 
   UnauthorizedError, 
@@ -12,14 +15,42 @@ const {
  */
 class UserService {
   /**
-   * Generate JWT Token
-   * @param {string} userId 
+   * Issue a session token.
+   *
+   * - `tv` is the user's tokenVersion at issue time; `protect` rejects the
+   *   token once that version moves on (password change).
+   * - `jti` is unique per token so a single session can be revoked (logout).
+   * - The lifetime comes from the same setting as the cookie.
+   *
+   * @param {{ _id: *, tokenVersion?: number }} user
    * @returns {string} token
    */
-  static generateToken(userId) {
-    return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
-      expiresIn: process.env.JWT_EXPIRES_IN || '30d'
-    });
+  static generateToken(user) {
+    return jwt.sign(
+      { id: user._id.toString(), tv: user.tokenVersion || 0 },
+      process.env.JWT_SECRET,
+      { expiresIn: tokenLifetimeSeconds(), jwtid: crypto.randomUUID() }
+    );
+  }
+
+  /**
+   * End one session before its natural expiry by denylisting its `jti`.
+   * Idempotent: logging out twice with the same token is not an error.
+   *
+   * @param {{ jti?: string, exp?: number }} claims - Verified token claims
+   */
+  static async revokeToken(claims) {
+    // Tokens issued before jti existed can't be listed; they still expire on
+    // their own and die with the next password change.
+    if (!claims || !claims.jti || !claims.exp) {
+      return;
+    }
+
+    await RevokedToken.updateOne(
+      { jti: claims.jti },
+      { $setOnInsert: { jti: claims.jti, expiresAt: new Date(claims.exp * 1000) } },
+      { upsert: true }
+    );
   }
 
   /**
@@ -45,7 +76,7 @@ class UserService {
     });
 
     // Generate token
-    const token = this.generateToken(user._id);
+    const token = this.generateToken(user);
 
     // Update last login
     user.lastLogin = new Date();
@@ -74,7 +105,8 @@ class UserService {
    */
   static async login(email, password) {
     // Check for user and include password
-    const user = await User.findOne({ email }).select('+password');
+    // tokenVersion is needed so the issued token carries the current session generation.
+    const user = await User.findOne({ email }).select('+password +tokenVersion');
 
     if (!user) {
       throw new UnauthorizedError('Invalid credentials');
@@ -97,7 +129,7 @@ class UserService {
     await user.save({ validateBeforeSave: false });
 
     // Generate token
-    const token = this.generateToken(user._id);
+    const token = this.generateToken(user);
 
     return {
       user: {
@@ -140,12 +172,15 @@ class UserService {
       lastName: updateData.lastName,
       email: updateData.email,
       currency: updateData.currency,
-      avatar: updateData.avatar,
-      profileImage: updateData.profileImage,
+      // `avatar` and `profileImage` are set only by the upload endpoint, to a
+      // server-generated file name. Accepting them here let a user store a
+      // path such as "../../.env" that the delete endpoint then unlinked.
       phone: updateData.phone,
       bio: updateData.bio,
       location: updateData.location,
-      role: updateData.role
+      // `role` is deliberately absent: it drives authorization and must never
+      // be settable by the user it describes.
+      occupation: updateData.occupation
     };
 
     // Construct composite name if needed
@@ -175,18 +210,23 @@ class UserService {
   }
 
   /**
-   * Change password
-   * @param {string} userId 
-   * @param {string} currentPassword 
-   * @param {string} newPassword 
-   * @returns {Promise<boolean>} True if successful
+   * Change password and end every other session.
+   *
+   * Bumping tokenVersion invalidates all outstanding tokens — including one a
+   * thief may hold, which is usually *why* the password is being changed. A
+   * fresh token is returned so the session making the change stays signed in.
+   *
+   * @param {string} userId
+   * @param {string} currentPassword
+   * @param {string} newPassword
+   * @returns {Promise<string>} A new token for the current session
    */
   static async changePassword(userId, currentPassword, newPassword) {
     if (newPassword.length < 6) {
       throw new BadRequestError('New password must be at least 6 characters');
     }
 
-    const user = await User.findById(userId).select('+password');
+    const user = await User.findById(userId).select('+password +tokenVersion');
     if (!user) {
       throw new NotFoundError('User not found');
     }
@@ -197,9 +237,10 @@ class UserService {
     }
 
     user.password = newPassword;
+    user.tokenVersion = (user.tokenVersion || 0) + 1;
     await user.save();
 
-    return true;
+    return this.generateToken(user);
   }
 
   /**

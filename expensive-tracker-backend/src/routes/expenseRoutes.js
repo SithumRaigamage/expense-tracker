@@ -13,8 +13,8 @@ const {
 
 const { protect } = require('../middleware/auth');
 const { validateObjectId } = require('../middleware/validation');
-const upload = require('../middleware/fileUpload');
-const { scanReceipt } = require('../controllers/receiptController');
+const { receiptUpload, singleImage } = require('../middleware/fileUpload');
+const { scanReceipt, getReceipt } = require('../controllers/receiptController');
 
 // Apply auth middleware to all routes
 router.use(protect);
@@ -25,7 +25,10 @@ router.get('/monthly', getMonthlyExpenses);
 router.get('/monthly-stats', getMonthlyStats);
 
 // Receipt OCR: upload an image, get back pre-filled expense fields
-router.post('/receipt/scan', upload.single('receipt'), scanReceipt);
+router.post('/receipt/scan', singleImage(receiptUpload, 'receipt'), scanReceipt);
+
+// Receipts are private: served only to their owner, never from /uploads.
+router.get('/receipts/:fileName', getReceipt);
 
 // Main CRUD routes
 router.route('/')

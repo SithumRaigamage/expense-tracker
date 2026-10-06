@@ -1,6 +1,16 @@
 const asyncHandler = require('express-async-handler');
 const WalletService = require('../services/walletService');
 const { successResponse, createdResponse } = require('../utils/responseFormatter');
+const pick = require('../utils/pick');
+
+/**
+ * Fields a client may write on a wallet. Ownership (`user`) and soft-delete
+ * state (`isActive`) change only through the dedicated delete/restore routes.
+ */
+const WALLET_FIELDS = [
+  'name', 'type', 'balance', 'currency', 'paymentMethod',
+  'targetAmount', 'monthlyTarget', 'targetGoal', 'monthlySaveGoal'
+];
 
 /**
  * @desc    Get all wallets for user
@@ -50,7 +60,7 @@ const getWallet = asyncHandler(async (req, res) => {
  * @access  Private
  */
 const createWallet = asyncHandler(async (req, res) => {
-  const wallet = await WalletService.createWallet(req.body, req.user.id);
+  const wallet = await WalletService.createWallet(pick(req.body, WALLET_FIELDS), req.user.id);
   
   createdResponse(res, wallet, 'Wallet created successfully');
 });
@@ -64,7 +74,7 @@ const updateWallet = asyncHandler(async (req, res) => {
   const wallet = await WalletService.updateWallet(
     req.params.id,
     req.user.id,
-    req.body
+    pick(req.body, WALLET_FIELDS)
   );
   
   successResponse(res, wallet, 200, 'Wallet updated successfully');

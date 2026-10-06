@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
-const { CURRENCIES } = require('../config/constants');
+const { CURRENCIES, USER_ROLES } = require('../config/constants');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -66,11 +66,27 @@ const userSchema = new mongoose.Schema({
     trim: true,
     maxlength: [100, 'Location cannot be more than 100 characters']
   },
-  role: {
+  /**
+   * Free-text job title shown on the profile ("Software Engineer").
+   *
+   * This used to share the `role` field with authorization, so typing "admin"
+   * into the profile form granted admin rights. The two meanings are separate
+   * now: this one is the user's to edit, `role` is not.
+   */
+  occupation: {
     type: String,
     trim: true,
-    default: 'user',
-    maxlength: [50, 'Role cannot be more than 50 characters']
+    maxlength: [50, 'Occupation cannot be more than 50 characters'],
+    default: ''
+  },
+  /**
+   * Authorization role. Never writable through the API — grant admin out of
+   * band (seed script or a direct database update).
+   */
+  role: {
+    type: String,
+    enum: USER_ROLES,
+    default: 'user'
   },
   isActive: {
     type: Boolean,
@@ -79,6 +95,16 @@ const userSchema = new mongoose.Schema({
   lastLogin: {
     type: Date,
     default: Date.now
+  },
+  /**
+   * Session generation. Every token embeds the value current when it was
+   * issued; bumping it (on password change) invalidates all of them at once.
+   * Hidden from API responses — select('+tokenVersion') where it is needed.
+   */
+  tokenVersion: {
+    type: Number,
+    default: 0,
+    select: false
   },
   resetPasswordToken: String,
   resetPasswordExpire: Date
@@ -89,7 +115,7 @@ const userSchema = new mongoose.Schema({
 // Encrypt password using bcrypt
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) {
-    next();
+    return next();
   }
 
   const salt = await bcrypt.genSalt(10);

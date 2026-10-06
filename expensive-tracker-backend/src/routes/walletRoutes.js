@@ -17,7 +17,8 @@ const { protect } = require('../middleware/auth');
 const {
   validateWalletCreation,
   validateWalletUpdate,
-  validateWalletId
+  validateWalletId,
+  validateTransfer
 } = require('../validators/walletValidator');
 
 // Apply auth middleware to all routes
@@ -38,7 +39,7 @@ router.route('/bulk')
   .delete(bulkDeleteWallets);
 
 router.route('/transfer')
-  .post(transferFunds);
+  .post(validateTransfer, transferFunds);
 
 router.route('/:id')
   .get(validateWalletId, getWallet)

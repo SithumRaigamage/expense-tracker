@@ -123,7 +123,43 @@ const validateWalletId = [
   handleValidationErrors
 ];
 
+/**
+ * Transfers move money between two balances, so every field is checked before
+ * the service runs. `amount` in particular: it arrived unvalidated, and a JSON
+ * string such as "100" was subtracted numerically from one wallet but
+ * string-concatenated onto the other (500 + "100" = "500100"). toFloat()
+ * hands the service a real number.
+ */
+const validateTransfer = [
+  body('fromWalletId')
+    .isMongoId()
+    .withMessage('A valid source wallet is required'),
+
+  body('toWalletId')
+    .isMongoId()
+    .withMessage('A valid destination wallet is required'),
+
+  body('amount')
+    .isFloat({ gt: 0, max: 1e12 })
+    .withMessage('Transfer amount must be a number greater than zero')
+    .bail()
+    .toFloat(),
+
+  // The dialog sends null or '' when the field is left empty.
+  body('description')
+    .optional({ values: 'falsy' })
+    .isString()
+    .withMessage('Description must be text')
+    .bail()
+    .trim()
+    .isLength({ max: 500 })
+    .withMessage('Description cannot be more than 500 characters'),
+
+  handleValidationErrors
+];
+
 module.exports = {
+  validateTransfer,
   validateWalletCreation,
   validateWalletUpdate,
   validateWalletId

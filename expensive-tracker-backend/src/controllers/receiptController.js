@@ -4,7 +4,8 @@ const receiptOcrService = require('../services/receiptOcrService');
 const { parseReceiptText } = require('../utils/receiptParser');
 const { matchCategory } = require('../utils/categoryMatcher');
 const { successResponse } = require('../utils/responseFormatter');
-const { BadRequestError } = require('../utils/errors');
+const { BadRequestError, NotFoundError } = require('../utils/errors');
+const { RECEIPT_DIR, resolveInside, receiptUrl, isOwnedBy } = require('../config/storage');
 
 /**
  * @desc    Scan a receipt image and return pre-filled expense fields (no expense
@@ -17,8 +18,6 @@ const scanReceipt = asyncHandler(async (req, res) => {
     throw new BadRequestError('Please upload a receipt image');
   }
 
-  const baseUrl = `${req.protocol}://${req.get('host')}`;
-  const receiptUrl = `${baseUrl}/uploads/${req.file.filename}`;
 
   // 1. OCR the image (gracefully degrades when OCR is not configured).
   const { configured, rawText } = await receiptOcrService.extractText(req.file.path);
@@ -35,7 +34,7 @@ const scanReceipt = asyncHandler(async (req, res) => {
     : 'Receipt stored. OCR is not configured (set OCR_API_KEY) — please fill in the details manually.';
 
   successResponse(res, {
-    receipt: receiptUrl,
+    receipt: receiptUrl(req.file.filename),
     ocrConfigured: configured,
     suggestion: {
       title: parsed.title,
@@ -49,4 +48,26 @@ const scanReceipt = asyncHandler(async (req, res) => {
   }, 200, message);
 });
 
-module.exports = { scanReceipt };
+/**
+ * @desc    Stream one of the signed-in user's receipt images
+ * @route   GET /api/v1/expenses/receipts/:fileName
+ * @access  Private (owner only)
+ */
+const getReceipt = asyncHandler(async (req, res) => {
+  const filePath = resolveInside(RECEIPT_DIR, req.params.fileName);
+
+  // Someone else's receipt answers exactly like a missing one, so the endpoint
+  // can't be used to probe which files exist.
+  if (!filePath || !isOwnedBy(req.params.fileName, req.user.id)) {
+    throw new NotFoundError('Receipt not found');
+  }
+
+  res.set('Cache-Control', 'private, max-age=3600');
+  res.sendFile(filePath, (err) => {
+    if (err && !res.headersSent) {
+      res.status(404).json({ success: false, error: 'Receipt not found' });
+    }
+  });
+});
+
+module.exports = { scanReceipt, getReceipt };

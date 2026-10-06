@@ -1,6 +1,16 @@
 const asyncHandler = require('express-async-handler');
 const ExpenseService = require('../services/expenseService');
 const { successResponse, createdResponse } = require('../utils/responseFormatter');
+const pick = require('../utils/pick');
+
+/**
+ * Fields a client may write on an expense. Server-owned state — `user`, and the
+ * recurring engine's `nextRunDate`/`parentExpense` — is set only by the server.
+ */
+const EXPENSE_FIELDS = [
+  'title', 'amount', 'description', 'category', 'wallet', 'date',
+  'paymentMethod', 'receipt', 'tags', 'isRecurring', 'recurringFrequency'
+];
 
 /**
  * @desc    Get all expenses
@@ -31,7 +41,7 @@ const getExpense = asyncHandler(async (req, res) => {
  * @access  Private
  */
 const createExpense = asyncHandler(async (req, res) => {
-  const expense = await ExpenseService.createExpense(req.body, req.user.id);
+  const expense = await ExpenseService.createExpense(pick(req.body, EXPENSE_FIELDS), req.user.id);
   
   createdResponse(res, expense, 'Expense created successfully');
 });
@@ -45,7 +55,7 @@ const updateExpense = asyncHandler(async (req, res) => {
   const expense = await ExpenseService.updateExpense(
     req.params.id,
     req.user.id,
-    req.body
+    pick(req.body, EXPENSE_FIELDS)
   );
   
   successResponse(res, expense, 200, 'Expense updated successfully');

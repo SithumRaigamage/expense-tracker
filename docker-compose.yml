@@ -49,6 +49,16 @@ services:
       # Same-origin in this topology: the browser only ever talks to the web
       # container, which proxies /api onward.
       - FRONTEND_URL=${PUBLIC_URL:-http://localhost:8080}
+      # nginx (the `web` service) is the one proxy hop in front of the API.
+      # Without this every request appears to come from nginx, so all users
+      # share a single rate-limit bucket. Raise it if you add a TLS terminator
+      # or load balancer in front of nginx.
+      - TRUST_PROXY=${TRUST_PROXY:-1}
+    # Uploads live on volumes: without them every profile picture and receipt
+    # was lost the next time the container was recreated.
+    volumes:
+      - uploads:/app/public/uploads
+      - receipts:/app/storage/receipts
     networks:
       - expense-tracker
 
@@ -72,6 +82,8 @@ services:
 
 volumes:
   mongo-data:
+  uploads:
+  receipts:
 
 networks:
   expense-tracker:
