@@ -1,0 +1,19 @@
+# 🟡 Medium — Broken Features
+
+Mostly contract mismatches between what the frontend calls and what the API
+provides. All are **open**.
+
+| ID | Issue | Location | Verification |
+|---|---|---|---|
+| F1 | **The Monthly Statistics widget is broken.** The frontend expects `{ totalIncome, totalExpenses, netSavings }` for one month. `GET /expenses/monthly-stats` ignores `month` and returns a 12-element array of `{ month, total, count }`, so every figure is `undefined`. | frontend `services/transaction.service.ts:291`, backend `services/expenseService.js` (`getMonthlyStats`) | Reproduced |
+| F2 | **Only 10 wallets ever appear.** The frontend calls `GET /wallets` with no `limit`, and the backend defaults to 10. | frontend `services/wallet.service.ts` (`loadWallets`), backend `services/walletService.js:22` | Reproduced |
+| F3 | Transactions are fetched once, capped at the newest 1000, and every dashboard chart is computed client-side from that list. `GET /expenses` also drops its pagination metadata, because `successResponse` takes 4 arguments and is called with 5. `limit` is unbounded (`limit=0` returns everything). | frontend `services/transaction.service.ts`, backend `controllers/expenseController.js`, `utils/responseFormatter.js` | Reproduced |
+| F4 | **Change Email and Payment Methods call endpoints that don't exist** (`PUT /users/change-email`, `/users/payment-methods`), so those features always fail. | frontend `services/settings.service.ts` | Code review |
+| F5 | **Release notes cannot be created from the UI.** The validator requires `releaseDate`; the UI and the controller use `date`. The UI then reads `err.error.message`, but the API sends `error`. | backend `validators/releaseNoteValidator.js:14`, frontend `release-notes.component.ts` | Reproduced |
+| F6 | **The chat assistant always reports "no transactions recorded".** Its aggregation matches `user` against the id *string*, and aggregation pipelines don't cast types, so the match is always empty. | backend `services/chatService.js` (`buildFinancialContext`) | Reproduced |
+| F7 | Clicking the *Help Center* parent redirects `''` to `help`, which resolves to `/help/help`, matches nothing, and falls through to `/dashboard`. | frontend `app.routes.ts:111` | Code review |
+| F8 | Wallet balances in the UI go stale after adding, editing, deleting or importing transactions, and after paying a bill. Only budgets and transfers refresh them. | frontend `services/transaction.service.ts`, `services/bill.service.ts` | Code review |
+| F9 | `TransactionService` reloads on every `currentUser$` emission (2–3 times at boot). For a brand-new user this can fire the default-category creation several times concurrently. The duplicate-key failure then triggers a *different* fallback category set. | frontend `services/transaction.service.ts` | Code review |
+| F10 | `/transactions?walletType=emergencyfund` polls every 100 ms forever when the user has no wallets, and keeps going after the user leaves the page. | frontend `transactions.component.ts:135` | Code review |
+| F11 | Validation rules disagree between layers: the login/register forms allow 6-character passwords but the API requires 8; the model's email regex rejects TLDs longer than 3 letters (`.info`, `.museum`); category name max is 50 (validator) vs 30 (model); 3-digit colours pass the validator but fail the model. | auth components, `authValidators.js`, `models/User.js`, `validators/categoryValidator.js`, `models/Category.js` | Code review |
+| F12 | `getExpenseFlow`/`getExpenseHierarchy`/`getDetailedBreakdown` in the frontend call routes that don't exist. Currency rates use `axios` with no timeout, and when the provider is down every request retries it, because the fallback is never cached. | frontend `services/transaction.service.ts`, backend `services/currencyService.js` | Code review |
