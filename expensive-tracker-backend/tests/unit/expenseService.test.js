@@ -89,8 +89,8 @@ describe('ExpenseService.deleteExpense', () => {
     Expense.deleteOne.mockResolvedValue({});
 
     await ExpenseService.deleteExpense('e1', 'u1');
-    // deleting an expense refunds the wallet (+100)
-    expect(WalletService.updateBalance).toHaveBeenCalledWith('w1', 'u1', 100, {});
+    // deleting an expense refunds the wallet (+100), even a deleted one (M3)
+    expect(WalletService.updateBalance).toHaveBeenCalledWith('w1', 'u1', 100, { includeInactive: true });
     expect(Expense.deleteOne).toHaveBeenCalledWith({ _id: 'e1' }, {});
   });
 
