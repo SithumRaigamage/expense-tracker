@@ -59,6 +59,11 @@ if (!/-test(-w\d+)?$/.test(dbName)) {
 // assertions into 429s. The suite that covers the limiter opts back in.
 process.env.RATE_LIMIT_DISABLED = 'true';
 
+// No suite may depend on the network: wallet listings convert currencies, and
+// a live call to the rates provider made them slow and flaky (audit F12).
+// currencyService.test.js covers the fetch path with axios mocked.
+process.env.EXCHANGE_RATES_URL = 'off';
+
 // Tests must not depend on the developer's real signing key.
 process.env.JWT_SECRET = process.env.JWT_SECRET_TEST || 'test-only-jwt-secret-not-used-outside-of-tests';
 process.env.JWT_EXPIRE = process.env.JWT_EXPIRE || '1h';
