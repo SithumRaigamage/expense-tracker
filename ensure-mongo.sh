@@ -25,7 +25,10 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 COMPOSE_FILE="$ROOT_DIR/expensive-tracker-backend/docker-compose.yml"
 COMPOSE_PROJECT="expense-tracker"
 COMPOSE_SERVICE="mongodb"
+COMPOSE_CONTAINER="expense-tracker-db"
 FALLBACK_CONTAINER="expense-tracker-mongo"
+# Keep in step with the docker-compose files (see the root one on upgrades).
+MONGO_IMAGE="${MONGO_IMAGE:-mongo:7.0.43}"
 
 MONGO_PORT="${MONGO_PORT:-27017}"
 DOCKER_WAIT="${DOCKER_WAIT:-60}"
@@ -61,7 +64,33 @@ if [ "$NODE_ENV_RESOLVED" != "development" ]; then
   exit 0
 fi
 
-mongo_reachable() { (exec 3<>"/dev/tcp/127.0.0.1/$MONGO_PORT") >/dev/null 2>&1; }
+# The container that holds the dev database, once we know it. Empty means an
+# externally managed mongod (e.g. Homebrew), which we can only probe over TCP.
+MONGO_CONTAINER=""
+
+container_running() { [ "$(docker inspect -f '{{.State.Running}}' "$1" 2>/dev/null)" = "true" ]; }
+
+# Running and publishing mongod on MONGO_PORT, i.e. the database the backend will use.
+container_serves_port() {
+  container_running "$1" && docker port "$1" 27017/tcp 2>/dev/null | grep -q ":$MONGO_PORT\$"
+}
+
+# A TCP connect alone isn't proof: Docker's port proxy accepts connections while
+# the container is running even if mongod isn't listening (still starting, or
+# crashing on boot). For our own container, ask mongod to answer a ping.
+mongo_reachable() {
+  if [ -n "$MONGO_CONTAINER" ]; then
+    docker exec "$MONGO_CONTAINER" mongosh --quiet --eval 'db.adminCommand("ping").ok' 2>/dev/null | grep -qx 1
+  else
+    (exec 3<>"/dev/tcp/127.0.0.1/$MONGO_PORT") >/dev/null 2>&1
+  fi
+}
+
+if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
+  for name in "$COMPOSE_CONTAINER" "$FALLBACK_CONTAINER"; do
+    container_serves_port "$name" && { MONGO_CONTAINER="$name"; break; }
+  done
+fi
 
 # Poll a predicate once a second. wait_for <seconds> <command…>
 wait_for() {
@@ -105,23 +134,28 @@ fi
 if [ -f "$COMPOSE_FILE" ] && docker compose version >/dev/null 2>&1; then
   info "Starting MongoDB via docker compose ($COMPOSE_SERVICE)…"
   docker compose -p "$COMPOSE_PROJECT" -f "$COMPOSE_FILE" up -d "$COMPOSE_SERVICE"
+  MONGO_CONTAINER="$COMPOSE_CONTAINER"
 else
   info "Starting MongoDB container ($FALLBACK_CONTAINER)…"
   if docker ps -a --format '{{.Names}}' | grep -qx "$FALLBACK_CONTAINER"; then
+    existing_image="$(docker inspect -f '{{.Config.Image}}' "$FALLBACK_CONTAINER")"
+    [ "$existing_image" != "$MONGO_IMAGE" ] && \
+      warn "$FALLBACK_CONTAINER runs $existing_image, not $MONGO_IMAGE. Remove it to switch: docker rm -f $FALLBACK_CONTAINER"
     docker start "$FALLBACK_CONTAINER" >/dev/null
   else
     docker run -d --name "$FALLBACK_CONTAINER" \
-      -p "$MONGO_PORT:27017" \
+      -p "127.0.0.1:$MONGO_PORT:27017" \
       -v "${FALLBACK_CONTAINER}-data:/data/db" \
-      mongo:latest >/dev/null
+      "$MONGO_IMAGE" >/dev/null
   fi
+  MONGO_CONTAINER="$FALLBACK_CONTAINER"
 fi
 
-info "Waiting for MongoDB to accept connections on port ${MONGO_PORT}…"
+info "Waiting for MongoDB to answer a ping…"
 if wait_for "$MONGO_WAIT" mongo_reachable; then
   ok "MongoDB is up."
 else
-  err "MongoDB did not accept connections within ${MONGO_WAIT}s."
-  err "Check container logs: docker logs expense-tracker-db"
+  err "MongoDB did not answer within ${MONGO_WAIT}s. Last log lines from $MONGO_CONTAINER:"
+  docker logs --tail 5 "$MONGO_CONTAINER" 2>&1 | sed 's/^/    /' >&2
   exit 1
 fi

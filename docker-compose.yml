@@ -15,7 +15,11 @@
 
 services:
   mongodb:
-    image: mongo:7
+    # Pinned to an exact release so every environment runs the same build, and
+    # bumped deliberately. A major upgrade must go one version at a time
+    # (7.0 -> 8.0 -> ...) with featureCompatibilityVersion raised in between,
+    # otherwise mongod can't open the existing data.
+    image: mongo:7.0.43
     container_name: expense-tracker-db
     restart: unless-stopped
     # No published ports: only the API needs to reach it, and exposing 27017 to
