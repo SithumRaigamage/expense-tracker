@@ -4,6 +4,7 @@ const Category = require('../models/Category');
 const Wallet = require('../models/Wallet');
 const WalletService = require('./walletService');
 const { NotFoundError, BadRequestError } = require('../utils/errors');
+const { runInTransaction } = require('../utils/transaction');
 
 /**
  * Service layer for expense operations
@@ -131,14 +132,15 @@ class ExpenseService {
     }
 
     expenseData.user = userId;
-    
-    // Create expense
-    const expense = await Expense.create(expenseData);
 
-    // Update wallet balance
-    const multiplier = category.type === 'income' ? 1 : -1;
-    await WalletService.updateBalance(expense.wallet, userId, expense.amount * multiplier);
-    
+    // The record and the balance change land together or not at all.
+    const expense = await runInTransaction(async (opts) => {
+      const [created] = await Expense.create([expenseData], opts);
+      const multiplier = category.type === 'income' ? 1 : -1;
+      await WalletService.updateBalance(created.wallet, userId, created.amount * multiplier, opts);
+      return created;
+    });
+
     // Populate info for response
     return Expense.findById(expense._id)
       .populate('category', 'name color icon type')
@@ -223,25 +225,29 @@ class ExpenseService {
       }
     }
 
-    if (amountChanged || walletChanged) {
-      // Revert old balance
-      const oldMultiplier = oldExpense.category.type === 'income' ? -1 : 1;
-      await WalletService.updateBalance(oldExpense.wallet, userId, oldExpense.amount * oldMultiplier);
+    const updated = await runInTransaction(async (opts) => {
+      if (amountChanged || walletChanged) {
+        // Revert old balance
+        const oldMultiplier = oldExpense.category.type === 'income' ? -1 : 1;
+        await WalletService.updateBalance(oldExpense.wallet, userId, oldExpense.amount * oldMultiplier, opts);
 
-      // Apply new balance (using new amount if provided, else old)
-      const newAmount = updateData.amount !== undefined ? updateData.amount : oldExpense.amount;
-      const newWalletId = updateData.wallet !== undefined ? updateData.wallet : oldExpense.wallet;
-      const newMultiplier = category.type === 'income' ? 1 : -1;
-      await WalletService.updateBalance(newWalletId, userId, newAmount * newMultiplier);
-    }
+        // Apply new balance (using new amount if provided, else old)
+        const newAmount = updateData.amount !== undefined ? updateData.amount : oldExpense.amount;
+        const newWalletId = updateData.wallet !== undefined ? updateData.wallet : oldExpense.wallet;
+        const newMultiplier = category.type === 'income' ? 1 : -1;
+        await WalletService.updateBalance(newWalletId, userId, newAmount * newMultiplier, opts);
+      }
 
-    const expense = await Expense.findOneAndUpdate(
-      { _id: expenseId, user: userId },
-      updateData,
-      { new: true, runValidators: true }
-    ).populate('category', 'name color icon type').populate('wallet', 'name type currency');
+      return Expense.findOneAndUpdate(
+        { _id: expenseId, user: userId },
+        updateData,
+        { new: true, runValidators: true, ...opts }
+      );
+    });
 
-    return expense;
+    return Expense.findById(updated._id)
+      .populate('category', 'name color icon type')
+      .populate('wallet', 'name type currency');
   }
 
   /**
@@ -256,11 +262,13 @@ class ExpenseService {
       throw new NotFoundError('Expense not found');
     }
 
-    // Revert wallet balance
-    const multiplier = expense.category.type === 'income' ? -1 : 1;
-    await WalletService.updateBalance(expense.wallet, userId, expense.amount * multiplier);
+    await runInTransaction(async (opts) => {
+      // Revert wallet balance
+      const multiplier = expense.category.type === 'income' ? -1 : 1;
+      await WalletService.updateBalance(expense.wallet, userId, expense.amount * multiplier, opts);
 
-    await Expense.deleteOne({ _id: expenseId });
+      await Expense.deleteOne({ _id: expenseId }, opts);
+    });
 
     return true;
   }

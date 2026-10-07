@@ -1,16 +1,16 @@
 const mongoose = require('mongoose');
 const Bill = require('../models/Bill');
-const Wallet = require('../models/Wallet');
 const Category = require('../models/Category');
+const WalletService = require('./walletService');
 const { NotFoundError, BadRequestError } = require('../utils/errors');
+const { runInTransaction } = require('../utils/transaction');
 
 /**
  * Service layer for bills.
  *
- * Paying a bill moves money, so `payBill` follows the same transactional shape
- * as wallet transfers and goal contributions: read balances inside the
- * transaction, write both sides together, fall back to sequential writes on a
- * standalone MongoDB that can't do transactions.
+ * Paying a bill moves money, so `payBill` runs in a transaction like wallet
+ * transfers and goal contributions (see utils/transaction.js), and debits the
+ * wallet with an atomic, funds-guarded increment.
  */
 class BillService {
   static async getBills(userId) {
@@ -70,27 +70,8 @@ class BillService {
    * which is what makes the "Upcoming" list keep working month to month.
    */
   static async payBill(billId, userId, walletId) {
-    let session = null;
-    try {
-      session = await mongoose.startSession();
-      await session.startTransaction();
-      await mongoose.connection.db.command({ ping: 1 }, { session });
-    } catch {
-      if (session) {
-        try {
-          await session.abortTransaction();
-        } catch {
-          // Ignore abort errors
-        }
-        await session.endSession();
-      }
-      session = null;
-    }
-
-    const sessionOptions = session ? { session } : {};
-
-    try {
-      const bill = await Bill.findOne({ _id: billId, user: userId, isActive: true }, null, sessionOptions);
+    return runInTransaction(async (opts) => {
+      const bill = await Bill.findOne({ _id: billId, user: userId, isActive: true }, null, opts);
       if (!bill) {
         throw new NotFoundError('Bill not found');
       }
@@ -103,28 +84,18 @@ class BillService {
         throw new BadRequestError('A wallet is required to pay this bill');
       }
 
-      const wallet = await Wallet.findOne(
-        { _id: targetWalletId, user: userId, isActive: true }, null, sessionOptions
+      const category = await Category.ensure(
+        userId, { name: 'Bills', type: 'expense', icon: '🧾', color: '#f59e0b' }, opts
       );
-      if (!wallet) {
-        throw new NotFoundError('Wallet not found');
-      }
-      if (wallet.balance < bill.amount) {
-        throw new BadRequestError('Insufficient funds in the selected wallet');
-      }
 
-      let category = await Category.findOne(
-        { user: userId, name: 'Bills', type: 'expense' }, null, sessionOptions
+      // Debit first, with the funds check inside the same atomic write, so a
+      // rejected payment fails before anything else is written.
+      const wallet = await WalletService.updateBalance(
+        targetWalletId, userId, -bill.amount, { ...opts, requireFunds: true }
       );
-      if (!category) {
-        const created = await Category.create([{
-          user: userId, name: 'Bills', type: 'expense', icon: '🧾', color: '#f59e0b'
-        }], sessionOptions);
-        category = created[0];
-      }
 
       const Expense = mongoose.model('Expense');
-      const expense = await Expense.create([{
+      const [expense] = await Expense.create([{
         title: bill.name,
         amount: bill.amount,
         description: `${bill.name} — ${bill.provider}`,
@@ -132,9 +103,8 @@ class BillService {
         wallet: wallet._id,
         user: userId,
         date: new Date()
-      }], sessionOptions);
+      }], opts);
 
-      wallet.balance -= bill.amount;
       bill.lastPaidDate = new Date();
 
       if (bill.isSubscription) {
@@ -147,26 +117,10 @@ class BillService {
         bill.paidAt = new Date();
       }
 
-      await wallet.save(sessionOptions);
-      await bill.save(sessionOptions);
+      await bill.save(opts);
 
-      if (session) {
-        await session.commitTransaction();
-        session.endSession();
-      }
-
-      return { bill, walletBalance: wallet.balance, expense: expense[0] };
-    } catch (error) {
-      if (session) {
-        try {
-          await session.abortTransaction();
-        } catch {
-          // Ignore abort errors
-        }
-        session.endSession();
-      }
-      throw error;
-    }
+      return { bill, walletBalance: wallet.balance, expense };
+    });
   }
 }
 

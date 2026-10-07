@@ -33,6 +33,9 @@ MONGO_IMAGE="${MONGO_IMAGE:-mongo:7.0.43}"
 MONGO_PORT="${MONGO_PORT:-27017}"
 DOCKER_WAIT="${DOCKER_WAIT:-60}"
 MONGO_WAIT="${MONGO_WAIT:-45}"
+# Same single-node replica set as the compose files (transactions need one).
+# Initiates the set on first run; exits 0 only once this node accepts writes.
+MONGO_RS_INIT="try { rs.status() } catch (e) { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'localhost:${MONGO_PORT}' }] }) } quit(db.hello().isWritablePrimary ? 0 : 1)"
 
 c_reset="\033[0m"; c_blue="\033[34m"; c_green="\033[32m"; c_yellow="\033[33m"; c_red="\033[31m"
 info() { echo -e "${c_blue}[mongo]${c_reset} $*"; }
@@ -72,15 +75,16 @@ container_running() { [ "$(docker inspect -f '{{.State.Running}}' "$1" 2>/dev/nu
 
 # Running and publishing mongod on MONGO_PORT, i.e. the database the backend will use.
 container_serves_port() {
-  container_running "$1" && docker port "$1" 27017/tcp 2>/dev/null | grep -q ":$MONGO_PORT\$"
+  container_running "$1" && docker port "$1" 2>/dev/null | grep -q ":$MONGO_PORT\$"
 }
 
 # A TCP connect alone isn't proof: Docker's port proxy accepts connections while
 # the container is running even if mongod isn't listening (still starting, or
-# crashing on boot). For our own container, ask mongod to answer a ping.
+# crashing on boot). For our own container, ask mongod itself, and wait until
+# it's the replica set's writable primary: before that every write fails.
 mongo_reachable() {
   if [ -n "$MONGO_CONTAINER" ]; then
-    docker exec "$MONGO_CONTAINER" mongosh --quiet --eval 'db.adminCommand("ping").ok' 2>/dev/null | grep -qx 1
+    docker exec "$MONGO_CONTAINER" mongosh --quiet --port "$MONGO_PORT" --eval "$MONGO_RS_INIT" >/dev/null 2>&1
   else
     (exec 3<>"/dev/tcp/127.0.0.1/$MONGO_PORT") >/dev/null 2>&1
   fi
@@ -92,10 +96,11 @@ if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
   done
 fi
 
-# Poll a predicate once a second. wait_for <seconds> <command…>
+# Poll a predicate about once a second until a deadline. wait_for <seconds> <command…>
+# Deadline-based, not a count of attempts: one probe can itself take a second or more.
 wait_for() {
-  local timeout="$1"; shift
-  for _ in $(seq 1 "$timeout"); do
+  local deadline=$((SECONDS + $1)); shift
+  while [ "$SECONDS" -lt "$deadline" ]; do
     "$@" >/dev/null 2>&1 && return 0
     sleep 1
   done
@@ -139,19 +144,24 @@ else
   info "Starting MongoDB container ($FALLBACK_CONTAINER)…"
   if docker ps -a --format '{{.Names}}' | grep -qx "$FALLBACK_CONTAINER"; then
     existing_image="$(docker inspect -f '{{.Config.Image}}' "$FALLBACK_CONTAINER")"
-    [ "$existing_image" != "$MONGO_IMAGE" ] && \
-      warn "$FALLBACK_CONTAINER runs $existing_image, not $MONGO_IMAGE. Remove it to switch: docker rm -f $FALLBACK_CONTAINER"
+    existing_args="$(docker inspect -f '{{join .Args " "}}' "$FALLBACK_CONTAINER")"
+    if [ "$existing_image" != "$MONGO_IMAGE" ] || [[ "$existing_args" != *--replSet* ]]; then
+      warn "$FALLBACK_CONTAINER was created with an older setup ($existing_image, not a replica set)."
+      warn "Recreate it (the data volume is kept): docker rm -f $FALLBACK_CONTAINER && $0"
+    fi
     docker start "$FALLBACK_CONTAINER" >/dev/null
   else
+    # mongod listens on MONGO_PORT inside the container too: a replica set member
+    # must be reachable at the address it advertises (localhost:MONGO_PORT).
     docker run -d --name "$FALLBACK_CONTAINER" \
-      -p "127.0.0.1:$MONGO_PORT:27017" \
+      -p "127.0.0.1:$MONGO_PORT:$MONGO_PORT" \
       -v "${FALLBACK_CONTAINER}-data:/data/db" \
-      "$MONGO_IMAGE" >/dev/null
+      "$MONGO_IMAGE" --replSet rs0 --bind_ip_all --port "$MONGO_PORT" >/dev/null
   fi
   MONGO_CONTAINER="$FALLBACK_CONTAINER"
 fi
 
-info "Waiting for MongoDB to answer a ping…"
+info "Waiting for MongoDB to accept writes…"
 if wait_for "$MONGO_WAIT" mongo_reachable; then
   ok "MongoDB is up."
 else
