@@ -15,7 +15,14 @@
 
 const COOKIE_NAME = 'token';
 
-/** Mirrors JWT_EXPIRE so the cookie and the token it carries die together. */
+/**
+ * Session lifetime from JWT_EXPIRE (JWT_EXPIRES_IN is accepted as an alias).
+ *
+ * This is the single source for BOTH the cookie's maxAge and the token's `exp`.
+ * They used to read different variables — the token only JWT_EXPIRES_IN, which
+ * nothing set — so JWT_EXPIRE=1h shortened the cookie while the token inside
+ * stayed valid for 30 days (audit finding H6).
+ */
 const parseMaxAgeMs = () => {
   const raw = (process.env.JWT_EXPIRES_IN || process.env.JWT_EXPIRE || '30d').trim();
   const match = /^(\d+)([smhd])?$/.exec(raw);
@@ -30,6 +37,9 @@ const parseMaxAgeMs = () => {
 
   return value * multiplier;
 };
+
+/** Token lifetime in whole seconds, for jwt.sign's `expiresIn`. */
+const tokenLifetimeSeconds = () => Math.floor(parseMaxAgeMs() / 1000);
 
 const cookieOptions = () => ({
   httpOnly: true,
@@ -51,4 +61,4 @@ const clearAuthCookie = (res) => {
   res.clearCookie(COOKIE_NAME, options);
 };
 
-module.exports = { COOKIE_NAME, setAuthCookie, clearAuthCookie, parseMaxAgeMs };
+module.exports = { COOKIE_NAME, setAuthCookie, clearAuthCookie, parseMaxAgeMs, tokenLifetimeSeconds };

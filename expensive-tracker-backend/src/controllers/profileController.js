@@ -1,178 +1,118 @@
+const fs = require('fs/promises');
+const asyncHandler = require('express-async-handler');
 const User = require('../models/User');
-const path = require('path');
-const fs = require('fs');
 const logger = require('../utils/logger');
+const { BadRequestError, NotFoundError } = require('../utils/errors');
+const { UPLOAD_DIR, resolveInside, publicUploadUrl } = require('../config/storage');
+
+/** Profile fields the multipart form may update alongside the picture. */
+const PROFILE_FIELDS = ['name', 'firstName', 'lastName', 'bio', 'phone', 'location', 'occupation'];
+
+/**
+ * Removes a previously stored profile picture from disk.
+ *
+ * The stored value is only ever treated as a file *name* inside UPLOAD_DIR
+ * (see resolveInside). It used to be split on "/uploads/" and joined onto the
+ * directory as-is, so a profileImage of ".../uploads/../../.env" deleted the
+ * server's .env file. Failures are logged, never fatal: a missing file must not
+ * stop the user from changing their picture.
+ */
+const removeStoredImage = async (storedValue) => {
+  const filePath = resolveInside(UPLOAD_DIR, storedValue);
+  if (!filePath) {
+    return;
+  }
+
+  try {
+    await fs.unlink(filePath);
+  } catch (error) {
+    if (error.code !== 'ENOENT') {
+      logger.error('Failed to remove profile image file', { message: error.message });
+    }
+  }
+};
 
 /**
  * @desc    Upload profile image and update profile info in one request
  * @route   POST /api/v1/users/profile/image
  * @access  Private
  */
-const uploadProfileImage = async (req, res) => {
-  try {
-    logger.debug('Profile image upload request received', { userId: req.user?.id });
-
-    if (!req.user || !req.user.id) {
-      logger.warn('Profile image upload without an authenticated user');
-      return res.status(401).json({
-        success: false,
-        error: 'User not authenticated properly'
-      });
-    }
-    
-    if (!req.file) {
-      logger.warn('Profile image upload with no file attached', { userId: req.user.id });
-      return res.status(400).json({
-        success: false,
-        error: 'Please upload a file'
-      });
-    }
-
-    // Get the server URL for the file
-    const baseUrl = `${req.protocol}://${req.get('host')}`;
-    const fileUrl = `${baseUrl}/uploads/${req.file.filename}`;
-    
-    // Double check that the file exists
-    const filePath = path.join(__dirname, '../../public/uploads', req.file.filename);
-    if (!fs.existsSync(filePath)) {
-      logger.error('Uploaded file missing after write', { filePath });
-    }
-
-    // Prepare update object with image URL and any additional profile fields from body
-    const updateData = { 
-      profileImage: fileUrl,
-      // Add other fields if they exist in the request body
-      ...(req.body.firstName && { firstName: req.body.firstName }),
-      ...(req.body.lastName && { lastName: req.body.lastName }),
-      ...(req.body.bio && { bio: req.body.bio }),
-      ...(req.body.phone && { phone: req.body.phone }),
-      ...(req.body.location && { location: req.body.location }),
-      ...(req.body.name && { name: req.body.name }),
-      ...(req.body.role && { role: req.body.role })
-    };
-    
-    // First check if user exists
-    const existingUser = await User.findById(req.user.id);
-    if (!existingUser) {
-      logger.warn('Profile image upload for a user that no longer exists', { userId: req.user.id });
-      return res.status(404).json({
-        success: false,
-        error: 'User not found'
-      });
-    }
-
-    // Update user with new profile image URL and other data
-    const user = await User.findByIdAndUpdate(
-      req.user.id,
-      updateData,
-      { new: true, runValidators: true }
-    );
-
-    if (!user) {
-      logger.error('Failed to persist profile update', { userId: req.user.id });
-      return res.status(500).json({
-        success: false,
-        error: 'Failed to update user profile'
-      });
-    }
-
-    // Also update avatar field for backward compatibility
-    if (!user.avatar) {
-      user.avatar = fileUrl;
-      await user.save();
-    }
-
-    // Ensure the user object has the updated profileImage URL
-    user.profileImage = fileUrl;
-    
-    logger.info('Profile image updated', { userId: req.user.id });
-
-    // Return the data with the updated user object that has the profileImage URL
-    res.status(200).json({
-      success: true,
-      data: {
-        profileImage: fileUrl,
-        user: {
-          ...user.toObject(), // Convert Mongoose document to plain object
-          profileImage: fileUrl // Ensure profileImage is in the response
-        }
-      }
-    });
-  } catch (error) {
-    logger.error('Profile image upload failed', { message: error.message, stack: error.stack });
-    // Provide more specific error messages based on error type
-    let statusCode = 500;
-    let errorMessage = 'Server error during file upload';
-    
-    if (error.name === 'ValidationError') {
-      statusCode = 400;
-      errorMessage = Object.values(error.errors).map(val => val.message).join(', ');
-    } else if (error.name === 'CastError') {
-      statusCode = 400;
-      errorMessage = 'Invalid user ID format';
-    }
-    
-    res.status(statusCode).json({
-      success: false,
-      error: errorMessage
-    });
+const uploadProfileImage = asyncHandler(async (req, res) => {
+  if (!req.file) {
+    throw new BadRequestError('Please upload a file');
   }
-};
+
+  const user = await User.findById(req.user.id);
+  if (!user) {
+    await removeStoredImage(req.file.filename);
+    throw new NotFoundError('User not found');
+  }
+
+  const previousImage = user.profileImage;
+  const fileUrl = publicUploadUrl(req.file.filename);
+
+  const updates = { profileImage: fileUrl };
+  PROFILE_FIELDS.forEach(field => {
+    if (typeof req.body[field] === 'string' && req.body[field] !== '') {
+      updates[field] = req.body[field];
+    }
+  });
+  if (!user.avatar) {
+    updates.avatar = fileUrl;
+  }
+
+  let updated;
+  try {
+    updated = await User.findByIdAndUpdate(req.user.id, updates, { new: true, runValidators: true });
+  } catch (error) {
+    // Don't leave the just-written file orphaned when the profile fields fail validation.
+    await removeStoredImage(req.file.filename);
+    throw error;
+  }
+
+  // Replace, don't accumulate: the old picture is unreachable once the profile
+  // points elsewhere.
+  if (previousImage && previousImage !== fileUrl) {
+    await removeStoredImage(previousImage);
+  }
+
+  logger.info('Profile image updated', { userId: req.user.id });
+
+  res.status(200).json({
+    success: true,
+    data: {
+      profileImage: fileUrl,
+      user: updated
+    }
+  });
+});
 
 /**
  * @desc    Delete profile image
  * @route   DELETE /api/v1/users/profile/image
  * @access  Private
  */
-const deleteProfileImage = async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id);
+const deleteProfileImage = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user.id);
 
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        error: 'User not found'
-      });
-    }
-
-    // Check if user has a profile image
-    if (!user.profileImage) {
-      return res.status(400).json({
-        success: false,
-        error: 'No profile image to delete'
-      });
-    }
-
-    // Try to delete the file if it's stored locally
-    try {
-      const imagePath = user.profileImage.split('/uploads/')[1];
-      if (imagePath) {
-        const fullPath = path.join(process.env.FILE_UPLOAD_PATH || './public/uploads', imagePath);
-        if (fs.existsSync(fullPath)) {
-          fs.unlinkSync(fullPath);
-        }
-      }
-    } catch (err) {
-      logger.error('Failed to remove profile image file', { message: err.message });
-      // Continue even if file deletion fails
-    }
-
-    // Update user to remove profile image
-    user.profileImage = '';
-    await user.save();
-
-    res.status(200).json({
-      success: true,
-      data: {}
-    });
-  } catch (error) {
-    logger.error('Profile image delete failed', { message: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      error: 'Server error during image deletion'
-    });
+  if (!user) {
+    throw new NotFoundError('User not found');
   }
-};
+
+  if (!user.profileImage) {
+    throw new BadRequestError('No profile image to delete');
+  }
+
+  await removeStoredImage(user.profileImage);
+
+  if (user.avatar === user.profileImage) {
+    user.avatar = '';
+  }
+  user.profileImage = '';
+  await user.save();
+
+  res.status(200).json({ success: true, data: {} });
+});
 
 module.exports = {
   uploadProfileImage,

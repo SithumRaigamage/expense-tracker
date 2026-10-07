@@ -1,6 +1,10 @@
 const asyncHandler = require('express-async-handler');
 const CategoryService = require('../services/categoryService');
 const { successResponse, createdResponse } = require('../utils/responseFormatter');
+const pick = require('../utils/pick');
+
+/** Fields a client may write on a category; `user` is never one of them. */
+const CATEGORY_FIELDS = ['name', 'type', 'color', 'icon', 'description', 'isActive'];
 
 /**
  * @desc    Get all categories for user
@@ -37,7 +41,7 @@ const getCategory = asyncHandler(async (req, res) => {
  * @access  Private
  */
 const createCategory = asyncHandler(async (req, res) => {
-  const category = await CategoryService.createCategory(req.body, req.user.id);
+  const category = await CategoryService.createCategory(pick(req.body, CATEGORY_FIELDS), req.user.id);
   
   createdResponse(res, category, 'Category created successfully');
 });
@@ -51,7 +55,7 @@ const updateCategory = asyncHandler(async (req, res) => {
   const category = await CategoryService.updateCategory(
     req.params.id,
     req.user.id,
-    req.body
+    pick(req.body, CATEGORY_FIELDS)
   );
   
   successResponse(res, category, 200, 'Category updated successfully');

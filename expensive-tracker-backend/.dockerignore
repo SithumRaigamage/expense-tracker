@@ -8,5 +8,8 @@ tests
 README.md
 walkthrough.md
 docs
+# User uploads belong in volumes, never baked into the image
+public/uploads
+storage
 **/node_modules
 **/dist

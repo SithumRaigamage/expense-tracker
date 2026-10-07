@@ -36,6 +36,11 @@ const { apiLimiter } = require('./middleware/rateLimiter');
 
 const app = express();
 
+// Must be set before anything reads req.ip or req.protocol (the rate limiters
+// especially). See config/trustProxy.js and TRUST_PROXY in .env.example.
+const { parseTrustProxy } = require('./config/trustProxy');
+app.set('trust proxy', parseTrustProxy(process.env.TRUST_PROXY));
+
 // Security middleware
 app.use(helmet());
 
@@ -82,31 +87,27 @@ app.use(sanitizeInput);
 // Rate limiting (auth endpoints are limited separately inside their router)
 app.use('/api', apiLimiter);
 
-// Set static folder for file uploads
-const path = require('path');
-// Create upload directory if it doesn't exist
-const uploadDir = path.join(__dirname, '../public/uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-  logger.info(`Created upload directory: ${uploadDir}`);
-}
+// Public uploads (profile pictures). Receipts are deliberately NOT here — they
+// are private and served by an authenticated route.
+const { UPLOAD_DIR } = require('./config/storage');
+fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 // Import custom CORS middleware for images
 const imageCORSMiddleware = require('./middleware/imageCORS');
 
 // Apply the CORS middleware specifically for the uploads directory
 app.use('/uploads', imageCORSMiddleware);
-app.use('/uploads', express.static(uploadDir, {
-  setHeaders: function (res, path) {
-    // Set additional headers for all image files
-    if (path.match(/\.(jpg|jpeg|png|gif)$/i)) {
+app.use('/uploads', express.static(UPLOAD_DIR, {
+  // Never fall through to a directory listing or index file.
+  index: false,
+  setHeaders: function (res, filePath) {
+    if (filePath.match(/\.(jpg|jpeg|png|gif)$/i)) {
       res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-      res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Cache-Control', 'public, max-age=86400');
     }
   }
 }));
-logger.info(`Static file serving set up for: ${uploadDir} with CORS support`);
+logger.info(`Static file serving set up for: ${UPLOAD_DIR}`);
 
 // Routes
 app.use('/api/v1/expenses', expenseRoutes);

@@ -1,70 +1,102 @@
 const logger = require('../utils/logger');
 const { AppError } = require('../utils/errors');
 
-const errorHandler = (err, req, res, next) => {
-  let error = { ...err };
-  error.message = err.message;
+const GENERIC_SERVER_ERROR = 'Server Error';
 
-  // Log error with stack trace
-  logger.error('Error occurred:', {
-    message: err.message,
-    stack: err.stack,
-    url: req.originalUrl,
-    method: req.method,
-    ip: req.ip,
-    userId: req.user?.id
-  });
+/**
+ * Maps a thrown error to an HTTP status and a client-safe message.
+ *
+ * Order matters: the most specific signal wins.
+ */
+const classify = (err, res) => {
+  if (err instanceof AppError) {
+    return { statusCode: err.statusCode, message: err.message };
+  }
 
   // Mongoose bad ObjectId
   if (err.name === 'CastError') {
-    const message = 'Resource not found';
-    error = { message, statusCode: 404 };
+    return { statusCode: 404, message: 'Resource not found' };
   }
 
   // Mongoose duplicate key
   if (err.code === 11000) {
-    const field = Object.keys(err.keyValue)[0];
-    const message = `Duplicate field value: ${field}. Please use another value`;
-    error = { message, statusCode: 400 };
+    const field = Object.keys(err.keyValue || {})[0] || 'field';
+    return { statusCode: 400, message: `Duplicate field value: ${field}. Please use another value` };
   }
 
   // Mongoose validation error
-  if (err.name === 'ValidationError') {
-    const message = Object.values(err.errors).map(val => val.message).join(', ');
-    error = { message, statusCode: 400 };
+  if (err.name === 'ValidationError' && err.errors) {
+    return {
+      statusCode: 400,
+      message: Object.values(err.errors).map(val => val.message).join(', ')
+    };
   }
 
-  // JWT errors
   if (err.name === 'JsonWebTokenError') {
-    const message = 'Invalid token';
-    error = { message, statusCode: 401 };
+    return { statusCode: 401, message: 'Invalid token' };
   }
 
   if (err.name === 'TokenExpiredError') {
-    const message = 'Token expired';
-    error = { message, statusCode: 401 };
+    return { statusCode: 401, message: 'Token expired' };
   }
 
-  // Multer file upload errors
   if (err.name === 'MulterError') {
-    let message = 'File upload error';
-    if (err.code === 'LIMIT_FILE_SIZE') {
-      message = 'File size is too large. Maximum size is 5MB';
-    }
-    error = { message, statusCode: 400 };
+    return {
+      statusCode: 400,
+      message: err.code === 'LIMIT_FILE_SIZE'
+        ? 'File size is too large. Maximum size is 5MB'
+        : 'File upload error'
+    };
   }
 
-  // Custom AppError
-  if (err instanceof AppError) {
-    error = { message: err.message, statusCode: err.statusCode };
+  // http-errors from Express/body-parser, e.g. malformed JSON (400) or an
+  // oversized body (413). `expose` is their own flag for "safe to show".
+  const httpStatus = err.status || err.statusCode;
+  if (Number.isInteger(httpStatus) && httpStatus >= 400 && httpStatus < 500 && err.expose !== false) {
+    return { statusCode: httpStatus, message: err.message };
   }
 
-  res.status(error.statusCode || 500).json({
+  // A handler that set a 4xx before throwing — `res.status(404); throw new
+  // Error(...)` in notFound and the release-note controller. This used to be
+  // ignored, so every unknown route and missing release note answered 500.
+  if (res.statusCode >= 400 && res.statusCode < 500) {
+    return { statusCode: res.statusCode, message: err.message };
+  }
+
+  return { statusCode: 500, message: err.message };
+};
+
+// Express identifies error middleware by its four-argument signature, so
+// `next` must stay even though it is unused.
+const errorHandler = (err, req, res, next) => {
+  const { statusCode, message } = classify(err, res);
+  const isServerError = statusCode >= 500;
+  const isDevelopment = process.env.NODE_ENV === 'development';
+
+  const logMeta = {
+    message: err.message,
+    statusCode,
+    url: req.originalUrl,
+    method: req.method,
+    ip: req.ip,
+    userId: req.user?.id
+  };
+
+  if (isServerError) {
+    // The full detail stays on the server, where it belongs.
+    logger.error('Unhandled error', { ...logMeta, stack: err.stack });
+  } else {
+    logger.warn('Request failed', logMeta);
+  }
+
+  res.status(statusCode).json({
     success: false,
-    error: error.message || 'Server Error',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    // Unexpected errors carry internals ("Cannot read properties of null…",
+    // driver messages, paths). Outside development the client gets a generic
+    // message; 4xx messages are written for users and are always returned.
+    error: isServerError && !isDevelopment ? GENERIC_SERVER_ERROR : (message || GENERIC_SERVER_ERROR),
+    ...(isDevelopment && { stack: err.stack })
   });
 };
 
 module.exports = errorHandler;
-
