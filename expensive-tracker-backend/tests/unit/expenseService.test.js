@@ -2,6 +2,8 @@ jest.mock('../../src/models/Expense');
 jest.mock('../../src/models/Category');
 jest.mock('../../src/models/Wallet');
 jest.mock('../../src/services/walletService');
+// No database here: run the transactional work directly.
+jest.mock('../../src/utils/transaction', () => ({ runInTransaction: (work) => work({}) }));
 
 const Expense = require('../../src/models/Expense');
 const Category = require('../../src/models/Category');
@@ -31,7 +33,7 @@ describe('ExpenseService.createExpense', () => {
   it('creates an expense and debits the wallet for an expense category', async () => {
     Category.findOne.mockResolvedValue({ _id: 'c1', type: 'expense' });
     Wallet.findOne.mockResolvedValue({ _id: 'w1' });
-    Expense.create.mockResolvedValue({ _id: 'e1', wallet: 'w1', amount: 100 });
+    Expense.create.mockResolvedValue([{ _id: 'e1', wallet: 'w1', amount: 100 }]);
     // populate chain for the response
     const populate2 = jest.fn().mockResolvedValue({ _id: 'e1', amount: 100 });
     const populate1 = jest.fn().mockReturnValue({ populate: populate2 });
@@ -40,18 +42,18 @@ describe('ExpenseService.createExpense', () => {
     await ExpenseService.createExpense({ category: 'c1', wallet: 'w1', amount: 100 }, 'u1');
 
     // expense -> negative balance change
-    expect(WalletService.updateBalance).toHaveBeenCalledWith('w1', 'u1', -100);
+    expect(WalletService.updateBalance).toHaveBeenCalledWith('w1', 'u1', -100, {});
   });
 
   it('credits the wallet for an income category', async () => {
     Category.findOne.mockResolvedValue({ _id: 'c1', type: 'income' });
     Wallet.findOne.mockResolvedValue({ _id: 'w1' });
-    Expense.create.mockResolvedValue({ _id: 'e1', wallet: 'w1', amount: 200 });
+    Expense.create.mockResolvedValue([{ _id: 'e1', wallet: 'w1', amount: 200 }]);
     const populate2 = jest.fn().mockResolvedValue({ _id: 'e1' });
     Expense.findById.mockReturnValue({ populate: jest.fn().mockReturnValue({ populate: populate2 }) });
 
     await ExpenseService.createExpense({ category: 'c1', wallet: 'w1', amount: 200 }, 'u1');
-    expect(WalletService.updateBalance).toHaveBeenCalledWith('w1', 'u1', 200);
+    expect(WalletService.updateBalance).toHaveBeenCalledWith('w1', 'u1', 200, {});
   });
 });
 
@@ -88,8 +90,8 @@ describe('ExpenseService.deleteExpense', () => {
 
     await ExpenseService.deleteExpense('e1', 'u1');
     // deleting an expense refunds the wallet (+100)
-    expect(WalletService.updateBalance).toHaveBeenCalledWith('w1', 'u1', 100);
-    expect(Expense.deleteOne).toHaveBeenCalledWith({ _id: 'e1' });
+    expect(WalletService.updateBalance).toHaveBeenCalledWith('w1', 'u1', 100, {});
+    expect(Expense.deleteOne).toHaveBeenCalledWith({ _id: 'e1' }, {});
   });
 
   it('throws NotFoundError when the expense is missing', async () => {

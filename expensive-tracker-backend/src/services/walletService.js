@@ -5,6 +5,7 @@ const CurrencyService = require('./currencyService');
 const User = require('../models/User');
 const { NotFoundError, ConflictError, BadRequestError } = require('../utils/errors');
 const { PAGINATION } = require('../config/constants');
+const { runInTransaction } = require('../utils/transaction');
 
 /**
  * Service layer for wallet operations
@@ -295,20 +296,42 @@ class WalletService {
   }
 
   /**
-   * Update wallet balance
+   * Update wallet balance.
+   *
+   * The only way balances change. It's one atomic `$inc`, so concurrent
+   * requests can't overwrite each other the way read-modify-save() did. With
+   * `requireFunds`, the sufficient-funds check is part of the same filter: the
+   * server evaluates it against the current balance, not one a request read
+   * earlier.
+   *
    * @param {string} walletId - Wallet ID
    * @param {string} userId - User ID
    * @param {number} amount - Amount to add (positive) or subtract (negative)
+   * @param {Object} [options]
+   * @param {import('mongoose').ClientSession} [options.session] - Transaction session
+   * @param {boolean} [options.requireFunds=false] - Reject a debit larger than the balance
    * @returns {Promise<Object>} Updated wallet
    */
-  static async updateBalance(walletId, userId, amount) {
+  static async updateBalance(walletId, userId, amount, { session, requireFunds = false } = {}) {
+    const filter = { _id: walletId, user: userId, isActive: true };
+    const guarded = requireFunds && amount < 0;
+    if (guarded) {
+      filter.balance = { $gte: -amount };
+    }
+
     const wallet = await Wallet.findOneAndUpdate(
-      { _id: walletId, user: userId, isActive: true },
+      filter,
       { $inc: { balance: amount } },
-      { new: true, runValidators: true }
+      { new: true, runValidators: true, session }
     );
 
     if (!wallet) {
+      if (guarded) {
+        const exists = await Wallet.exists({ _id: walletId, user: userId, isActive: true }).session(session || null);
+        if (exists) {
+          throw new BadRequestError('Insufficient funds in the selected wallet');
+        }
+      }
       throw new NotFoundError('Wallet not found');
     }
 
@@ -337,64 +360,29 @@ class WalletService {
       throw new BadRequestError('Transfer amount must be greater than zero');
     }
 
-    let session = null;
-    try {
-      session = await mongoose.startSession();
-      await session.startTransaction();
-      // Standalone MongoDB will throw "Transaction numbers are only allowed on a replica set..." 
-      // when we attempt the first command with a transaction
-      await mongoose.connection.db.command({ ping: 1 }, { session });
-    } catch {
-      if (session) {
-        try {
-          await session.abortTransaction();
-        } catch {
-          // Ignore abort errors
-        }
-        await session.endSession();
-      }
-      session = null;
-    }
-
-    const sessionOptions = session ? { session } : {};
-
-    try {
+    return runInTransaction(async (opts) => {
       // 1. Verify wallets exist and belong to user
-      const fromWallet = await Wallet.findOne({ _id: fromWalletId, user: userId, isActive: true }, null, sessionOptions);
-      const toWallet = await Wallet.findOne({ _id: toWalletId, user: userId, isActive: true }, null, sessionOptions);
+      const fromWallet = await Wallet.findOne({ _id: fromWalletId, user: userId, isActive: true }, null, opts);
+      const toWallet = await Wallet.findOne({ _id: toWalletId, user: userId, isActive: true }, null, opts);
 
       if (!fromWallet) throw new NotFoundError('Source wallet not found');
       if (!toWallet) throw new NotFoundError('Destination wallet not found');
 
       // 2. Ensure "Transfer" categories exist
-      let transferOutCat = await Category.findOne({ user: userId, name: 'Transfer Out', type: 'expense' }, null, sessionOptions);
-      if (!transferOutCat) {
-        const catArray = await Category.create([{
-          user: userId,
-          name: 'Transfer Out',
-          type: 'expense',
-          icon: '📤',
-          color: '#f44336'
-        }], sessionOptions);
-        transferOutCat = catArray[0];
-      }
+      const transferOutCat = await Category.ensure(
+        userId, { name: 'Transfer Out', type: 'expense', icon: '📤', color: '#f44336' }, opts
+      );
+      const transferInCat = await Category.ensure(
+        userId, { name: 'Transfer In', type: 'income', icon: '📥', color: '#4caf50' }, opts
+      );
 
-      let transferInCat = await Category.findOne({ user: userId, name: 'Transfer In', type: 'income' }, null, sessionOptions);
-      if (!transferInCat) {
-        const catArray = await Category.create([{
-          user: userId,
-          name: 'Transfer In',
-          type: 'income',
-          icon: '📥',
-          color: '#4caf50'
-        }], sessionOptions);
-        transferInCat = catArray[0];
-      }
+      // 3. Move the money: atomic increments, never a save() of balances read above
+      const debited = await WalletService.updateBalance(fromWalletId, userId, -amount, opts);
+      const credited = await WalletService.updateBalance(toWalletId, userId, amount, opts);
 
-      // 3. Create transactions
+      // 4. Record both sides
       const Expense = mongoose.model('Expense');
-      
-      const outTransactionArray = await Expense.create([{
+      const [outTransaction, inTransaction] = await Expense.create([{
         title: `Transfer to ${toWallet.name}`,
         amount,
         description: description || `Transfer to ${toWallet.name}`,
@@ -402,9 +390,7 @@ class WalletService {
         wallet: fromWalletId,
         user: userId,
         date: new Date()
-      }], sessionOptions);
-
-      const inTransactionArray = await Expense.create([{
+      }, {
         title: `Transfer from ${fromWallet.name}`,
         amount,
         description: description || `Transfer from ${fromWallet.name}`,
@@ -412,37 +398,15 @@ class WalletService {
         wallet: toWalletId,
         user: userId,
         date: new Date()
-      }], sessionOptions);
-
-      // 4. Update balances
-      fromWallet.balance -= amount;
-      toWallet.balance += amount;
-
-      await fromWallet.save(sessionOptions);
-      await toWallet.save(sessionOptions);
-
-      if (session) {
-        await session.commitTransaction();
-        session.endSession();
-      }
+      }], { ...opts, ordered: true });
 
       return {
-        outTransaction: outTransactionArray[0],
-        inTransaction: inTransactionArray[0],
-        fromWalletBalance: fromWallet.balance,
-        toWalletBalance: toWallet.balance
+        outTransaction,
+        inTransaction,
+        fromWalletBalance: debited.balance,
+        toWalletBalance: credited.balance
       };
-    } catch (error) {
-      if (session) {
-        try {
-          await session.abortTransaction();
-        } catch {
-          // Ignore abort errors
-        }
-        session.endSession();
-      }
-      throw error;
-    }
+    });
   }
 
   /**

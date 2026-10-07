@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
 const ProductBudget = require('../models/ProductBudget');
-const Wallet = require('../models/Wallet');
-const { NotFoundError, BadRequestError } = require('../utils/errors');
+const WalletService = require('./walletService');
+const { NotFoundError, BadRequestError, ConflictError } = require('../utils/errors');
+const { runInTransaction } = require('../utils/transaction');
 
 /**
  * Service layer for product budget operations
@@ -141,37 +142,10 @@ class ProductBudgetService {
       throw new BadRequestError('A valid wallet is required');
     }
 
-    // Standalone MongoDB rejects transactions ("Transaction numbers are only
-    // allowed on a replica set…"), so fall back to sequential writes there —
-    // same approach walletService.transferFunds already takes.
-    let session = null;
-    try {
-      session = await mongoose.startSession();
-      await session.startTransaction();
-      await mongoose.connection.db.command({ ping: 1 }, { session });
-    } catch {
-      if (session) {
-        try {
-          await session.abortTransaction();
-        } catch {
-          // Ignore abort errors
-        }
-        await session.endSession();
-      }
-      session = null;
-    }
-
-    const sessionOptions = session ? { session } : {};
-
-    try {
-      const budget = await ProductBudget.findOne({ _id: budgetId, user: userId }, null, sessionOptions);
+    return runInTransaction(async (opts) => {
+      const budget = await ProductBudget.findOne({ _id: budgetId, user: userId }, null, opts);
       if (!budget) {
         throw new NotFoundError('Product budget not found');
-      }
-
-      const wallet = await Wallet.findOne({ _id: walletId, user: userId, isActive: true }, null, sessionOptions);
-      if (!wallet) {
-        throw new NotFoundError('Wallet not found');
       }
 
       const remaining = Math.max(budget.targetAmount - budget.savedAmount, 0);
@@ -183,38 +157,41 @@ class ProductBudgetService {
       // against numbers it fetched earlier and cannot be trusted on its own.
       const applied = Math.min(requested, remaining);
 
-      if (wallet.balance < applied) {
-        throw new BadRequestError('Insufficient funds in the selected wallet');
+      // Credit the goal only if it still has room for `applied`: the clamp
+      // above used a read that a concurrent contribution may have outdated.
+      const credited = await ProductBudget.findOneAndUpdate(
+        {
+          _id: budgetId,
+          user: userId,
+          $expr: { $lte: [{ $add: ['$savedAmount', applied] }, '$targetAmount'] }
+        },
+        { $inc: { savedAmount: applied } },
+        { new: true, runValidators: true, ...opts }
+      );
+      if (!credited) {
+        throw new ConflictError('This goal changed while you were contributing. Please try again.');
       }
 
-      wallet.balance -= applied;
-      budget.savedAmount += applied;
-
-      await wallet.save(sessionOptions);
-      await budget.save(sessionOptions);
-
-      if (session) {
-        await session.commitTransaction();
-        session.endSession();
+      // Throws "Insufficient funds" (or "Wallet not found") before anything is
+      // committed. Inside a transaction that also rolls back the credit above.
+      let wallet;
+      try {
+        wallet = await WalletService.updateBalance(walletId, userId, -applied, { ...opts, requireFunds: true });
+      } catch (error) {
+        if (!opts.session) {
+          // No transaction to roll back on a standalone server: undo the credit.
+          await ProductBudget.updateOne({ _id: budgetId }, { $inc: { savedAmount: -applied } });
+        }
+        throw error;
       }
 
       return {
-        budget,
+        budget: credited,
         walletBalance: wallet.balance,
         appliedAmount: applied,
-        isFullyFunded: budget.savedAmount >= budget.targetAmount
+        isFullyFunded: credited.savedAmount >= credited.targetAmount
       };
-    } catch (error) {
-      if (session) {
-        try {
-          await session.abortTransaction();
-        } catch {
-          // Ignore abort errors
-        }
-        session.endSession();
-      }
-      throw error;
-    }
+    });
   }
 
   /**

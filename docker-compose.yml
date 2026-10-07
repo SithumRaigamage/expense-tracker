@@ -24,14 +24,28 @@ services:
     restart: unless-stopped
     # No published ports: only the API needs to reach it, and exposing 27017 to
     # the host is how unauthenticated Mongo instances end up on the internet.
+    #
+    # A single-node replica set: MongoDB only runs multi-document transactions on
+    # a replica set, and every money operation (transfer, bill payment, expense)
+    # writes more than one document. The healthcheck initiates the set on first
+    # start and reports healthy only once this node is a writable primary.
+    command: ["--replSet", "rs0", "--bind_ip_all"]
     volumes:
       - mongo-data:/data/db
     healthcheck:
-      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      test:
+        - CMD
+        - mongosh
+        - --quiet
+        - --eval
+        - >-
+          try { rs.status() } catch (e) { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'mongodb:27017' }] }) }
+          quit(db.hello().isWritablePrimary ? 0 : 1)
       interval: 10s
       timeout: 5s
       retries: 10
       start_period: 20s
+      start_interval: 1s
     networks:
       - expense-tracker
 
@@ -47,7 +61,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3001
-      - MONGODB_URI=mongodb://mongodb:27017/expense-tracker
+      - MONGODB_URI=mongodb://mongodb:27017/expense-tracker?replicaSet=rs0
       - JWT_SECRET=${JWT_SECRET:?set JWT_SECRET in .env}
       - JWT_EXPIRE=${JWT_EXPIRE:-30d}
       # Same-origin in this topology: the browser only ever talks to the web

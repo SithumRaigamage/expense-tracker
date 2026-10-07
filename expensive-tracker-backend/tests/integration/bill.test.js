@@ -204,6 +204,25 @@ describe('Bills API', () => {
       expect(await mongoose.model('Expense').countDocuments({ user: user._id })).toBe(0);
     });
 
+    // The "Bills" category is found-or-created by name. A user's own income
+    // category with that name must stop the payment cleanly, not book a bill
+    // as income or fail with a duplicate-key 500.
+    it('refuses to book a payment under an existing income category named Bills', async () => {
+      const Category = mongoose.model('Category');
+      await Category.deleteMany({ user: user._id }); // earlier payments created an expense "Bills"
+      const wallet = await seedWallet();
+      await Category.create({ name: 'Bills', type: 'income', user: user._id });
+      const { body } = await createBill().expect(201);
+
+      const res = await auth(request(app).post(`/api/v1/bills/${body.data._id}/pay`))
+        .send({ walletId: wallet._id })
+        .expect(409);
+
+      expect(res.body.error).toMatch(/income category named "Bills"/);
+      expect((await Wallet.findById(wallet._id)).balance).toBe(10000);
+      await Category.deleteMany({ user: user._id });
+    });
+
     it('refuses to pay the same one-off bill twice', async () => {
       const wallet = await seedWallet();
       const { body } = await createBill().expect(201);
