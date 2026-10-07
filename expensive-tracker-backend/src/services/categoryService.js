@@ -1,5 +1,8 @@
+const mongoose = require('mongoose');
 const Category = require('../models/Category');
-const { NotFoundError, ConflictError } = require('../utils/errors');
+const Expense = require('../models/Expense');
+const { NotFoundError, ConflictError, BadRequestError } = require('../utils/errors');
+const { runInTransaction } = require('../utils/transaction');
 
 /**
  * Service layer for category operations
@@ -105,22 +108,58 @@ class CategoryService {
   }
 
   /**
-   * Delete a category
+   * Delete a category.
+   *
+   * Deleting a category that transactions still use left them pointing at
+   * nothing (audit M2): updating or deleting one of them failed with a 500,
+   * and the frontend's list crashed. A category in use can only be deleted
+   * together with moving its transactions to another category, and only one of
+   * the same type: moving entries between expense and income would flip their
+   * effect on wallet balances.
+   *
    * @param {string} categoryId - Category ID
    * @param {string} userId - User ID
-   * @returns {Promise<boolean>} True if deleted
+   * @param {Object} [options]
+   * @param {string} [options.reassignTo] - Category to move this one's transactions to
+   * @returns {Promise<{ reassigned: number }>} How many transactions were moved
    */
-  static async deleteCategory(categoryId, userId) {
-    const category = await Category.findOneAndDelete({
-      _id: categoryId,
-      user: userId
+  static async deleteCategory(categoryId, userId, { reassignTo } = {}) {
+    return runInTransaction(async (opts) => {
+      const category = await Category.findOne({ _id: categoryId, user: userId }, null, opts);
+      if (!category) {
+        throw new NotFoundError('Category not found');
+      }
+
+      const inUse = await Expense.countDocuments({ category: categoryId, user: userId }, opts);
+
+      if (inUse > 0) {
+        if (!reassignTo) {
+          throw new ConflictError(
+            `This category is used by ${inUse} transaction${inUse === 1 ? '' : 's'}. ` +
+            `Choose another ${category.type} category to move them to (reassignTo).`
+          );
+        }
+        if (!mongoose.Types.ObjectId.isValid(reassignTo) || String(reassignTo) === String(categoryId)) {
+          throw new BadRequestError('reassignTo must be a different, valid category id');
+        }
+
+        const target = await Category.findOne({ _id: reassignTo, user: userId }, null, opts);
+        if (!target) {
+          throw new NotFoundError('The category to move transactions to was not found');
+        }
+        if (target.type !== category.type) {
+          throw new BadRequestError(
+            `Transactions can only move to another ${category.type} category: ` +
+            'changing their type would change your wallet balances.'
+          );
+        }
+
+        await Expense.updateMany({ category: categoryId, user: userId }, { category: target._id }, opts);
+      }
+
+      await Category.deleteOne({ _id: categoryId }, opts);
+      return { reassigned: inUse };
     });
-
-    if (!category) {
-      throw new NotFoundError('Category not found');
-    }
-
-    return true;
   }
 
   /**

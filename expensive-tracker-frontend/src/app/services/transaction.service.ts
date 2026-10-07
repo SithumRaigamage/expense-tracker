@@ -6,6 +6,9 @@ import { ExpenseFlow } from './wallet.service';
 import { AuthService } from './auth.service';
 import { environment } from '../../environments/environment';
 
+/** Label for an entry whose category no longer exists. */
+export const UNCATEGORIZED = 'Uncategorized';
+
 interface ApiResponse<T> {
   success: boolean;
   data: T;
@@ -26,11 +29,12 @@ interface Category {
   __v?: number;
 }
 
-interface ExpenseResponse {
+export interface ExpenseResponse {
   _id: string;
   amount: number;
   description: string;
-  category: Category;
+  /** Null when the category was deleted out from under the entry (audit M2). */
+  category: Category | null;
   wallet: string | { _id: string; name: string; type: string };
   date: string;
   user: string;
@@ -218,16 +222,25 @@ export class TransactionService {
     return { walletId: wallet._id, wallet: { name: wallet.name, type: wallet.type } };
   }
 
-  private mapExpensesToTransactions(expenses: ExpenseResponse[]): Transaction[] {
-    return expenses.map(expense => ({
+  /**
+   * One API expense as a UI transaction. An entry whose category was deleted
+   * comes back with `category: null`; reading `.name` on it threw and emptied
+   * the whole list, so it's shown as "Uncategorized" instead.
+   */
+  static toTransaction(expense: ExpenseResponse): Transaction {
+    return {
       id: expense._id,
       amount: expense.amount,
       description: expense.description,
-      category: expense.category.name,
-      type: expense.category.type,
+      category: expense.category?.name ?? UNCATEGORIZED,
+      type: expense.category?.type ?? 'expense',
       date: new Date(expense.date),
       ...TransactionService.walletFields(expense.wallet)
-    }));
+    };
+  }
+
+  private mapExpensesToTransactions(expenses: ExpenseResponse[]): Transaction[] {
+    return expenses.map(TransactionService.toTransaction);
   }
 
   getTransactions(): Observable<Transaction[]> {
@@ -340,16 +353,7 @@ export class TransactionService {
 
     return this.http.post<ApiResponse<ExpenseResponse>>(`${this.apiUrl}/expenses`, expenseData)
       .pipe(
-        map(response => response.data),
-        map(expense => ({
-          id: expense._id,
-          amount: expense.amount,
-          description: expense.description,
-          category: expense.category.name,
-          type: expense.category.type,
-          date: new Date(expense.date),
-          ...TransactionService.walletFields(expense.wallet)
-        })),
+        map(response => TransactionService.toTransaction(response.data)),
         tap(newTransaction => {
           const current = this.transactions.getValue();
           this.transactions.next([...current, newTransaction]);
@@ -385,16 +389,7 @@ export class TransactionService {
 
     return this.http.put<ApiResponse<ExpenseResponse>>(`${this.apiUrl}/expenses/${transaction.id}`, expenseData)
       .pipe(
-        map(response => response.data),
-        map(expense => ({
-          id: expense._id,
-          amount: expense.amount,
-          description: expense.description,
-          category: expense.category.name,
-          type: expense.category.type,
-          date: new Date(expense.date),
-          ...TransactionService.walletFields(expense.wallet)
-        })),
+        map(response => TransactionService.toTransaction(response.data)),
         tap(updatedTransaction => {
           const current = this.transactions.getValue();
           const index = current.findIndex(t => t.id === updatedTransaction.id);

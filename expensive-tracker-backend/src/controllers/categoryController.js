@@ -63,13 +63,15 @@ const updateCategory = asyncHandler(async (req, res) => {
 
 /**
  * @desc    Delete category
- * @route   DELETE /api/v1/categories/:id
+ * @route   DELETE /api/v1/categories/:id?reassignTo=<categoryId>
  * @access  Private
  */
 const deleteCategory = asyncHandler(async (req, res) => {
-  await CategoryService.deleteCategory(req.params.id, req.user.id);
-  
-  successResponse(res, {}, 200, 'Category deleted successfully');
+  const result = await CategoryService.deleteCategory(req.params.id, req.user.id, {
+    reassignTo: req.query.reassignTo
+  });
+
+  successResponse(res, result, 200, 'Category deleted successfully');
 });
 
 /**
