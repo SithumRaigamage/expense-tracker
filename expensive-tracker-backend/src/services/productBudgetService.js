@@ -1,8 +1,13 @@
 const mongoose = require('mongoose');
 const ProductBudget = require('../models/ProductBudget');
+const Category = require('../models/Category');
+const Expense = require('../models/Expense');
 const WalletService = require('./walletService');
 const { NotFoundError, BadRequestError, ConflictError } = require('../utils/errors');
 const { runInTransaction } = require('../utils/transaction');
+
+/** System category for the entries that record goal contributions. */
+const SAVINGS_CATEGORY = 'Savings Goals';
 
 /**
  * Service layer for product budget operations
@@ -157,40 +162,61 @@ class ProductBudgetService {
       // against numbers it fetched earlier and cannot be trusted on its own.
       const applied = Math.min(requested, remaining);
 
-      // Credit the goal only if it still has room for `applied`: the clamp
-      // above used a read that a concurrent contribution may have outdated.
-      const credited = await ProductBudget.findOneAndUpdate(
-        {
-          _id: budgetId,
-          user: userId,
-          $expr: { $lte: [{ $add: ['$savedAmount', applied] }, '$targetAmount'] }
-        },
-        { $inc: { savedAmount: applied } },
-        { new: true, runValidators: true, ...opts }
-      );
-      if (!credited) {
-        throw new ConflictError('This goal changed while you were contributing. Please try again.');
-      }
-
-      // Throws "Insufficient funds" (or "Wallet not found") before anything is
-      // committed. Inside a transaction that also rolls back the credit above.
-      let wallet;
+      // Without a transaction nothing rolls back on its own, so each completed
+      // step registers how to undo itself; on failure they run in reverse.
+      const undo = [];
       try {
-        wallet = await WalletService.updateBalance(walletId, userId, -applied, { ...opts, requireFunds: true });
+        // Credit the goal only if it still has room for `applied`: the clamp
+        // above used a read that a concurrent contribution may have outdated.
+        const credited = await ProductBudget.findOneAndUpdate(
+          {
+            _id: budgetId,
+            user: userId,
+            $expr: { $lte: [{ $add: ['$savedAmount', applied] }, '$targetAmount'] }
+          },
+          { $inc: { savedAmount: applied } },
+          { new: true, runValidators: true, ...opts }
+        );
+        if (!credited) {
+          throw new ConflictError('This goal changed while you were contributing. Please try again.');
+        }
+        undo.push(() => ProductBudget.updateOne({ _id: budgetId }, { $inc: { savedAmount: -applied } }));
+
+        // Throws "Insufficient funds" (or "Wallet not found") before anything is committed.
+        const wallet = await WalletService.updateBalance(walletId, userId, -applied, { ...opts, requireFunds: true });
+        undo.push(() => WalletService.updateBalance(walletId, userId, applied, { includeInactive: true }));
+
+        // The money left the wallet, so it belongs in the history and the
+        // analytics built from it (audit M6). The link to the goal is what lets
+        // a later delete reverse both sides.
+        const category = await Category.ensure(
+          userId, { name: SAVINGS_CATEGORY, type: 'expense', icon: '🎯', color: '#10b981' }, opts
+        );
+        await Expense.create([{
+          title: `Savings: ${budget.name}`.slice(0, 100),
+          amount: applied,
+          description: `Contribution to the "${budget.name}" goal`.slice(0, 500),
+          category: category._id,
+          wallet: walletId,
+          user: userId,
+          date: new Date(),
+          productBudget: budgetId
+        }], opts);
+
+        return {
+          budget: credited,
+          walletBalance: wallet.balance,
+          appliedAmount: applied,
+          isFullyFunded: credited.savedAmount >= credited.targetAmount
+        };
       } catch (error) {
         if (!opts.session) {
-          // No transaction to roll back on a standalone server: undo the credit.
-          await ProductBudget.updateOne({ _id: budgetId }, { $inc: { savedAmount: -applied } });
+          for (const step of undo.reverse()) {
+            await step();
+          }
         }
         throw error;
       }
-
-      return {
-        budget: credited,
-        walletBalance: wallet.balance,
-        appliedAmount: applied,
-        isFullyFunded: credited.savedAmount >= credited.targetAmount
-      };
     });
   }
 

@@ -72,6 +72,15 @@ const expenseSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Expense',
     default: null
+  },
+  // Set on the entry that records a contribution to a savings goal. Its money
+  // moved on two sides (wallet and goal), so it can't be edited like an
+  // ordinary entry, and deleting it reverses both. Server-set only: not in the
+  // controller's field allow-list.
+  productBudget: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'ProductBudget',
+    default: null
   }
 }, {
   timestamps: true
@@ -99,5 +108,6 @@ expenseSchema.index({ user: 1, date: -1 });
 expenseSchema.index({ user: 1, category: 1 });
 // Fast lookup of templates due for generation.
 expenseSchema.index({ isRecurring: 1, nextRunDate: 1 });
+expenseSchema.index({ productBudget: 1 }, { partialFilterExpression: { productBudget: { $type: 'objectId' } } });
 
 module.exports = mongoose.model('Expense', expenseSchema);
