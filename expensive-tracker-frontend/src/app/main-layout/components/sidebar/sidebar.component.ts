@@ -62,7 +62,6 @@ export class SidebarComponent implements OnInit {
 
   isExpanded = true;
   isMobileOpen = false;
-  isHovered = false;
   lockIcon = faLock;
   sparklesIcon = faStar;
   chevronRight = faChevronRight;
@@ -256,26 +255,21 @@ export class SidebarComponent implements OnInit {
     }
   }
 
-  /**
-   * Collapses the hover-expansion once focus leaves the rail entirely.
-   *
-   * `focusout` fires on every move *within* the sidebar too, so the related
-   * target has to be checked — otherwise tabbing from one nav link to the next
-   * snaps the rail shut under the user mid-traversal.
-   */
-  onFocusOut(event: FocusEvent): void {
-    const next = event.relatedTarget as Node | null;
-    if (!next || !(event.currentTarget as HTMLElement).contains(next)) {
-      this.isHovered = false;
-    }
-  }
-
   toggleSubNav(item: NavItem, event: Event): void {
     event.preventDefault();
 
     // Only toggle if the item has subitems and is not completely locked
     if (item.subItems && !item.isLocked) {
+      this.othersItems.forEach(otherItem => {
+        if (otherItem !== item && otherItem.subItems) {
+          otherItem.isOpen = false;
+        }
+      });
       item.isOpen = !item.isOpen;
     }
+  }
+
+  isItemActive(item: NavItem): boolean {
+    return this.router.url === item.path || this.router.url.startsWith(`${item.path}/`);
   }
 }
