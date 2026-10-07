@@ -127,9 +127,18 @@ export class BillsService {
       );
   }
 
-  /** Debits the wallet and records the expense, server-side and atomically. */
-  payBill(id: string, walletId: string): Observable<Bill> {
-    return this.http.post<ApiResponse<{ bill: ApiBill }>>(`${this.apiUrl}/${id}/pay`, { walletId })
+  /**
+   * Debits the wallet and records the expense, server-side and atomically.
+   *
+   * `dueDate` says which period is being paid. A subscription keeps rolling
+   * forward, so the server uses it to accept one payment per due date: a
+   * double-submit gets a 409 instead of paying twice (audit M7).
+   */
+  payBill(id: string, walletId: string, dueDate: Date): Observable<Bill> {
+    return this.http.post<ApiResponse<{ bill: ApiBill }>>(`${this.apiUrl}/${id}/pay`, {
+      walletId,
+      dueDate: dueDate.toISOString()
+    })
       .pipe(
         map(res => this.toBill(res.data.bill)),
         tap(() => this.loadBills()),

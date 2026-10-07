@@ -67,7 +67,11 @@ class RecurringService {
             template.user
           );
 
-          cursor = getNextRunDate(cursor, template.recurringFrequency);
+          // Anchored on the template's own day, so a series started on the 31st
+          // returns to the 31st after a short month instead of drifting (M7).
+          cursor = getNextRunDate(cursor, template.recurringFrequency, {
+            anchorDay: new Date(template.date).getUTCDate()
+          });
 
           // Persist progress immediately so a later failure in this loop can't
           // cause the just-created occurrence to be generated again.

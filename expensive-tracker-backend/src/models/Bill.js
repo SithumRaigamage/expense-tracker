@@ -67,6 +67,18 @@ const billSchema = new mongoose.Schema({
     type: Date,
     default: null
   },
+  /**
+   * Day of month (UTC) a subscription is billed on, taken from the due date the
+   * user sets. Rolling forward aims for this day, so a bill due on the 31st
+   * goes Feb 28 → Mar 31 instead of drifting to the 28th (audit M7).
+   * Server-set: not in the controller's field allow-list.
+   */
+  billingDay: {
+    type: Number,
+    min: 1,
+    max: 31,
+    default: null
+  },
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

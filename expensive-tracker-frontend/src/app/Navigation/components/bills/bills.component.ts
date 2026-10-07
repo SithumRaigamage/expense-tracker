@@ -1,5 +1,6 @@
 import { Component, OnInit, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { finalize } from 'rxjs';
 
 import { FormsModule } from '@angular/forms';
 import { BillsService } from '../../../services/bill.service';
@@ -31,6 +32,9 @@ export class BillsComponent implements OnInit {
   private readonly dialogs = inject(DialogService);
 
   private readonly destroyRef = inject(DestroyRef);
+
+  /** Bills with a payment in flight; their Pay button is disabled meanwhile. */
+  readonly paying = new Set<string>();
 
   bills: Bill[] = [];
   transactions: BillTransaction[] = [];
@@ -110,6 +114,10 @@ export class BillsComponent implements OnInit {
 
   /** Pays the bill from a wallet; the server moves the money and logs it. */
   payBill(bill: Bill): void {
+    if (this.paying.has(bill.id)) {
+      return;
+    }
+
     const walletId = bill.selectedWalletId || this.availableWallets[0]?.id;
 
     if (!walletId) {
@@ -117,7 +125,10 @@ export class BillsComponent implements OnInit {
       return;
     }
 
-    this.billsService.payBill(bill.id, walletId).subscribe({
+    this.paying.add(bill.id);
+    this.billsService.payBill(bill.id, walletId, bill.dueDate).pipe(
+      finalize(() => this.paying.delete(bill.id))
+    ).subscribe({
       next: () => this.notifications.success(`Paid ${bill.name}.`),
       error: (error) => this.notifications.error(error?.message || 'Could not pay that bill.')
     });
