@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const Expense = require('../models/Expense');
 const Category = require('../models/Category');
 const Wallet = require('../models/Wallet');
+const ProductBudget = require('../models/ProductBudget');
 const WalletService = require('./walletService');
 const { NotFoundError, BadRequestError, ConflictError } = require('../utils/errors');
 const { runInTransaction } = require('../utils/transaction');
@@ -15,6 +16,18 @@ const balanceEffect = (categoryType, amount) => (categoryType === 'income' ? amo
 const ORPHANED_MESSAGE =
   "This transaction's category no longer exists. Assign it a category first, " +
   'so its effect on the wallet balance is known.';
+
+// A goal contribution moved money on two sides (wallet and goal). Changing the
+// entry's amount, wallet or category would move only one of them (audit M6).
+const GOAL_ENTRY_MESSAGE =
+  'This entry records a contribution to a savings goal, so its amount, wallet and ' +
+  'category follow the goal. Delete it to undo the contribution.';
+
+/** Whether an update would change what an entry did to balances. */
+const changesMoney = (updateData, expense) =>
+  (updateData.amount !== undefined && Number(updateData.amount) !== expense.amount) ||
+  (updateData.wallet !== undefined && String(updateData.wallet) !== String(expense.wallet)) ||
+  (updateData.category !== undefined && String(updateData.category) !== String(expense.category?._id));
 
 /**
  * Service layer for expense operations
@@ -207,6 +220,10 @@ class ExpenseService {
       throw new NotFoundError('Expense not found');
     }
 
+    if (oldExpense.productBudget && changesMoney(updateData, oldExpense)) {
+      throw new ConflictError(GOAL_ENTRY_MESSAGE);
+    }
+
     const orphaned = !oldExpense.category;
     if (orphaned && !updateData.category) {
       throw new ConflictError(ORPHANED_MESSAGE);
@@ -303,6 +320,16 @@ class ExpenseService {
         expense.wallet, userId, -balanceEffect(expense.category.type, expense.amount),
         { ...opts, includeInactive: true }
       );
+
+      // A goal contribution's money also sits in the goal: take it back out
+      // (never below zero; the saved amount can be edited by hand).
+      if (expense.productBudget) {
+        await ProductBudget.updateOne(
+          { _id: expense.productBudget, user: userId },
+          [{ $set: { savedAmount: { $max: [0, { $subtract: ['$savedAmount', expense.amount] }] } } }],
+          opts
+        );
+      }
 
       await Expense.deleteOne({ _id: expenseId }, opts);
     });

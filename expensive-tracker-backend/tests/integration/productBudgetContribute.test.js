@@ -13,6 +13,8 @@ const app = require('../../src/app');
 const ProductBudget = require('../../src/models/ProductBudget');
 const Wallet = require('../../src/models/Wallet');
 const User = require('../../src/models/User');
+const Expense = require('../../src/models/Expense');
+const Category = require('../../src/models/Category');
 
 const tokenFor = (id) =>
   jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE || '1h' });
@@ -36,7 +38,9 @@ describe('POST /api/v1/productbudgets/:id/contribute', () => {
     await Promise.all([
       User.deleteMany({}),
       Wallet.deleteMany({}),
-      ProductBudget.deleteMany({})
+      ProductBudget.deleteMany({}),
+      Expense.deleteMany({}),
+      Category.deleteMany({})
     ]);
     await mongoose.connection.close();
   });
@@ -44,6 +48,8 @@ describe('POST /api/v1/productbudgets/:id/contribute', () => {
   beforeEach(async () => {
     await Wallet.deleteMany({});
     await ProductBudget.deleteMany({});
+    await Expense.deleteMany({});
+    await Category.deleteMany({});
   });
 
   const seed = async ({ balance = 1000, target = 5000, saved = 0 } = {}) => {
@@ -145,5 +151,66 @@ describe('POST /api/v1/productbudgets/:id/contribute', () => {
   it('requires a wallet id', async () => {
     const { goal } = await seed();
     await contribute(goal._id, { amount: 100 }).expect(400);
+  });
+
+  // Audit M6: a contribution debited the wallet but recorded nothing, so the
+  // money vanished from history and analytics. It's now a transaction linked
+  // to the goal, and that link keeps the two sides in step afterwards.
+  describe('the contribution record', () => {
+    const recordFor = (goal) => Expense.findOne({ productBudget: goal._id }).populate('category');
+    const api = (method, path) => request(app)[method](path).set('Authorization', `Bearer ${token}`);
+
+    it('records the applied amount as an expense linked to the goal', async () => {
+      const { wallet, goal } = await seed({ balance: 1000, target: 500, saved: 300 });
+
+      await contribute(goal._id, { walletId: wallet._id, amount: 900 }).expect(200);
+
+      const record = await recordFor(goal);
+      expect(record).not.toBeNull();
+      expect(record.amount).toBe(200); // the clamped amount, not the 900 asked for
+      expect(record.wallet.toString()).toBe(wallet._id.toString());
+      expect(record.category.type).toBe('expense');
+      expect(record.title).toMatch(/New Laptop/);
+    });
+
+    it('records nothing when the contribution is rejected', async () => {
+      const { wallet, goal } = await seed({ balance: 100, target: 5000 });
+
+      await contribute(goal._id, { walletId: wallet._id, amount: 500 }).expect(400);
+
+      expect(await Expense.countDocuments({})).toBe(0);
+    });
+
+    it('deleting the record returns the money to the wallet and takes it off the goal', async () => {
+      const { wallet, goal } = await seed({ balance: 1000, target: 5000 });
+      await contribute(goal._id, { walletId: wallet._id, amount: 400 }).expect(200);
+      const record = await recordFor(goal);
+
+      await api('delete', `/api/v1/expenses/${record._id}`).expect(200);
+
+      expect((await Wallet.findById(wallet._id)).balance).toBe(1000);
+      expect((await ProductBudget.findById(goal._id)).savedAmount).toBe(0);
+    });
+
+    it("refuses to change the record's amount, wallet or category on its own", async () => {
+      const { wallet, goal } = await seed({ balance: 1000, target: 5000 });
+      await contribute(goal._id, { walletId: wallet._id, amount: 400 }).expect(200);
+      const record = await recordFor(goal);
+
+      await api('put', `/api/v1/expenses/${record._id}`).send({ amount: 50 }).expect(409);
+
+      expect((await Wallet.findById(wallet._id)).balance).toBe(600);
+      expect((await ProductBudget.findById(goal._id)).savedAmount).toBe(400);
+    });
+
+    it('still allows editing the description', async () => {
+      const { wallet, goal } = await seed({ balance: 1000, target: 5000 });
+      await contribute(goal._id, { walletId: wallet._id, amount: 400 }).expect(200);
+      const record = await recordFor(goal);
+
+      await api('put', `/api/v1/expenses/${record._id}`).send({ description: 'Birthday money' }).expect(200);
+
+      expect((await Expense.findById(record._id)).description).toBe('Birthday money');
+    });
   });
 });
