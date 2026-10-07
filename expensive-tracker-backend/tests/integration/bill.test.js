@@ -183,7 +183,7 @@ describe('Bills API', () => {
       }).expect(201);
 
       const res = await auth(request(app).post(`/api/v1/bills/${body.data._id}/pay`))
-        .send({ walletId: wallet._id })
+        .send({ walletId: wallet._id, dueDate: body.data.dueDate })
         .expect(200);
 
       expect(res.body.data.bill.status).toBe('Upcoming');
@@ -233,6 +233,78 @@ describe('Bills API', () => {
       await pay().expect(400);
 
       expect((await Wallet.findById(wallet._id)).balance).toBe(7500);
+    });
+
+    // Audit M7: a subscription stays unpaid after paying (it rolls forward), so a
+    // double-submit paid it twice. The client now says which due date it's
+    // paying; only the first request for that date can win.
+    describe('subscriptions (M7)', () => {
+      const pay = (bill, body) =>
+        auth(request(app).post(`/api/v1/bills/${bill._id}/pay`)).send(body);
+
+      it('pays a double-submitted subscription once', async () => {
+        const wallet = await seedWallet();
+        const { body } = await createBill({ isSubscription: true, dueDate: daysFromNow(3).toISOString() }).expect(201);
+
+        const results = await Promise.all([1, 2, 3].map(() =>
+          pay(body.data, { walletId: wallet._id, dueDate: body.data.dueDate })
+        ));
+
+        expect(results.map(r => r.status).sort()).toEqual([200, 409, 409]);
+        expect((await Wallet.findById(wallet._id)).balance).toBe(10000 - 2500);
+        expect(await mongoose.model('Expense').countDocuments({ user: user._id })).toBe(1);
+      });
+
+      it('requires the due date being paid', async () => {
+        const wallet = await seedWallet();
+        const { body } = await createBill({ isSubscription: true }).expect(201);
+
+        await pay(body.data, { walletId: wallet._id }).expect(400);
+        expect((await Wallet.findById(wallet._id)).balance).toBe(10000);
+      });
+
+      it('refuses a stale due date', async () => {
+        const wallet = await seedWallet();
+        const { body } = await createBill({ isSubscription: true }).expect(201);
+        await pay(body.data, { walletId: wallet._id, dueDate: body.data.dueDate }).expect(200);
+
+        // The same (now outdated) due date again: already paid.
+        await pay(body.data, { walletId: wallet._id, dueDate: body.data.dueDate }).expect(409);
+        expect((await Wallet.findById(wallet._id)).balance).toBe(7500);
+      });
+
+      it('rolls a month-end due date through a short month and back', async () => {
+        const wallet = await seedWallet();
+        const { body } = await createBill({ isSubscription: true, dueDate: '2027-01-31T00:00:00.000Z' }).expect(201);
+
+        const first = await pay(body.data, { walletId: wallet._id, dueDate: body.data.dueDate }).expect(200);
+        expect(first.body.data.bill.dueDate).toBe('2027-02-28T00:00:00.000Z'); // was Mar 3
+
+        const second = await pay(body.data, { walletId: wallet._id, dueDate: first.body.data.bill.dueDate }).expect(200);
+        expect(second.body.data.bill.dueDate).toBe('2027-03-31T00:00:00.000Z'); // back to the 31st
+      });
+
+      it("follows a due date the user changes, not the original one", async () => {
+        const wallet = await seedWallet();
+        const { body } = await createBill({ isSubscription: true, dueDate: '2027-01-31T00:00:00.000Z' }).expect(201);
+        await auth(request(app).put(`/api/v1/bills/${body.data._id}`))
+          .send({ dueDate: '2027-01-15T00:00:00.000Z' })
+          .expect(200);
+
+        const res = await pay(body.data, { walletId: wallet._id, dueDate: '2027-01-15T00:00:00.000Z' }).expect(200);
+        expect(res.body.data.bill.dueDate).toBe('2027-02-15T00:00:00.000Z');
+      });
+
+      it('does not let a client set the billing day directly', async () => {
+        const { body } = await createBill({ isSubscription: true, dueDate: '2027-01-10T00:00:00.000Z', billingDay: 31 }).expect(201);
+        expect((await Bill.findById(body.data._id)).billingDay).toBe(10);
+      });
+    });
+
+    it('pays a one-off bill without a due date in the request', async () => {
+      const wallet = await seedWallet();
+      const { body } = await createBill().expect(201);
+      await auth(request(app).post(`/api/v1/bills/${body.data._id}/pay`)).send({ walletId: wallet._id }).expect(200);
     });
 
     it("refuses to draw from another user's wallet", async () => {

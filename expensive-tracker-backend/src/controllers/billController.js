@@ -64,11 +64,12 @@ const deleteBill = asyncHandler(async (req, res) => {
 
 /**
  * @desc    Pay a bill from a wallet, recording the expense
- * @route   POST /api/v1/bills/:id/pay
+ * @route   POST /api/v1/bills/:id/pay  { walletId, dueDate }
+ *          `dueDate` is the due date being paid; required for a subscription
  * @access  Private
  */
 const payBill = asyncHandler(async (req, res) => {
-  const result = await BillService.payBill(req.params.id, req.user.id, req.body.walletId);
+  const result = await BillService.payBill(req.params.id, req.user.id, req.body.walletId, req.body.dueDate);
   successResponse(res, result, 200, 'Bill paid successfully');
 });
 
