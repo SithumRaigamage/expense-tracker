@@ -50,7 +50,7 @@ Each finding is marked with how it was established:
 | H4 | Uploads: public receipts, missing nginx route, no volume | 🟠 High | ✅ Fixed |
 | H5 | Internal error messages returned to clients; 404s returned as 500 | 🟠 High | ✅ Fixed |
 | H6 | Sessions cannot be revoked; token lifetime ignores config | 🟠 High | ✅ Fixed |
-| H7 | Known-vulnerable dependencies | 🟠 High | ⚠️ Partially fixed |
+| H7 | Known-vulnerable dependencies | 🟠 High | ✅ Fixed |
 | M1–M8 | Money correctness | 🟡 Medium | ⏳ Open |
 | F1–F12 | Broken features | 🟡 Medium | ⏳ Open |
 | U1–U8 | UI/UX & accessibility | 🔵 Low | ⏳ Open (U1 resolved by C1) |

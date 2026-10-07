@@ -300,7 +300,7 @@ attackers. Monitoring sees a stream of false 500s, and clients can't tell
 |---|---|
 | **Severity** | 🟠 High (uses components with known vulnerabilities, CWE-1395) |
 | **Verification** | Tooling (`npm audit --omit=dev`) |
-| **Status** | ⚠️ Partially fixed |
+| **Status** | ✅ Fixed |
 | **Location** | `expensive-tracker-backend/package-lock.json`, `expensive-tracker-frontend/package-lock.json` |
 
 ### Description
@@ -323,9 +323,23 @@ Track any advisory whose fix needs a breaking major upgrade separately.
   moved together from 21.2.18 to **21.2.25** (same major; fixes the
   `@angular/common` and `@angular/compiler` XSS and cache advisories). Down from
   13 production advisories to **2 moderate**.
-- **Remaining:** `uuid < 11.1.1` through `exceljs`. npm's only "fix" is
-  downgrading exceljs to 3.4.0, which is worse. Track an exceljs release that
-  updates `uuid`, or replace the export library.
-- Verified: frontend production build, lint and 167/167 unit tests pass on the
-  new versions.
+- **`uuid` through `exceljs`** (branch `fix/h7-exceljs-uuid`): exceljs 4.4.0 is
+  the latest release (December 2024) and still depends on `uuid@^8`; npm's only
+  "fix" was downgrading exceljs to 3.4.0. A scoped override in
+  `expensive-tracker-frontend/package.json`
+  (`"overrides": { "exceljs": { "uuid": "^11.1.1" } }`) moves exceljs to
+  `uuid@11.1.1` without touching other consumers. exceljs only calls
+  `require('uuid').v4()`, which uuid 11 still exports. `npm audit --omit=dev`
+  → **0 vulnerabilities**.
+- **Residual, not exploitable:** the browser build loads exceljs's prebuilt
+  `dist/exceljs.min.js`, which has uuid 8 compiled in, so the override can't
+  reach that copy. The advisory (GHSA-w5hq-g745-h8pq) only affects
+  `v3`/`v5`/`v6` called with a `buf` argument; exceljs only calls `v4()` with
+  no arguments. Replacing exceljs would remove the bundled copy too. Revisit
+  that if exceljs stays unmaintained.
+- `uuid@8.3.2` also remains under `webpack-dev-server` → `sockjs`. It's a
+  dev-server dependency and never ships.
+- Verified: frontend production build, lint and 167/167 unit tests pass; exceljs
+  writes a workbook with a data-bar conditional format (the code path that
+  calls `uuidv4()`) under Node with `uuid@11.1.1`.
 
