@@ -6,6 +6,9 @@ const WalletService = require('./walletService');
 const { NotFoundError, BadRequestError } = require('../utils/errors');
 const { runInTransaction } = require('../utils/transaction');
 
+/** Signed change an entry makes to its wallet: income adds, expense subtracts. */
+const balanceEffect = (categoryType, amount) => (categoryType === 'income' ? amount : -amount);
+
 /**
  * Service layer for expense operations
  */
@@ -136,8 +139,7 @@ class ExpenseService {
     // The record and the balance change land together or not at all.
     const expense = await runInTransaction(async (opts) => {
       const [created] = await Expense.create([expenseData], opts);
-      const multiplier = category.type === 'income' ? 1 : -1;
-      await WalletService.updateBalance(created.wallet, userId, created.amount * multiplier, opts);
+      await WalletService.updateBalance(created.wallet, userId, balanceEffect(category.type, created.amount), opts);
       return created;
     });
 
@@ -211,8 +213,16 @@ class ExpenseService {
       }
     }
 
-    // Handle wallet change or amount change
-    const amountChanged = updateData.amount !== undefined && updateData.amount !== oldExpense.amount;
+    // Validate before any money moves: arithmetic on "abc" is NaN, and $inc by
+    // NaN would write NaN into the balance.
+    if (updateData.amount !== undefined) {
+      const amount = Number(updateData.amount);
+      if (!Number.isFinite(amount) || amount < 0.01) {
+        throw new BadRequestError('Amount must be a number greater than 0');
+      }
+      updateData.amount = amount;
+    }
+
     const walletChanged = updateData.wallet !== undefined && updateData.wallet.toString() !== oldExpense.wallet.toString();
 
     // Check the destination wallet before touching any balance. Otherwise an
@@ -225,17 +235,19 @@ class ExpenseService {
       }
     }
 
-    const updated = await runInTransaction(async (opts) => {
-      if (amountChanged || walletChanged) {
-        // Revert old balance
-        const oldMultiplier = oldExpense.category.type === 'income' ? -1 : 1;
-        await WalletService.updateBalance(oldExpense.wallet, userId, oldExpense.amount * oldMultiplier, opts);
+    // An expense's effect on its wallet is its amount, signed by category type.
+    // Amount, wallet and category can each change that effect, so compare the
+    // whole effect rather than checking which fields changed: a category moving
+    // between an expense and an income type flips the sign on its own (M1).
+    const oldEffect = balanceEffect(oldExpense.category.type, oldExpense.amount);
+    const newEffect = balanceEffect(category.type, updateData.amount ?? oldExpense.amount);
 
-        // Apply new balance (using new amount if provided, else old)
-        const newAmount = updateData.amount !== undefined ? updateData.amount : oldExpense.amount;
-        const newWalletId = updateData.wallet !== undefined ? updateData.wallet : oldExpense.wallet;
-        const newMultiplier = category.type === 'income' ? 1 : -1;
-        await WalletService.updateBalance(newWalletId, userId, newAmount * newMultiplier, opts);
+    const updated = await runInTransaction(async (opts) => {
+      if (walletChanged) {
+        await WalletService.updateBalance(oldExpense.wallet, userId, -oldEffect, opts);
+        await WalletService.updateBalance(updateData.wallet, userId, newEffect, opts);
+      } else if (newEffect !== oldEffect) {
+        await WalletService.updateBalance(oldExpense.wallet, userId, newEffect - oldEffect, opts);
       }
 
       return Expense.findOneAndUpdate(
@@ -264,8 +276,7 @@ class ExpenseService {
 
     await runInTransaction(async (opts) => {
       // Revert wallet balance
-      const multiplier = expense.category.type === 'income' ? -1 : 1;
-      await WalletService.updateBalance(expense.wallet, userId, expense.amount * multiplier, opts);
+      await WalletService.updateBalance(expense.wallet, userId, -balanceEffect(expense.category.type, expense.amount), opts);
 
       await Expense.deleteOne({ _id: expenseId }, opts);
     });

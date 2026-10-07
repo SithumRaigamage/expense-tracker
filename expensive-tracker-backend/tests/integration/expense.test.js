@@ -145,6 +145,69 @@ describe('Expense API', () => {
       // Not 1000 - 250 - 400: the original debit must be undone first.
       expect(await balanceOf(walletId)).toBe(STARTING_BALANCE - 400);
     });
+
+    // Audit M1: balances were only adjusted when amount or wallet changed, so
+    // re-categorising between an expense and an income type moved nothing.
+    const update = (id, body) =>
+      request(app)
+        .put(`/api/v1/expenses/${id}`)
+        .set('Authorization', `Bearer ${token}`)
+        .send(body);
+
+    it('rebalances when the category changes from an expense to an income type', async () => {
+      const created = await createExpense({ amount: 100 }).expect(201);
+      expect(await balanceOf(walletId)).toBe(STARTING_BALANCE - 100);
+
+      await update(created.body.data._id, { category: incomeCategoryId }).expect(200);
+
+      expect(await balanceOf(walletId)).toBe(STARTING_BALANCE + 100);
+    });
+
+    it('rebalances when the category changes from an income to an expense type', async () => {
+      const created = await createExpense({ category: incomeCategoryId, amount: 100 }).expect(201);
+
+      await update(created.body.data._id, { category: expenseCategoryId }).expect(200);
+
+      expect(await balanceOf(walletId)).toBe(STARTING_BALANCE - 100);
+    });
+
+    it('applies a type change and an amount change together', async () => {
+      const created = await createExpense({ amount: 100 }).expect(201);
+
+      await update(created.body.data._id, { category: incomeCategoryId, amount: 300 }).expect(200);
+
+      expect(await balanceOf(walletId)).toBe(STARTING_BALANCE + 300);
+    });
+
+    it('applies a type change and a wallet change together', async () => {
+      const created = await createExpense({ amount: 100 }).expect(201);
+      const other = await Wallet.create({
+        name: 'Other', type: 'bank', balance: 0, currency: 'LKR', user: created.body.data.user
+      });
+
+      await update(created.body.data._id, { category: incomeCategoryId, wallet: other._id }).expect(200);
+
+      expect(await balanceOf(walletId)).toBe(STARTING_BALANCE);
+      expect(await balanceOf(other._id)).toBe(100);
+    });
+
+    it('leaves the balance alone for a change between two categories of the same type', async () => {
+      const created = await createExpense({ amount: 100 }).expect(201);
+      const rent = await Category.create({ name: 'Rent', type: 'expense', user: created.body.data.user });
+
+      await update(created.body.data._id, { category: rent._id }).expect(200);
+
+      expect(await balanceOf(walletId)).toBe(STARTING_BALANCE - 100);
+    });
+
+    it('rejects a non-numeric amount without touching the balance', async () => {
+      const created = await createExpense({ amount: 100 }).expect(201);
+
+      await update(created.body.data._id, { amount: 'abc' }).expect(400);
+      await update(created.body.data._id, { amount: 0 }).expect(400);
+
+      expect(await balanceOf(walletId)).toBe(STARTING_BALANCE - 100);
+    });
   });
 
   describe('DELETE /api/v1/expenses/:id', () => {
