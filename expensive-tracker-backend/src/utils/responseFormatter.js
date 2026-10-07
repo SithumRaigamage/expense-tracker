@@ -9,7 +9,7 @@
  * @param {number} statusCode - HTTP status code (default: 200)
  * @param {string} message - Optional success message
  */
-const successResponse = (res, data, statusCode = 200, message = null) => {
+const successResponse = (res, data, statusCode = 200, message = null, meta = null) => {
   const response = {
     success: true
   };
@@ -20,6 +20,9 @@ const successResponse = (res, data, statusCode = 200, message = null) => {
 
   if (data !== undefined && data !== null) {
     response.data = data;
+  }
+  if (meta) {
+    Object.assign(response, meta);
   }
 
   return res.status(statusCode).json(response);

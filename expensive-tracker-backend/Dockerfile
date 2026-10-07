@@ -2,20 +2,21 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy dependency files
 COPY package*.json ./
+RUN npm ci --omit=dev && npm cache clean --force
 
-# Install dependencies
-RUN npm install
-
-# Copy source code
 COPY . .
 
-# Create uploads directory
-RUN mkdir -p public/uploads
+RUN mkdir -p public/uploads storage/receipts \
+    && addgroup -S app \
+    && adduser -S -G app app \
+    && chown -R app:app /app
 
-# Expose backend port
 EXPOSE 3001
 
-# Start the application
+USER app
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+    CMD wget -qO- http://127.0.0.1:3001/health || exit 1
+
 CMD ["npm", "start"]

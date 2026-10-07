@@ -171,7 +171,7 @@ export class ReleaseNotesComponent implements OnInit {
         if (err.status === 403) {
           this.error = 'You do not have permission to delete release notes. Admin privileges required.';
         } else {
-          this.error = 'Failed to delete release note: ' + (err.error?.message || err.message || 'Unknown error');
+          this.error = 'Failed to delete release note: ' + (err.error?.error || err.error?.message || err.message || 'Unknown error');
         }
         this.notifications.error(this.error);
         this.isLoading = false;
@@ -212,7 +212,7 @@ export class ReleaseNotesComponent implements OnInit {
           if (err.status === 403) {
             this.error = 'You do not have permission to update release notes. Admin privileges required.';
           } else {
-            this.error = 'Failed to update release note: ' + (err.error?.message || err.message || 'Unknown error');
+            this.error = 'Failed to update release note: ' + (err.error?.error || err.error?.message || err.message || 'Unknown error');
           }
           console.error('Error updating release note:', err);
           this.isLoading = false;
@@ -230,7 +230,7 @@ export class ReleaseNotesComponent implements OnInit {
           if (err.status === 403) {
             this.error = 'You do not have permission to create release notes. Admin privileges required.';
           } else {
-            this.error = 'Failed to create release note: ' + (err.error?.message || err.message || 'Unknown error');
+            this.error = 'Failed to create release note: ' + (err.error?.error || err.error?.message || err.message || 'Unknown error');
           }
           console.error('Error creating release note:', err);
           this.isLoading = false;

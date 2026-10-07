@@ -97,7 +97,7 @@ export const routes: Routes = [
             title: 'Currency Settings'
           },
           {
-            path: 'about & support',
+            path: 'about-support',
             loadComponent: () => import('./Navigation/components/settings/about-support/about-support.component').then(m => m.AboutSupportComponent),
             title: 'About & Support'
           }
@@ -108,7 +108,6 @@ export const routes: Routes = [
         loadComponent: () => import('./Navigation/components/help/help.component').then(m => m.HelpComponent),
         title: 'Help Center',
         children: [
-          { path: '', redirectTo: 'help', pathMatch: 'full' },
           {
             path: 'faqs',
             loadComponent: () => import('./Navigation/components/settings/faq/faq.component').then(m => m.FaqComponent),

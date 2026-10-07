@@ -45,10 +45,21 @@ app.set('trust proxy', parseTrustProxy(process.env.TRUST_PROXY));
 app.use(helmet());
 
 // CORS configuration - Environment-based
+const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:3000')
+  .split(',')
+  .map(origin => origin.trim())
+  .filter(Boolean);
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' 
-    ? (process.env.FRONTEND_URL || 'http://localhost:3000').split(',') 
-    : '*',
+  origin: (origin, callback) => {
+    // Non-browser clients do not send an Origin header.
+    if (!origin || (process.env.NODE_ENV !== 'production' && origin === 'http://localhost:4200')) {
+      return callback(null, true);
+    }
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Origin is not allowed by CORS'));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization']

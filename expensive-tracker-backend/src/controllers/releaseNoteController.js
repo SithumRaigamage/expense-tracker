@@ -38,7 +38,7 @@ const getReleaseNoteByVersion = asyncHandler(async (req, res) => {
  * @access  Private/Admin
  */
 const createReleaseNote = asyncHandler(async (req, res) => {
-  const { version, date, features, bugfixes, improvements, isPublished } = req.body;
+  const { version, date, releaseDate, features, bugfixes, improvements, isPublished } = req.body;
   
   // Check if version already exists
   const existingReleaseNote = await ReleaseNote.findOne({ version });
@@ -49,7 +49,7 @@ const createReleaseNote = asyncHandler(async (req, res) => {
   
   const releaseNote = await ReleaseNote.create({
     version,
-    date: date || Date.now(),
+    date: date || releaseDate || Date.now(),
     features: features || [],
     bugfixes: bugfixes || [],
     improvements: improvements || [],
@@ -65,7 +65,7 @@ const createReleaseNote = asyncHandler(async (req, res) => {
  * @access  Private/Admin
  */
 const updateReleaseNote = asyncHandler(async (req, res) => {
-  const { version, date, features, bugfixes, improvements, isPublished } = req.body;
+  const { version, date, releaseDate, features, bugfixes, improvements, isPublished } = req.body;
   
   const releaseNote = await ReleaseNote.findById(req.params.id);
   
@@ -84,7 +84,7 @@ const updateReleaseNote = asyncHandler(async (req, res) => {
   }
   
   releaseNote.version = version || releaseNote.version;
-  releaseNote.date = date || releaseNote.date;
+  releaseNote.date = date || releaseDate || releaseNote.date;
   releaseNote.features = features || releaseNote.features;
   releaseNote.bugfixes = bugfixes || releaseNote.bugfixes;
   releaseNote.improvements = improvements || releaseNote.improvements;

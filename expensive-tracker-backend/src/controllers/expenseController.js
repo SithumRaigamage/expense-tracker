@@ -21,7 +21,7 @@ const getExpenses = asyncHandler(async (req, res) => {
   const result = await ExpenseService.getExpenses(req.user.id, req.query);
   
   // successResponse handles meta/pagination if valid format
-  successResponse(res, result.expenses, 200, 'Expenses retrieved successfully', result.pagination);
+  successResponse(res, result.expenses, 200, 'Expenses retrieved successfully', { pagination: result.pagination });
 });
 
 /**
@@ -107,7 +107,7 @@ const getMonthlyExpenses = asyncHandler(async (req, res) => {
   
   const result = await ExpenseService.getExpenses(req.user.id, query);
   
-  successResponse(res, result.expenses, 200, `Expenses for ${startDate.toLocaleString('default', { month: 'long', year: 'numeric' })} retrieved`, result.pagination);
+  successResponse(res, result.expenses, 200, `Expenses for ${startDate.toLocaleString('default', { month: 'long', year: 'numeric' })} retrieved`, { pagination: result.pagination });
 });
 
 /**

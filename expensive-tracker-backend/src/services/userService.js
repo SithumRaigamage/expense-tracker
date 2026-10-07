@@ -14,6 +14,53 @@ const {
  * Service layer for user operations
  */
 class UserService {
+  static async changeEmail(userId, newEmail, password) {
+    const user = await User.findById(userId).select('+password');
+    if (!user || !(await user.comparePassword(password))) {
+      throw new UnauthorizedError('Password is incorrect');
+    }
+    const existing = await User.findOne({ email: newEmail, _id: { $ne: userId } });
+    if (existing) throw new ConflictError('User with this email already exists');
+    user.email = newEmail;
+    await user.save();
+    return user;
+  }
+
+  static async getPaymentMethods(userId) {
+    const user = await User.findById(userId).select('paymentMethods');
+    if (!user) throw new NotFoundError('User not found');
+    return user.paymentMethods || [];
+  }
+
+  static async addPaymentMethod(userId, method) {
+    const user = await User.findById(userId);
+    if (!user) throw new NotFoundError('User not found');
+    if (!user.paymentMethods) user.paymentMethods = [];
+    if (method.isDefault) user.paymentMethods.forEach(item => { item.isDefault = false; });
+    user.paymentMethods.push(method);
+    await user.save();
+    return user.paymentMethods[user.paymentMethods.length - 1];
+  }
+
+  static async updatePaymentMethod(userId, methodId, updates) {
+    const user = await User.findById(userId);
+    if (!user) throw new NotFoundError('User not found');
+    const method = user.paymentMethods.id(methodId);
+    if (!method) throw new NotFoundError('Payment method not found');
+    if (updates.isDefault) user.paymentMethods.forEach(item => { item.isDefault = false; });
+    Object.assign(method, updates);
+    await user.save();
+    return method;
+  }
+
+  static async deletePaymentMethod(userId, methodId) {
+    const user = await User.findById(userId);
+    if (!user) throw new NotFoundError('User not found');
+    const method = user.paymentMethods.id(methodId);
+    if (!method) throw new NotFoundError('Payment method not found');
+    method.deleteOne();
+    await user.save();
+  }
   /**
    * Issue a session token.
    *

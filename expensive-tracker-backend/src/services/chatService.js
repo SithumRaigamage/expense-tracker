@@ -3,6 +3,8 @@ const Anthropic = require('@anthropic-ai/sdk');
 const Wallet = require('../models/Wallet');
 const Expense = require('../models/Expense');
 const ProductBudget = require('../models/ProductBudget');
+const User = require('../models/User');
+const CurrencyService = require('./currencyService');
 const { BadRequestError } = require('../utils/errors');
 
 const MODEL = 'claude-opus-5';
@@ -46,27 +48,67 @@ const buildFinancialContext = async (userId) => {
   // Aggregation pipelines don't auto-cast strings to ObjectId (audit F6).
   const userOid = new mongoose.Types.ObjectId(userId);
 
-  const [wallets, goals, spendByCategory, recent] = await Promise.all([
+  const [user, wallets, goals, spendByCategory, recent] = await Promise.all([
+    User.findById(userId).select('currency').lean(),
     Wallet.find({ user: userId, isActive: true }).select('name type balance currency').lean(),
     ProductBudget.find({ user: userId, isActive: true })
       .select('name targetAmount savedAmount targetDate').lean(),
     Expense.aggregate([
       { $match: { user: userOid, date: { $gte: since } } },
-      { $group: { _id: '$category', total: { $sum: '$amount' }, count: { $sum: 1 } } },
+      {
+        $lookup: {
+          from: 'wallets',
+          localField: 'wallet',
+          foreignField: '_id',
+          as: 'walletInfo'
+        }
+      },
+      { $unwind: { path: '$walletInfo', preserveNullAndEmptyArrays: true } },
+      {
+        $group: {
+          _id: { category: '$category', currency: '$walletInfo.currency' },
+          total: { $sum: '$amount' },
+          count: { $sum: 1 }
+        }
+      },
       { $sort: { total: -1 } },
       { $limit: 12 },
-      { $lookup: { from: 'categories', localField: '_id', foreignField: '_id', as: 'category' } },
-      { $project: { name: { $arrayElemAt: ['$category.name', 0] }, total: 1, count: 1 } }
+      { $lookup: { from: 'categories', localField: '_id.category', foreignField: '_id', as: 'category' } },
+      {
+        $project: {
+          name: { $arrayElemAt: ['$category.name', 0] },
+          currency: { $ifNull: ['$_id.currency', 'unknown'] },
+          total: 1,
+          count: 1
+        }
+      }
     ]),
-    Expense.find({ user: userOid }).sort({ date: -1 }).limit(15)
-      .select('title amount date').lean()
+    Expense.aggregate([
+      { $match: { user: userOid } },
+      { $sort: { date: -1 } },
+      { $limit: 15 },
+      { $lookup: { from: 'wallets', localField: 'wallet', foreignField: '_id', as: 'walletInfo' } },
+      { $unwind: { path: '$walletInfo', preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          title: 1,
+          amount: 1,
+          date: 1,
+          currency: { $ifNull: ['$walletInfo.currency', 'unknown'] }
+        }
+      }
+    ])
   ]);
 
-  const totalBalance = wallets.reduce((sum, w) => sum + w.balance, 0);
+  const primaryCurrency = user?.currency || 'LKR';
+  const convertedBalances = await Promise.all(
+    wallets.map(wallet => CurrencyService.convert(wallet.balance, wallet.currency, primaryCurrency))
+  );
+  const totalBalance = convertedBalances.reduce((sum, balance) => sum + balance, 0);
 
   return [
     '<financial_context>',
-    `Total across all wallets: ${totalBalance.toLocaleString()}`,
+    `Total across all wallets: ${totalBalance.toLocaleString()} ${primaryCurrency} (converted from each wallet's native currency)`,
     '',
     'Wallets:',
     ...(wallets.length
@@ -75,7 +117,7 @@ const buildFinancialContext = async (userId) => {
     '',
     'Spending by category, last 3 months:',
     ...(spendByCategory.length
-      ? spendByCategory.map(c => `- ${c.name || 'Uncategorised'}: ${c.total.toLocaleString()} across ${c.count} transactions`)
+      ? spendByCategory.map(c => `- ${c.name || 'Uncategorised'}: ${c.total.toLocaleString()} ${c.currency} across ${c.count} transactions`)
       : ['- no transactions recorded']),
     '',
     'Savings goals:',
@@ -88,7 +130,7 @@ const buildFinancialContext = async (userId) => {
     '',
     'Most recent transactions:',
     ...(recent.length
-      ? recent.map(t => `- ${new Date(t.date).toISOString().slice(0, 10)}: ${t.title || 'untitled'} — ${t.amount.toLocaleString()}`)
+      ? recent.map(t => `- ${new Date(t.date).toISOString().slice(0, 10)}: ${t.title || 'untitled'} — ${t.amount.toLocaleString()} ${t.currency}`)
       : ['- none']),
     '</financial_context>'
   ].join('\n');

@@ -101,6 +101,30 @@ const changePassword = asyncHandler(async (req, res) => {
   successResponse(res, {}, 200, 'Password updated successfully. You have been signed out on other devices.');
 });
 
+const changeEmail = asyncHandler(async (req, res) => {
+  const { newEmail, password } = req.body;
+  if (!newEmail || !password) throw new BadRequestError('Please provide new email and password');
+  const user = await UserService.changeEmail(req.user.id, newEmail, password);
+  successResponse(res, { email: user.email }, 200, 'Email updated successfully');
+});
+
+const getPaymentMethods = asyncHandler(async (req, res) => {
+  successResponse(res, await UserService.getPaymentMethods(req.user.id));
+});
+
+const addPaymentMethod = asyncHandler(async (req, res) => {
+  createdResponse(res, await UserService.addPaymentMethod(req.user.id, req.body));
+});
+
+const updatePaymentMethod = asyncHandler(async (req, res) => {
+  successResponse(res, await UserService.updatePaymentMethod(req.user.id, req.params.id, req.body));
+});
+
+const deletePaymentMethod = asyncHandler(async (req, res) => {
+  await UserService.deletePaymentMethod(req.user.id, req.params.id);
+  successResponse(res, {}, 200, 'Payment method deleted successfully');
+});
+
 /**
  * @desc    Verify token
  * @route   GET /api/v1/users/verify
@@ -119,5 +143,10 @@ module.exports = {
   getProfile,
   updateProfile,
   changePassword,
+  changeEmail,
+  getPaymentMethods,
+  addPaymentMethod,
+  updatePaymentMethod,
+  deletePaymentMethod,
   verifyToken
 };

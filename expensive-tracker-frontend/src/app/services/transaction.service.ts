@@ -1,9 +1,10 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { BehaviorSubject, Observable, map, tap, catchError, throwError, of } from 'rxjs';
+import { BehaviorSubject, Observable, map, tap, catchError, throwError, of, distinctUntilChanged } from 'rxjs';
 import { Transaction } from '../core/models/Transaction';
 import { AuthService } from './auth.service';
 import { environment } from '../../environments/environment';
+import { WalletService } from './wallet.service';
 
 /** Label for an entry whose category no longer exists. */
 export const UNCATEGORIZED = 'Uncategorized';
@@ -54,23 +55,27 @@ interface MonthlyStats {
 export class TransactionService {
   private http = inject(HttpClient);
   private authService = inject(AuthService);
+  private walletService = inject(WalletService);
+  private loadedUserId: string | null = null;
+  private creatingDefaults = false;
 
   private apiUrl = environment.apiUrl;
   private transactions = new BehaviorSubject<Transaction[]>([]);
   private categories = new BehaviorSubject<Category[]>([]);
 
   constructor() {
-    // Load data immediately if already authenticated
-    if (this.authService.isAuthenticated()) {
-      this.loadCategories();
-      this.loadTransactions();
-    }
-
-    // Also load data when user becomes authenticated
-    this.authService.currentUser$.subscribe(user => {
-      if (user) {
+    this.authService.currentUser$.pipe(
+      map(user => user?.id ?? null),
+      distinctUntilChanged()
+    ).subscribe(userId => {
+      if (userId) {
+        this.loadedUserId = userId;
         this.loadCategories();
         this.loadTransactions();
+      } else {
+        this.loadedUserId = null;
+        this.transactions.next([]);
+        this.categories.next([]);
       }
     });
   }
@@ -98,7 +103,8 @@ export class TransactionService {
   }
 
   private createDefaultCategories(): void {
-
+    if (this.creatingDefaults) return;
+    this.creatingDefaults = true;
     this.http.post<ApiResponse<Category[]>>(`${this.apiUrl}/categories/defaults`, {})
       .pipe(
         map(response => response.data),
@@ -111,9 +117,11 @@ export class TransactionService {
       .subscribe({
         next: (categories) => {
           this.categories.next(categories);
+          this.creatingDefaults = false;
         },
         error: (error) => {
           console.error('Final error creating default categories:', error);
+          this.creatingDefaults = false;
         }
       });
   }
@@ -173,7 +181,7 @@ export class TransactionService {
   private loadTransactions(): void {
 
     // Set a large limit to get all transactions
-    const params = { limit: '1000' };
+    const params = { limit: '1000', page: '1' };
 
     this.http.get<ApiResponse<ExpenseResponse[]>>(`${this.apiUrl}/expenses`, { params })
       .pipe(
@@ -341,6 +349,7 @@ export class TransactionService {
         tap(newTransaction => {
           const current = this.transactions.getValue();
           this.transactions.next([...current, newTransaction]);
+          this.walletService.refresh();
         }),
         catchError(this.handleError)
       );
@@ -381,6 +390,7 @@ export class TransactionService {
             current[index] = updatedTransaction;
             this.transactions.next([...current]);
           }
+          this.walletService.refresh();
         }),
         catchError(this.handleError)
       );
@@ -396,6 +406,7 @@ export class TransactionService {
         tap(() => {
           const current = this.transactions.getValue();
           this.transactions.next(current.filter(t => t.id !== id));
+          this.walletService.refresh();
         }),
         map(() => void 0),
         catchError(this.handleError)
@@ -440,6 +451,7 @@ export class TransactionService {
             successCount++;
             completed++;
             if (completed === total) {
+              this.walletService.refresh();
               observer.next({
                 successCount,
                 failedCount,

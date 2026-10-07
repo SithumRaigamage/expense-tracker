@@ -75,8 +75,10 @@ class ExpenseService {
     }
 
     // Pagination
-    const pageNum = parseInt(page, 10);
-    const limitNum = parseInt(limit, 10);
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    // Keep accidental/untrusted limits bounded while retaining the existing
+    // client-side dashboard behaviour.
+    const limitNum = Math.min(1000, Math.max(1, parseInt(limit, 10) || 10));
     const startIndex = (pageNum - 1) * limitNum;
 
     // Sort options

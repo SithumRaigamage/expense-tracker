@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 require('dotenv').config();
 const RecurringService = require('../src/services/recurringService');
+const { withRecurringLock } = require('../src/utils/recurringLock');
 
 /**
  * Standalone runner for the recurring-expense engine.
@@ -14,7 +15,14 @@ const run = async () => {
     await mongoose.connect(process.env.MONGODB_URI);
     console.log('✅ Connected to MongoDB');
 
-    const summary = await RecurringService.processDueRecurringExpenses({ now: new Date() });
+    const summary = await withRecurringLock(() =>
+      RecurringService.processDueRecurringExpenses({ now: new Date() })
+    );
+
+    if (summary?.skipped) {
+      console.log('⏭️ Another recurring-expense run already holds the lock');
+      return;
+    }
 
     console.log('🔁 Recurring expense run summary:');
     console.log(`   Templates scanned:        ${summary.totalTemplates}`);

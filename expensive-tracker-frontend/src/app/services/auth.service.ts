@@ -70,8 +70,12 @@ export class AuthService {
           this.logout();
         }
       },
-      error: () => {
-        this.logout();
+      error: (error: HttpErrorResponse) => {
+        // A transient network failure must not sign a user out of the PWA.
+        // Only an explicit authentication failure invalidates the session.
+        if (error.status === 401 || error.status === 403) {
+          this.clearSession();
+        }
       }
     });
   }
@@ -130,11 +134,7 @@ export class AuthService {
             this.saveUserToStorage(response.data.user);
           }
         }),
-        catchError(error => {
-          // If there's an error verifying the token, we should clear the auth state
-          this.logout();
-          return throwError(() => error);
-        })
+        catchError(error => throwError(() => error))
       );
   }
 

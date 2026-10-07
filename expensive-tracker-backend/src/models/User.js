@@ -26,14 +26,14 @@ const userSchema = new mongoose.Schema({
     unique: true,
     lowercase: true,
     match: [
-      /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+      /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/,
       'Please add a valid email'
     ]
   },
   password: {
     type: String,
     required: [true, 'Please add a password'],
-    minlength: [6, 'Password must be at least 6 characters'],
+    minlength: [8, 'Password must be at least 8 characters'],
     select: false
   },
   currency: {
@@ -110,6 +110,16 @@ const userSchema = new mongoose.Schema({
   resetPasswordExpire: Date
 }, {
   timestamps: true
+});
+
+userSchema.add({
+  paymentMethods: [{
+    type: { type: String, enum: ['visa', 'mastercard'], required: true },
+    cardNumber: { type: String, required: true, trim: true },
+    expiryMonth: { type: Number, min: 1, max: 12, required: true },
+    expiryYear: { type: Number, required: true },
+    isDefault: { type: Boolean, default: false }
+  }]
 });
 
 // Encrypt password using bcrypt

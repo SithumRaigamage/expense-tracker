@@ -51,29 +51,20 @@ const checkResourceOwnership = (Model, paramName = 'id', errorMessage = 'Resourc
  * Middleware to sanitize user input
  * Removes potentially dangerous characters
  */
-const sanitizeInput = (req, res, next) => {
-  // Sanitize body
-  if (req.body) {
-    Object.keys(req.body).forEach(key => {
-      if (typeof req.body[key] === 'string') {
-        // Remove script tags and other potentially dangerous content
-        req.body[key] = req.body[key]
-          .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-          .trim();
-      }
-    });
+const sanitizeValue = value => {
+  if (typeof value === 'string') {
+    return value.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '').trim();
   }
+  if (Array.isArray(value)) return value.map(sanitizeValue);
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([key, child]) => [key, sanitizeValue(child)]));
+  }
+  return value;
+};
 
-  // Sanitize query params
-  if (req.query) {
-    Object.keys(req.query).forEach(key => {
-      if (typeof req.query[key] === 'string') {
-        req.query[key] = req.query[key]
-          .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-          .trim();
-      }
-    });
-  }
+const sanitizeInput = (req, res, next) => {
+  if (req.body) req.body = sanitizeValue(req.body);
+  if (req.query) req.query = sanitizeValue(req.query);
 
   next();
 };
@@ -81,5 +72,6 @@ const sanitizeInput = (req, res, next) => {
 module.exports = {
   validateObjectId,
   checkResourceOwnership,
-  sanitizeInput
+  sanitizeInput,
+  sanitizeValue
 };

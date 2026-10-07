@@ -1,5 +1,6 @@
 const RecurringService = require('./recurringService');
 const logger = require('../utils/logger');
+const { withRecurringLock } = require('../utils/recurringLock');
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -18,7 +19,12 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const startRecurringScheduler = ({ intervalMs = DAY_MS } = {}) => {
   const run = async () => {
     try {
-      await RecurringService.processDueRecurringExpenses({ now: new Date() });
+      const result = await withRecurringLock(() =>
+        RecurringService.processDueRecurringExpenses({ now: new Date() })
+      );
+      if (result?.skipped) {
+        logger.info('Recurring scheduler skipped because another run holds the lock');
+      }
     } catch (err) {
       logger.error('Recurring scheduler run failed', { message: err.message });
     }

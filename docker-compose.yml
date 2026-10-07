@@ -22,6 +22,9 @@ services:
     image: mongo:7.0.43
     container_name: expense-tracker-db
     restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:?set MONGO_ROOT_USERNAME in .env}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?set MONGO_ROOT_PASSWORD in .env}
     # No published ports: only the API needs to reach it, and exposing 27017 to
     # the host is how unauthenticated Mongo instances end up on the internet.
     #
@@ -34,13 +37,12 @@ services:
       - mongo-data:/data/db
     healthcheck:
       test:
-        - CMD
-        - mongosh
-        - --quiet
-        - --eval
+        - CMD-SHELL
         - >-
-          try { rs.status() } catch (e) { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'mongodb:27017' }] }) }
-          quit(db.hello().isWritablePrimary ? 0 : 1)
+          mongosh --quiet --username "$$MONGO_INITDB_ROOT_USERNAME"
+          --password "$$MONGO_INITDB_ROOT_PASSWORD"
+          --authenticationDatabase admin
+          --eval "try { rs.status() } catch (e) { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'mongodb:27017' }] }) }; quit(db.hello().isWritablePrimary ? 0 : 1)"
       interval: 10s
       timeout: 5s
       retries: 10
@@ -61,7 +63,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3001
-      - MONGODB_URI=mongodb://mongodb:27017/expense-tracker?replicaSet=rs0
+      - MONGODB_URI=mongodb://${MONGO_ROOT_USERNAME:?set MONGO_ROOT_USERNAME in .env}:${MONGO_ROOT_PASSWORD:?set MONGO_ROOT_PASSWORD in .env}@mongodb:27017/expense-tracker?replicaSet=rs0&authSource=admin
       - JWT_SECRET=${JWT_SECRET:?set JWT_SECRET in .env}
       - JWT_EXPIRE=${JWT_EXPIRE:-30d}
       # Same-origin in this topology: the browser only ever talks to the web

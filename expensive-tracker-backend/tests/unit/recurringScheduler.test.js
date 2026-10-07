@@ -1,4 +1,7 @@
 jest.mock('../../src/services/recurringService');
+jest.mock('../../src/utils/recurringLock', () => ({
+  withRecurringLock: jest.fn(work => work())
+}));
 jest.mock('../../src/utils/logger', () => ({ info: jest.fn(), error: jest.fn() }));
 
 const RecurringService = require('../../src/services/recurringService');

@@ -24,7 +24,7 @@ The **Expense Tracker** is a full-stack, state-of-the-art financial management t
 ## 🛠️ Tech Stack
 
 ### Frontend
-- **Framework:** Angular 19 (Standalone Components, fully lazy-loaded routes)
+- **Framework:** Angular 21 (Standalone Components, fully lazy-loaded routes)
 - **Styling:** Tailwind CSS 4 (Theme-driven, CSS-first optimization)
 - **Icons:** FontAwesome 6+
 - **Charts:** ApexCharts (`ng-apexcharts`) & ECharts (`ngx-echarts`) for Flow, Gauge, and Trend charts
@@ -32,7 +32,7 @@ The **Expense Tracker** is a full-stack, state-of-the-art financial management t
 - **Export:** SheetJS-based Excel export service
 
 ### Backend
-- **Runtime:** Node.js 18+
+- **Runtime:** Node.js 20+
 - **Framework:** Express.js
 - **Database:** MongoDB (Mongoose ODM)
 - **Security:** JWT Authentication, Bcryptjs, Helmet, Express-Validator, express-mongo-sanitize, rate limiting
@@ -347,7 +347,7 @@ All routes are mounted under `/api/v1` and, unless noted, require a bearer token
 
 ```bash
 expense-tracker/
-├── 📂 expensive-tracker-frontend/      # Angular 19 SPA
+├── 📂 expensive-tracker-frontend/      # Angular 21 SPA
 │   ├── 📂 src/app/
 │   │   ├── 📂 auth/components/         # login, register
 │   │   ├── 📂 main-layout/             # shell: sidebar, header, dropdowns
@@ -479,7 +479,7 @@ trivy image expense-tracker:2.0.0
 
 ## 📈 Roadmap
 
-- [x] Angular 19 Upgrade
+- [x] Angular 21 Upgrade
 - [x] Tailwind CSS 4 Integration
 - [x] Refactored Auth UI/UX
 - [x] Multi-Currency Support (Automated)

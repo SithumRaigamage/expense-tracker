@@ -1,14 +1,22 @@
 jest.mock('../../src/models/ProductBudget');
+jest.mock('../../src/models/User');
 const ProductBudget = require('../../src/models/ProductBudget');
+const User = require('../../src/models/User');
 const ProductBudgetService = require('../../src/services/productBudgetService');
 
 beforeEach(() => jest.clearAllMocks());
 
 describe('ProductBudgetService.createProductBudget', () => {
   it('stamps the user and creates the budget', async () => {
+    User.findById.mockReturnValue({ select: jest.fn().mockResolvedValue({ currency: 'LKR' }) });
     ProductBudget.create.mockImplementation((data) => Promise.resolve({ _id: 'b1', ...data }));
     const result = await ProductBudgetService.createProductBudget({ name: 'Laptop', targetAmount: 1000 }, 'u1');
-    expect(ProductBudget.create).toHaveBeenCalledWith({ name: 'Laptop', targetAmount: 1000, user: 'u1' });
+    expect(ProductBudget.create).toHaveBeenCalledWith({
+      name: 'Laptop',
+      targetAmount: 1000,
+      currency: 'LKR',
+      user: 'u1'
+    });
     expect(result.user).toBe('u1');
   });
 });

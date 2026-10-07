@@ -11,13 +11,13 @@ const validateCategoryCreate = [
   body('name')
     .isString().withMessage('Category name must be text').bail()
     .trim()
-    .isLength({ min: 1, max: 50 }).withMessage('Category name must be between 1 and 50 characters'),
+    .isLength({ min: 1, max: 30 }).withMessage('Category name must be between 1 and 30 characters'),
   body('type')
     .isIn(CATEGORY_TYPES).withMessage(`Category type must be one of: ${CATEGORY_TYPES.join(', ')}`),
   body('color')
     .optional()
     .isString().withMessage('Colour must be text').bail()
-    .matches(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i).withMessage('Colour must be a hex value such as #4CAF50'),
+    .matches(/^#[0-9a-f]{6}$/i).withMessage('Colour must be a six-digit hex value such as #4CAF50'),
   body('icon')
     .optional()
     .isString().withMessage('Icon must be text').bail()
@@ -32,14 +32,14 @@ const validateCategoryUpdate = [
     .optional()
     .isString().withMessage('Category name must be text').bail()
     .trim()
-    .isLength({ min: 1, max: 50 }).withMessage('Category name must be between 1 and 50 characters'),
+    .isLength({ min: 1, max: 30 }).withMessage('Category name must be between 1 and 30 characters'),
   body('type')
     .optional()
     .isIn(CATEGORY_TYPES).withMessage(`Category type must be one of: ${CATEGORY_TYPES.join(', ')}`),
   body('color')
     .optional()
     .isString().withMessage('Colour must be text').bail()
-    .matches(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i).withMessage('Colour must be a hex value such as #4CAF50'),
+    .matches(/^#[0-9a-f]{6}$/i).withMessage('Colour must be a six-digit hex value such as #4CAF50'),
   handleValidation
 ];
 

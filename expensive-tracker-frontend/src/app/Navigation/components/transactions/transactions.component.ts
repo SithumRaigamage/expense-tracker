@@ -176,7 +176,7 @@ export class TransactionsComponent implements OnInit {
   createForm(): FormGroup {
     return this.fb.group({
       date: ['', Validators.required],
-      amount: ['', [Validators.required, Validators.min(0)]],
+      amount: ['', [Validators.required, Validators.min(0.01)]],
       description: ['', Validators.required],
       category: ['', Validators.required],
       type: ['expense', Validators.required],

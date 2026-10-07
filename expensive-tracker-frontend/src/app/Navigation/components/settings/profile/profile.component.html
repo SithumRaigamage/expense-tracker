@@ -99,13 +99,11 @@
               <div class="relative">
                 <input id="profile-current-password" [type]="hideCurrent ? 'password' : 'text'" formControlName="currentPassword"
                   class="w-full rounded-xl border border-subtle px-4 py-2.5 pr-11 text-primary surface-1 transition-colors focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/20 disabled:opacity-60"
-                  placeholder="Enter current password"
-                  (focus)="clearMaskedPassword('currentPassword', passwordForm)">
+                  placeholder="Enter current password">
                 <button type="button" (click)="hideCurrent = !hideCurrent"
                   [attr.aria-label]="hideCurrent ? 'Show current password' : 'Hide current password'"
                   [attr.aria-pressed]="!hideCurrent"
-                  [disabled]="passwordForm.get('currentPassword')?.value === MASKED_PASSWORD"
-                  class="absolute inset-y-0 right-0 flex items-center pr-3 text-tertiary hover:text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed">
+                  class="absolute inset-y-0 right-0 flex items-center pr-3 text-tertiary hover:text-gray-700">
                   <fa-icon [icon]="hideCurrent ? faEyeSlash : faEye"></fa-icon>
                 </button>
               </div>
@@ -213,13 +211,11 @@
               <div class="relative">
                 <input id="profile-email-password" [type]="hideEmailPassword ? 'password' : 'text'" formControlName="password"
                   class="w-full rounded-xl border border-subtle px-4 py-2.5 pr-11 text-primary surface-1 transition-colors focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/20"
-                  placeholder="Enter your password"
-                  (focus)="clearMaskedPassword('password', emailForm)">
+                  placeholder="Enter your password">
                 <button type="button" (click)="hideEmailPassword = !hideEmailPassword"
                   [attr.aria-label]="hideEmailPassword ? 'Show password' : 'Hide password'"
                   [attr.aria-pressed]="!hideEmailPassword"
-                  [disabled]="emailForm.get('password')?.value === MASKED_PASSWORD"
-                  class="absolute inset-y-0 right-0 flex items-center pr-3 text-tertiary hover:text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed">
+                  class="absolute inset-y-0 right-0 flex items-center pr-3 text-tertiary hover:text-gray-700">
                   <fa-icon [icon]="hideEmailPassword ? faEyeSlash : faEye"></fa-icon>
                 </button>
               </div>

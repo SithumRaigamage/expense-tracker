@@ -36,7 +36,7 @@ server {
     # below, so it is same-origin. The previous value allowed http://localhost:3001
     # and :3000, which did nothing in production and would have been blocked as
     # mixed content on an https page anyway.
-    add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://images.unsplash.com; connect-src 'self'; worker-src 'self'; manifest-src 'self'; frame-ancestors 'self'; base-uri 'self'" always;
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; frame-ancestors 'self'; base-uri 'self'" always;
 
     # ------------------------------------------------------------------
     # API
@@ -62,7 +62,9 @@ server {
         proxy_set_header   X-Forwarded-Proto $scheme;
         proxy_set_header   Upgrade           $http_upgrade;
         proxy_set_header   Connection        "upgrade";
-        proxy_read_timeout 60s;
+        proxy_read_timeout 300s;
+        proxy_send_timeout 300s;
+        proxy_buffering off;
 
         # Never cache API responses at the edge. These are per-user balances.
         add_header Cache-Control "no-store" always;

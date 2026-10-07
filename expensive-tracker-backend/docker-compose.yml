@@ -3,6 +3,9 @@ services:
     # Keep in step with the root docker-compose.yml (see the note there on upgrades).
     image: mongo:7.0.43
     container_name: expense-tracker-db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:?set MONGO_ROOT_USERNAME in .env}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?set MONGO_ROOT_PASSWORD in .env}
     # Local development only: reachable from this machine, not from the network.
     ports:
       - "127.0.0.1:27017:27017"
@@ -15,13 +18,12 @@ services:
     command: ["--replSet", "rs0", "--bind_ip_all"]
     healthcheck:
       test:
-        - CMD
-        - mongosh
-        - --quiet
-        - --eval
+        - CMD-SHELL
         - >-
-          try { rs.status() } catch (e) { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'localhost:27017' }] }) }
-          quit(db.hello().isWritablePrimary ? 0 : 1)
+          mongosh --quiet --username "$$MONGO_INITDB_ROOT_USERNAME"
+          --password "$$MONGO_INITDB_ROOT_PASSWORD"
+          --authenticationDatabase admin
+          --eval "try { rs.status() } catch (e) { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'localhost:27017' }] }) }; quit(db.hello().isWritablePrimary ? 0 : 1)"
       interval: 10s
       timeout: 5s
       retries: 10
@@ -38,7 +40,7 @@ services:
       - PORT=3001
       # directConnection: the replica set advertises localhost:27017, which from
       # inside this container is the container itself, not the database.
-      - MONGODB_URI=mongodb://mongodb:27017/expense-tracker?directConnection=true
+      - MONGODB_URI=mongodb://${MONGO_ROOT_USERNAME:?set MONGO_ROOT_USERNAME in .env}:${MONGO_ROOT_PASSWORD:?set MONGO_ROOT_PASSWORD in .env}@mongodb:27017/expense-tracker?directConnection=true&authSource=admin
       # Never hardcode this. Supplied from the host environment or a .env file next
       # to this compose file. Left empty here on purpose: an empty value makes the
       # backend exit at boot with a clear message (see src/config/validateEnv.js),

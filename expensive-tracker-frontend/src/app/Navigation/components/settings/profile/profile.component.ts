@@ -62,8 +62,6 @@ export class ProfileComponent implements OnInit {
   faSave = faSave;
   faRefresh = faRefresh;
 
-  readonly MASKED_PASSWORD = '●●●●●●●●●●';
-
   constructor() {
     // Initialize password form
     this.passwordForm = this.fb.group({
@@ -101,10 +99,6 @@ export class ProfileComponent implements OnInit {
           }
 
           this.user = user;
-
-          // Set masked password in forms
-          this.passwordForm.patchValue({ currentPassword: this.MASKED_PASSWORD });
-          this.emailForm.patchValue({ password: this.MASKED_PASSWORD });
 
           // Pre-load images to test CORS and prepare for display
           this.preloadUserImages(user);
@@ -261,20 +255,9 @@ export class ProfileComponent implements OnInit {
     return null;
   }
 
-  clearMaskedPassword(controlName: string, form: FormGroup): void {
-    if (form.get(controlName)?.value === this.MASKED_PASSWORD) {
-      form.get(controlName)?.setValue('');
-    }
-  }
-
   onPasswordChange(): void {
     if (this.passwordForm.valid) {
       const { currentPassword, newPassword } = this.passwordForm.value;
-
-      if (currentPassword === this.MASKED_PASSWORD) {
-        this.showNotification('Please enter your actual current password.', 'error');
-        return;
-      }
 
       this.isPasswordChanging = true;
       this.settingsService.changePassword(currentPassword, newPassword).pipe(
@@ -295,11 +278,6 @@ export class ProfileComponent implements OnInit {
   onEmailChange(): void {
     if (this.emailForm.valid) {
       const { newEmail, password } = this.emailForm.value;
-
-      if (password === this.MASKED_PASSWORD) {
-        this.showNotification('Please enter your password to confirm email change.', 'error');
-        return;
-      }
 
       this.isEmailChanging = true;
       this.settingsService.changeEmail(newEmail, password).pipe(

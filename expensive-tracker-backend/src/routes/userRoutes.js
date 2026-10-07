@@ -7,7 +7,12 @@ const {
   getProfile,
   updateProfile,
   changePassword,
-  verifyToken
+  verifyToken,
+  changeEmail,
+  getPaymentMethods,
+  addPaymentMethod,
+  updatePaymentMethod,
+  deletePaymentMethod
 } = require('../controllers/userController');
 const {
   uploadProfileImage,
@@ -37,6 +42,13 @@ router.route('/profile')
   .get(getProfile)
   .put(updateProfile);
 router.put('/change-password', validatePasswordChange, changePassword);
+router.put('/change-email', changeEmail);
+router.route('/payment-methods')
+  .get(getPaymentMethods)
+  .post(addPaymentMethod);
+router.route('/payment-methods/:id')
+  .put(updatePaymentMethod)
+  .delete(deletePaymentMethod);
 
 // Profile image routes
 router.route('/profile/image')

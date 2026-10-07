@@ -146,6 +146,11 @@ export class WalletService {
       });
   }
 
+  /** Re-read balances after a transaction or bill changes money. */
+  refresh(): void {
+    this.loadWallets();
+  }
+
   getWalletTypeIcon(type: string) {
     switch (type) {
       case 'bank': return faBuildingColumns;

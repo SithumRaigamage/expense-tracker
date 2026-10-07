@@ -139,7 +139,7 @@ export class SidebarComponent implements OnInit {
       isNew: false,
       subItems: [
         { name: 'Profile', path: '/settings/profile', isLocked: false, isNew: false, isUpcoming: false },
-        { name: 'About & Support', path: '/settings/about & support', isLocked: true, isNew: false, isUpcoming: true },
+        { name: 'About & Support', path: '/settings/about-support', isLocked: true, isNew: false, isUpcoming: true },
       ]
     },
     {

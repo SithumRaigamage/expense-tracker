@@ -52,11 +52,12 @@ Each finding is marked with how it was established:
 | H6 | Sessions cannot be revoked; token lifetime ignores config | 🟠 High | ✅ Fixed |
 | H7 | Known-vulnerable dependencies | 🟠 High | ⚠️ Partially fixed |
 | M1–M3, M5–M8 | Money correctness | 🟡 Medium | ✅ Fixed |
-| M4 | Cross-currency transfers and payments | 🟡 Medium | ⏳ Open |
+| M4 | Cross-currency transfers and payments | 🟡 Medium | ✅ Fixed |
 | F1, F12 | Broken features | 🟡 Medium | ✅ Fixed |
-| F2–F11 | Broken features | 🟡 Medium | ⏳ Open |
-| U1–U8 | UI/UX & accessibility | 🔵 Low | ⏳ Open (U1 resolved by C1) |
-| I1–I10 | Infra, CI & hygiene | 🔵 Low | ⏳ Open (I3 partially fixed) |
+| F2–F11 | Broken features | 🟡 Medium | ✅ Fixed |
+| U1–U8 | UI/UX & accessibility | 🔵 Low | ✅ Fixed |
+| I1–I8, I10 | Infra, CI & hygiene | 🔵 Low | ✅ Fixed |
+| I9 | Wallet integration test requires MongoDB | 🔵 Low | ⚠️ Environment-dependent |
 
 Remediation for C1–H7 was completed across the security-fix work and is being
 verified on the current branch. Each report records what changed and how it was

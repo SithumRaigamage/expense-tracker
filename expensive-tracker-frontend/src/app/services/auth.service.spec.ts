@@ -140,19 +140,16 @@ describe('AuthService', () => {
       expect(service.getCurrentUser()).toEqual(refreshed);
     });
 
-    it('logs the session out when verification errors', () => {
+    it('clears the session when verification returns unauthorized', () => {
       tokenService.markSignedIn();
 
-      service.verifyToken().subscribe({ error: () => undefined });
+      (service as any).checkToken();
 
       const req = httpMock.expectOne(`${apiUrl}/verify`);
       req.flush('expired', { status: 401, statusText: 'Unauthorized' });
 
-      const logoutReq = httpMock.expectOne(`${apiUrl}/logout`);
-      logoutReq.flush({ success: true });
-
       expect(tokenService.hasSession()).toBeFalse();
-      expect(router.navigate).toHaveBeenCalledWith(['/login']);
+      expect(service.getCurrentUser()).toBeNull();
     });
   });
 

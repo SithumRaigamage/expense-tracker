@@ -5,6 +5,7 @@ import { Bill, BillTransaction } from '../core/models/Bill';
 import { AuthService } from './auth.service';
 import { environment } from '../../environments/environment';
 import { toUserMessage } from '../core/utils/http-error';
+import { WalletService } from './wallet.service';
 
 interface ApiResponse<T> {
   success: boolean;
@@ -43,6 +44,7 @@ interface ApiBill {
 export class BillsService {
   private readonly http = inject(HttpClient);
   private readonly authService = inject(AuthService);
+  private readonly walletService = inject(WalletService);
 
   private readonly apiUrl = `${environment.apiUrl}/bills`;
   private readonly bills = new BehaviorSubject<Bill[]>([]);
@@ -104,7 +106,7 @@ export class BillsService {
     return this.http.post<ApiResponse<ApiBill>>(this.apiUrl, this.toPayload(bill))
       .pipe(
         map(res => this.toBill(res.data)),
-        tap(() => this.loadBills()),
+        tap(() => { this.loadBills(); this.walletService.refresh(); }),
         catchError(this.fail('Could not add that bill.'))
       );
   }
@@ -113,7 +115,7 @@ export class BillsService {
     return this.http.put<ApiResponse<ApiBill>>(`${this.apiUrl}/${id}`, this.toPayload(updates))
       .pipe(
         map(res => this.toBill(res.data)),
-        tap(() => this.loadBills()),
+        tap(() => { this.loadBills(); this.walletService.refresh(); }),
         catchError(this.fail('Could not update that bill.'))
       );
   }
@@ -122,7 +124,7 @@ export class BillsService {
     return this.http.delete<ApiResponse<unknown>>(`${this.apiUrl}/${id}`)
       .pipe(
         map(() => void 0),
-        tap(() => this.loadBills()),
+        tap(() => { this.loadBills(); this.walletService.refresh(); }),
         catchError(this.fail('Could not delete that bill.'))
       );
   }
@@ -141,7 +143,7 @@ export class BillsService {
     })
       .pipe(
         map(res => this.toBill(res.data.bill)),
-        tap(() => this.loadBills()),
+        tap(() => { this.loadBills(); this.walletService.refresh(); }),
         catchError(this.fail('Could not pay that bill.'))
       );
   }
