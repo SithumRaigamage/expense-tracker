@@ -210,6 +210,78 @@ describe('Expense API', () => {
     });
   });
 
+  // Audit M3: soft-deleting a wallet made its expenses impossible to edit or
+  // delete, because every balance change required an active wallet.
+  describe('expenses in a deleted wallet', () => {
+    const deleteWallet = () =>
+      request(app).delete(`/api/v1/wallets/${walletId}`).set('Authorization', `Bearer ${token}`).expect(200);
+
+    it('can still be edited, and the (restorable) wallet keeps a true balance', async () => {
+      const created = await createExpense({ amount: 100 }).expect(201);
+      await deleteWallet();
+
+      await request(app)
+        .put(`/api/v1/expenses/${created.body.data._id}`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ amount: 300 })
+        .expect(200);
+
+      expect(await balanceOf(walletId)).toBe(STARTING_BALANCE - 300);
+    });
+
+    it('can still be deleted, refunding the wallet', async () => {
+      const created = await createExpense({ amount: 100 }).expect(201);
+      await deleteWallet();
+
+      await request(app)
+        .delete(`/api/v1/expenses/${created.body.data._id}`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      expect(await balanceOf(walletId)).toBe(STARTING_BALANCE);
+    });
+
+    it('can be moved out to an active wallet', async () => {
+      const created = await createExpense({ amount: 100 }).expect(201);
+      const active = await Wallet.create({
+        name: 'Active', type: 'bank', balance: 0, currency: 'LKR', user: created.body.data.user
+      });
+      await deleteWallet();
+
+      await request(app)
+        .put(`/api/v1/expenses/${created.body.data._id}`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ wallet: active._id })
+        .expect(200);
+
+      expect(await balanceOf(walletId)).toBe(STARTING_BALANCE);
+      expect(await balanceOf(active._id)).toBe(-100);
+    });
+
+    it('cannot receive new money', async () => {
+      await deleteWallet();
+      await createExpense({ amount: 50 }).expect(404);
+      expect(await balanceOf(walletId)).toBe(STARTING_BALANCE);
+    });
+
+    it('cannot have an entry moved into it', async () => {
+      const other = await Wallet.create({
+        name: 'Other', type: 'bank', balance: 500, currency: 'LKR', user: (await Wallet.findById(walletId)).user
+      });
+      const created = await createExpense({ amount: 100, wallet: other._id.toString() }).expect(201);
+      await deleteWallet();
+
+      await request(app)
+        .put(`/api/v1/expenses/${created.body.data._id}`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ wallet: walletId })
+        .expect(404);
+
+      expect(await balanceOf(other._id)).toBe(400);
+      expect(await balanceOf(walletId)).toBe(STARTING_BALANCE);
+    });
+  });
+
   describe('DELETE /api/v1/expenses/:id', () => {
     it('refunds the wallet when an expense is deleted', async () => {
       const created = await createExpense({ amount: 250 }).expect(201);

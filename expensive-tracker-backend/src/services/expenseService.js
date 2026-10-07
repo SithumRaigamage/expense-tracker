@@ -259,11 +259,14 @@ class ExpenseService {
     const newEffect = balanceEffect(category.type, updateData.amount ?? oldExpense.amount);
 
     const updated = await runInTransaction(async (opts) => {
+      // The entry's current wallet may have been deleted since (M3): it can still
+      // be edited or moved out. Only the destination must be active.
+      const existing = { ...opts, includeInactive: true };
       if (walletChanged) {
-        await WalletService.updateBalance(oldExpense.wallet, userId, -oldEffect, opts);
+        await WalletService.updateBalance(oldExpense.wallet, userId, -oldEffect, existing);
         await WalletService.updateBalance(updateData.wallet, userId, newEffect, opts);
       } else if (newEffect !== oldEffect) {
-        await WalletService.updateBalance(oldExpense.wallet, userId, newEffect - oldEffect, opts);
+        await WalletService.updateBalance(oldExpense.wallet, userId, newEffect - oldEffect, existing);
       }
 
       return Expense.findOneAndUpdate(
@@ -295,7 +298,11 @@ class ExpenseService {
 
     await runInTransaction(async (opts) => {
       // Revert wallet balance
-      await WalletService.updateBalance(expense.wallet, userId, -balanceEffect(expense.category.type, expense.amount), opts);
+      // Allowed for a deleted wallet too: the entry is its history (M3).
+      await WalletService.updateBalance(
+        expense.wallet, userId, -balanceEffect(expense.category.type, expense.amount),
+        { ...opts, includeInactive: true }
+      );
 
       await Expense.deleteOne({ _id: expenseId }, opts);
     });

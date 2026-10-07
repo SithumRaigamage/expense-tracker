@@ -310,14 +310,18 @@ class WalletService {
    * @param {Object} [options]
    * @param {import('mongoose').ClientSession} [options.session] - Transaction session
    * @param {boolean} [options.requireFunds=false] - Reject a debit larger than the balance
+   * @param {boolean} [options.includeInactive=false] - Also adjust a soft-deleted wallet.
+   *   Only for changes to entries the wallet already holds (editing or deleting
+   *   them): a deleted wallet can be restored, so its balance must keep matching
+   *   its history (audit M3). New money must never go into a deleted wallet.
    * @returns {Promise<Object>} Updated wallet
    */
-  static async updateBalance(walletId, userId, amount, { session, requireFunds = false } = {}) {
-    const filter = { _id: walletId, user: userId, isActive: true };
+  static async updateBalance(walletId, userId, amount, { session, requireFunds = false, includeInactive = false } = {}) {
+    const scope = includeInactive
+      ? { _id: walletId, user: userId }
+      : { _id: walletId, user: userId, isActive: true };
     const guarded = requireFunds && amount < 0;
-    if (guarded) {
-      filter.balance = { $gte: -amount };
-    }
+    const filter = guarded ? { ...scope, balance: { $gte: -amount } } : scope;
 
     const wallet = await Wallet.findOneAndUpdate(
       filter,
@@ -326,11 +330,8 @@ class WalletService {
     );
 
     if (!wallet) {
-      if (guarded) {
-        const exists = await Wallet.exists({ _id: walletId, user: userId, isActive: true }).session(session || null);
-        if (exists) {
-          throw new BadRequestError('Insufficient funds in the selected wallet');
-        }
+      if (guarded && await Wallet.exists(scope).session(session || null)) {
+        throw new BadRequestError('Insufficient funds in the selected wallet');
       }
       throw new NotFoundError('Wallet not found');
     }
