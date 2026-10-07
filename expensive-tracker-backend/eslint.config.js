@@ -50,7 +50,7 @@ module.exports = [
   },
   {
     // The startup banner is deliberate chalk output; seeds and tests report progress.
-    files: ['src/server.js', 'scripts/**', 'dummy-data/**', 'tests/**'],
+    files: ['src/server.js', 'scripts/**', 'tests/**'],
     rules: { 'no-console': 'off' }
   },
   {
