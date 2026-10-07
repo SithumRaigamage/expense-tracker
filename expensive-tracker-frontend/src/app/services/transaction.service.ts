@@ -2,7 +2,6 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { BehaviorSubject, Observable, map, tap, catchError, throwError, of } from 'rxjs';
 import { Transaction } from '../core/models/Transaction';
-import { ExpenseFlow } from './wallet.service';
 import { AuthService } from './auth.service';
 import { environment } from '../../environments/environment';
 
@@ -40,21 +39,6 @@ export interface ExpenseResponse {
   user: string;
   createdAt: string;
   updatedAt: string;
-}
-
-/** Nested category totals returned by /expenses/hierarchy. */
-export interface HierarchyNode {
-  name: string;
-  value?: number;
-  children?: HierarchyNode[];
-}
-
-/** One row of /expenses/breakdown. */
-export interface CategoryBreakdown {
-  category: string;
-  total: number;
-  count: number;
-  percentage?: number;
 }
 
 interface MonthlyStats {
@@ -528,46 +512,6 @@ export class TransactionService {
         tap(categories => {
           this.categories.next(categories);
         }),
-        catchError(this.handleError)
-      );
-  }
-
-  // Expense Breakdown Methods
-  getExpenseFlow(dateFilter: { startDate: string; endDate: string }): Observable<ExpenseFlow> {
-    const params = {
-      startDate: dateFilter.startDate,
-      endDate: dateFilter.endDate
-    };
-
-    return this.http.get<ApiResponse<ExpenseFlow>>(`${this.apiUrl}/expenses/flow`, { params })
-      .pipe(
-        map(response => response.data),
-        catchError(this.handleError)
-      );
-  }
-
-  getExpenseHierarchy(dateFilter: { startDate: string; endDate: string }): Observable<HierarchyNode> {
-    const params = {
-      startDate: dateFilter.startDate,
-      endDate: dateFilter.endDate
-    };
-
-    return this.http.get<ApiResponse<HierarchyNode>>(`${this.apiUrl}/expenses/hierarchy`, { params })
-      .pipe(
-        map(response => response.data),
-        catchError(this.handleError)
-      );
-  }
-
-  getDetailedBreakdown(dateFilter: { startDate: string; endDate: string }): Observable<CategoryBreakdown[]> {
-    const params = {
-      startDate: dateFilter.startDate,
-      endDate: dateFilter.endDate
-    };
-
-    return this.http.get<ApiResponse<CategoryBreakdown[]>>(`${this.apiUrl}/expenses/breakdown`, { params })
-      .pipe(
-        map(response => response.data),
         catchError(this.handleError)
       );
   }
