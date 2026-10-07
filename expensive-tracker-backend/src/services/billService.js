@@ -1,7 +1,9 @@
 const mongoose = require('mongoose');
 const Bill = require('../models/Bill');
 const Category = require('../models/Category');
+const Wallet = require('../models/Wallet');
 const WalletService = require('./walletService');
+const CurrencyService = require('./currencyService');
 const { NotFoundError, BadRequestError, ConflictError } = require('../utils/errors');
 const { runInTransaction } = require('../utils/transaction');
 const { getNextRunDate } = require('../utils/recurrence');
@@ -149,16 +151,31 @@ class BillService {
           { $set: { dueDate: bill.dueDate, paidAt: bill.paidAt, lastPaidDate: bill.lastPaidDate } }
         ));
 
-        // The funds check is inside the same atomic write as the debit.
-        const wallet = await WalletService.updateBalance(
-          targetWalletId, userId, -bill.amount, { ...opts, requireFunds: true }
+        const sourceWallet = await Wallet.findOne(
+          { _id: targetWalletId, user: userId, isActive: true },
+          null,
+          opts
         );
-        undo.push(() => WalletService.updateBalance(targetWalletId, userId, bill.amount, { includeInactive: true }));
+        if (!sourceWallet) {
+          throw new NotFoundError('Wallet not found');
+        }
+
+        // The funds check is inside the same atomic write as the debit. Bills
+        // are stored in their own currency, while wallet balances are native.
+        const walletAmount = await CurrencyService.convert(
+          bill.amount,
+          bill.currency || 'LKR',
+          sourceWallet.currency
+        );
+        const wallet = await WalletService.updateBalance(
+          targetWalletId, userId, -walletAmount, { ...opts, requireFunds: true }
+        );
+        undo.push(() => WalletService.updateBalance(targetWalletId, userId, walletAmount, { includeInactive: true }));
 
         const Expense = mongoose.model('Expense');
         const [expense] = await Expense.create([{
           title: bill.name,
-          amount: bill.amount,
+          amount: walletAmount,
           description: `${bill.name} — ${bill.provider}`,
           category: category._id,
           wallet: wallet._id,

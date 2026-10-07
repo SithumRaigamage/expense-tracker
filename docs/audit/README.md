@@ -3,8 +3,8 @@
 A full audit of the Expense Tracker covering security, data integrity, functional
 bugs, UI/UX, accessibility, infrastructure and repository hygiene.
 
-- **Audited revision:** `develop` @ `42d1cc2`
-- **Date:** 2026-10-06
+- **Audited revision:** working tree on `fix/m8-stats-split-by-type`
+- **Date:** 2026-10-07
 - **Scope:** `expensive-tracker-backend/`, `expensive-tracker-frontend/`, root
   Docker/nginx/CI configuration
 
@@ -51,13 +51,16 @@ Each finding is marked with how it was established:
 | H5 | Internal error messages returned to clients; 404s returned as 500 | 🟠 High | ✅ Fixed |
 | H6 | Sessions cannot be revoked; token lifetime ignores config | 🟠 High | ✅ Fixed |
 | H7 | Known-vulnerable dependencies | 🟠 High | ⚠️ Partially fixed |
-| M1–M8 | Money correctness | 🟡 Medium | ⏳ Open |
-| F1–F12 | Broken features | 🟡 Medium | ⏳ Open |
+| M1–M3, M5–M8 | Money correctness | 🟡 Medium | ✅ Fixed |
+| M4 | Cross-currency transfers and payments | 🟡 Medium | ⏳ Open |
+| F1, F12 | Broken features | 🟡 Medium | ✅ Fixed |
+| F2–F11 | Broken features | 🟡 Medium | ⏳ Open |
 | U1–U8 | UI/UX & accessibility | 🔵 Low | ⏳ Open (U1 resolved by C1) |
 | I1–I10 | Infra, CI & hygiene | 🔵 Low | ⏳ Open (I3 partially fixed) |
 
-Remediation for C1–H7 was done on branch `fix/security-audit-critical-high`.
-Each report records what changed and how it was verified. Regression tests live
+Remediation for C1–H7 was completed across the security-fix work and is being
+verified on the current branch. Each report records what changed and how it was
+verified. Regression tests live
 in `expensive-tracker-backend/tests/integration/security.test.js` and
 `tests/unit/trustProxy.test.js`.
 

@@ -2,7 +2,9 @@ const mongoose = require('mongoose');
 const ProductBudget = require('../models/ProductBudget');
 const Category = require('../models/Category');
 const Expense = require('../models/Expense');
+const User = require('../models/User');
 const WalletService = require('./walletService');
+const CurrencyService = require('./currencyService');
 const { NotFoundError, BadRequestError, ConflictError } = require('../utils/errors');
 const { runInTransaction } = require('../utils/transaction');
 
@@ -20,8 +22,12 @@ class ProductBudgetService {
    * @returns {Promise<Object>} Created product budget
    */
   static async createProductBudget(budgetData, userId) {
-    budgetData.user = userId;
-    return ProductBudget.create(budgetData);
+    const user = await User.findById(userId).select('currency');
+    return ProductBudget.create({
+      ...budgetData,
+      currency: budgetData.currency || user?.currency || 'LKR',
+      user: userId
+    });
   }
 
   /**
@@ -161,6 +167,12 @@ class ProductBudgetService {
       // Clamp server-side. The client caps the input too, but that check runs
       // against numbers it fetched earlier and cannot be trusted on its own.
       const applied = Math.min(requested, remaining);
+      const sourceWallet = await WalletService.getWallet(walletId, userId);
+      const walletAmount = await CurrencyService.convert(
+        applied,
+        budget.currency || 'LKR',
+        sourceWallet.currency
+      );
 
       // Without a transaction nothing rolls back on its own, so each completed
       // step registers how to undo itself; on failure they run in reverse.
@@ -183,8 +195,10 @@ class ProductBudgetService {
         undo.push(() => ProductBudget.updateOne({ _id: budgetId }, { $inc: { savedAmount: -applied } }));
 
         // Throws "Insufficient funds" (or "Wallet not found") before anything is committed.
-        const wallet = await WalletService.updateBalance(walletId, userId, -applied, { ...opts, requireFunds: true });
-        undo.push(() => WalletService.updateBalance(walletId, userId, applied, { includeInactive: true }));
+        const wallet = await WalletService.updateBalance(
+          walletId, userId, -walletAmount, { ...opts, requireFunds: true }
+        );
+        undo.push(() => WalletService.updateBalance(walletId, userId, walletAmount, { includeInactive: true }));
 
         // The money left the wallet, so it belongs in the history and the
         // analytics built from it (audit M6). The link to the goal is what lets
@@ -194,7 +208,7 @@ class ProductBudgetService {
         );
         await Expense.create([{
           title: `Savings: ${budget.name}`.slice(0, 100),
-          amount: applied,
+          amount: walletAmount,
           description: `Contribution to the "${budget.name}" goal`.slice(0, 500),
           category: category._id,
           wallet: walletId,

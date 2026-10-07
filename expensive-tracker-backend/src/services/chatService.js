@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Anthropic = require('@anthropic-ai/sdk');
 const Wallet = require('../models/Wallet');
 const Expense = require('../models/Expense');
@@ -42,19 +43,22 @@ const buildFinancialContext = async (userId) => {
   const since = new Date();
   since.setMonth(since.getMonth() - 3);
 
+  // Aggregation pipelines don't auto-cast strings to ObjectId (audit F6).
+  const userOid = new mongoose.Types.ObjectId(userId);
+
   const [wallets, goals, spendByCategory, recent] = await Promise.all([
     Wallet.find({ user: userId, isActive: true }).select('name type balance currency').lean(),
     ProductBudget.find({ user: userId, isActive: true })
       .select('name targetAmount savedAmount targetDate').lean(),
     Expense.aggregate([
-      { $match: { user: userId, date: { $gte: since } } },
+      { $match: { user: userOid, date: { $gte: since } } },
       { $group: { _id: '$category', total: { $sum: '$amount' }, count: { $sum: 1 } } },
       { $sort: { total: -1 } },
       { $limit: 12 },
       { $lookup: { from: 'categories', localField: '_id', foreignField: '_id', as: 'category' } },
       { $project: { name: { $arrayElemAt: ['$category.name', 0] }, total: 1, count: 1 } }
     ]),
-    Expense.find({ user: userId }).sort({ date: -1 }).limit(15)
+    Expense.find({ user: userOid }).sort({ date: -1 }).limit(15)
       .select('title amount date').lean()
   ]);
 

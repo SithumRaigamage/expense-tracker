@@ -5,13 +5,20 @@ const { handleValidation } = require('../middleware/authValidators');
  * Admin-only endpoints, but "admin" is not the same as "trusted to send a
  * well-formed body" — an unvalidated version string or date reaches Mongoose and
  * fails as a 500-shaped error instead of a 400 naming the field.
+ *
+ * The model's field is `date` — the UI sends `date`. This validator accepts
+ * `date` for the model and `releaseDate` for backwards compatibility (F5).
  */
 const validateReleaseNoteCreate = [
   body('version')
     .isString().withMessage('Version must be text').bail()
     .trim()
     .matches(/^\d+\.\d+\.\d+([-+][\w.]+)?$/).withMessage('Version must look like 1.2.3'),
+  body('date')
+    .optional()
+    .isISO8601().withMessage('Release date must be a valid date'),
   body('releaseDate')
+    .optional()
     .isISO8601().withMessage('Release date must be a valid date'),
   body('title')
     .optional()
@@ -30,6 +37,9 @@ const validateReleaseNoteUpdate = [
     .isString().withMessage('Version must be text').bail()
     .trim()
     .matches(/^\d+\.\d+\.\d+([-+][\w.]+)?$/).withMessage('Version must look like 1.2.3'),
+  body('date')
+    .optional()
+    .isISO8601().withMessage('Release date must be a valid date'),
   body('releaseDate')
     .optional()
     .isISO8601().withMessage('Release date must be a valid date'),
@@ -42,3 +52,4 @@ const validateReleaseNoteUpdate = [
 ];
 
 module.exports = { validateReleaseNoteCreate, validateReleaseNoteUpdate };
+

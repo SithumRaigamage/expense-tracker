@@ -352,21 +352,45 @@ class ExpenseService {
       if (endDate) matchStage.date.$lte = new Date(endDate);
     }
 
-    // Aggregation pipeline
+    // Join categories so income can be separated from expenses. A missing
+    // category is retained in the summary but cannot be classified as income.
     const stats = await Expense.aggregate([
       { $match: matchStage },
       {
+        $lookup: {
+          from: 'categories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'categoryInfo'
+        }
+      },
+      { $unwind: { path: '$categoryInfo', preserveNullAndEmptyArrays: true } },
+      {
         $group: {
           _id: null,
-          totalAmount: { $sum: '$amount' },
-          count: { $sum: 1 },
-          avgAmount: { $avg: '$amount' },
-          minAmount: { $min: '$amount' },
-          maxAmount: { $max: '$amount' }
+          totalIncome: {
+            $sum: { $cond: [{ $eq: ['$categoryInfo.type', 'income'] }, '$amount', 0] }
+          },
+          totalExpenses: {
+            $sum: { $cond: [{ $eq: ['$categoryInfo.type', 'expense'] }, '$amount', 0] }
+          },
+          expenseCount: {
+            $sum: { $cond: [{ $eq: ['$categoryInfo.type', 'expense'] }, 1, 0] }
+          },
+          expenseAvg: {
+            $avg: { $cond: [{ $eq: ['$categoryInfo.type', 'expense'] }, '$amount', null] }
+          },
+          expenseMin: {
+            $min: { $cond: [{ $eq: ['$categoryInfo.type', 'expense'] }, '$amount', null] }
+          },
+          expenseMax: {
+            $max: { $cond: [{ $eq: ['$categoryInfo.type', 'expense'] }, '$amount', null] }
+          }
         }
       }
     ]);
 
+    const summary = stats[0];
     // Stats by category
     const categoryStats = await Expense.aggregate([
       { $match: matchStage },
@@ -379,6 +403,7 @@ class ExpenseService {
         }
       },
       { $unwind: '$categoryInfo' },
+      { $match: { 'categoryInfo.type': 'expense' } },
       {
         $group: {
           _id: '$category',
@@ -392,19 +417,98 @@ class ExpenseService {
     ]);
 
     return {
-      summary: stats[0] || { totalAmount: 0, count: 0, avgAmount: 0, minAmount: 0, maxAmount: 0 },
+      summary: summary
+        ? {
+            totalAmount: summary.totalExpenses,
+            totalIncome: summary.totalIncome,
+            totalExpenses: summary.totalExpenses,
+            netSavings: summary.totalIncome - summary.totalExpenses,
+            count: summary.expenseCount,
+            avgAmount: summary.expenseAvg || 0,
+            minAmount: summary.expenseMin || 0,
+            maxAmount: summary.expenseMax || 0
+          }
+        : {
+            totalAmount: 0,
+            totalIncome: 0,
+            totalExpenses: 0,
+            netSavings: 0,
+            count: 0,
+            avgAmount: 0,
+            minAmount: 0,
+            maxAmount: 0
+          },
       byCategory: categoryStats
     };
   }
 
   /**
-   * Get monthly expenses breakdown
-   * @param {string} userId - User ID
-   * @param {number} year - Year to get data for
-   * @returns {Promise<Array>} Monthly data
+   * Get monthly expenses breakdown.
+   *
+   * When `month` is given (1-based), returns a single object matching the
+   * frontend's `MonthlyStats` contract:
+   *   { totalIncome, totalExpenses, netSavings, transactionCount }
+   *
+   * Without a month, returns a 12-element array for the yearly chart, each
+   * element containing `{ month, totalIncome, totalExpenses, netSavings, count }`.
+   *
+   * (Audit M8 — income and expenses were added together into one total.
+   *  Audit F1 — the widget expects the contract above, not the old array.)
+   *
+   * @param {string} userId
+   * @param {number} year
+   * @param {number} [month] - 1-based month number (optional)
+   * @returns {Promise<Object|Array>}
    */
-  static async getMonthlyStats(userId, year) {
+  static async getMonthlyStats(userId, year, month) {
     const currentYear = year || new Date().getFullYear();
+
+    // Single month requested — return the shape the Monthly Statistics widget expects.
+    if (month) {
+      const m = parseInt(month, 10);
+      const startDate = new Date(currentYear, m - 1, 1);
+      const endDate = new Date(currentYear, m, 0, 23, 59, 59);
+
+      const stats = await Expense.aggregate([
+        {
+          $match: {
+            user: new mongoose.Types.ObjectId(userId),
+            date: { $gte: startDate, $lte: endDate }
+          }
+        },
+        {
+          $lookup: {
+            from: 'categories',
+            localField: 'category',
+            foreignField: '_id',
+            as: 'categoryInfo'
+          }
+        },
+        { $unwind: { path: '$categoryInfo', preserveNullAndEmptyArrays: true } },
+        {
+          $group: {
+            _id: null,
+            totalIncome: {
+              $sum: { $cond: [{ $eq: ['$categoryInfo.type', 'income'] }, '$amount', 0] }
+            },
+            totalExpenses: {
+              $sum: { $cond: [{ $eq: ['$categoryInfo.type', 'expense'] }, '$amount', 0] }
+            },
+            transactionCount: { $sum: 1 }
+          }
+        }
+      ]);
+
+      const row = stats[0] || { totalIncome: 0, totalExpenses: 0, transactionCount: 0 };
+      return {
+        totalIncome: row.totalIncome,
+        totalExpenses: row.totalExpenses,
+        netSavings: row.totalIncome - row.totalExpenses,
+        transactionCount: row.transactionCount
+      };
+    }
+
+    // Full year — 12-element array for the yearly chart.
     const startDate = new Date(currentYear, 0, 1);
     const endDate = new Date(currentYear, 11, 31, 23, 59, 59);
 
@@ -416,22 +520,38 @@ class ExpenseService {
         }
       },
       {
+        $lookup: {
+          from: 'categories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'categoryInfo'
+        }
+      },
+      { $unwind: { path: '$categoryInfo', preserveNullAndEmptyArrays: true } },
+      {
         $group: {
           _id: { $month: '$date' },
-          total: { $sum: '$amount' },
+          totalIncome: {
+            $sum: { $cond: [{ $eq: ['$categoryInfo.type', 'income'] }, '$amount', 0] }
+          },
+          totalExpenses: {
+            $sum: { $cond: [{ $eq: ['$categoryInfo.type', 'expense'] }, '$amount', 0] }
+          },
           count: { $sum: 1 }
         }
       },
       { $sort: { _id: 1 } }
     ]);
 
-    // Fill in missing months with 0
+    // Fill in missing months with zeros
     const result = [];
     for (let i = 1; i <= 12; i++) {
       const existing = monthlyStats.find(s => s._id === i);
       result.push({
         month: i,
-        total: existing ? existing.total : 0,
+        totalIncome: existing ? existing.totalIncome : 0,
+        totalExpenses: existing ? existing.totalExpenses : 0,
+        netSavings: existing ? existing.totalIncome - existing.totalExpenses : 0,
         count: existing ? existing.count : 0
       });
     }

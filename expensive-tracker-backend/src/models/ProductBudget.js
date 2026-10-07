@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { CURRENCIES } = require('../config/constants');
 
 const productBudgetSchema = new mongoose.Schema(
   {
@@ -16,6 +17,11 @@ const productBudgetSchema = new mongoose.Schema(
       type: Number,
       required: [true, 'Target amount is required'],
       min: [1, 'Target amount must be greater than 0']
+    },
+    currency: {
+      type: String,
+      enum: CURRENCIES,
+      default: 'LKR'
     },
     savedAmount: {
       type: Number,

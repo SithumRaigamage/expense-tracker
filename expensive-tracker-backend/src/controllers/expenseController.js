@@ -116,8 +116,8 @@ const getMonthlyExpenses = asyncHandler(async (req, res) => {
  * @access  Private
  */
 const getMonthlyStats = asyncHandler(async (req, res) => {
-  const { year } = req.query;
-  const stats = await ExpenseService.getMonthlyStats(req.user.id, year);
+  const { year, month } = req.query;
+  const stats = await ExpenseService.getMonthlyStats(req.user.id, year, month);
   
   successResponse(res, stats);
 });

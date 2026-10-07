@@ -379,7 +379,12 @@ class WalletService {
 
       // 3. Move the money: atomic increments, never a save() of balances read above
       const debited = await WalletService.updateBalance(fromWalletId, userId, -amount, opts);
-      const credited = await WalletService.updateBalance(toWalletId, userId, amount, opts);
+      const destinationAmount = await CurrencyService.convert(
+        amount,
+        fromWallet.currency,
+        toWallet.currency
+      );
+      const credited = await WalletService.updateBalance(toWalletId, userId, destinationAmount, opts);
 
       // 4. Record both sides
       const Expense = mongoose.model('Expense');
@@ -393,7 +398,7 @@ class WalletService {
         date: new Date()
       }, {
         title: `Transfer from ${fromWallet.name}`,
-        amount,
+        amount: destinationAmount,
         description: description || `Transfer from ${fromWallet.name}`,
         category: transferInCat._id,
         wallet: toWalletId,

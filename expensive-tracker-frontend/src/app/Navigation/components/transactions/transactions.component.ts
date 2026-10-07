@@ -2,6 +2,7 @@ import { Component, OnInit, HostListener, DestroyRef, inject } from '@angular/co
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
+import { combineLatest } from 'rxjs';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { TransactionService } from '../../../services/transaction.service';
 import { WalletService } from '../../../services/wallet.service';
@@ -115,29 +116,27 @@ export class TransactionsComponent implements OnInit {
       this.applyFilters();
     });
 
-    // Handle query params
-    this.route.queryParams.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
-      if (params['walletType'] === 'emergencyfund') {
-        const checkWallets = () => {
-          const emergencyWallet = this.wallets.find(w => w.type === 'emergencyfund');
-          if (emergencyWallet) {
-            // Filter the list
-            this.filterForm.patchValue({ wallet: emergencyWallet.id });
-            
-            // If action is add, open the drawer
-            if (params['action'] === 'add') {
-              this.openDrawer();
-              this.transactionForm.get('walletId')?.setValue(emergencyWallet.id);
-              this.transactionForm.get('type')?.setValue('income');
-            }
-          } else if (this.wallets.length === 0) {
-            // Retry if wallets haven't loaded yet
-            setTimeout(checkWallets, 100);
-          }
-        };
-        checkWallets();
-      }
-    });
+    // Handle query params once the wallet stream has loaded.
+    combineLatest([this.route.queryParams, this.walletService.wallets$])
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(([params, wallets]) => {
+        if (params['walletType'] !== 'emergencyfund') {
+          return;
+        }
+
+        const emergencyWallet = wallets.find(wallet => wallet.type === 'emergencyfund');
+        if (!emergencyWallet) {
+          return;
+        }
+
+        this.filterForm.patchValue({ wallet: emergencyWallet.id });
+
+        if (params['action'] === 'add') {
+          this.openDrawer();
+          this.transactionForm.get('walletId')?.setValue(emergencyWallet.id);
+          this.transactionForm.get('type')?.setValue('income');
+        }
+      });
   }
 
   private loadTransactions() {
@@ -231,7 +230,7 @@ export class TransactionsComponent implements OnInit {
       // Find the category ID based on the category name
       const category = this.categories.find(cat => cat.name === transaction.category);
       const categoryId = category?._id || '';
-      
+
       this.transactionForm.patchValue({
         date: this.formatDateForInput(transaction.date),
         amount: transaction.amount,
@@ -243,7 +242,7 @@ export class TransactionsComponent implements OnInit {
     } else {
       // Set today's date as default for new transactions
       const today = new Date();
-      this.transactionForm.reset({ 
+      this.transactionForm.reset({
         type: 'expense',
         date: this.formatDateForInput(today)
       });
@@ -476,8 +475,8 @@ export class TransactionsComponent implements OnInit {
 
   exportTransactions() {
     if (this.allTransactions.length === 0) return;
-    
-    // We export filtered transactions or all transactions? 
+
+    // We export filtered transactions or all transactions?
     // Usually user expects filtered data if filtered, but "export" usually means the current view.
     // Let's export allTransactions but suggest filtered if needed.
     // User said "export all data into a exceel sheet", let's export all.

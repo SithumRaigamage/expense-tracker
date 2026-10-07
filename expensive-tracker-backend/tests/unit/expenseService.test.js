@@ -99,3 +99,52 @@ describe('ExpenseService.deleteExpense', () => {
     await expect(ExpenseService.deleteExpense('e1', 'u1')).rejects.toThrow('Expense not found');
   });
 });
+
+describe('ExpenseService.getExpenseStats', () => {
+  it('separates income from expense totals and category breakdowns', async () => {
+    Expense.aggregate
+      .mockResolvedValueOnce([{
+        totalIncome: 2500,
+        totalExpenses: 900,
+        expenseCount: 3,
+        expenseAvg: 300,
+        expenseMin: 100,
+        expenseMax: 500
+      }])
+      .mockResolvedValueOnce([
+        { _id: 'food', name: 'Food', color: '#fff', total: 600, count: 2 }
+      ]);
+
+    const result = await ExpenseService.getExpenseStats('507f1f77bcf86cd799439011', {});
+
+    expect(result.summary).toEqual({
+      totalAmount: 900,
+      totalIncome: 2500,
+      totalExpenses: 900,
+      netSavings: 1600,
+      count: 3,
+      avgAmount: 300,
+      minAmount: 100,
+      maxAmount: 500
+    });
+    expect(result.byCategory).toHaveLength(1);
+    expect(Expense.aggregate).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('ExpenseService.getMonthlyStats', () => {
+  it('returns income, expenses and net savings for one month', async () => {
+    Expense.aggregate.mockResolvedValueOnce([{
+      totalIncome: 2500,
+      totalExpenses: 900,
+      transactionCount: 4
+    }]);
+
+    await expect(ExpenseService.getMonthlyStats('507f1f77bcf86cd799439011', 2026, 1)).resolves.toEqual({
+      totalIncome: 2500,
+      totalExpenses: 900,
+      netSavings: 1600,
+      transactionCount: 4
+    });
+  });
+});

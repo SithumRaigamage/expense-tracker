@@ -121,7 +121,8 @@ export class WalletService {
     this.loading.next(true);
     this.error.next(null);
 
-    this.http.get<ApiResponse<ApiWallet[]>>(this.apiUrl, this.getHttpOptions())
+    // F2: the backend defaults to 10 wallets. Fetch all of them.
+    this.http.get<ApiResponse<ApiWallet[]>>(`${this.apiUrl}?limit=200`, this.getHttpOptions())
       .pipe(
         map(response => response.data.map(wallet => ({
           ...this.normaliseWallet(wallet),
