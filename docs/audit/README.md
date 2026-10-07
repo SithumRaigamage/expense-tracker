@@ -54,7 +54,7 @@ Each finding is marked with how it was established:
 | M1–M8 | Money correctness | 🟡 Medium | ⏳ Open |
 | F1–F12 | Broken features | 🟡 Medium | ⏳ Open |
 | U1–U8 | UI/UX & accessibility | 🔵 Low | ⏳ Open (U1 resolved by C1) |
-| I1–I10 | Infra, CI & hygiene | 🔵 Low | ⏳ Open |
+| I1–I10 | Infra, CI & hygiene | 🔵 Low | ⏳ Open (I3 partially fixed) |
 
 Remediation for C1–H7 was done on branch `fix/security-audit-critical-high`.
 Each report records what changed and how it was verified. Regression tests live
