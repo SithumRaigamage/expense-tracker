@@ -1,5 +1,9 @@
 jest.mock('../../src/models/Category');
+jest.mock('../../src/models/Expense');
+// No database here: run the transactional work directly.
+jest.mock('../../src/utils/transaction', () => ({ runInTransaction: (work) => work({}) }));
 const Category = require('../../src/models/Category');
+const Expense = require('../../src/models/Expense');
 const CategoryService = require('../../src/services/categoryService');
 
 beforeEach(() => jest.clearAllMocks());
@@ -67,14 +71,27 @@ describe('CategoryService.updateCategory', () => {
 });
 
 describe('CategoryService.deleteCategory', () => {
-  it('returns true when deleted', async () => {
-    Category.findOneAndDelete.mockResolvedValue({ _id: 'c1' });
-    await expect(CategoryService.deleteCategory('c1', 'u1')).resolves.toBe(true);
+  it('deletes an unused category', async () => {
+    Category.findOne.mockResolvedValue({ _id: 'c1', type: 'expense' });
+    Expense.countDocuments.mockResolvedValue(0);
+    Category.deleteOne.mockResolvedValue({});
+
+    await expect(CategoryService.deleteCategory('c1', 'u1')).resolves.toEqual({ reassigned: 0 });
+    expect(Category.deleteOne).toHaveBeenCalledWith({ _id: 'c1' }, {});
   });
 
-  it('throws NotFoundError when nothing was deleted', async () => {
-    Category.findOneAndDelete.mockResolvedValue(null);
+  it('throws NotFoundError for an unknown category', async () => {
+    Category.findOne.mockResolvedValue(null);
     await expect(CategoryService.deleteCategory('c1', 'u1')).rejects.toThrow('Category not found');
+    expect(Category.deleteOne).not.toHaveBeenCalled();
+  });
+
+  it('refuses to delete a category in use without somewhere to move its transactions', async () => {
+    Category.findOne.mockResolvedValue({ _id: 'c1', type: 'expense' });
+    Expense.countDocuments.mockResolvedValue(3);
+
+    await expect(CategoryService.deleteCategory('c1', 'u1')).rejects.toThrow('used by 3 transactions');
+    expect(Category.deleteOne).not.toHaveBeenCalled();
   });
 });
 

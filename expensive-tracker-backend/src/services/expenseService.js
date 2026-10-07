@@ -3,11 +3,18 @@ const Expense = require('../models/Expense');
 const Category = require('../models/Category');
 const Wallet = require('../models/Wallet');
 const WalletService = require('./walletService');
-const { NotFoundError, BadRequestError } = require('../utils/errors');
+const { NotFoundError, BadRequestError, ConflictError } = require('../utils/errors');
 const { runInTransaction } = require('../utils/transaction');
 
 /** Signed change an entry makes to its wallet: income adds, expense subtracts. */
 const balanceEffect = (categoryType, amount) => (categoryType === 'income' ? amount : -amount);
+
+// Entries whose category was deleted before deletes were guarded (audit M2).
+// Nothing records whether they were income or expense, so their effect on the
+// balance can't be reverted; they have to be given a category first.
+const ORPHANED_MESSAGE =
+  "This transaction's category no longer exists. Assign it a category first, " +
+  'so its effect on the wallet balance is known.';
 
 /**
  * Service layer for expense operations
@@ -200,9 +207,14 @@ class ExpenseService {
       throw new NotFoundError('Expense not found');
     }
 
+    const orphaned = !oldExpense.category;
+    if (orphaned && !updateData.category) {
+      throw new ConflictError(ORPHANED_MESSAGE);
+    }
+
     // If updating category, verify it exists/belongs to user
     let category = oldExpense.category;
-    if (updateData.category && updateData.category.toString() !== oldExpense.category._id.toString()) {
+    if (updateData.category && (orphaned || updateData.category.toString() !== oldExpense.category._id.toString())) {
       category = await Category.findOne({
         _id: updateData.category,
         user: userId
@@ -239,7 +251,11 @@ class ExpenseService {
     // Amount, wallet and category can each change that effect, so compare the
     // whole effect rather than checking which fields changed: a category moving
     // between an expense and an income type flips the sign on its own (M1).
-    const oldEffect = balanceEffect(oldExpense.category.type, oldExpense.amount);
+    //
+    // An orphan's original type is unknown. Giving it a category is a label
+    // repair that assumes that type, so only an amount or wallet change moves money.
+    const oldType = orphaned ? category.type : oldExpense.category.type;
+    const oldEffect = balanceEffect(oldType, oldExpense.amount);
     const newEffect = balanceEffect(category.type, updateData.amount ?? oldExpense.amount);
 
     const updated = await runInTransaction(async (opts) => {
@@ -272,6 +288,9 @@ class ExpenseService {
     const expense = await Expense.findOne({ _id: expenseId, user: userId }).populate('category');
     if (!expense) {
       throw new NotFoundError('Expense not found');
+    }
+    if (!expense.category) {
+      throw new ConflictError(ORPHANED_MESSAGE);
     }
 
     await runInTransaction(async (opts) => {

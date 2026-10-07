@@ -374,17 +374,15 @@ describe('H5 — errors use the right status and hide internals', () => {
 
   it('does not leak the message of an unexpected error', async () => {
     const { cookie } = await signUp('h5');
-    const category = (await request(app).post('/api/v1/categories').set('Cookie', cookie)
-      .send({ name: `Temp-${Date.now()}`, type: 'expense' })).body.data;
-    const wallet = (await request(app).post('/api/v1/wallets').set('Cookie', cookie)
-      .send({ name: 'W', type: 'cash', balance: 10 })).body.data;
-    const expense = (await request(app).post('/api/v1/expenses').set('Cookie', cookie)
-      .send({ amount: 1, category: category._id, wallet: wallet._id })).body.data;
+    // Any unexpected failure inside a handler: a programming error whose
+    // message names internals. (This used to rely on the M2 orphaned-category
+    // crash, which is fixed.)
+    const ExpenseService = require('../../src/services/expenseService');
+    const spy = jest.spyOn(ExpenseService, 'getExpenses')
+      .mockRejectedValueOnce(new TypeError("Cannot read properties of null (reading 'type') at internal/stack"));
 
-    // Deleting the category orphans the expense, which still crashes deletion
-    // (open finding M2). Whatever the status, internals must not reach the client.
-    await request(app).delete(`/api/v1/categories/${category._id}`).set('Cookie', cookie);
-    const res = await request(app).delete(`/api/v1/expenses/${expense._id}`).set('Cookie', cookie);
+    const res = await request(app).get('/api/v1/expenses').set('Cookie', cookie);
+    spy.mockRestore();
 
     expect(res.status).toBe(500);
     expect(res.body.error).toBe('Server Error');
